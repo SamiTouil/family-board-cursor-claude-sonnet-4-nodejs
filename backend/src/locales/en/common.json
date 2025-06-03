@@ -1,0 +1,14 @@
+{
+  "errors": {
+    "userNotFound": "User not found",
+    "emailAlreadyExists": "Email already exists",
+    "invalidCredentials": "Invalid credentials",
+    "validationError": "Validation error",
+    "internalServerError": "Internal server error"
+  },
+  "success": {
+    "userCreated": "User created successfully",
+    "userUpdated": "User updated successfully",
+    "userDeleted": "User deleted successfully"
+  }
+} 
