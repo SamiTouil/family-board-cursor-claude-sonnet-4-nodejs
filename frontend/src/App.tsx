@@ -1,19 +1,34 @@
-import { useTranslation } from 'react-i18next'
-import './App.css'
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthPage } from './components/auth/AuthPage';
+import { Dashboard } from './components/Dashboard';
+import { LoadingSpinner } from './components/LoadingSpinner';
+import './App.css';
+
+const AppContent: React.FC = () => {
+  const { isAuthenticated, loading } = useAuth();
+  const { t } = useTranslation();
+
+  if (loading) {
+    return (
+      <div className="app-loading">
+        <LoadingSpinner size="large" message={t('common.loading')} />
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <Dashboard /> : <AuthPage />;
+};
 
 function App(): JSX.Element {
-  const { t } = useTranslation()
-
   return (
     <div className="app">
-      <header className="app-header">
-        <h1 className="app-title">{t('app.title')}</h1>
-      </header>
-      <main className="app-main">
-        {/* Content will be added here */}
-      </main>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </div>
-  )
+  );
 }
 
-export default App 
+export default App; 

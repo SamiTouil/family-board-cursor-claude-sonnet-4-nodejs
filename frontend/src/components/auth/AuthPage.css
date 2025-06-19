@@ -1,0 +1,132 @@
+/* Auth Page Styles */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem;
+}
+
+.auth-page-background {
+  width: 100%;
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  min-height: 600px;
+}
+
+.auth-page-content {
+  display: contents;
+}
+
+.auth-page-brand {
+  color: #ffffff;
+  text-align: center;
+  padding: 2rem;
+}
+
+.auth-page-brand-title {
+  font-size: 3rem;
+  font-weight: 800;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.auth-page-brand-subtitle {
+  font-size: 1.25rem;
+  font-weight: 300;
+  margin: 0;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.auth-page-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .auth-page-background {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    max-width: 500px;
+  }
+  
+  .auth-page-brand {
+    order: 2;
+    padding: 1rem;
+  }
+  
+  .auth-page-brand-title {
+    font-size: 2.5rem;
+  }
+  
+  .auth-page-brand-subtitle {
+    font-size: 1.125rem;
+  }
+  
+  .auth-page-form {
+    order: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-page {
+    padding: 0.5rem;
+  }
+  
+  .auth-page-background {
+    min-height: auto;
+    gap: 1rem;
+  }
+  
+  .auth-page-brand-title {
+    font-size: 2rem;
+  }
+  
+  .auth-page-brand-subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* Animation for smooth transitions */
+.auth-page-form {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.auth-page-brand {
+  animation: fadeInLeft 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .auth-page-brand {
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+  }
+} 

@@ -24,7 +24,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('authToken');
-      // Redirect to login or refresh token
+      localStorage.removeItem('authUser');
+      // Redirect to login will be handled by auth context
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
@@ -40,7 +42,7 @@ export interface User {
   updatedAt: string;
 }
 
-export interface CreateUserData {
+export interface SignupData {
   firstName: string;
   lastName: string;
   email: string;
@@ -53,25 +55,49 @@ export interface LoginData {
   password: string;
 }
 
-export interface LoginResponse {
+export interface AuthResponse {
   user: User;
   token: string;
 }
 
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
+export interface ApiError {
+  message: string;
+  code?: string;
+}
+
+// Authentication API
+export const authApi = {
+  signup: (data: SignupData): Promise<{ data: ApiResponse<AuthResponse> }> =>
+    api.post('/auth/signup', data),
+  
+  login: (data: LoginData): Promise<{ data: ApiResponse<AuthResponse> }> =>
+    api.post('/auth/login', data),
+  
+  logout: (): Promise<{ data: ApiResponse<{ message: string }> }> =>
+    api.post('/auth/logout'),
+  
+  refresh: (): Promise<{ data: ApiResponse<{ token: string }> }> =>
+    api.post('/auth/refresh'),
+  
+  getMe: (): Promise<{ data: ApiResponse<User> }> =>
+    api.get('/auth/me'),
+};
+
+// User API (protected routes)
 export const userApi = {
-  create: (data: CreateUserData): Promise<{ data: { data: User } }> =>
-    api.post('/users', data),
-  
-  login: (data: LoginData): Promise<{ data: { data: LoginResponse } }> =>
-    api.post('/users/login', data),
-  
-  getById: (id: string): Promise<{ data: { data: User } }> =>
+  getById: (id: string): Promise<{ data: ApiResponse<User> }> =>
     api.get(`/users/${id}`),
   
-  update: (id: string, data: Partial<CreateUserData>): Promise<{ data: { data: User } }> =>
+  update: (id: string, data: Partial<SignupData>): Promise<{ data: ApiResponse<User> }> =>
     api.put(`/users/${id}`, data),
   
-  delete: (id: string): Promise<{ data: { success: boolean } }> =>
+  delete: (id: string): Promise<{ data: ApiResponse<{ message: string }> }> =>
     api.delete(`/users/${id}`),
 };
 
