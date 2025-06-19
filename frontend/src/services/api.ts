@@ -23,10 +23,13 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('authUser');
-      // Redirect to login will be handled by auth context
-      window.location.href = '/login';
+      // Only clear auth data and redirect if this is NOT a login attempt
+      if (!error.config?.url?.includes('/auth/login')) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authUser');
+        // Redirect to login will be handled by auth context
+        window.location.href = '/';
+      }
     }
     return Promise.reject(error);
   }

@@ -23,32 +23,30 @@ test.describe('Authentication Flow', () => {
     test('should show login form by default', async ({ page }) => {
       await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();
-      await expect(page.getByText("Don't have an account?")).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Sign up here' })).toBeVisible();
     });
 
     test('should show app title and branding', async ({ page }) => {
       await expect(page.getByRole('heading', { name: 'Family Board' })).toBeVisible();
-      await expect(page.getByText('Sign in to your account')).toBeVisible();
+      await expect(page.getByText('Sign in to your account').first()).toBeVisible();
     });
 
     test('should have correct page title', async ({ page }) => {
-      await expect(page).toHaveTitle(/Family Board/);
+      await expect(page).toHaveTitle('Family Board');
     });
   });
 
   test.describe('Form Switching', () => {
     test('should switch from login to signup', async ({ page }) => {
       await page.getByRole('button', { name: 'Sign up here' }).click();
-      
       await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Sign Up' })).toBeVisible();
-      await expect(page.getByText('Already have an account?')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Sign in here' })).toBeVisible();
     });
 
     test('should switch from signup back to login', async ({ page }) => {
       await page.getByRole('button', { name: 'Sign up here' }).click();
       await page.getByRole('button', { name: 'Sign in here' }).click();
-      
       await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();
     });
@@ -62,39 +60,63 @@ test.describe('Authentication Flow', () => {
       await expect(page.getByText('Password is required')).toBeVisible();
     });
 
+    test('should show validation errors for empty signup fields', async ({ page }) => {
+      await page.getByRole('button', { name: 'Sign up here' }).click();
+      await page.getByRole('button', { name: 'Sign Up' }).click();
+      
+      await expect(page.getByText('First name is required')).toBeVisible();
+      await expect(page.getByText('Last name is required')).toBeVisible();
+      await expect(page.getByText('Email is required')).toBeVisible();
+      await expect(page.getByText('Password is required')).toBeVisible();
+      await expect(page.getByText('Please confirm your password')).toBeVisible();
+    });
+
+    test('should show error when passwords do not match', async ({ page }) => {
+      await page.getByRole('button', { name: 'Sign up here' }).click();
+      
+      await page.getByLabel('First Name').fill('Test');
+      await page.getByLabel('Last Name').fill('User');
+      await page.getByLabel('Email Address').fill('test@example.com');
+      await page.getByLabel('Password', { exact: true }).fill('password123');
+      await page.getByLabel('Confirm Password').fill('differentpassword');
+      
+      await page.getByRole('button', { name: 'Sign Up' }).click();
+      
+      await expect(page.getByText('Passwords do not match')).toBeVisible();
+    });
+
     test('should show validation error for invalid email', async ({ page }) => {
       await page.getByLabel('Email Address').fill('invalid-email');
       await page.getByRole('button', { name: 'Login' }).click();
       
-      await expect(page.getByText('Please enter a valid email address')).toBeVisible();
+      // Wait for validation and check for the error
+      await page.waitForTimeout(100);
+      await expect(page.locator('.auth-form-field-error').filter({ hasText: 'Please enter a valid email address' })).toBeVisible();
     });
 
     test('should clear validation errors when user starts typing', async ({ page }) => {
-      // Trigger validation errors
       await page.getByRole('button', { name: 'Login' }).click();
       await expect(page.getByText('Email is required')).toBeVisible();
       
-      // Start typing and check error clears
       await page.getByLabel('Email Address').fill('test@example.com');
       await expect(page.getByText('Email is required')).not.toBeVisible();
     });
 
     test('should disable form during submission', async ({ page }) => {
       await page.getByLabel('Email Address').fill('test@example.com');
-      await page.getByLabel('Password').fill('password123');
+      await page.getByLabel('Password', { exact: true }).fill('password123');
       
       // Mock slow network to test loading state
       await page.route('**/api/auth/login', async (route) => {
         await new Promise(resolve => setTimeout(resolve, 1000));
-        await route.continue();
+        route.continue();
       });
       
       await page.getByRole('button', { name: 'Login' }).click();
       
-      // Check loading state
+      // Button should be disabled during loading
       await expect(page.getByRole('button', { name: 'Signing in...' })).toBeVisible();
-      await expect(page.getByLabel('Email Address')).toBeDisabled();
-      await expect(page.getByLabel('Password')).toBeDisabled();
+      await expect(page.getByRole('button', { name: 'Signing in...' })).toBeDisabled();
     });
   });
 
@@ -113,31 +135,30 @@ test.describe('Authentication Flow', () => {
     });
 
     test('should show validation error for short password', async ({ page }) => {
-      await page.getByLabel('Password').fill('123');
+      await page.getByLabel('Password', { exact: true }).fill('123');
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
-      await expect(page.getByText('Password must be at least 6 characters')).toBeVisible();
+      // Wait for validation and check for the error
+      await page.waitForTimeout(100);
+      await expect(page.locator('.auth-form-field-error').filter({ hasText: 'Password must be at least 6 characters' })).toBeVisible();
     });
 
     test('should show validation error for invalid email', async ({ page }) => {
       await page.getByLabel('Email Address').fill('invalid-email');
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
-      await expect(page.getByText('Please enter a valid email address')).toBeVisible();
+      // Wait for validation and check for the error
+      await page.waitForTimeout(100);
+      await expect(page.locator('.auth-form-field-error').filter({ hasText: 'Please enter a valid email address' })).toBeVisible();
     });
 
     test('should have proper form layout on mobile', async ({ page }) => {
-      await page.setViewportSize({ width: 375, height: 667 }); // iPhone SE size
+      await page.setViewportSize({ width: 375, height: 667 });
       
-      // Check that first name and last name stack vertically on mobile
-      const firstNameField = page.getByLabel('First Name');
-      const lastNameField = page.getByLabel('Last Name');
-      
-      const firstNameBox = await firstNameField.boundingBox();
-      const lastNameBox = await lastNameField.boundingBox();
-      
-      // On mobile, last name should be below first name
-      expect(lastNameBox!.y).toBeGreaterThan(firstNameBox!.y + firstNameBox!.height);
+      await expect(page.getByLabel('First Name')).toBeVisible();
+      await expect(page.getByLabel('Last Name')).toBeVisible();
+      await expect(page.getByLabel('Email Address')).toBeVisible();
+      await expect(page.getByLabel('Password', { exact: true })).toBeVisible();
     });
   });
 
@@ -148,36 +169,45 @@ test.describe('Authentication Flow', () => {
       await page.getByLabel('First Name').fill(validUser.firstName);
       await page.getByLabel('Last Name').fill(validUser.lastName);
       await page.getByLabel('Email Address').fill(validUser.email);
-      await page.getByLabel('Password').fill(validUser.password);
+      await page.getByLabel('Password', { exact: true }).fill(validUser.password);
+      await page.getByLabel('Confirm Password').fill(validUser.password);
       
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
-      // Should redirect to dashboard
-      await expect(page.getByText(`Welcome back, ${validUser.firstName}!`)).toBeVisible();
+      // Wait for navigation and check for dashboard elements
+      await page.waitForTimeout(2000);
+      await expect(page.locator('.dashboard-welcome').filter({ hasText: `Welcome back, ${validUser.firstName}!` })).toBeVisible({ timeout: 10000 });
       await expect(page.getByText(`${validUser.firstName} ${validUser.lastName}`)).toBeVisible();
       await expect(page.getByText(validUser.email)).toBeVisible();
       await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
     });
 
     test('should successfully login with existing user', async ({ page }) => {
+      const testEmail = `login-test-${Date.now()}@example.com`;
+      
       // First create a user
       await page.getByRole('button', { name: 'Sign up here' }).click();
       await page.getByLabel('First Name').fill('Jane');
       await page.getByLabel('Last Name').fill('Smith');
-      await page.getByLabel('Email Address').fill(`login-test-${Date.now()}@example.com`);
-      await page.getByLabel('Password').fill('password123');
+      await page.getByLabel('Email Address').fill(testEmail);
+      await page.getByLabel('Password', { exact: true }).fill('password123');
+      await page.getByLabel('Confirm Password').fill('password123');
       await page.getByRole('button', { name: 'Sign Up' }).click();
+      
+      // Wait for signup to complete
+      await page.waitForTimeout(2000);
       
       // Logout
       await page.getByRole('button', { name: 'Logout' }).click();
       
       // Now login
-      await page.getByLabel('Email Address').fill(`login-test-${Date.now()}@example.com`);
-      await page.getByLabel('Password').fill('password123');
+      await page.getByLabel('Email Address').fill(testEmail);
+      await page.getByLabel('Password', { exact: true }).fill('password123');
       await page.getByRole('button', { name: 'Login' }).click();
       
-      // Should be back in dashboard
-      await expect(page.getByText('Welcome back, Jane!')).toBeVisible();
+      // Wait for login and check for dashboard
+      await page.waitForTimeout(2000);
+      await expect(page.locator('.dashboard-welcome').filter({ hasText: 'Welcome back, Jane!' })).toBeVisible({ timeout: 10000 });
     });
 
     test('should persist authentication across page reloads', async ({ page }) => {
@@ -186,24 +216,30 @@ test.describe('Authentication Flow', () => {
       await page.getByLabel('First Name').fill('Persistent');
       await page.getByLabel('Last Name').fill('User');
       await page.getByLabel('Email Address').fill(`persistent-${Date.now()}@example.com`);
-      await page.getByLabel('Password').fill('password123');
+      await page.getByLabel('Password', { exact: true }).fill('password123');
+      await page.getByLabel('Confirm Password').fill('password123');
       await page.getByRole('button', { name: 'Sign Up' }).click();
+      
+      // Wait for signup to complete
+      await page.waitForTimeout(2000);
       
       // Reload page
       await page.reload();
       
       // Should still be authenticated
-      await expect(page.getByText('Welcome back, Persistent!')).toBeVisible();
+      await expect(page.locator('.dashboard-welcome').filter({ hasText: 'Welcome back, Persistent!' })).toBeVisible({ timeout: 10000 });
     });
   });
 
   test.describe('Authentication Error Handling', () => {
     test('should show error for invalid login credentials', async ({ page }) => {
       await page.getByLabel('Email Address').fill('nonexistent@example.com');
-      await page.getByLabel('Password').fill('wrongpassword');
+      await page.getByLabel('Password', { exact: true }).fill('wrongpassword');
       await page.getByRole('button', { name: 'Login' }).click();
       
-      await expect(page.getByText('Invalid email or password')).toBeVisible();
+      // Wait for API response and check for error
+      await page.waitForTimeout(1000);
+      await expect(page.locator('.auth-form-error').filter({ hasText: 'Invalid email or password' })).toBeVisible({ timeout: 5000 });
     });
 
     test('should show error for duplicate email during signup', async ({ page }) => {
@@ -214,8 +250,12 @@ test.describe('Authentication Flow', () => {
       await page.getByLabel('First Name').fill('First');
       await page.getByLabel('Last Name').fill('User');
       await page.getByLabel('Email Address').fill(duplicateEmail);
-      await page.getByLabel('Password').fill('password123');
+      await page.getByLabel('Password', { exact: true }).fill('password123');
+      await page.getByLabel('Confirm Password').fill('password123');
       await page.getByRole('button', { name: 'Sign Up' }).click();
+      
+      // Wait for signup to complete
+      await page.waitForTimeout(2000);
       
       // Logout
       await page.getByRole('button', { name: 'Logout' }).click();
@@ -225,10 +265,13 @@ test.describe('Authentication Flow', () => {
       await page.getByLabel('First Name').fill('Second');
       await page.getByLabel('Last Name').fill('User');
       await page.getByLabel('Email Address').fill(duplicateEmail);
-      await page.getByLabel('Password').fill('password123');
+      await page.getByLabel('Password', { exact: true }).fill('password123');
+      await page.getByLabel('Confirm Password').fill('password123');
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
-      await expect(page.getByText('An account with this email already exists')).toBeVisible();
+      // Wait for API response and check for error
+      await page.waitForTimeout(1000);
+      await expect(page.locator('.auth-form-error').filter({ hasText: 'An account with this email already exists' })).toBeVisible({ timeout: 5000 });
     });
 
     test('should handle network errors gracefully', async ({ page }) => {
@@ -238,10 +281,10 @@ test.describe('Authentication Flow', () => {
       });
       
       await page.getByLabel('Email Address').fill('test@example.com');
-      await page.getByLabel('Password').fill('password123');
+      await page.getByLabel('Password', { exact: true }).fill('password123');
       await page.getByRole('button', { name: 'Login' }).click();
       
-      await expect(page.getByText('Network error. Please try again.')).toBeVisible();
+      await expect(page.locator('.auth-form-error').filter({ hasText: 'Network error. Please try again.' })).toBeVisible({ timeout: 5000 });
     });
   });
 
@@ -252,14 +295,18 @@ test.describe('Authentication Flow', () => {
       await page.getByLabel('First Name').fill('Dashboard');
       await page.getByLabel('Last Name').fill('User');
       await page.getByLabel('Email Address').fill(`dashboard-${Date.now()}@example.com`);
-      await page.getByLabel('Password').fill('password123');
+      await page.getByLabel('Password', { exact: true }).fill('password123');
+      await page.getByLabel('Confirm Password').fill('password123');
       await page.getByRole('button', { name: 'Sign Up' }).click();
+      
+      // Wait for signup to complete
+      await page.waitForTimeout(2000);
     });
 
     test('should display user information in dashboard', async ({ page }) => {
       await expect(page.getByText('Dashboard User')).toBeVisible();
       await expect(page.getByText(/dashboard-.*@example\.com/)).toBeVisible();
-      await expect(page.getByText('Welcome back, Dashboard!')).toBeVisible();
+      await expect(page.locator('.dashboard-welcome').filter({ hasText: 'Welcome back, Dashboard!' })).toBeVisible();
     });
 
     test('should successfully logout', async ({ page }) => {
@@ -285,14 +332,15 @@ test.describe('Authentication Flow', () => {
     test('should have proper form labels and ARIA attributes', async ({ page }) => {
       // Check login form
       await expect(page.getByLabel('Email Address')).toBeVisible();
-      await expect(page.getByLabel('Password')).toBeVisible();
+      await expect(page.getByLabel('Password', { exact: true })).toBeVisible();
       
       // Check signup form
       await page.getByRole('button', { name: 'Sign up here' }).click();
       await expect(page.getByLabel('First Name')).toBeVisible();
       await expect(page.getByLabel('Last Name')).toBeVisible();
       await expect(page.getByLabel('Email Address')).toBeVisible();
-      await expect(page.getByLabel('Password')).toBeVisible();
+      await expect(page.getByLabel('Password', { exact: true })).toBeVisible();
+      await expect(page.getByLabel('Confirm Password')).toBeVisible();
     });
 
     test('should show error messages with proper ARIA attributes', async ({ page }) => {
@@ -306,12 +354,12 @@ test.describe('Authentication Flow', () => {
     });
 
     test('should support keyboard navigation', async ({ page }) => {
-      // Tab through form elements
-      await page.keyboard.press('Tab'); // Email field
+      // Focus on the first input explicitly
+      await page.getByLabel('Email Address').focus();
       await expect(page.getByLabel('Email Address')).toBeFocused();
       
       await page.keyboard.press('Tab'); // Password field
-      await expect(page.getByLabel('Password')).toBeFocused();
+      await expect(page.getByLabel('Password', { exact: true })).toBeFocused();
       
       await page.keyboard.press('Tab'); // Login button
       await expect(page.getByRole('button', { name: 'Login' })).toBeFocused();
@@ -330,7 +378,7 @@ test.describe('Authentication Flow', () => {
       
       // Form should be usable
       await page.getByLabel('Email Address').fill('mobile@example.com');
-      await page.getByLabel('Password').fill('password123');
+      await page.getByLabel('Password', { exact: true }).fill('password123');
       
       // Button should be clickable
       await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();

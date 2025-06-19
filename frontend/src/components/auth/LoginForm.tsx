@@ -77,7 +77,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup }) => {
         <p className="auth-form-subtitle">{t('auth.loginSubtitle')}</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="auth-form">
+      <form onSubmit={handleSubmit} className="auth-form" noValidate>
         {apiError && (
           <div className="auth-form-error" role="alert">
             {apiError}

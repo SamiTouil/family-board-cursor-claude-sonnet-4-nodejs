@@ -45,7 +45,7 @@ export const Dashboard: React.FC = () => {
       <main className="dashboard-main">
         <div className="dashboard-welcome">
           <h2 className="dashboard-welcome-title">
-            {t('auth.welcomeBack')}, {user.firstName}!
+            Welcome back, {user.firstName}!
           </h2>
           <p className="dashboard-welcome-text">
             Welcome to your family board. This is where you'll manage your family's tasks and activities.

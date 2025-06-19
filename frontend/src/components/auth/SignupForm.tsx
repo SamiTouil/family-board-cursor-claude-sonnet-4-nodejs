@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
-import { SignupData } from '../../services/api';
 import './AuthForm.css';
+
+interface SignupData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
 
 interface SignupFormProps {
   onSwitchToLogin: () => void;
@@ -16,32 +23,39 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     lastName: '',
     email: '',
     password: '',
+    confirmPassword: '',
   });
-  const [errors, setErrors] = useState<Partial<SignupData>>({});
+  const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string>('');
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<SignupData> = {};
+    const newErrors: Record<string, string | undefined> = {};
 
     if (!formData.firstName.trim()) {
-      newErrors.firstName = t('auth.firstNameRequired');
+      newErrors['firstName'] = t('auth.firstNameRequired');
     }
 
     if (!formData.lastName.trim()) {
-      newErrors.lastName = t('auth.lastNameRequired');
+      newErrors['lastName'] = t('auth.lastNameRequired');
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = t('auth.emailRequired');
+      newErrors['email'] = t('auth.emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = t('auth.emailInvalid');
+      newErrors['email'] = t('auth.emailInvalid');
     }
 
     if (!formData.password) {
-      newErrors.password = t('auth.passwordRequired');
+      newErrors['password'] = t('auth.passwordRequired');
     } else if (formData.password.length < 6) {
-      newErrors.password = t('auth.passwordTooShort');
+      newErrors['password'] = t('auth.passwordTooShort');
+    }
+
+    if (!formData.confirmPassword) {
+      newErrors['confirmPassword'] = t('auth.confirmPasswordRequired');
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors['confirmPassword'] = t('auth.passwordsDoNotMatch');
     }
 
     setErrors(newErrors);
@@ -58,7 +72,9 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
 
     setIsLoading(true);
     try {
-      await signup(formData);
+      // Remove confirmPassword from the data sent to the API
+      const { confirmPassword, ...signupData } = formData;
+      await signup(signupData);
       // Redirect will be handled by the parent component/router
     } catch (error: any) {
       setApiError(error.message);
@@ -72,8 +88,17 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     
     // Clear field error when user starts typing
-    if (errors[name as keyof SignupData]) {
+    if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+    
+    // Clear confirm password error if password fields now match
+    if (name === 'password' || name === 'confirmPassword') {
+      if (name === 'password' && formData.confirmPassword && value === formData.confirmPassword) {
+        setErrors(prev => ({ ...prev, ['confirmPassword']: undefined }));
+      } else if (name === 'confirmPassword' && formData.password && value === formData.password) {
+        setErrors(prev => ({ ...prev, ['confirmPassword']: undefined }));
+      }
     }
     
     // Clear API error when user makes changes
@@ -89,7 +114,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
         <p className="auth-form-subtitle">{t('auth.signupSubtitle')}</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="auth-form">
+      <form onSubmit={handleSubmit} className="auth-form" noValidate>
         {apiError && (
           <div className="auth-form-error" role="alert">
             {apiError}
@@ -107,14 +132,14 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               name="firstName"
               value={formData.firstName}
               onChange={handleInputChange}
-              className={`auth-form-input ${errors.firstName ? 'auth-form-input-error' : ''}`}
+              className={`auth-form-input ${errors['firstName'] ? 'auth-form-input-error' : ''}`}
               disabled={isLoading}
               autoComplete="given-name"
               autoFocus
             />
-            {errors.firstName && (
+            {errors['firstName'] && (
               <span className="auth-form-field-error" role="alert">
-                {errors.firstName}
+                {errors['firstName']}
               </span>
             )}
           </div>
@@ -129,13 +154,13 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               name="lastName"
               value={formData.lastName}
               onChange={handleInputChange}
-              className={`auth-form-input ${errors.lastName ? 'auth-form-input-error' : ''}`}
+              className={`auth-form-input ${errors['lastName'] ? 'auth-form-input-error' : ''}`}
               disabled={isLoading}
               autoComplete="family-name"
             />
-            {errors.lastName && (
+            {errors['lastName'] && (
               <span className="auth-form-field-error" role="alert">
-                {errors.lastName}
+                {errors['lastName']}
               </span>
             )}
           </div>
@@ -151,13 +176,13 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            className={`auth-form-input ${errors.email ? 'auth-form-input-error' : ''}`}
+            className={`auth-form-input ${errors['email'] ? 'auth-form-input-error' : ''}`}
             disabled={isLoading}
             autoComplete="email"
           />
-          {errors.email && (
+          {errors['email'] && (
             <span className="auth-form-field-error" role="alert">
-              {errors.email}
+              {errors['email']}
             </span>
           )}
         </div>
@@ -172,14 +197,36 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
             name="password"
             value={formData.password}
             onChange={handleInputChange}
-            className={`auth-form-input ${errors.password ? 'auth-form-input-error' : ''}`}
+            className={`auth-form-input ${errors['password'] ? 'auth-form-input-error' : ''}`}
             disabled={isLoading}
             autoComplete="new-password"
             minLength={6}
           />
-          {errors.password && (
+          {errors['password'] && (
             <span className="auth-form-field-error" role="alert">
-              {errors.password}
+              {errors['password']}
+            </span>
+          )}
+        </div>
+
+        <div className="auth-form-field">
+          <label htmlFor="confirmPassword" className="auth-form-label">
+            {t('auth.confirmPassword')}
+          </label>
+          <input
+            type="password"
+            id="confirmPassword"
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            className={`auth-form-input ${errors['confirmPassword'] ? 'auth-form-input-error' : ''}`}
+            disabled={isLoading}
+            autoComplete="new-password"
+            minLength={6}
+          />
+          {errors['confirmPassword'] && (
+            <span className="auth-form-field-error" role="alert">
+              {errors['confirmPassword']}
             </span>
           )}
         </div>

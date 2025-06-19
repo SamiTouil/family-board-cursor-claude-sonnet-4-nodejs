@@ -1,11 +1,12 @@
 /* Auth Form Styles */
 .auth-form-container {
-  max-width: 400px;
-  margin: 0 auto;
+  background-color: #ffffff;
   padding: 2rem;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
 .auth-form-header {
@@ -67,6 +68,8 @@
   font-size: 0.875rem;
   transition: all 0.2s ease-in-out;
   background-color: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .auth-form-input:focus {
@@ -159,8 +162,9 @@
 }
 
 /* Responsive Design */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .auth-form-container {
+    max-width: 100%;
     margin: 1rem;
     padding: 1.5rem;
   }
@@ -172,6 +176,13 @@
   
   .auth-form-title {
     font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-form-container {
+    margin: 0.5rem;
+    padding: 1rem;
   }
 }
 
