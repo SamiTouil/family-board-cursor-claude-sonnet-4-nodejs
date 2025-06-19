@@ -46,8 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             localStorage.setItem('authUser', JSON.stringify(response.data.data));
           }
         } catch (error) {
-          console.error('Token validation failed:', error);
-          // Clear invalid auth data
+          // Token validation failed - clear invalid auth data
           localStorage.removeItem('authToken');
           localStorage.removeItem('authUser');
           setUser(null);
@@ -121,7 +120,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await authApi.logout();
     } catch (error) {
-      console.error('Logout error:', error);
       // Continue with logout even if API call fails
     } finally {
       setUser(null);

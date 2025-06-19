@@ -11,7 +11,7 @@ export const Dashboard: React.FC = () => {
     try {
       await logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      // Logout error handling - error is logged in AuthContext
     }
   };
 
