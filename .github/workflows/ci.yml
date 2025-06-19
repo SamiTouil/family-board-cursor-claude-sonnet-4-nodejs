@@ -17,11 +17,6 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
           POSTGRES_DB: family_board_test
-        options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
         ports:
           - 5432:5432
 
@@ -52,6 +47,10 @@ jobs:
     - name: Generate Prisma client
       run: cd backend && npx prisma generate
 
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        timeout 60 bash -c 'until pg_isready -h localhost -p 5432 -U postgres; do sleep 2; done'
+
     - name: Setup database schema
       run: cd backend && npx prisma db push
       env:
@@ -78,18 +77,37 @@ jobs:
       run: cd frontend && npm run build
 
     - name: Start backend for E2E tests
-      run: cd backend && npm run dev &
+      run: |
+        cd backend
+        npm run dev &
+        BACKEND_PID=$!
+        echo "BACKEND_PID=$BACKEND_PID" >> $GITHUB_ENV
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/family_board_test
 
-    - name: Start frontend for E2E tests
-      run: cd frontend && npm run dev &
+    - name: Wait for backend to start
+      run: |
+        timeout 60 bash -c 'until curl -f http://localhost:3001/health; do sleep 2; done'
 
-    - name: Wait for services
-      run: sleep 30
+    - name: Start frontend for E2E tests
+      run: |
+        cd frontend
+        npm run dev &
+        FRONTEND_PID=$!
+        echo "FRONTEND_PID=$FRONTEND_PID" >> $GITHUB_ENV
+
+    - name: Wait for frontend to start
+      run: |
+        timeout 60 bash -c 'until curl -f http://localhost:3000; do sleep 2; done'
 
     - name: Run E2E tests
       run: cd e2e-tests && npm test
+
+    - name: Stop services
+      if: always()
+      run: |
+        if [ ! -z "$BACKEND_PID" ]; then kill $BACKEND_PID || true; fi
+        if [ ! -z "$FRONTEND_PID" ]; then kill $FRONTEND_PID || true; fi
 
     - name: Upload test results
       uses: actions/upload-artifact@v3
