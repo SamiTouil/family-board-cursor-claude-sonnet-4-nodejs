@@ -7,6 +7,15 @@
     sans-serif;
 }
 
+.app-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+}
+
+/* Legacy styles - kept for backward compatibility */
 .app-header {
   background-color: #ffffff;
   border-bottom: 1px solid #e5e5e5;
