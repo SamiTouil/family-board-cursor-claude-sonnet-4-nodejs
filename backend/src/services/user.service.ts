@@ -41,6 +41,35 @@ export class UserService {
     return this.toUserResponse(user);
   }
 
+  static async signup(data: CreateUserInput): Promise<{ user: UserResponse; token: string }> {
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
+    if (existingUser) {
+      throw new Error('Email already exists');
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password, 12);
+
+    const user = await prisma.user.create({
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: hashedPassword,
+        avatarUrl: data.avatarUrl || null,
+      },
+    });
+
+    const token = this.generateToken(user.id, user.email);
+
+    return {
+      user: this.toUserResponse(user),
+      token,
+    };
+  }
+
   static async getUserById(id: string): Promise<UserResponse | null> {
     const user = await prisma.user.findUnique({
       where: { id },
@@ -96,16 +125,37 @@ export class UserService {
       throw new Error('Invalid credentials');
     }
 
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      process.env['JWT_SECRET'] || 'fallback-secret',
-      { expiresIn: '7d' }
-    );
+    const token = this.generateToken(user.id, user.email);
 
     return {
       user: this.toUserResponse(user),
       token,
     };
+  }
+
+  static async refreshToken(userId: string): Promise<{ user: UserResponse; token: string }> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const token = this.generateToken(user.id, user.email);
+
+    return {
+      user: this.toUserResponse(user),
+      token,
+    };
+  }
+
+  private static generateToken(userId: string, email: string): string {
+    return jwt.sign(
+      { userId, email },
+      process.env['JWT_SECRET'] || 'fallback-secret',
+      { expiresIn: '7d' }
+    );
   }
 
   private static toUserResponse(user: User): UserResponse {

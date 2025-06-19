@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { i18next } from '../config/i18n';
 
 export function errorHandler(
@@ -19,6 +20,18 @@ export function errorHandler(
     return;
   }
 
+  if (error instanceof PrismaClientKnownRequestError) {
+    if (error.code === 'P2002') {
+      // Unique constraint violation
+      res.status(409).json({
+        success: false,
+        message: i18next.t('errors.emailAlreadyExists'),
+      });
+      return;
+    }
+  }
+
+  // Handle custom application errors
   if (error.message === 'Email already exists') {
     res.status(409).json({
       success: false,
@@ -35,6 +48,15 @@ export function errorHandler(
     return;
   }
 
+  if (error.message === 'User not found') {
+    res.status(404).json({
+      success: false,
+      message: i18next.t('errors.userNotFound'),
+    });
+    return;
+  }
+
+  // Default server error
   res.status(500).json({
     success: false,
     message: i18next.t('errors.internalServerError'),
