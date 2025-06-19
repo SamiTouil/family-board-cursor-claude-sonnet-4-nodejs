@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { initI18n } from './config/i18n';
 import { userRoutes } from './routes/user.routes';
 import { authRoutes } from './routes/auth.routes';
+import familyRoutes from './routes/family.routes';
 import { errorHandler } from './middleware/error.middleware';
 
 const app = express();
@@ -29,6 +30,7 @@ async function startServer(): Promise<void> {
     // Routes
     app.use('/api/auth', authRoutes);
     app.use('/api/users', userRoutes);
+    app.use('/api/families', familyRoutes);
 
     // Error handling
     app.use(errorHandler);
