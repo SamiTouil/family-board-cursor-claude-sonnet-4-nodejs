@@ -18,10 +18,10 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_DB: family_board_test
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
         ports:
           - 5432:5432
 
@@ -52,8 +52,8 @@ jobs:
     - name: Generate Prisma client
       run: cd backend && npx prisma generate
 
-    - name: Run database migrations
-      run: cd backend && npx prisma migrate deploy
+    - name: Setup database schema
+      run: cd backend && npx prisma db push
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/family_board_test
 
@@ -77,13 +77,16 @@ jobs:
     - name: Build frontend
       run: cd frontend && npm run build
 
-    - name: Start services for E2E tests
-      run: |
-        docker-compose up -d postgres
-        sleep 10
-        cd backend && npm run dev &
-        cd frontend && npm run dev &
-        sleep 30
+    - name: Start backend for E2E tests
+      run: cd backend && npm run dev &
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/family_board_test
+
+    - name: Start frontend for E2E tests
+      run: cd frontend && npm run dev &
+
+    - name: Wait for services
+      run: sleep 30
 
     - name: Run E2E tests
       run: cd e2e-tests && npm test
