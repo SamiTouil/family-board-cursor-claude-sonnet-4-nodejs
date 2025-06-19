@@ -1,0 +1,21 @@
+{
+  "app": {
+    "title": "Tableau Familial"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer"
+  },
+  "user": {
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "Email",
+    "password": "Mot de passe",
+    "avatar": "Avatar"
+  }
+} 

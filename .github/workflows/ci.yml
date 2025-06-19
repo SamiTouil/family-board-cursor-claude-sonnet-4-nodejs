@@ -1,0 +1,77 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install backend dependencies
+      run: cd backend && npm ci
+
+    - name: Install frontend dependencies
+      run: cd frontend && npm ci
+
+    - name: Generate Prisma client
+      run: cd backend && npx prisma generate
+
+    - name: Lint backend
+      run: cd backend && npm run lint
+
+    - name: Lint frontend
+      run: cd frontend && npm run lint
+
+    - name: Test frontend
+      run: cd frontend && npm test
+
+    - name: Build backend
+      run: cd backend && npm run build
+
+    - name: Build frontend
+      run: cd frontend && npm run build
+
+    - name: Start PostgreSQL with Docker
+      run: |
+        docker run -d \
+          --name postgres-test \
+          -e POSTGRES_PASSWORD=postgres \
+          -e POSTGRES_USER=postgres \
+          -e POSTGRES_DB=family_board_test \
+          -p 5432:5432 \
+          postgres:15-alpine
+
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        timeout 60 bash -c 'until docker exec postgres-test pg_isready -U postgres; do sleep 2; done'
+
+    - name: Setup database schema
+      run: cd backend && npx prisma db push
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/family_board_test
+
+    - name: Test backend
+      run: cd backend && npm test
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/family_board_test
+
+    - name: Cleanup
+      if: always()
+      run: |
+        docker stop postgres-test || true
+        docker rm postgres-test || true 
