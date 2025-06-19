@@ -1,22 +1,10 @@
 import { UserService } from '../services/user.service';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { getMockUser } from './setup';
 
 describe('UserService', () => {
-  const mockUser = {
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    password: 'password123',
-  };
-
-  afterEach(async () => {
-    await prisma.user.deleteMany();
-  });
-
   describe('createUser', () => {
     it('should create a new user successfully', async () => {
+      const mockUser = getMockUser();
       const user = await UserService.createUser(mockUser);
 
       expect(user).toMatchObject({
@@ -29,6 +17,7 @@ describe('UserService', () => {
     });
 
     it('should throw error if email already exists', async () => {
+      const mockUser = getMockUser();
       await UserService.createUser(mockUser);
 
       await expect(UserService.createUser(mockUser)).rejects.toThrow('Email already exists');
@@ -37,6 +26,7 @@ describe('UserService', () => {
 
   describe('getUserById', () => {
     it('should return user if found', async () => {
+      const mockUser = getMockUser();
       const createdUser = await UserService.createUser(mockUser);
       const foundUser = await UserService.getUserById(createdUser.id);
 
@@ -54,6 +44,7 @@ describe('UserService', () => {
 
   describe('login', () => {
     it('should login successfully with correct credentials', async () => {
+      const mockUser = getMockUser();
       await UserService.createUser(mockUser);
       
       const result = await UserService.login({
@@ -66,6 +57,7 @@ describe('UserService', () => {
     });
 
     it('should throw error with invalid credentials', async () => {
+      const mockUser = getMockUser();
       await UserService.createUser(mockUser);
 
       await expect(UserService.login({

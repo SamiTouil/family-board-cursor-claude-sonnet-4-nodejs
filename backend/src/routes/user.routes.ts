@@ -1,12 +1,13 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { UserService } from '../services/user.service';
-import { CreateUserSchema, UpdateUserSchema, LoginSchema } from '../types/user.types';
+import { CreateUserSchema, UpdateUserSchema } from '../types/user.types';
+import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.middleware';
 import { i18next } from '../config/i18n';
 
 const router = Router();
 
-// Create user
-router.post('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+// Create user (admin only - for direct user creation)
+router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const validatedData = CreateUserSchema.parse(req.body);
     const user = await UserService.createUser(validatedData);
@@ -21,29 +22,24 @@ router.post('/', async (req: Request, res: Response, next: NextFunction): Promis
   }
 });
 
-// Login
-router.post('/login', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const validatedData = LoginSchema.parse(req.body);
-    const result = await UserService.login(validatedData);
-    
-    res.json({
-      success: true,
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
 
-// Get user by ID
-router.get('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+// Get user by ID (protected)
+router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.params['id'];
     if (!userId) {
       res.status(400).json({
         success: false,
         message: 'User ID is required',
+      });
+      return;
+    }
+
+    // Users can only access their own data unless they're admin
+    if (req.user?.userId !== userId) {
+      res.status(403).json({
+        success: false,
+        message: i18next.t('errors.unauthorized'),
       });
       return;
     }
@@ -67,14 +63,23 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction): Prom
   }
 });
 
-// Update user
-router.put('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+// Update user (protected - users can only update themselves)
+router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.params['id'];
     if (!userId) {
       res.status(400).json({
         success: false,
         message: 'User ID is required',
+      });
+      return;
+    }
+
+    // Users can only update their own data
+    if (req.user?.userId !== userId) {
+      res.status(403).json({
+        success: false,
+        message: i18next.t('errors.unauthorized'),
       });
       return;
     }
@@ -92,14 +97,23 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction): Prom
   }
 });
 
-// Delete user
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+// Delete user (protected - users can only delete themselves)
+router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.params['id'];
     if (!userId) {
       res.status(400).json({
         success: false,
         message: 'User ID is required',
+      });
+      return;
+    }
+
+    // Users can only delete their own account
+    if (req.user?.userId !== userId) {
+      res.status(403).json({
+        success: false,
+        message: i18next.t('errors.unauthorized'),
       });
       return;
     }

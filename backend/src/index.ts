@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import { PrismaClient } from '@prisma/client';
 import { initI18n } from './config/i18n';
 import { userRoutes } from './routes/user.routes';
+import { authRoutes } from './routes/auth.routes';
 import { errorHandler } from './middleware/error.middleware';
 
 const app = express();
@@ -26,6 +27,7 @@ async function startServer(): Promise<void> {
     });
 
     // Routes
+    app.use('/api/auth', authRoutes);
     app.use('/api/users', userRoutes);
 
     // Error handling

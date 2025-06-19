@@ -4,11 +4,18 @@
     "emailAlreadyExists": "L'email existe déjà",
     "invalidCredentials": "Identifiants invalides",
     "validationError": "Erreur de validation",
-    "internalServerError": "Erreur interne du serveur"
+    "internalServerError": "Erreur interne du serveur",
+    "tokenRequired": "Token d'authentification requis",
+    "tokenExpired": "Token d'authentification expiré",
+    "invalidToken": "Token d'authentification invalide",
+    "unauthorized": "Accès non autorisé"
   },
   "success": {
     "userCreated": "Utilisateur créé avec succès",
     "userUpdated": "Utilisateur mis à jour avec succès",
-    "userDeleted": "Utilisateur supprimé avec succès"
+    "userDeleted": "Utilisateur supprimé avec succès",
+    "loginSuccessful": "Connexion réussie",
+    "signupSuccessful": "Compte créé avec succès",
+    "logoutSuccessful": "Déconnexion réussie"
   }
 } 
