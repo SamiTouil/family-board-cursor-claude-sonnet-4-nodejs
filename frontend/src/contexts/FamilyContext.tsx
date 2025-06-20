@@ -98,6 +98,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
           setFamilies(response.data.data);
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to refresh families after approval:', error);
       }
       
@@ -126,6 +127,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
           setFamilies(response.data.data);
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to refresh families after member joined:', error);
       }
     };
@@ -139,6 +141,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
           setFamilies(response.data.data);
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to refresh families after update:', error);
       }
     };

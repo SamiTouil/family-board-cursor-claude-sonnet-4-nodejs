@@ -38,7 +38,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   const [notifications, setNotifications] = useState<WebSocketNotification[]>([]);
   const socketRef = useRef<Socket | null>(null);
   const eventListeners = useRef<Record<string, ((data: any) => void)[]>>({});
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
 
@@ -82,7 +82,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       return;
     }
 
-    console.log('Connecting to WebSocket...');
+
 
     const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:3001', {
       auth: {
@@ -95,7 +95,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
     // Connection event handlers
     newSocket.on('connect', () => {
-      console.log('WebSocket connected');
       setIsConnected(true);
       reconnectAttempts.current = 0;
       
@@ -107,7 +106,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     });
 
     newSocket.on('disconnect', (reason) => {
-      console.log('WebSocket disconnected:', reason);
       setIsConnected(false);
       
       // Only try to reconnect if it wasn't a manual disconnect
@@ -116,8 +114,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       }
     });
 
-    newSocket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
+    newSocket.on('connect_error', () => {
       setIsConnected(false);
       
       if (reconnectAttempts.current < maxReconnectAttempts) {
@@ -195,7 +192,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     reconnectAttempts.current += 1;
     const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000); // Exponential backoff, max 30s
     
-    console.log(`Scheduling reconnect attempt ${reconnectAttempts.current} in ${delay}ms`);
+
     
     reconnectTimeoutRef.current = setTimeout(() => {
       reconnectTimeoutRef.current = null;
@@ -211,7 +208,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     }
     
     if (socketRef.current) {
-      console.log('Disconnecting from WebSocket...');
       socketRef.current.disconnect();
       socketRef.current = null;
       setSocket(null);
