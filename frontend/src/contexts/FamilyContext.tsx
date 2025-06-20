@@ -61,6 +61,9 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       localStorage.removeItem('currentFamilyId');
       setLoading(false);
     }
+    
+    // Return undefined for other cases (no cleanup needed)
+    return undefined;
   }, [isAuthenticated, authLoading]);
 
   // Update hasCompletedOnboarding based on families and pending join requests
