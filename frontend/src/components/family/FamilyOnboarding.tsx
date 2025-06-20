@@ -67,13 +67,7 @@ export const FamilyOnboarding: React.FC = () => {
               </button>
             </div>
             
-            <button
-              className="family-onboarding-back-button"
-              onClick={handleBack}
-              type="button"
-            >
-              {t('common.back')}
-            </button>
+
           </div>
         )}
         

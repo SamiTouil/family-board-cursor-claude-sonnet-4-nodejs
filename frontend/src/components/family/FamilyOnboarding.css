@@ -63,13 +63,13 @@
 }
 
 .family-onboarding-option:hover {
-  border-color: #667eea;
+  border-color: #7c3aed;
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 10px 20px rgba(124, 58, 237, 0.1);
 }
 
 .family-onboarding-option-icon {
-  color: #667eea;
+  color: #7c3aed;
   margin-bottom: 1rem;
 }
 
@@ -104,7 +104,7 @@
   gap: 0.5rem;
   background: none;
   border: none;
-  color: #667eea;
+  color: #7c3aed;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -115,7 +115,7 @@
 
 .create-family-back-button:hover,
 .join-family-back-button:hover {
-  color: #5a67d8;
+  color: #6d28d9;
 }
 
 .create-family-back-button:disabled,
@@ -172,8 +172,8 @@
 .form-input:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
 }
 
 .form-input-error {
