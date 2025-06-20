@@ -16,14 +16,16 @@ export const FamilyOnboarding: React.FC = () => {
 
   // If user has pending join requests, show the join form (which will show pending status)
   useEffect(() => {
-    if (pendingJoinRequests && pendingJoinRequests.length > 0) {
+    const actualPendingRequests = pendingJoinRequests?.filter(req => req.status === 'PENDING') || [];
+    if (actualPendingRequests.length > 0) {
       setCurrentStep('join');
     }
   }, [pendingJoinRequests]);
 
   const handleBack = () => {
-    // Don't allow going back if user has pending requests
-    if (pendingJoinRequests && pendingJoinRequests.length > 0) {
+    // Don't allow going back if user has actual pending requests
+    const actualPendingRequests = pendingJoinRequests?.filter(req => req.status === 'PENDING') || [];
+    if (actualPendingRequests.length > 0) {
       return;
     }
     

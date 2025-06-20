@@ -199,9 +199,8 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     try {
       const response = await familyApi.getMyJoinRequests();
       if (response.data.success) {
-        // Only keep pending requests, filter out approved/rejected ones
-        const actualPendingRequests = response.data.data.filter((req: FamilyJoinRequest) => req.status === 'PENDING');
-        setPendingJoinRequests(actualPendingRequests);
+        // Keep all requests and let components handle filtering
+        setPendingJoinRequests(response.data.data);
       }
     } catch (error) {
       // eslint-disable-next-line no-console
