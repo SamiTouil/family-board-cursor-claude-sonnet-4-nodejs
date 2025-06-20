@@ -17,7 +17,8 @@
     "back": "Back",
     "continue": "Continue",
     "close": "Close",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "optional": "optional"
   },
   "auth": {
     "login": "Login",
@@ -127,9 +128,39 @@
     "respondedOn": "Responded on",
     "joinRequestApproved": "Join request approved successfully",
     "joinRequestRejected": "Join request rejected",
-    "failedToRespondToRequest": "Failed to respond to join request"
+    "failedToRespondToRequest": "Failed to respond to join request",
+    "updateProfile": "Update Profile"
   },
   "family": {
+    "members": "Family Members",
+    "inviteEmail": "Email Address",
+    "inviteEmailPlaceholder": "Enter email address (optional)",
+    "expiresIn": "Expires In",
+    "expiry": {
+      "1day": "1 Day",
+      "3days": "3 Days", 
+      "7days": "7 Days",
+      "14days": "14 Days",
+      "30days": "30 Days"
+    },
+    "generateInvite": "Generate Invite",
+    "generatingInvite": "Generating...",
+    "inviteCreated": "Invite created successfully",
+    "inviteError": "Failed to create invite",
+    "activeInvites": "Active Invites",
+    "expiresOn": "Expires on",
+    "copy": "Copy",
+    "copyInviteCode": "Copy invite code",
+    "joinRequests": "Join Requests",
+    "approve": "Approve",
+    "reject": "Reject",
+    "requestApproved": "Request approved successfully",
+    "requestRejected": "Request rejected successfully", 
+    "requestError": "Failed to process request",
+    "role": {
+      "admin": "Admin",
+      "member": "Member"
+    },
     "onboarding": {
       "title": "Welcome to Family Board!",
       "subtitle": "To get started, you need to either create a new family or join an existing one.",
