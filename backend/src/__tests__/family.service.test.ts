@@ -583,6 +583,33 @@ describe('FamilyService', () => {
         'Only family admins can remove members'
       );
     });
+
+    it('should throw error when admin tries to remove themselves', async () => {
+      const adminId = 'admin-1';
+      const familyId = 'family-1';
+      const memberId = 'member-1';
+
+      const mockAdminMembership = {
+        role: 'ADMIN',
+      };
+
+      const mockMemberToRemove = {
+        id: memberId,
+        userId: adminId, // Same as adminId - trying to remove self
+        familyId,
+        family: {
+          creatorId: 'creator-1', // Different from adminId
+        },
+      };
+
+      (mockPrisma.familyMember.findUnique as jest.Mock)
+        .mockResolvedValueOnce(mockAdminMembership)
+        .mockResolvedValueOnce(mockMemberToRemove);
+
+      await expect(FamilyService.removeMember(familyId, adminId, memberId)).rejects.toThrow(
+        'Cannot remove yourself from the family'
+      );
+    });
   });
 
   describe('leaveFamily', () => {
