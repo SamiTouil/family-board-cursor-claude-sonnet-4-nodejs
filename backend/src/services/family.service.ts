@@ -98,7 +98,7 @@ export class FamilyService {
       id: membership.family.id,
       name: membership.family.name,
       description: membership.family.description || undefined,
-      avatarUrl: membership.family.avatarUrl || undefined,
+      avatarUrl: membership.family.avatarUrl || null,
       createdAt: membership.family.createdAt,
       updatedAt: membership.family.updatedAt,
       creator: membership.family.creator,
@@ -251,7 +251,7 @@ export class FamilyService {
         firstName: member.user.firstName,
         lastName: member.user.lastName,
         email: member.user.email,
-        avatarUrl: member.user.avatarUrl || undefined,
+        avatarUrl: member.user.avatarUrl || null,
       },
     }));
   }
