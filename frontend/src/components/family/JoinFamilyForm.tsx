@@ -112,7 +112,7 @@ export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack }) => {
               {t('family.join.joining')}
             </>
           ) : (
-            t('family.common.continue')
+            t('family.common.join')
           )}
         </button>
       </form>

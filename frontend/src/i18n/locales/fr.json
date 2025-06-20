@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Tableau Familial"
+    "title": "Tableau de Famille"
   },
   "common": {
     "loading": "Chargement...",
@@ -13,47 +13,60 @@
     "email": "E-mail",
     "password": "Mot de passe",
     "firstName": "Prénom",
-    "lastName": "Nom de famille"
+    "lastName": "Nom de famille",
+    "back": "Retour",
+    "continue": "Continuer",
+    "close": "Fermer"
   },
   "auth": {
-    "login": "Connexion",
-    "signup": "S'inscrire",
-    "logout": "Déconnexion",
-    "loginTitle": "Bon retour",
-    "signupTitle": "Créer un compte",
+    "login": "Se Connecter",
+    "signup": "S'Inscrire",
+    "logout": "Se Déconnecter",
+    "loginTitle": "Bon Retour",
+    "signupTitle": "Créer un Compte",
     "loginSubtitle": "Connectez-vous à votre compte",
-    "signupSubtitle": "Rejoignez notre tableau familial",
-    "email": "Adresse e-mail",
-    "password": "Mot de passe",
-    "confirmPassword": "Confirmer le mot de passe",
+    "signupSubtitle": "Rejoignez le tableau de famille",
+    "email": "Adresse Email",
+    "password": "Mot de Passe",
+    "confirmPassword": "Confirmer le Mot de Passe",
     "firstName": "Prénom",
-    "lastName": "Nom de famille",
+    "lastName": "Nom",
     "rememberMe": "Se souvenir de moi",
     "forgotPassword": "Mot de passe oublié ?",
     "noAccount": "Vous n'avez pas de compte ?",
     "hasAccount": "Vous avez déjà un compte ?",
     "signupLink": "Inscrivez-vous ici",
     "loginLink": "Connectez-vous ici",
-    "signingIn": "Connexion en cours...",
+    "signingIn": "Connexion...",
     "signingUp": "Création du compte...",
     "loggingOut": "Déconnexion en cours...",
     "welcomeBack": "Bon retour !",
     "accountCreated": "Compte créé avec succès !",
     "loggedOut": "Vous avez été déconnecté",
     "sessionExpired": "Votre session a expiré. Veuillez vous reconnecter.",
-    "invalidCredentials": "E-mail ou mot de passe invalide",
-    "emailRequired": "L'e-mail est requis",
+    "invalidCredentials": "Email ou mot de passe invalide",
+    "emailRequired": "L'email est requis",
     "passwordRequired": "Le mot de passe est requis",
     "confirmPasswordRequired": "Veuillez confirmer votre mot de passe",
     "firstNameRequired": "Le prénom est requis",
-    "lastNameRequired": "Le nom de famille est requis",
-    "emailInvalid": "Veuillez entrer une adresse e-mail valide",
+    "lastNameRequired": "Le nom est requis",
+    "emailInvalid": "Veuillez entrer une adresse email valide",
     "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",
     "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
-    "emailExists": "Un compte avec cet e-mail existe déjà",
+    "emailExists": "Un compte avec cet email existe déjà",
     "tooManyAttempts": "Trop de tentatives de connexion. Veuillez réessayer plus tard.",
     "networkError": "Erreur réseau. Veuillez réessayer.",
-    "unexpectedError": "Une erreur inattendue s'est produite. Veuillez réessayer."
+    "unexpectedError": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+    "validation": {
+      "firstNameRequired": "Le prénom est requis",
+      "lastNameRequired": "Le nom est requis",
+      "emailRequired": "L'email est requis",
+      "emailInvalid": "Veuillez entrer une adresse email valide",
+      "passwordRequired": "Le mot de passe est requis",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",
+      "confirmPasswordRequired": "Veuillez confirmer votre mot de passe",
+      "passwordsDoNotMatch": "Les mots de passe ne correspondent pas"
+    }
   },
   "user": {
     "firstName": "Prénom",
@@ -65,48 +78,42 @@
   },
   "family": {
     "onboarding": {
-      "title": "Bienvenue sur le Tableau Familial !",
-      "subtitle": "Pour commencer, vous devez soit créer une nouvelle famille soit rejoindre une famille existante.",
-      "createFamily": "Créer une Nouvelle Famille",
-      "joinFamily": "Rejoindre une Famille",
-      "createFamilyDescription": "Créez un nouveau tableau familial et invitez d'autres à rejoindre",
-      "joinFamilyDescription": "Rejoignez une famille en utilisant un code d'invitation"
+      "title": "Bienvenue sur Tableau de Famille !",
+      "subtitle": "Pour commencer, vous devez créer une nouvelle famille ou rejoindre une famille existante.",
+      "createOption": "Créer une Nouvelle Famille",
+      "createDescription": "Créez votre propre famille et invitez d'autres à vous rejoindre.",
+      "joinOption": "Rejoindre une Famille Existante",
+      "joinDescription": "Utilisez un code d'invitation pour rejoindre une famille existante."
     },
     "create": {
       "title": "Créer Votre Famille",
-      "subtitle": "Configurez votre tableau familial",
+      "subtitle": "Démarrez votre tableau de famille et invitez d'autres à vous rejoindre.",
       "name": "Nom de la Famille",
-      "description": "Description",
       "namePlaceholder": "Entrez le nom de votre famille",
+      "description": "Description (Optionnel)",
       "descriptionPlaceholder": "Décrivez votre famille (optionnel)",
       "creating": "Création de la famille...",
+      "createError": "Échec de la création de la famille. Veuillez réessayer.",
       "nameRequired": "Le nom de la famille est requis",
-      "nameMinLength": "Le nom de la famille doit contenir au moins 2 caractères",
-      "nameMaxLength": "Le nom de la famille doit contenir moins de 50 caractères",
-      "descriptionMaxLength": "La description doit contenir moins de 200 caractères",
-      "createSuccess": "Famille créée avec succès !",
-      "createError": "Échec de la création de la famille. Veuillez réessayer."
+      "nameTooShort": "Le nom de la famille doit contenir au moins 2 caractères",
+      "nameTooLong": "Le nom de la famille doit contenir moins de 50 caractères",
+      "descriptionTooLong": "La description doit contenir moins de 200 caractères"
     },
     "join": {
       "title": "Rejoindre une Famille",
-      "subtitle": "Entrez le code d'invitation que vous avez reçu",
+      "subtitle": "Entrez le code d'invitation pour rejoindre une famille existante.",
       "inviteCode": "Code d'Invitation",
       "inviteCodePlaceholder": "Entrez le code d'invitation",
       "joining": "Rejoindre la famille...",
-      "codeRequired": "Le code d'invitation est requis",
-      "joinSuccess": "Vous avez rejoint la famille avec succès !",
-      "joinError": "Échec de rejoindre la famille. Veuillez vérifier le code et réessayer.",
+      "joinError": "Échec de rejoindre la famille. Veuillez réessayer.",
       "invalidCode": "Code d'invitation invalide ou expiré",
-      "alreadyMember": "Vous êtes déjà membre de cette famille"
+      "alreadyMember": "Vous êtes déjà membre de cette famille",
+      "codeRequired": "Le code d'invitation est requis"
     },
     "common": {
       "back": "Retour",
-      "continue": "Continuer",
-      "name": "Nom",
-      "description": "Description",
-      "members": "Membres",
-      "admin": "Administrateur",
-      "member": "Membre"
+      "continue": "Créer la Famille",
+      "join": "Rejoindre la Famille"
     }
   }
 } 

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Family, familyApi, CreateFamilyData, JoinFamilyData } from '../services/api';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from './AuthContext';
 
 interface FamilyContextType {
   families: Family[];
@@ -31,44 +32,70 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
   const [families, setFamilies] = useState<Family[]>([]);
   const [currentFamily, setCurrentFamilyState] = useState<Family | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { t } = useTranslation();
 
-  // Check if user has completed family onboarding
-  const hasCompletedOnboarding = families.length > 0;
-
-  // Load user's families on mount
+  // Load families when user is authenticated
   useEffect(() => {
-    const loadFamilies = async () => {
-      try {
-        const response = await familyApi.getUserFamilies();
-        if (response.data.success) {
-          const userFamilies = response.data.data;
-          setFamilies(userFamilies);
-          
-          // Set current family from localStorage or first family
-          const storedFamilyId = localStorage.getItem('currentFamilyId');
-          if (storedFamilyId) {
-            const storedFamily = userFamilies.find(f => f.id === storedFamilyId);
-            if (storedFamily) {
-              setCurrentFamilyState(storedFamily);
-            } else if (userFamilies.length > 0) {
-              setCurrentFamilyState(userFamilies[0]!);
+    if (isAuthenticated && !authLoading) {
+      loadFamilies();
+    } else if (!isAuthenticated) {
+      // Reset state when user logs out
+      setFamilies([]);
+      setCurrentFamilyState(null);
+      localStorage.removeItem('currentFamilyId');
+      setLoading(false);
+    }
+  }, [isAuthenticated, authLoading]);
+
+  // Update hasCompletedOnboarding based on families
+  useEffect(() => {
+    setHasCompletedOnboarding(families.length > 0);
+  }, [families]);
+
+  const loadFamilies = async () => {
+    if (!isAuthenticated) return;
+    
+    setLoading(true);
+    try {
+      const response = await familyApi.getUserFamilies();
+      const userFamilies = response.data.data;
+      setFamilies(userFamilies);
+      
+      // Set current family from localStorage or first family
+      const savedFamilyId = localStorage.getItem('currentFamilyId');
+      if (savedFamilyId) {
+        const savedFamily = userFamilies.find(f => f.id === savedFamilyId);
+        if (savedFamily) {
+          setCurrentFamilyState(savedFamily);
+        } else {
+          // Saved family not found, clear localStorage and set first family
+          localStorage.removeItem('currentFamilyId');
+          if (userFamilies.length > 0) {
+            const firstFamily = userFamilies[0];
+            if (firstFamily) {
+              setCurrentFamilyState(firstFamily);
+              localStorage.setItem('currentFamilyId', firstFamily.id);
             }
-          } else if (userFamilies.length > 0) {
-            setCurrentFamilyState(userFamilies[0]!);
           }
         }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Failed to load families:', error);
-        // Don't throw error here - user might not have families yet
-      } finally {
-        setLoading(false);
+      } else if (userFamilies.length > 0) {
+        // No saved family, set first family
+        const firstFamily = userFamilies[0];
+        if (firstFamily) {
+          setCurrentFamilyState(firstFamily);
+          localStorage.setItem('currentFamilyId', firstFamily.id);
+        }
       }
-    };
-
-    loadFamilies();
-  }, []);
+    } catch (error) {
+      console.error('Failed to load families:', error);
+      // Don't show error to user, just leave families empty
+      setFamilies([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const createFamily = async (data: CreateFamilyData): Promise<Family> => {
     try {
@@ -132,6 +159,8 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
   };
 
   const refreshFamilies = async (): Promise<void> => {
+    if (!isAuthenticated) return;
+    
     try {
       const response = await familyApi.getUserFamilies();
       if (response.data.success) {

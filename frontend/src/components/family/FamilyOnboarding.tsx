@@ -1,27 +1,68 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useFamily } from '../../contexts/FamilyContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { CreateFamilyForm } from './CreateFamilyForm';
 import { JoinFamilyForm } from './JoinFamilyForm';
+import { LoadingSpinner } from '../LoadingSpinner';
 import './FamilyOnboarding.css';
 
 type OnboardingStep = 'choice' | 'create' | 'join';
 
 export const FamilyOnboarding: React.FC = () => {
-  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('choice');
+  const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
+  const { createFamily, joinFamily } = useFamily();
+  const { logout } = useAuth();
 
-  const handleBack = () => {
-    setCurrentStep('choice');
+  const handleCreateFamily = async (data: { name: string; description?: string }) => {
+    setLoading(true);
+    try {
+      await createFamily(data);
+      // Success - the context will update hasCompletedOnboarding
+    } catch (error) {
+      // Error handling is done in the form component
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const renderContent = () => {
-    switch (currentStep) {
-      case 'create':
-        return <CreateFamilyForm onBack={handleBack} />;
-      case 'join':
-        return <JoinFamilyForm onBack={handleBack} />;
-      default:
-        return (
+  const handleJoinFamily = async (data: { inviteCode: string }) => {
+    setLoading(true);
+    try {
+      await joinFamily(data);
+      // Success - the context will update hasCompletedOnboarding
+    } catch (error) {
+      // Error handling is done in the form component
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep === 'choice') {
+      // Logout when going back from the main choice screen
+      logout();
+    } else {
+      setCurrentStep('choice');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="family-onboarding-loading">
+        <LoadingSpinner size="large" message={t('common.loading')} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="family-onboarding">
+      <div className="family-onboarding-container">
+        {currentStep === 'choice' && (
           <div className="family-onboarding-choice">
             <div className="family-onboarding-header">
               <h1 className="family-onboarding-title">
@@ -31,58 +72,72 @@ export const FamilyOnboarding: React.FC = () => {
                 {t('family.onboarding.subtitle')}
               </p>
             </div>
-
+            
             <div className="family-onboarding-options">
               <button
                 className="family-onboarding-option"
                 onClick={() => setCurrentStep('create')}
                 type="button"
               >
-                <div className="family-onboarding-option-icon">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <line x1="19" y1="8" x2="19" y2="14" />
-                    <line x1="22" y1="11" x2="16" y2="11" />
-                  </svg>
-                </div>
+                <div className="family-onboarding-option-icon">👨‍👩‍👧‍👦</div>
                 <h3 className="family-onboarding-option-title">
-                  {t('family.onboarding.createFamily')}
+                  {t('family.onboarding.createOption')}
                 </h3>
                 <p className="family-onboarding-option-description">
-                  {t('family.onboarding.createFamilyDescription')}
+                  {t('family.onboarding.createDescription')}
                 </p>
               </button>
-
+              
               <button
                 className="family-onboarding-option"
                 onClick={() => setCurrentStep('join')}
                 type="button"
               >
-                <div className="family-onboarding-option-icon">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="m13 7 5 5-5 5" />
-                  </svg>
-                </div>
+                <div className="family-onboarding-option-icon">🤝</div>
                 <h3 className="family-onboarding-option-title">
-                  {t('family.onboarding.joinFamily')}
+                  {t('family.onboarding.joinOption')}
                 </h3>
                 <p className="family-onboarding-option-description">
-                  {t('family.onboarding.joinFamilyDescription')}
+                  {t('family.onboarding.joinDescription')}
                 </p>
               </button>
             </div>
+            
+            <button
+              className="family-onboarding-back-button"
+              onClick={handleBack}
+              type="button"
+            >
+              {t('common.back')}
+            </button>
           </div>
-        );
-    }
-  };
-
-  return (
-    <div className="family-onboarding">
-      <div className="family-onboarding-container">
-        {renderContent()}
+        )}
+        
+        {currentStep === 'create' && (
+          <div className="family-onboarding-form">
+            <button
+              className="family-onboarding-back-button"
+              onClick={handleBack}
+              type="button"
+            >
+              {t('common.back')}
+            </button>
+            <CreateFamilyForm onSubmit={handleCreateFamily} />
+          </div>
+        )}
+        
+        {currentStep === 'join' && (
+          <div className="family-onboarding-form">
+            <button
+              className="family-onboarding-back-button"
+              onClick={handleBack}
+              type="button"
+            >
+              {t('common.back')}
+            </button>
+            <JoinFamilyForm onSubmit={handleJoinFamily} />
+          </div>
+        )}
       </div>
     </div>
   );
