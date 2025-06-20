@@ -8,10 +8,13 @@ interface FamilyContextType {
   currentFamily: Family | null;
   loading: boolean;
   hasCompletedOnboarding: boolean;
+  pendingJoinRequests: FamilyJoinRequest[];
   createFamily: (data: CreateFamilyData) => Promise<Family>;
   joinFamily: (data: JoinFamilyData) => Promise<FamilyJoinRequest>;
   setCurrentFamily: (family: Family) => void;
   refreshFamilies: () => Promise<void>;
+  loadPendingJoinRequests: () => Promise<void>;
+  cancelJoinRequest: (requestId: string) => Promise<void>;
 }
 
 const FamilyContext = createContext<FamilyContextType | undefined>(undefined);
@@ -33,26 +36,29 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
   const [currentFamily, setCurrentFamilyState] = useState<Family | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const [pendingJoinRequests, setPendingJoinRequests] = useState<FamilyJoinRequest[]>([]);
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { t } = useTranslation();
 
-  // Load families when user is authenticated
+  // Load families and pending join requests when user is authenticated
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
       loadFamilies();
+      loadPendingJoinRequests();
     } else if (!isAuthenticated) {
       // Reset state when user logs out
       setFamilies([]);
       setCurrentFamilyState(null);
+      setPendingJoinRequests([]);
       localStorage.removeItem('currentFamilyId');
       setLoading(false);
     }
   }, [isAuthenticated, authLoading]);
 
-  // Update hasCompletedOnboarding based on families
+  // Update hasCompletedOnboarding based on families and pending join requests
   useEffect(() => {
-    setHasCompletedOnboarding(families.length > 0);
-  }, [families]);
+    setHasCompletedOnboarding(families.length > 0 || pendingJoinRequests.length > 0);
+  }, [families, pendingJoinRequests]);
 
   const loadFamilies = async () => {
     if (!isAuthenticated) return;
@@ -132,6 +138,8 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
         const joinRequest = response.data.data;
         // Don't add to families list since it's just a request
         // Don't set current family since user hasn't joined yet
+        // Refresh pending join requests to include the new request
+        loadPendingJoinRequests();
         return joinRequest;
       } else {
         throw new Error(response.data.message || t('family.join.joinError'));
@@ -174,15 +182,47 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     }
   };
 
+  const loadPendingJoinRequests = async (): Promise<void> => {
+    if (!isAuthenticated) return;
+    
+    try {
+      const response = await familyApi.getMyJoinRequests();
+      if (response.data.success) {
+        setPendingJoinRequests(response.data.data);
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to load pending join requests:', error);
+    }
+  };
+
+  const cancelJoinRequest = async (requestId: string): Promise<void> => {
+    if (!isAuthenticated) return;
+    
+    try {
+      const response = await familyApi.cancelJoinRequest(requestId);
+      if (response.data.success) {
+        setPendingJoinRequests(prev => prev.filter(r => r.id !== requestId));
+      }
+    } catch (error: any) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to cancel join request:', error);
+      throw new Error(error.response?.data?.message || t('family.join.cancelError'));
+    }
+  };
+
   const value: FamilyContextType = {
     families,
     currentFamily,
     loading,
     hasCompletedOnboarding,
+    pendingJoinRequests,
     createFamily,
     joinFamily,
     setCurrentFamily,
     refreshFamilies,
+    loadPendingJoinRequests,
+    cancelJoinRequest,
   };
 
   return (

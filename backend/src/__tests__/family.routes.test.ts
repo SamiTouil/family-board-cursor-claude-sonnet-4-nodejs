@@ -29,6 +29,8 @@ jest.mock('../services/family.service', () => ({
     getFamilyInvites: jest.fn(),
     joinFamily: jest.fn(),
     getFamilyStats: jest.fn(),
+    getUserJoinRequests: jest.fn(),
+    cancelJoinRequest: jest.fn(),
   },
 }));
 
@@ -188,6 +190,90 @@ describe('Family Routes', () => {
         receiverEmail: 'newmember@example.com',
         expiresIn: 7,
       }));
+    });
+  });
+
+  describe('GET /api/families/my-join-requests', () => {
+    it('should return user\'s own join requests', async () => {
+      const mockJoinRequests = [
+        {
+          id: 'request-1',
+          status: 'PENDING',
+          message: 'Please let me join',
+          createdAt: new Date(),
+          user: {
+            id: userId,
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'john@example.com',
+          },
+          family: {
+            id: familyId,
+            name: 'Test Family',
+          },
+          invite: {
+            id: 'invite-1',
+            code: 'ABCD1234',
+          },
+        },
+      ];
+
+      const { FamilyService } = require('../services/family.service');
+      FamilyService.getUserJoinRequests.mockResolvedValue(mockJoinRequests);
+
+      const response = await request(app)
+        .get('/api/families/my-join-requests')
+        .set('Authorization', `Bearer ${validToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toHaveLength(1);
+      expect(response.body.data[0].status).toBe('PENDING');
+      expect(FamilyService.getUserJoinRequests).toHaveBeenCalledWith(userId);
+    });
+
+    it('should handle errors when fetching join requests', async () => {
+      const { FamilyService } = require('../services/family.service');
+      FamilyService.getUserJoinRequests.mockRejectedValue(new Error('Database error'));
+
+      const response = await request(app)
+        .get('/api/families/my-join-requests')
+        .set('Authorization', `Bearer ${validToken}`);
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Database error');
+    });
+  });
+
+  describe('DELETE /api/families/join-requests/:requestId', () => {
+    const requestId = 'request-1';
+
+    it('should cancel user\'s own join request', async () => {
+      const { FamilyService } = require('../services/family.service');
+      FamilyService.cancelJoinRequest.mockResolvedValue(undefined);
+
+      const response = await request(app)
+        .delete(`/api/families/join-requests/${requestId}`)
+        .set('Authorization', `Bearer ${validToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Join request cancelled successfully');
+      expect(FamilyService.cancelJoinRequest).toHaveBeenCalledWith(userId, requestId);
+    });
+
+    it('should handle errors when cancelling join request', async () => {
+      const { FamilyService } = require('../services/family.service');
+      FamilyService.cancelJoinRequest.mockRejectedValue(new Error('Request not found'));
+
+      const response = await request(app)
+        .delete(`/api/families/join-requests/${requestId}`)
+        .set('Authorization', `Bearer ${validToken}`);
+
+      expect(response.status).toBe(403);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Request not found');
     });
   });
 }); 
