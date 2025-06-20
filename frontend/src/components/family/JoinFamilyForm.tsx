@@ -26,6 +26,17 @@ export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack, onReques
   const hasPendingRequests = actualPendingRequests.length > 0;
   const pendingRequest = actualPendingRequests[0]; // Get the first pending request
 
+  // Handle when user's request gets rejected - redirect back to choice screen
+  useEffect(() => {
+    // If user was on the "Request Submitted" screen (isSubmitted = true) 
+    // but now has no pending requests, it means their request was rejected
+    if (isSubmitted && !hasPendingRequests) {
+      // Reset the submitted state and redirect back to choice
+      setIsSubmitted(false);
+      onRequestCancelled();
+    }
+  }, [isSubmitted, hasPendingRequests, onRequestCancelled]);
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
