@@ -58,7 +58,7 @@ export const FamilyManagement: React.FC = () => {
         setInvites(response.data.data);
       }
     } catch (error: any) {
-      console.error('Failed to load invites:', error);
+      // Failed to load invites - handle silently
     }
   };
 
@@ -71,7 +71,7 @@ export const FamilyManagement: React.FC = () => {
         setJoinRequests(response.data.data);
       }
     } catch (error: any) {
-      console.error('Failed to load join requests:', error);
+      // Failed to load join requests - handle silently
     }
   };
 
