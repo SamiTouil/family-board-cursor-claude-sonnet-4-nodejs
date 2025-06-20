@@ -257,11 +257,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                   name="lastName"
                   value={profileData.lastName}
                   onChange={handleProfileInputChange}
-                  className={`user-profile-input ${profileErrors.lastName ? 'user-profile-input-error' : ''}`}
+                  className={`user-profile-input ${profileErrors['lastName'] ? 'user-profile-input-error' : ''}`}
                   disabled={isLoading}
                 />
-                {profileErrors.lastName && (
-                  <span className="user-profile-error">{profileErrors.lastName}</span>
+                {profileErrors['lastName'] && (
+                  <span className="user-profile-error">{profileErrors['lastName']}</span>
                 )}
               </div>
 
@@ -297,11 +297,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                   name="currentPassword"
                   value={passwordData.currentPassword}
                   onChange={handlePasswordInputChange}
-                  className={`user-profile-input ${passwordErrors.currentPassword ? 'user-profile-input-error' : ''}`}
+                  className={`user-profile-input ${passwordErrors['currentPassword'] ? 'user-profile-input-error' : ''}`}
                   disabled={isLoading}
                 />
-                {passwordErrors.currentPassword && (
-                  <span className="user-profile-error">{passwordErrors.currentPassword}</span>
+                {passwordErrors['currentPassword'] && (
+                  <span className="user-profile-error">{passwordErrors['currentPassword']}</span>
                 )}
               </div>
 
@@ -315,11 +315,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                   name="newPassword"
                   value={passwordData.newPassword}
                   onChange={handlePasswordInputChange}
-                  className={`user-profile-input ${passwordErrors.newPassword ? 'user-profile-input-error' : ''}`}
+                  className={`user-profile-input ${passwordErrors['newPassword'] ? 'user-profile-input-error' : ''}`}
                   disabled={isLoading}
                 />
-                {passwordErrors.newPassword && (
-                  <span className="user-profile-error">{passwordErrors.newPassword}</span>
+                {passwordErrors['newPassword'] && (
+                  <span className="user-profile-error">{passwordErrors['newPassword']}</span>
                 )}
               </div>
 
@@ -333,11 +333,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                   name="confirmPassword"
                   value={passwordData.confirmPassword}
                   onChange={handlePasswordInputChange}
-                  className={`user-profile-input ${passwordErrors.confirmPassword ? 'user-profile-input-error' : ''}`}
+                  className={`user-profile-input ${passwordErrors['confirmPassword'] ? 'user-profile-input-error' : ''}`}
                   disabled={isLoading}
                 />
-                {passwordErrors.confirmPassword && (
-                  <span className="user-profile-error">{passwordErrors.confirmPassword}</span>
+                {passwordErrors['confirmPassword'] && (
+                  <span className="user-profile-error">{passwordErrors['confirmPassword']}</span>
                 )}
               </div>
 
