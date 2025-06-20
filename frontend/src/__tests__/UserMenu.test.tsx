@@ -23,9 +23,26 @@ const mockAuthContext = {
   isAuthenticated: true,
 }
 
+// Mock the WebSocket context
+const mockWebSocketContext = {
+  notifications: [],
+  unreadCount: 0,
+  markNotificationAsRead: vi.fn(),
+  markAllNotificationsAsRead: vi.fn(),
+  clearNotifications: vi.fn(),
+  connect: vi.fn(),
+  disconnect: vi.fn(),
+  isConnected: false,
+}
+
 // Mock the useAuth hook
 vi.mock('../contexts/AuthContext', () => ({
   useAuth: () => mockAuthContext,
+}))
+
+// Mock the useWebSocket hook
+vi.mock('../contexts/WebSocketContext', () => ({
+  useWebSocket: () => mockWebSocketContext,
 }))
 
 // Mock react-i18next
@@ -46,6 +63,9 @@ describe('UserMenu', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Reset mock context
+    mockWebSocketContext.notifications = []
+    mockWebSocketContext.unreadCount = 0
   })
 
   it('renders user information correctly', () => {
@@ -55,27 +75,81 @@ describe('UserMenu', () => {
     expect(screen.getByText('john@example.com')).toBeDefined()
   })
 
-  it('renders menu button', () => {
-    render(<UserMenu onEditProfile={mockOnEditProfile} />)
+  it('renders clickable avatar', () => {
+    const { container } = render(<UserMenu onEditProfile={mockOnEditProfile} />)
     
-    expect(screen.getByRole('button', { name: 'User menu' })).toBeDefined()
+    expect(container.querySelector('.user-avatar-clickable')).toBeDefined()
   })
 
-  it('shows dropdown when menu button is clicked', () => {
-    render(<UserMenu onEditProfile={mockOnEditProfile} />)
+  it('shows dropdown when avatar is clicked', () => {
+    const { container } = render(<UserMenu onEditProfile={mockOnEditProfile} />)
     
-    const menuButton = screen.getByRole('button', { name: 'User menu' })
-    fireEvent.click(menuButton)
+    const avatar = container.querySelector('.user-avatar')!
+    fireEvent.click(avatar)
     
+    expect(screen.getByText('Notifications')).toBeDefined()
     expect(screen.getByText('Edit Profile')).toBeDefined()
     expect(screen.getByText('Logout')).toBeDefined()
   })
 
-  it('calls onEditProfile when edit profile is clicked', () => {
-    render(<UserMenu onEditProfile={mockOnEditProfile} />)
+  it('shows notification badge when there are unread notifications', () => {
+    mockWebSocketContext.unreadCount = 3
+    const { container } = render(<UserMenu onEditProfile={mockOnEditProfile} />)
     
-    const menuButton = screen.getByRole('button', { name: 'User menu' })
-    fireEvent.click(menuButton)
+    expect(container.querySelector('.user-menu-notification-badge')).toBeDefined()
+    expect(screen.getByText('3')).toBeDefined()
+  })
+
+  it('does not show notification badge when there are no unread notifications', () => {
+    mockWebSocketContext.unreadCount = 0
+    const { container } = render(<UserMenu onEditProfile={mockOnEditProfile} />)
+    
+    expect(container.querySelector('.user-menu-notification-badge')).toBeNull()
+  })
+
+  it('displays notifications in dropdown', () => {
+    mockWebSocketContext.notifications = [
+      {
+        id: '1',
+        type: 'join-request-created',
+        message: 'New join request',
+        timestamp: new Date(),
+        read: false,
+      },
+      {
+        id: '2',
+        type: 'member-joined',
+        message: 'User joined family',
+        timestamp: new Date(),
+        read: true,
+      },
+    ] as any
+    
+    const { container } = render(<UserMenu onEditProfile={mockOnEditProfile} />)
+    
+    const avatar = container.querySelector('.user-avatar')!
+    fireEvent.click(avatar)
+    
+    expect(screen.getByText('New join request')).toBeDefined()
+    expect(screen.getByText('User joined family')).toBeDefined()
+  })
+
+  it('shows no notifications message when notifications list is empty', () => {
+    mockWebSocketContext.notifications = []
+    
+    const { container } = render(<UserMenu onEditProfile={mockOnEditProfile} />)
+    
+    const avatar = container.querySelector('.user-avatar')!
+    fireEvent.click(avatar)
+    
+    expect(screen.getByText('No notifications')).toBeDefined()
+  })
+
+  it('calls onEditProfile when edit profile is clicked', () => {
+    const { container } = render(<UserMenu onEditProfile={mockOnEditProfile} />)
+    
+    const avatar = container.querySelector('.user-avatar')!
+    fireEvent.click(avatar)
     
     const editProfileButton = screen.getByText('Edit Profile')
     fireEvent.click(editProfileButton)
@@ -84,10 +158,10 @@ describe('UserMenu', () => {
   })
 
   it('calls logout when logout button is clicked', () => {
-    render(<UserMenu onEditProfile={mockOnEditProfile} />)
+    const { container } = render(<UserMenu onEditProfile={mockOnEditProfile} />)
     
-    const menuButton = screen.getByRole('button', { name: 'User menu' })
-    fireEvent.click(menuButton)
+    const avatar = container.querySelector('.user-avatar')!
+    fireEvent.click(avatar)
     
     const logoutButton = screen.getByText('Logout')
     fireEvent.click(logoutButton)
@@ -96,10 +170,10 @@ describe('UserMenu', () => {
   })
 
   it('closes dropdown when edit profile is clicked', () => {
-    render(<UserMenu onEditProfile={mockOnEditProfile} />)
+    const { container } = render(<UserMenu onEditProfile={mockOnEditProfile} />)
     
-    const menuButton = screen.getByRole('button', { name: 'User menu' })
-    fireEvent.click(menuButton)
+    const avatar = container.querySelector('.user-avatar')!
+    fireEvent.click(avatar)
     
     expect(screen.getByText('Edit Profile')).toBeDefined()
     
@@ -111,10 +185,10 @@ describe('UserMenu', () => {
   })
 
   it('closes dropdown when logout is clicked', () => {
-    render(<UserMenu onEditProfile={mockOnEditProfile} />)
+    const { container } = render(<UserMenu onEditProfile={mockOnEditProfile} />)
     
-    const menuButton = screen.getByRole('button', { name: 'User menu' })
-    fireEvent.click(menuButton)
+    const avatar = container.querySelector('.user-avatar')!
+    fireEvent.click(avatar)
     
     expect(screen.getByText('Logout')).toBeDefined()
     
@@ -126,10 +200,10 @@ describe('UserMenu', () => {
   })
 
   it('closes dropdown when escape key is pressed', () => {
-    render(<UserMenu onEditProfile={mockOnEditProfile} />)
+    const { container } = render(<UserMenu onEditProfile={mockOnEditProfile} />)
     
-    const menuButton = screen.getByRole('button', { name: 'User menu' })
-    fireEvent.click(menuButton)
+    const avatar = container.querySelector('.user-avatar')!
+    fireEvent.click(avatar)
     
     expect(screen.getByText('Edit Profile')).toBeDefined()
     
@@ -138,6 +212,4 @@ describe('UserMenu', () => {
     // Dropdown should be closed after escape
     expect(screen.queryByText('Edit Profile')).toBeNull()
   })
-
-
-}) 
+}); 
