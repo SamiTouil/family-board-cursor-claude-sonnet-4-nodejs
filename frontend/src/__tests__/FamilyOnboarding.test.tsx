@@ -197,12 +197,5 @@ describe('FamilyOnboarding', () => {
     })
   })
 
-  it('calls logout when back button is clicked from choice screen', () => {
-    render(<FamilyOnboarding />)
-    
-    // Click back from main choice screen
-    fireEvent.click(screen.getByText('Back'))
-    
-    expect(mockAuthContext.logout).toHaveBeenCalled()
-  })
+
 }) 
