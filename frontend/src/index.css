@@ -31,9 +31,7 @@ button {
   transition: background-color 0.2s;
 }
 
-button:hover {
-  background-color: #6d28d9;
-}
+/* Removed hover effects for cleaner, simpler design */
 
 button:disabled {
   background-color: #d1d5db;
