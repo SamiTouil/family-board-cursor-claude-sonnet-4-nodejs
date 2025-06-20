@@ -7,9 +7,26 @@
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
-  background-color: #f3f4f6;
-  border: 2px solid #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.user-avatar-clickable {
+  cursor: pointer;
+}
+
+.user-avatar-clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.user-avatar-clickable:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.user-avatar-clickable:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Size variants */
@@ -24,8 +41,8 @@
 }
 
 .user-avatar-large {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
 }
 
 /* Avatar image */
@@ -55,28 +72,15 @@
 
 /* Font sizes for different avatar sizes */
 .user-avatar-small .user-avatar-initials {
-  font-size: 0.75rem;
+  font-size: 12px;
 }
 
 .user-avatar-medium .user-avatar-initials {
-  font-size: 0.875rem;
+  font-size: 14px;
 }
 
 .user-avatar-large .user-avatar-initials {
-  font-size: 1.25rem;
-}
-
-/* Hover effects */
-.user-avatar:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease;
-}
-
-/* Active/focus states */
-.user-avatar:focus-within {
-  outline: 2px solid #7c3aed;
-  outline-offset: 2px;
+  font-size: 16px;
 }
 
 /* Responsive adjustments */
@@ -87,6 +91,6 @@
   }
   
   .user-avatar-medium .user-avatar-initials {
-    font-size: 0.8rem;
+    font-size: 13px;
   }
 } 

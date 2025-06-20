@@ -7,6 +7,7 @@ interface UserAvatarProps {
   avatarUrl?: string | null;
   size?: 'small' | 'medium' | 'large';
   className?: string;
+  onClick?: () => void;
 }
 
 export const UserAvatar: React.FC<UserAvatarProps> = ({
@@ -14,7 +15,8 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   lastName,
   avatarUrl,
   size = 'medium',
-  className = ''
+  className = '',
+  onClick
 }) => {
   // Generate initials
   const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -46,9 +48,20 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
 
   const backgroundColor = generateColor(`${firstName}${lastName}`);
 
-  if (avatarUrl) {
-    return (
-      <div className={`user-avatar user-avatar-${size} ${className}`}>
+  return (
+    <div 
+      className={`user-avatar user-avatar-${size} ${className} ${onClick ? 'user-avatar-clickable' : ''}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      } : undefined}
+    >
+      {avatarUrl ? (
         <img
           src={avatarUrl}
           alt={`${firstName} ${lastName}`}
@@ -66,21 +79,14 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
             }
           }}
         />
-        <div 
-          className="user-avatar-initials user-avatar-fallback"
-          style={{ backgroundColor }}
-        >
-          {initials}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={`user-avatar user-avatar-${size} ${className}`}>
+      ) : null}
+      
       <div 
         className="user-avatar-initials"
-        style={{ backgroundColor }}
+        style={{ 
+          backgroundColor,
+          display: avatarUrl ? 'none' : 'flex'
+        }}
       >
         {initials}
       </div>

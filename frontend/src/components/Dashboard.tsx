@@ -4,7 +4,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { UserMenu } from './UserMenu';
 import { UserProfile } from './UserProfile';
-import { NotificationCenter } from './NotificationCenter';
 import './Dashboard.css';
 
 export const Dashboard: React.FC = () => {
@@ -34,7 +33,6 @@ export const Dashboard: React.FC = () => {
             {currentFamily ? `${currentFamily.name} Board` : t('app.title')}
           </h1>
           <div className="dashboard-header-actions">
-            <NotificationCenter />
             <UserMenu onEditProfile={() => setShowUserProfile(true)} />
           </div>
         </div>

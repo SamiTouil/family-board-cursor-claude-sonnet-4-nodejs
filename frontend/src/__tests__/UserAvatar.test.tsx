@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import { UserAvatar } from '../components/UserAvatar';
 
 describe('UserAvatar', () => {
@@ -90,5 +90,64 @@ describe('UserAvatar', () => {
     const { container } = render(<UserAvatar {...defaultProps} />);
     
     expect(container.querySelector('.user-avatar-medium')).toBeDefined();
+  });
+
+  it('applies clickable class when onClick is provided', () => {
+    const mockClick = vi.fn();
+    const { container } = render(<UserAvatar {...defaultProps} onClick={mockClick} />);
+    
+    expect(container.querySelector('.user-avatar-clickable')).toBeDefined();
+  });
+
+  it('does not apply clickable class when onClick is not provided', () => {
+    const { container } = render(<UserAvatar {...defaultProps} />);
+    
+    expect(container.querySelector('.user-avatar-clickable')).toBeNull();
+  });
+
+  it('calls onClick when avatar is clicked', () => {
+    const mockClick = vi.fn();
+    const { container } = render(<UserAvatar {...defaultProps} onClick={mockClick} />);
+    
+    const avatar = container.querySelector('.user-avatar');
+    fireEvent.click(avatar!);
+    
+    expect(mockClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles keyboard interaction when clickable', () => {
+    const mockClick = vi.fn();
+    const { container } = render(<UserAvatar {...defaultProps} onClick={mockClick} />);
+    
+    const avatar = container.querySelector('.user-avatar');
+    
+    // Test Enter key
+    fireEvent.keyDown(avatar!, { key: 'Enter' });
+    expect(mockClick).toHaveBeenCalledTimes(1);
+    
+    // Test Space key
+    fireEvent.keyDown(avatar!, { key: ' ' });
+    expect(mockClick).toHaveBeenCalledTimes(2);
+    
+    // Test other key (should not trigger)
+    fireEvent.keyDown(avatar!, { key: 'Escape' });
+    expect(mockClick).toHaveBeenCalledTimes(2);
+  });
+
+  it('sets proper accessibility attributes when clickable', () => {
+    const mockClick = vi.fn();
+    const { container } = render(<UserAvatar {...defaultProps} onClick={mockClick} />);
+    
+    const avatar = container.querySelector('.user-avatar');
+    expect(avatar?.getAttribute('role')).toBe('button');
+    expect(avatar?.getAttribute('tabIndex')).toBe('0');
+  });
+
+  it('does not set accessibility attributes when not clickable', () => {
+    const { container } = render(<UserAvatar {...defaultProps} />);
+    
+    const avatar = container.querySelector('.user-avatar');
+    expect(avatar?.getAttribute('role')).toBeNull();
+    expect(avatar?.getAttribute('tabIndex')).toBeNull();
   });
 }); 
