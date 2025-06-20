@@ -89,6 +89,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
         }
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to load families:', error);
       // Don't show error to user, just leave families empty
       setFamilies([]);
