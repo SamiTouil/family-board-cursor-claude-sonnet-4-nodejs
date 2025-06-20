@@ -73,6 +73,7 @@ export interface FamilyResponse {
 
 export interface FamilyMemberResponse {
   id: string;
+  userId: string;
   role: FamilyMemberRole;
   joinedAt: Date;
   user: {

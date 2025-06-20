@@ -245,6 +245,7 @@ export class FamilyService {
 
     return members.map((member: any) => ({
       id: member.id,
+      userId: member.userId,
       role: member.role,
       joinedAt: member.joinedAt,
       user: {
@@ -291,6 +292,7 @@ export class FamilyService {
 
     return {
       id: updatedMember.id,
+      userId: updatedMember.userId,
       role: updatedMember.role,
       joinedAt: updatedMember.joinedAt,
       user: {
@@ -816,6 +818,11 @@ export class FamilyService {
     // Don't allow removing family creator
     if (memberToRemove.userId === memberToRemove.family.creatorId) {
       throw new Error('Cannot remove family creator');
+    }
+
+    // Don't allow self-removal
+    if (memberToRemove.userId === adminId) {
+      throw new Error('Cannot remove yourself from the family');
     }
 
     await prisma.familyMember.delete({
