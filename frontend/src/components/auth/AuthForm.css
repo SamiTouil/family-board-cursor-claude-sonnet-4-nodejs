@@ -112,10 +112,7 @@
   margin-top: 0.5rem;
 }
 
-.auth-form-button:hover:not(:disabled) {
-  background-color: #6d28d9;
-  transform: translateY(-1px);
-}
+/* Removed hover effects for cleaner, simpler design */
 
 .auth-form-button:active:not(:disabled) {
   transform: translateY(0);
@@ -151,10 +148,7 @@
   font-size: inherit;
 }
 
-.auth-form-link:hover:not(:disabled) {
-  color: #6d28d9;
-  text-decoration-color: currentColor;
-}
+/* Removed hover effects for cleaner, simpler design */
 
 .auth-form-link:disabled {
   color: #9ca3af;
