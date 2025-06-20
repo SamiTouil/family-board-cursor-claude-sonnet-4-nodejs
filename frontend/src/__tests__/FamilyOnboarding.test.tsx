@@ -143,10 +143,17 @@ describe('FamilyOnboarding', () => {
       id: 'family-1',
       name: 'Test Family',
       description: 'A test family',
-      avatarUrl: null,
+      avatarUrl: undefined,
       createdAt: '2023-01-01T00:00:00Z',
       updatedAt: '2023-01-01T00:00:00Z',
-      createdBy: '1',
+      creator: {
+        id: '1',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+      },
+      memberCount: 1,
+      userRole: 'ADMIN',
     }
     
     mockFamilyContext.createFamily.mockResolvedValue(mockFamily)
@@ -172,10 +179,17 @@ describe('FamilyOnboarding', () => {
       id: 'family-1',
       name: 'Joined Family',
       description: 'A joined family',
-      avatarUrl: null,
+      avatarUrl: undefined,
       createdAt: '2023-01-01T00:00:00Z',
       updatedAt: '2023-01-01T00:00:00Z',
-      createdBy: '2',
+      creator: {
+        id: '2',
+        firstName: 'Jane',
+        lastName: 'Smith',
+        email: 'jane@example.com',
+      },
+      memberCount: 2,
+      userRole: 'MEMBER',
     }
     
     mockFamilyContext.joinFamily.mockResolvedValue(mockFamily)
@@ -192,7 +206,7 @@ describe('FamilyOnboarding', () => {
     
     await waitFor(() => {
       expect(mockFamilyContext.joinFamily).toHaveBeenCalledWith({
-        inviteCode: 'INVITE123',
+        code: 'INVITE123',
       })
     })
   })
