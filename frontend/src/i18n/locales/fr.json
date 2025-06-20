@@ -62,5 +62,51 @@
     "password": "Mot de passe",
     "avatar": "Avatar",
     "profile": "Profil"
+  },
+  "family": {
+    "onboarding": {
+      "title": "Bienvenue sur le Tableau Familial !",
+      "subtitle": "Pour commencer, vous devez soit créer une nouvelle famille soit rejoindre une famille existante.",
+      "createFamily": "Créer une Nouvelle Famille",
+      "joinFamily": "Rejoindre une Famille",
+      "createFamilyDescription": "Créez un nouveau tableau familial et invitez d'autres à rejoindre",
+      "joinFamilyDescription": "Rejoignez une famille en utilisant un code d'invitation"
+    },
+    "create": {
+      "title": "Créer Votre Famille",
+      "subtitle": "Configurez votre tableau familial",
+      "name": "Nom de la Famille",
+      "description": "Description",
+      "namePlaceholder": "Entrez le nom de votre famille",
+      "descriptionPlaceholder": "Décrivez votre famille (optionnel)",
+      "creating": "Création de la famille...",
+      "nameRequired": "Le nom de la famille est requis",
+      "nameMinLength": "Le nom de la famille doit contenir au moins 2 caractères",
+      "nameMaxLength": "Le nom de la famille doit contenir moins de 50 caractères",
+      "descriptionMaxLength": "La description doit contenir moins de 200 caractères",
+      "createSuccess": "Famille créée avec succès !",
+      "createError": "Échec de la création de la famille. Veuillez réessayer."
+    },
+    "join": {
+      "title": "Rejoindre une Famille",
+      "subtitle": "Entrez le code d'invitation que vous avez reçu",
+      "inviteCode": "Code d'Invitation",
+      "inviteCodePlaceholder": "Entrez le code d'invitation",
+      "joining": "Rejoindre la famille...",
+      "codeRequired": "Le code d'invitation est requis",
+      "joinSuccess": "Vous avez rejoint la famille avec succès !",
+      "joinError": "Échec de rejoindre la famille. Veuillez vérifier le code et réessayer.",
+      "invalidCode": "Code d'invitation invalide ou expiré",
+      "alreadyMember": "Vous êtes déjà membre de cette famille"
+    },
+    "common": {
+      "back": "Retour",
+      "continue": "Continuer",
+      "name": "Nom",
+      "description": "Description",
+      "members": "Membres",
+      "admin": "Administrateur",
+      "member": "Membre"
+    }
   }
 } 

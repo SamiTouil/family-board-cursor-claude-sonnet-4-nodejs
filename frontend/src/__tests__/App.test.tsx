@@ -14,10 +14,28 @@ const mockAuthContext = {
   isAuthenticated: false,
 }
 
+// Mock the family context
+const mockFamilyContext = {
+  families: [],
+  currentFamily: null,
+  loading: false,
+  hasCompletedOnboarding: false,
+  createFamily: vi.fn(),
+  joinFamily: vi.fn(),
+  setCurrentFamily: vi.fn(),
+  refreshFamilies: vi.fn(),
+}
+
 // Mock the AuthProvider and useAuth hook
 vi.mock('../contexts/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
   useAuth: () => mockAuthContext,
+}))
+
+// Mock the FamilyProvider and useFamily hook
+vi.mock('../contexts/FamilyContext', () => ({
+  FamilyProvider: ({ children }: { children: React.ReactNode }) => children,
+  useFamily: () => mockFamilyContext,
 }))
 
 // Mock react-i18next
@@ -34,6 +52,9 @@ vi.mock('react-i18next', () => ({
         'auth.noAccount': "Don't have an account?",
         'auth.signupLink': 'Sign up here',
         'common.loading': 'Loading...',
+        'family.onboarding.title': 'Welcome to Family Board!',
+        'family.onboarding.createFamily': 'Create New Family',
+        'family.onboarding.joinFamily': 'Join Existing Family',
       }
       return translations[key] || key
     },
@@ -46,6 +67,10 @@ describe('App', () => {
     mockAuthContext.user = null
     mockAuthContext.loading = false
     mockAuthContext.isAuthenticated = false
+    mockFamilyContext.families = []
+    mockFamilyContext.currentFamily = null
+    mockFamilyContext.loading = false
+    mockFamilyContext.hasCompletedOnboarding = false
   })
 
   it('shows loading spinner when loading', () => {
@@ -64,7 +89,7 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: /login/i })).toBeDefined()
   })
 
-  it('shows dashboard when authenticated', () => {
+  it('shows family onboarding when authenticated but no families', () => {
     mockAuthContext.user = {
       id: '1',
       firstName: 'John',
@@ -75,11 +100,35 @@ describe('App', () => {
       updatedAt: '2023-01-01T00:00:00Z',
     }
     mockAuthContext.isAuthenticated = true
+    mockFamilyContext.hasCompletedOnboarding = false
     
     render(<App />)
     
-    // Should show dashboard instead of auth form
+    // Should show family onboarding instead of auth form or dashboard
     expect(screen.queryByRole('button', { name: /login/i })).toBeNull()
+    expect(screen.getByText('Welcome to Family Board!')).toBeDefined()
+    expect(screen.getByText('Create New Family')).toBeDefined()
+    expect(screen.getByText('Join Existing Family')).toBeDefined()
+  })
+
+  it('shows dashboard when authenticated and has families', () => {
+    mockAuthContext.user = {
+      id: '1',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      avatarUrl: null,
+      createdAt: '2023-01-01T00:00:00Z',
+      updatedAt: '2023-01-01T00:00:00Z',
+    }
+    mockAuthContext.isAuthenticated = true
+    mockFamilyContext.hasCompletedOnboarding = true
+    
+    render(<App />)
+    
+    // Should show dashboard
+    expect(screen.queryByRole('button', { name: /login/i })).toBeNull()
+    expect(screen.queryByText('Welcome to Family Board!')).toBeNull()
     // Note: Dashboard content would be tested separately
   })
 
