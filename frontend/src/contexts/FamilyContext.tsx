@@ -59,6 +59,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
           }
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to load families:', error);
         // Don't throw error here - user might not have families yet
       } finally {
@@ -137,6 +138,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
         setFamilies(response.data.data);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to refresh families:', error);
     }
   };
