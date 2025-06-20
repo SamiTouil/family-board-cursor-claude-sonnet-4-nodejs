@@ -24,6 +24,11 @@ export const createInviteSchema = z.object({
   expiresIn: z.number().min(1).max(30).default(7), // days
 });
 
+export const createInviteBodySchema = z.object({
+  receiverEmail: z.string().email('Invalid email address').optional(),
+  expiresIn: z.number().min(1).max(30).default(7), // days
+});
+
 export const respondToInviteSchema = z.object({
   inviteId: z.string().cuid('Invalid invite ID'),
   response: z.enum(['ACCEPTED', 'REJECTED']),

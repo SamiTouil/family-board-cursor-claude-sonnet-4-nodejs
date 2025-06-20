@@ -23,12 +23,10 @@ export async function authenticateToken(
   next: NextFunction
 ): Promise<void> {
   try {
-    console.log('Auth middleware called for:', req.method, req.path);
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
     if (!token) {
-      console.log('No token provided');
       res.status(401).json({
         success: false,
         message: i18next.t('errors.tokenRequired'),

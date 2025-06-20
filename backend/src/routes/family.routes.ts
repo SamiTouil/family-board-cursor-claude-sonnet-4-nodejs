@@ -5,7 +5,7 @@ import {
   createFamilySchema,
   updateFamilySchema,
   joinFamilySchema,
-  createInviteSchema,
+  createInviteBodySchema,
   updateMemberRoleSchema,
 } from '../types/family.types';
 import { z } from 'zod';
@@ -273,10 +273,26 @@ router.put('/:familyId/members/:memberId/role', validateBody(updateMemberRoleSch
 });
 
 // Create family invite (admin only)
-router.post('/:familyId/invites', validateBody(createInviteSchema), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/:familyId/invites', validateBody(createInviteBodySchema), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.userId;
-    const invite = await FamilyService.createInvite(userId, req.body);
+    const { familyId } = req.params;
+    
+    if (!familyId) {
+      res.status(400).json({
+        success: false,
+        message: 'Family ID is required',
+      });
+      return;
+    }
+    
+    // Merge familyId from URL parameter with request body
+    const inviteData = {
+      ...req.body,
+      familyId,
+    };
+    
+    const invite = await FamilyService.createInvite(userId, inviteData);
     
     res.status(201).json({
       success: true,
