@@ -7,6 +7,7 @@ import {
   joinFamilySchema,
   createInviteBodySchema,
   updateMemberRoleSchema,
+  respondToJoinRequestSchema,
 } from '../types/family.types';
 import { z } from 'zod';
 
@@ -335,21 +336,78 @@ router.get('/:familyId/invites', async (req: AuthenticatedRequest, res: Response
   }
 });
 
-// Join family with invite code
+// Join family with invite code (now creates join request)
 router.post('/join', validateBody(joinFamilySchema), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.userId;
-    const family = await FamilyService.joinFamily(userId, req.body);
+    const joinRequest = await FamilyService.requestToJoinFamily(userId, req.body);
     
     res.json({
       success: true,
-      message: 'Joined family successfully',
-      data: family,
+      message: 'Join request submitted successfully. Please wait for admin approval.',
+      data: joinRequest,
     });
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to join family',
+      message: error instanceof Error ? error.message : 'Failed to submit join request',
+    });
+  }
+});
+
+// Get family join requests (admin only)
+router.get('/:familyId/join-requests', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const { familyId } = req.params;
+    
+    if (!familyId) {
+      res.status(400).json({
+        success: false,
+        message: 'Family ID is required',
+      });
+      return;
+    }
+    
+    const joinRequests = await FamilyService.getFamilyJoinRequests(familyId, userId);
+    
+    res.json({
+      success: true,
+      data: joinRequests,
+    });
+  } catch (error) {
+    res.status(403).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Access denied',
+    });
+  }
+});
+
+// Respond to join request (admin only)
+router.post('/join-requests/:requestId/respond', validateBody(respondToJoinRequestSchema), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const { requestId } = req.params;
+    
+    if (!requestId) {
+      res.status(400).json({
+        success: false,
+        message: 'Request ID is required',
+      });
+      return;
+    }
+    
+    const updatedRequest = await FamilyService.respondToJoinRequest(userId, requestId, req.body);
+    
+    res.json({
+      success: true,
+      message: `Join request ${req.body.response.toLowerCase()} successfully`,
+      data: updatedRequest,
+    });
+  } catch (error) {
+    res.status(403).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to respond to join request',
     });
   }
 });

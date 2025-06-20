@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Family, familyApi, CreateFamilyData, JoinFamilyData } from '../services/api';
+import { Family, familyApi, CreateFamilyData, JoinFamilyData, FamilyJoinRequest } from '../services/api';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './AuthContext';
 
@@ -9,7 +9,7 @@ interface FamilyContextType {
   loading: boolean;
   hasCompletedOnboarding: boolean;
   createFamily: (data: CreateFamilyData) => Promise<Family>;
-  joinFamily: (data: JoinFamilyData) => Promise<Family>;
+  joinFamily: (data: JoinFamilyData) => Promise<FamilyJoinRequest>;
   setCurrentFamily: (family: Family) => void;
   refreshFamilies: () => Promise<void>;
 }
@@ -125,15 +125,14 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     }
   };
 
-  const joinFamily = async (data: JoinFamilyData): Promise<Family> => {
+  const joinFamily = async (data: JoinFamilyData): Promise<FamilyJoinRequest> => {
     try {
       const response = await familyApi.join(data);
       if (response.data.success) {
-        const joinedFamily = response.data.data;
-        setFamilies(prev => [...prev, joinedFamily]);
-        setCurrentFamilyState(joinedFamily);
-        localStorage.setItem('currentFamilyId', joinedFamily.id);
-        return joinedFamily;
+        const joinRequest = response.data.data;
+        // Don't add to families list since it's just a request
+        // Don't set current family since user hasn't joined yet
+        return joinRequest;
       } else {
         throw new Error(response.data.message || t('family.join.joinError'));
       }
@@ -142,6 +141,8 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
         const message = error.response?.data?.message;
         if (message?.includes('code') || message?.includes('invite')) {
           throw new Error(t('family.join.invalidCode'));
+        } else if (message?.includes('pending')) {
+          throw new Error(t('family.join.pendingRequest'));
         }
         throw new Error(message || t('family.join.joinError'));
       } else if (error.response?.status === 409) {

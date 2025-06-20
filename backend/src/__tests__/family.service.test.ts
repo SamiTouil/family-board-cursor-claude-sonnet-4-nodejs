@@ -27,17 +27,21 @@ jest.mock('@prisma/client', () => {
       count: jest.fn(),
     },
     familyInvite: {
-      create: jest.fn(),
       findUnique: jest.fn(),
-      findMany: jest.fn(),
+      create: jest.fn(),
       update: jest.fn(),
-      delete: jest.fn(),
+      findMany: jest.fn(),
+      updateMany: jest.fn(),
     },
     user: {
       findUnique: jest.fn(),
       findMany: jest.fn(),
     },
     $transaction: jest.fn(),
+    familyJoinRequest: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+    },
   };
 
   return {
@@ -316,7 +320,8 @@ describe('FamilyService', () => {
         .mockResolvedValueOnce(null); // Existing membership check
 
       (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(mockReceiver);
-      (mockPrisma.familyInvite.findUnique as jest.Mock).mockResolvedValue(null); // Code uniqueness check
+      (mockPrisma.familyInvite.findMany as jest.Mock).mockResolvedValue([]); // No existing active invites
+      (mockPrisma.familyInvite.findUnique as jest.Mock).mockResolvedValue(null); // Code is unique
       (mockPrisma.familyInvite.create as jest.Mock).mockResolvedValue(mockInvite);
 
       const result = await FamilyService.createInvite(userId, inviteData);
@@ -370,6 +375,7 @@ describe('FamilyService', () => {
         .mockResolvedValueOnce(mockExistingMembership); // Existing membership check
 
       (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(mockReceiver);
+      (mockPrisma.familyInvite.findMany as jest.Mock).mockResolvedValue([]); // No existing active invites
 
       await expect(FamilyService.createInvite(userId, inviteData)).rejects.toThrow(
         'User is already a member of this family'
@@ -394,29 +400,45 @@ describe('FamilyService', () => {
         family: {
           id: 'family-1',
           name: 'Test Family',
-          description: 'A test family',
-          avatarUrl: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          creator: {
-            id: 'user-2',
-            firstName: 'Jane',
-            lastName: 'Doe',
-            email: 'jane@example.com',
-          },
         },
+      };
+
+      const mockJoinRequest = {
+        id: 'request-1',
+        status: 'PENDING',
+        message: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        respondedAt: null,
+        user: {
+          id: userId,
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+          avatarUrl: null,
+        },
+        family: {
+          id: 'family-1',
+          name: 'Test Family',
+        },
+        invite: {
+          id: 'invite-1',
+          code: 'ABCD1234',
+        },
+        reviewer: null,
       };
 
       (mockPrisma.familyInvite.findUnique as jest.Mock).mockResolvedValue(mockInvite);
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(null); // Not already a member
-      (mockPrisma.$transaction as jest.Mock).mockResolvedValue([{}, {}]);
-      (mockPrisma.familyMember.count as jest.Mock).mockResolvedValue(2);
+      (mockPrisma.familyJoinRequest.findUnique as jest.Mock).mockResolvedValue(null); // No existing join request
+      (mockPrisma.familyJoinRequest.create as jest.Mock).mockResolvedValue(mockJoinRequest);
 
       const result = await FamilyService.joinFamily(userId, joinData);
 
-      expect(result.id).toBe('family-1');
-      expect(result.userRole).toBe('MEMBER');
-      expect(result.memberCount).toBe(2);
+      expect(result.id).toBe('request-1'); // Join request ID, not family ID
+      expect(result.status).toBe('PENDING');
+      expect(result.user.id).toBe(userId);
+      expect(result.family.id).toBe('family-1');
     });
 
     it('should throw error for invalid invite code', async () => {
