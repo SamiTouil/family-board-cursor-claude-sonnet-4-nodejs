@@ -28,6 +28,12 @@
   margin: 0;
 }
 
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .dashboard-user-menu {
   display: flex;
   align-items: center;
