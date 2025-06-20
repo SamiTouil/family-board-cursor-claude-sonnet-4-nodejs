@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { Family, familyApi, CreateFamilyData, JoinFamilyData, FamilyJoinRequest } from '../services/api';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './AuthContext';
+import { useWebSocket } from './WebSocketContext';
 
 interface FamilyContextType {
   families: Family[];
@@ -9,12 +10,14 @@ interface FamilyContextType {
   loading: boolean;
   hasCompletedOnboarding: boolean;
   pendingJoinRequests: FamilyJoinRequest[];
+  approvalNotification: { familyName: string; show: boolean } | null;
   createFamily: (data: CreateFamilyData) => Promise<Family>;
   joinFamily: (data: JoinFamilyData) => Promise<FamilyJoinRequest>;
   setCurrentFamily: (family: Family) => void;
   refreshFamilies: () => Promise<void>;
   loadPendingJoinRequests: () => Promise<void>;
   cancelJoinRequest: (requestId: string) => Promise<void>;
+  dismissApprovalNotification: () => void;
 }
 
 const FamilyContext = createContext<FamilyContextType | undefined>(undefined);
@@ -37,22 +40,16 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [pendingJoinRequests, setPendingJoinRequests] = useState<FamilyJoinRequest[]>([]);
+  const [approvalNotification, setApprovalNotification] = useState<{ familyName: string; show: boolean } | null>(null);
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { t } = useTranslation();
+  const { on, off } = useWebSocket();
 
   // Load families and pending join requests when user is authenticated
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
       loadFamilies();
       loadPendingJoinRequests();
-      
-      // Set up periodic refresh to detect status changes
-      const refreshInterval = setInterval(() => {
-        loadFamilies();
-        loadPendingJoinRequests();
-      }, 30000); // Refresh every 30 seconds
-      
-      return () => clearInterval(refreshInterval);
     } else if (!isAuthenticated) {
       // Reset state when user logs out
       setFamilies([]);
@@ -61,15 +58,116 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       localStorage.removeItem('currentFamilyId');
       setLoading(false);
     }
-    
-    // Return undefined for other cases (no cleanup needed)
-    return undefined;
   }, [isAuthenticated, authLoading]);
 
   // Update hasCompletedOnboarding based on families and pending join requests
   useEffect(() => {
     setHasCompletedOnboarding(families.length > 0);
   }, [families, pendingJoinRequests]);
+
+  const refreshFamilies = useCallback(async (): Promise<void> => {
+    if (!isAuthenticated) return;
+    
+    try {
+      const response = await familyApi.getUserFamilies();
+      if (response.data.success) {
+        setFamilies(response.data.data);
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to refresh families:', error);
+    }
+  }, [isAuthenticated]);
+
+  // Set up WebSocket event listeners for real-time updates
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // Handle join request approvals
+    const handleJoinRequestApproved = async (data: any) => {
+      // Remove from pending requests and add to families
+      setPendingJoinRequests(prev => prev.filter(r => r.family.id !== data.familyId));
+      
+      // Immediately set hasCompletedOnboarding to true to trigger redirect
+      setHasCompletedOnboarding(true);
+      
+      // Refresh families to include the newly joined family - inline to avoid dependency issues
+      try {
+        const response = await familyApi.getUserFamilies();
+        if (response.data.success) {
+          setFamilies(response.data.data);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to refresh families after approval:', error);
+      }
+      
+      // Show approval notification
+      setApprovalNotification({ familyName: data.familyName, show: true });
+    };
+
+    // Handle join request rejections
+    const handleJoinRequestRejected = (data: any) => {
+      // Update the request status in pending requests
+      setPendingJoinRequests(prev => 
+        prev.map(r => 
+          r.family.id === data.familyId 
+            ? { ...r, status: 'REJECTED' as const }
+            : r
+        )
+      );
+    };
+
+    // Handle new member joining family (for admins)
+    const handleMemberJoined = async () => {
+      // Refresh families to update member count - inline to avoid dependency issues
+      try {
+        const response = await familyApi.getUserFamilies();
+        if (response.data.success) {
+          setFamilies(response.data.data);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to refresh families after member joined:', error);
+      }
+    };
+
+    // Handle family updates
+    const handleFamilyUpdated = async () => {
+      // Refresh families to get updated information - inline to avoid dependency issues
+      try {
+        const response = await familyApi.getUserFamilies();
+        if (response.data.success) {
+          setFamilies(response.data.data);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to refresh families after update:', error);
+      }
+    };
+
+    // Handle new join requests (for admins)
+    const handleJoinRequestCreated = () => {
+      // This is handled by the admin components, not the general family context
+      // But we could add a notification here if needed
+    };
+
+    // Set up event listeners
+    on('join-request-approved', handleJoinRequestApproved);
+    on('join-request-rejected', handleJoinRequestRejected);
+    on('member-joined', handleMemberJoined);
+    on('family-updated', handleFamilyUpdated);
+    on('join-request-created', handleJoinRequestCreated);
+
+    // Cleanup event listeners
+    return () => {
+      off('join-request-approved', handleJoinRequestApproved);
+      off('join-request-rejected', handleJoinRequestRejected);
+      off('member-joined', handleMemberJoined);
+      off('family-updated', handleFamilyUpdated);
+      off('join-request-created', handleJoinRequestCreated);
+    };
+  }, [isAuthenticated, on, off]);
 
   const loadFamilies = async () => {
     if (!isAuthenticated) return;
@@ -179,20 +277,6 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     localStorage.setItem('currentFamilyId', family.id);
   };
 
-  const refreshFamilies = async (): Promise<void> => {
-    if (!isAuthenticated) return;
-    
-    try {
-      const response = await familyApi.getUserFamilies();
-      if (response.data.success) {
-        setFamilies(response.data.data);
-      }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to refresh families:', error);
-    }
-  };
-
   const loadPendingJoinRequests = async (): Promise<void> => {
     if (!isAuthenticated) return;
     
@@ -223,18 +307,24 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     }
   };
 
+  const dismissApprovalNotification = () => {
+    setApprovalNotification(null);
+  };
+
   const value: FamilyContextType = {
     families,
     currentFamily,
     loading,
     hasCompletedOnboarding,
     pendingJoinRequests,
+    approvalNotification,
     createFamily,
     joinFamily,
     setCurrentFamily,
     refreshFamilies,
     loadPendingJoinRequests,
     cancelJoinRequest,
+    dismissApprovalNotification,
   };
 
   return (

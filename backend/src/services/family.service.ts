@@ -13,6 +13,7 @@ import {
   FamilyStatsResponse
 } from '../types/family.types';
 import crypto from 'crypto';
+import { getWebSocketService } from './websocket.service';
 
 // Use a global instance like other services
 declare global {
@@ -542,6 +543,23 @@ export class FamilyService {
       },
     });
 
+    // Notify family admins via WebSocket
+    const webSocketService = getWebSocketService();
+    if (webSocketService) {
+      await webSocketService.notifyJoinRequestCreated(invite.familyId, {
+        id: joinRequest.id,
+        status: joinRequest.status,
+        message: joinRequest.message || undefined,
+        createdAt: joinRequest.createdAt,
+        updatedAt: joinRequest.updatedAt,
+        respondedAt: joinRequest.respondedAt || undefined,
+        user: joinRequest.user,
+        family: joinRequest.family,
+        invite: joinRequest.invite,
+        reviewer: joinRequest.reviewer || undefined,
+      });
+    }
+
     return {
       id: joinRequest.id,
       status: joinRequest.status,
@@ -729,6 +747,24 @@ export class FamilyService {
         },
       },
     });
+
+    // Notify users via WebSocket
+    const webSocketService = getWebSocketService();
+    if (webSocketService) {
+      if (data.response === 'APPROVED') {
+        await webSocketService.notifyJoinRequestApproved(
+          joinRequest.userId, 
+          joinRequest.familyId, 
+          joinRequest.family.name
+        );
+      } else {
+        await webSocketService.notifyJoinRequestRejected(
+          joinRequest.userId, 
+          joinRequest.familyId, 
+          joinRequest.family.name
+        );
+      }
+    }
 
     return {
       id: updatedRequest!.id,

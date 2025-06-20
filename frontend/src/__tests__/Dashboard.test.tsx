@@ -19,6 +19,7 @@ const mockAuthContext = {
   login: vi.fn(),
   signup: vi.fn(),
   logout: vi.fn(),
+  refreshUser: vi.fn(),
   isAuthenticated: true,
 }
 
@@ -28,10 +29,30 @@ const mockFamilyContext = {
   currentFamily: null as Family | null,
   loading: false,
   hasCompletedOnboarding: true,
+  pendingJoinRequests: [],
+  approvalNotification: null,
   createFamily: vi.fn(),
   joinFamily: vi.fn(),
   setCurrentFamily: vi.fn(),
   refreshFamilies: vi.fn(),
+  loadPendingJoinRequests: vi.fn(),
+  cancelJoinRequest: vi.fn(),
+  dismissApprovalNotification: vi.fn(),
+}
+
+// Mock the WebSocket context
+const mockWebSocketContext = {
+  socket: null,
+  isConnected: false,
+  notifications: [],
+  unreadCount: 0,
+  addNotification: vi.fn(),
+  markNotificationAsRead: vi.fn(),
+  markAllNotificationsAsRead: vi.fn(),
+  clearNotifications: vi.fn(),
+  emit: vi.fn(),
+  on: vi.fn(),
+  off: vi.fn(),
 }
 
 // Mock the contexts
@@ -41,6 +62,10 @@ vi.mock('../contexts/AuthContext', () => ({
 
 vi.mock('../contexts/FamilyContext', () => ({
   useFamily: () => mockFamilyContext,
+}))
+
+vi.mock('../contexts/WebSocketContext', () => ({
+  useWebSocket: () => mockWebSocketContext,
 }))
 
 // Mock i18next
@@ -81,10 +106,17 @@ describe('Dashboard', () => {
       id: 'family-1',
       name: 'Smith Family',
       description: 'A test family',
-      avatarUrl: null,
+      avatarUrl: undefined,
       createdAt: '2023-01-01T00:00:00Z',
       updatedAt: '2023-01-01T00:00:00Z',
-      createdBy: '1',
+      creator: {
+        id: '1',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+      },
+      memberCount: 1,
+      userRole: 'ADMIN',
     }
     
     mockFamilyContext.currentFamily = mockFamily
@@ -100,10 +132,17 @@ describe('Dashboard', () => {
       id: 'family-1',
       name: 'Johnson Family',
       description: 'A test family',
-      avatarUrl: null,
+      avatarUrl: undefined,
       createdAt: '2023-01-01T00:00:00Z',
       updatedAt: '2023-01-01T00:00:00Z',
-      createdBy: '1',
+      creator: {
+        id: '1',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+      },
+      memberCount: 1,
+      userRole: 'ADMIN',
     }
     
     mockFamilyContext.currentFamily = mockFamily

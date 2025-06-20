@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { FamilyProvider, useFamily } from './contexts/FamilyContext';
+import { WebSocketProvider } from './contexts/WebSocketContext';
 import { AuthPage } from './components/auth/AuthPage';
 import { Dashboard } from './components/Dashboard';
 import { FamilyOnboarding } from './components/family/FamilyOnboarding';
@@ -36,9 +37,11 @@ function App(): JSX.Element {
   return (
     <div className="app">
       <AuthProvider>
-        <FamilyProvider>
-          <AppContent />
-        </FamilyProvider>
+        <WebSocketProvider>
+          <FamilyProvider>
+            <AppContent />
+          </FamilyProvider>
+        </WebSocketProvider>
       </AuthProvider>
     </div>
   );
