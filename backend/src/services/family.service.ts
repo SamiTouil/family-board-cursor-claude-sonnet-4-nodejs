@@ -936,4 +936,84 @@ export class FamilyService {
       createdAt: family!.createdAt,
     };
   }
+
+  // Get user's own join requests
+  static async getUserJoinRequests(userId: string): Promise<FamilyJoinRequestResponse[]> {
+    const joinRequests = await prisma.familyJoinRequest.findMany({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+        family: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        invite: {
+          select: {
+            id: true,
+            code: true,
+          },
+        },
+        reviewer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return joinRequests.map((request: any) => ({
+      id: request.id,
+      status: request.status,
+      message: request.message || undefined,
+      createdAt: request.createdAt,
+      updatedAt: request.updatedAt,
+      respondedAt: request.respondedAt || undefined,
+      user: request.user,
+      family: request.family,
+      invite: request.invite,
+      reviewer: request.reviewer || undefined,
+    }));
+  }
+
+  // Cancel user's own join request
+  static async cancelJoinRequest(userId: string, requestId: string): Promise<void> {
+    // Get the join request
+    const joinRequest = await prisma.familyJoinRequest.findUnique({
+      where: { id: requestId },
+    });
+
+    if (!joinRequest) {
+      throw new Error('Join request not found');
+    }
+
+    // Check if the request belongs to the user
+    if (joinRequest.userId !== userId) {
+      throw new Error('You can only cancel your own join requests');
+    }
+
+    // Check if request is still pending
+    if (joinRequest.status !== 'PENDING') {
+      throw new Error('Only pending join requests can be cancelled');
+    }
+
+    // Delete the join request
+    await prisma.familyJoinRequest.delete({
+      where: { id: requestId },
+    });
+  }
 } 

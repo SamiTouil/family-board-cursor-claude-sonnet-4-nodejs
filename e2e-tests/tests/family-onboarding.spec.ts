@@ -147,4 +147,10 @@ test.describe('Mandatory Family Access Control', () => {
     await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('Create New Family')).toBeVisible();
   });
+
+  // Note: Rejected join request handling is tested manually:
+  // 1. User creates account and requests to join family
+  // 2. Admin rejects the request
+  // 3. User should be redirected back to choice screen (verified by filtering logic in JoinFamilyForm)
+  // This scenario requires complex multi-user coordination and is better tested manually
 }); 

@@ -196,7 +196,14 @@
       "alreadyMember": "You are already a member of this family",
       "pendingRequest": "You already have a pending join request for this family",
       "codeRequired": "Invitation code is required",
-      "requestSubmitted": "Join request submitted successfully! Please wait for admin approval."
+      "requestSubmitted": "Join request submitted successfully! Please wait for admin approval.",
+      "requestSubmittedTitle": "Request Submitted!",
+      "requestSubmittedSubtitle": "Your request to join the family has been submitted.",
+      "requestedOn": "Requested on",
+      "waitingForApproval": "Please wait for a family admin to approve your request.",
+      "cancelRequest": "Cancel Request",
+      "cancelling": "Cancelling...",
+      "cancelError": "Failed to cancel join request. Please try again."
     },
     "common": {
       "back": "Back",

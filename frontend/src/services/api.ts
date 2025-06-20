@@ -240,6 +240,14 @@ export const familyApi = {
   // Respond to join request (admin only)
   respondToJoinRequest: (requestId: string, response: 'APPROVED' | 'REJECTED'): Promise<{ data: ApiResponse<FamilyJoinRequest> }> =>
     api.post(`/families/join-requests/${requestId}/respond`, { response }),
+  
+  // Get user's own join requests
+  getMyJoinRequests: (): Promise<{ data: ApiResponse<FamilyJoinRequest[]> }> =>
+    api.get('/families/my-join-requests'),
+  
+  // Cancel user's own join request
+  cancelJoinRequest: (requestId: string): Promise<{ data: ApiResponse<{ message: string }> }> =>
+    api.delete(`/families/join-requests/${requestId}`),
 };
 
 export default api; 

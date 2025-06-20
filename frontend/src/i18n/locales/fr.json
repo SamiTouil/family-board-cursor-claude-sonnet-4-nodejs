@@ -195,7 +195,14 @@
       "alreadyMember": "Vous êtes déjà membre de cette famille",
       "pendingRequest": "Vous avez déjà une demande d'adhésion en attente pour cette famille",
       "codeRequired": "Le code d'invitation est requis",
-      "requestSubmitted": "Demande d'adhésion soumise avec succès ! Veuillez attendre l'approbation de l'administrateur."
+      "requestSubmitted": "Demande d'adhésion soumise avec succès ! Veuillez attendre l'approbation de l'administrateur.",
+      "requestSubmittedTitle": "Demande Soumise !",
+      "requestSubmittedSubtitle": "Votre demande pour rejoindre la famille a été soumise.",
+      "requestedOn": "Demandé le",
+      "waitingForApproval": "Veuillez attendre qu'un administrateur de famille approuve votre demande.",
+      "cancelRequest": "Annuler la Demande",
+      "cancelling": "Annulation...",
+      "cancelError": "Échec de l'annulation de la demande. Veuillez réessayer."
     },
     "common": {
       "back": "Retour",

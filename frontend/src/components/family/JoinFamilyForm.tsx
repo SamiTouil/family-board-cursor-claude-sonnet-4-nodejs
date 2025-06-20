@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../contexts/FamilyContext';
 import { LoadingSpinner } from '../LoadingSpinner';
 
 interface JoinFamilyFormProps {
   onBack: () => void;
+  onRequestCancelled: () => void;
 }
 
-export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack }) => {
+export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack, onRequestCancelled }) => {
   const { t } = useTranslation();
-  const { joinFamily } = useFamily();
+  const { joinFamily, pendingJoinRequests, cancelJoinRequest } = useFamily();
   
   const [formData, setFormData] = useState({
     inviteCode: '',
@@ -18,6 +19,22 @@ export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  // Check if user has pending join requests
+  const actualPendingRequests = pendingJoinRequests?.filter(req => req.status === 'PENDING') || [];
+  const hasPendingRequests = actualPendingRequests.length > 0;
+  const pendingRequest = actualPendingRequests[0]; // Get the first pending request
+
+  // Check if user has rejected requests - if so, redirect back to choice
+  const hasRejectedRequests = pendingJoinRequests?.some(req => req.status === 'REJECTED') || false;
+
+  // If user has rejected requests but no pending ones, redirect back to choice
+  useEffect(() => {
+    if (hasRejectedRequests && !hasPendingRequests) {
+      onRequestCancelled(); // This will redirect back to choice screen
+    }
+  }, [hasRejectedRequests, hasPendingRequests, onRequestCancelled]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -64,22 +81,66 @@ export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack }) => {
     }
   };
 
-  if (isSubmitted) {
+  const handleCancelRequest = async () => {
+    if (!pendingRequest) return;
+    
+    setIsCancelling(true);
+    try {
+      await cancelJoinRequest(pendingRequest.id);
+      onRequestCancelled();
+    } catch (error: any) {
+      setErrors({ cancel: error.message });
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  // Show pending request screen if user has pending requests or just submitted
+  if (hasPendingRequests || isSubmitted) {
+    const request = pendingRequest || { family: { name: '' }, createdAt: new Date().toISOString() };
+    
     return (
       <div className="join-family-form">
         <div className="join-family-header">
-          <button
-            onClick={onBack}
-            className="join-family-back-button"
-            type="button"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-            {t('family.common.back')}
-          </button>
-          <h1 className="join-family-title">Request Submitted!</h1>
-          <p className="join-family-subtitle">{t('family.join.requestSubmitted')}</p>
+          <h1 className="join-family-title">{t('family.join.requestSubmittedTitle')}</h1>
+          <p className="join-family-subtitle">{t('family.join.requestSubmittedSubtitle')}</p>
+        </div>
+        
+        <div className="join-family-pending-content">
+          <div className="join-family-pending-info">
+            <div className="join-family-pending-icon">⏳</div>
+            <h3 className="join-family-pending-family">{request.family.name}</h3>
+            <p className="join-family-pending-date">
+              {t('family.join.requestedOn')} {new Date(request.createdAt).toLocaleDateString()}
+            </p>
+            <p className="join-family-pending-message">
+              {t('family.join.waitingForApproval')}
+            </p>
+          </div>
+          
+          {errors['cancel'] && (
+            <div className="form-error-message">
+              {errors['cancel']}
+            </div>
+          )}
+          
+          <div className="join-family-pending-actions">
+            <button
+              onClick={handleCancelRequest}
+              className="join-family-cancel-button"
+              disabled={isCancelling}
+              type="button"
+            >
+              {isCancelling ? (
+                <>
+                  <LoadingSpinner size="small" />
+                  {t('family.join.cancelling')}
+                </>
+              ) : (
+                t('family.join.cancelRequest')
+              )}
+            </button>
+          </div>
         </div>
       </div>
     );

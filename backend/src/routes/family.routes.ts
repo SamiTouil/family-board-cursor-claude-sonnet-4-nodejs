@@ -75,6 +75,25 @@ router.get('/', async (req: AuthenticatedRequest, res: Response): Promise<void> 
   }
 });
 
+// Get user's own join requests
+router.get('/my-join-requests', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    
+    const joinRequests = await FamilyService.getUserJoinRequests(userId);
+    
+    res.json({
+      success: true,
+      data: joinRequests,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to get join requests',
+    });
+  }
+});
+
 // Get family by ID
 router.get('/:familyId', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -408,6 +427,34 @@ router.post('/join-requests/:requestId/respond', validateBody(respondToJoinReque
     res.status(403).json({
       success: false,
       message: error instanceof Error ? error.message : 'Failed to respond to join request',
+    });
+  }
+});
+
+// Cancel user's own join request
+router.delete('/join-requests/:requestId', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const { requestId } = req.params;
+    
+    if (!requestId) {
+      res.status(400).json({
+        success: false,
+        message: 'Request ID is required',
+      });
+      return;
+    }
+    
+    await FamilyService.cancelJoinRequest(userId, requestId);
+    
+    res.json({
+      success: true,
+      message: 'Join request cancelled successfully',
+    });
+  } catch (error) {
+    res.status(403).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to cancel join request',
     });
   }
 });
