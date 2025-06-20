@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { userApi, familyApi, ChangePasswordData, FamilyMember, FamilyInvite, FamilyJoinRequest } from '../services/api';
+import { CustomSelect } from './CustomSelect';
 import './UserProfile.css';
 
 interface UserProfileProps {
@@ -575,19 +576,19 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                           <label htmlFor="inviteExpiry" className="user-profile-label">
                             {t('family.expiresIn')}
                           </label>
-                          <select
+                          <CustomSelect
                             id="inviteExpiry"
                             value={inviteExpiry}
-                            onChange={(e) => setInviteExpiry(Number(e.target.value))}
-                            className="user-profile-input"
+                            onChange={(value) => setInviteExpiry(Number(value))}
+                            options={[
+                              { value: 1, label: t('family.expiry.1day') },
+                              { value: 3, label: t('family.expiry.3days') },
+                              { value: 7, label: t('family.expiry.7days') },
+                              { value: 14, label: t('family.expiry.14days') },
+                              { value: 30, label: t('family.expiry.30days') },
+                            ]}
                             disabled={isCreatingInvite}
-                          >
-                            <option value={1}>{t('family.expiry.1day')}</option>
-                            <option value={3}>{t('family.expiry.3days')}</option>
-                            <option value={7}>{t('family.expiry.7days')}</option>
-                            <option value={14}>{t('family.expiry.14days')}</option>
-                            <option value={30}>{t('family.expiry.30days')}</option>
-                          </select>
+                          />
                         </div>
                       </div>
                       <div className="user-profile-form-actions">
