@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { UserAvatar } from './UserAvatar';
 import './UserMenu.css';
 
 interface UserMenuProps {
@@ -62,6 +63,14 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onEditProfile }) => {
         <span className="user-menu-email">{user.email}</span>
       </div>
       
+      <UserAvatar
+        firstName={user.firstName}
+        lastName={user.lastName}
+        avatarUrl={user.avatarUrl}
+        size="medium"
+        className="user-menu-avatar"
+      />
+      
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="user-menu-button"
@@ -70,18 +79,6 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onEditProfile }) => {
         aria-haspopup="true"
         aria-label="User menu"
       >
-        <svg 
-          width="18" 
-          height="18" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
-          strokeWidth="2"
-          className="user-menu-user-icon"
-        >
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
         <svg 
           width="16" 
           height="16" 

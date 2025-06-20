@@ -24,18 +24,29 @@
   color: #6b7280;
 }
 
+.user-menu-avatar {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.user-menu-avatar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
 .user-menu-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem;
   background-color: #f3f4f6;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   color: #6b7280;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-width: 36px;
+  height: 36px;
 }
 
 .user-menu-button:hover {
@@ -44,20 +55,11 @@
   color: #374151;
 }
 
-.user-menu-button:hover .user-menu-user-icon {
-  color: #374151;
-}
-
 .user-menu-button:focus {
   outline: none;
   ring: 2px;
   ring-color: #7c3aed;
   ring-offset: 2px;
-}
-
-.user-menu-user-icon {
-  flex-shrink: 0;
-  color: #6b7280;
 }
 
 .user-menu-dropdown-icon {
@@ -148,7 +150,7 @@
 @media (max-width: 768px) {
   .user-menu {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
     align-items: flex-start;
     width: 100%;
   }
@@ -159,8 +161,18 @@
     width: 100%;
   }
   
+  .user-menu-avatar {
+    align-self: flex-end;
+    position: absolute;
+    top: 0;
+    right: 40px; /* Leave space for dropdown button */
+  }
+  
   .user-menu-button {
     align-self: flex-end;
+    position: absolute;
+    top: 0;
+    right: 0;
   }
   
   .user-menu-dropdown {
@@ -171,6 +183,10 @@
 }
 
 @media (max-width: 480px) {
+  .user-menu {
+    gap: 0.5rem;
+  }
+  
   .user-menu-dropdown {
     min-width: 160px;
   }
