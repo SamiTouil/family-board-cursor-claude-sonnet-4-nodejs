@@ -1,6 +1,6 @@
 import { Router, Response, NextFunction } from 'express';
 import { UserService } from '../services/user.service';
-import { CreateUserSchema, UpdateUserSchema } from '../types/user.types';
+import { CreateUserSchema, UpdateUserSchema, ChangePasswordSchema } from '../types/user.types';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.middleware';
 import { i18next } from '../config/i18n';
 
@@ -90,6 +90,40 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
     res.json({
       success: true,
       message: i18next.t('success.userUpdated'),
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Change password (protected - users can only change their own password)
+router.put('/:id/password', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = req.params['id'];
+    if (!userId) {
+      res.status(400).json({
+        success: false,
+        message: 'User ID is required',
+      });
+      return;
+    }
+
+    // Users can only change their own password
+    if (req.user?.userId !== userId) {
+      res.status(403).json({
+        success: false,
+        message: i18next.t('errors.unauthorized'),
+      });
+      return;
+    }
+
+    const validatedData = ChangePasswordSchema.parse(req.body);
+    const user = await UserService.changePassword(userId, validatedData);
+    
+    res.json({
+      success: true,
+      message: i18next.t('success.passwordChanged'),
       data: user,
     });
   } catch (error) {

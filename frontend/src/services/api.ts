@@ -99,6 +99,12 @@ export interface LoginData {
   password: string;
 }
 
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export interface AuthResponse {
   user: User;
   token: string;
@@ -140,6 +146,9 @@ export const userApi = {
   
   update: (id: string, data: Partial<SignupData>): Promise<{ data: ApiResponse<User> }> =>
     api.put(`/users/${id}`, data),
+  
+  changePassword: (id: string, data: ChangePasswordData): Promise<{ data: ApiResponse<User> }> =>
+    api.put(`/users/${id}/password`, data),
   
   delete: (id: string): Promise<{ data: ApiResponse<{ message: string }> }> =>
     api.delete(`/users/${id}`),

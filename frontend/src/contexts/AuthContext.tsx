@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (data: LoginData) => Promise<void>;
   signup: (data: SignupData) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -128,12 +129,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const refreshUser = async (): Promise<void> => {
+    try {
+      const response = await authApi.getMe();
+      if (response.data.success) {
+        setUser(response.data.data);
+        localStorage.setItem('authUser', JSON.stringify(response.data.data));
+      }
+    } catch (error) {
+      // If refresh fails, logout the user
+      await logout();
+    }
+  };
+
   const value: AuthContextType = {
     user,
     loading,
     login,
     signup,
     logout,
+    refreshUser,
     isAuthenticated: !!user,
   };
 

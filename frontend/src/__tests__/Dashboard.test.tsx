@@ -129,9 +129,9 @@ describe('Dashboard', () => {
     expect(screen.getByText('Welcome back, John!')).toBeDefined()
   })
 
-  it('displays logout button', () => {
+  it('displays user menu button', () => {
     render(<Dashboard />)
     
-    expect(screen.getByRole('button', { name: 'Logout' })).toBeDefined()
+    expect(screen.getByRole('button', { name: 'User menu' })).toBeDefined()
   })
 }) 

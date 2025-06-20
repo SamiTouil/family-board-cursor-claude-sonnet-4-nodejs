@@ -14,6 +14,7 @@
     "userCreated": "User created successfully",
     "userUpdated": "User updated successfully",
     "userDeleted": "User deleted successfully",
+    "passwordChanged": "Password changed successfully",
     "loginSuccessful": "Login successful",
     "signupSuccessful": "Account created successfully",
     "logoutSuccessful": "Logout successful"

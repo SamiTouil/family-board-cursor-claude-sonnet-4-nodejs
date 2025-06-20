@@ -74,7 +74,22 @@
     "email": "E-mail",
     "password": "Mot de passe",
     "avatar": "Avatar",
-    "profile": "Profil"
+    "profile": "Profil",
+    "editProfile": "Modifier le profil",
+    "personalInfo": "Informations personnelles",
+    "changePassword": "Changer le mot de passe",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmNewPassword": "Confirmer le nouveau mot de passe",
+    "profileUpdated": "Profil mis à jour avec succès",
+    "passwordChanged": "Mot de passe modifié avec succès",
+    "updateError": "Échec de la mise à jour du profil",
+    "passwordChangeError": "Échec du changement de mot de passe",
+    "emailNotEditable": "L'email ne peut pas être modifié",
+    "changingPassword": "Changement du mot de passe...",
+    "validation": {
+      "currentPasswordRequired": "Le mot de passe actuel est requis"
+    }
   },
   "family": {
     "onboarding": {
@@ -115,5 +130,11 @@
       "continue": "Créer la Famille",
       "join": "Rejoindre la Famille"
     }
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "saving": "Enregistrement..."
   }
 } 

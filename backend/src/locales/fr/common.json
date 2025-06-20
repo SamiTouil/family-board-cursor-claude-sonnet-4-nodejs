@@ -14,6 +14,7 @@
     "userCreated": "Utilisateur créé avec succès",
     "userUpdated": "Utilisateur mis à jour avec succès",
     "userDeleted": "Utilisateur supprimé avec succès",
+    "passwordChanged": "Mot de passe modifié avec succès",
     "loginSuccessful": "Connexion réussie",
     "signupSuccessful": "Compte créé avec succès",
     "logoutSuccessful": "Déconnexion réussie"

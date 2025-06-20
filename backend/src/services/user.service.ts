@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { CreateUserInput, UpdateUserInput, LoginInput, UserResponse } from '../types/user.types';
+import { CreateUserInput, UpdateUserInput, LoginInput, ChangePasswordInput, UserResponse } from '../types/user.types';
 
 const prisma = new PrismaClient();
 
@@ -110,6 +110,33 @@ export class UserService {
     });
 
     return this.toUserResponse(user);
+  }
+
+  static async changePassword(id: string, data: ChangePasswordInput): Promise<UserResponse> {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(data.currentPassword, user.password);
+    if (!isCurrentPasswordValid) {
+      throw new Error('Current password is incorrect');
+    }
+
+    // Hash new password
+    const hashedNewPassword = await bcrypt.hash(data.newPassword, 12);
+
+    // Update password
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: { password: hashedNewPassword },
+    });
+
+    return this.toUserResponse(updatedUser);
   }
 
   static async deleteUser(id: string): Promise<void> {

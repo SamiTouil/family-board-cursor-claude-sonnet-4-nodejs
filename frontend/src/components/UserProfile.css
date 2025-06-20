@@ -1,0 +1,336 @@
+/* User Profile Modal Styles */
+.user-profile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: user-profile-overlay-fade-in 0.2s ease-out;
+}
+
+@keyframes user-profile-overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.user-profile-modal {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: user-profile-modal-slide-in 0.2s ease-out;
+}
+
+@keyframes user-profile-modal-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-1rem) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header */
+.user-profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #fafafa;
+}
+
+.user-profile-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.user-profile-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: none;
+  border: none;
+  border-radius: 0.375rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.user-profile-close:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.user-profile-close:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: #7c3aed;
+  ring-offset: 2px;
+}
+
+/* Tabs */
+.user-profile-tabs {
+  display: flex;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.user-profile-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.user-profile-tab:hover {
+  color: #374151;
+  background-color: #f3f4f6;
+}
+
+.user-profile-tab-active {
+  color: #7c3aed;
+  border-bottom-color: #7c3aed;
+  background-color: #ffffff;
+}
+
+.user-profile-tab svg {
+  flex-shrink: 0;
+}
+
+/* Content */
+.user-profile-content {
+  padding: 2rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* Messages */
+.user-profile-message {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+}
+
+.user-profile-message-success {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.user-profile-message-error {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* Form */
+.user-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.user-profile-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.user-profile-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.user-profile-input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #111827;
+  background-color: #ffffff;
+  transition: all 0.15s ease;
+}
+
+.user-profile-input:focus {
+  outline: none;
+  border-color: #7c3aed;
+  ring: 2px;
+  ring-color: rgba(124, 58, 237, 0.2);
+}
+
+.user-profile-input-disabled {
+  background-color: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.user-profile-input-error {
+  border-color: #dc2626;
+  ring: 2px;
+  ring-color: rgba(220, 38, 38, 0.2);
+}
+
+.user-profile-help {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.user-profile-error {
+  font-size: 0.75rem;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* Form Actions */
+.user-profile-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 0.5rem;
+}
+
+.user-profile-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  min-width: 100px;
+}
+
+.user-profile-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.user-profile-button-primary {
+  background-color: #7c3aed;
+  color: #ffffff;
+  border-color: #7c3aed;
+}
+
+.user-profile-button-primary:hover:not(:disabled) {
+  background-color: #6d28d9;
+  border-color: #6d28d9;
+}
+
+.user-profile-button-primary:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: rgba(124, 58, 237, 0.5);
+  ring-offset: 2px;
+}
+
+.user-profile-button-secondary {
+  background-color: #ffffff;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.user-profile-button-secondary:hover:not(:disabled) {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.user-profile-button-secondary:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: rgba(156, 163, 175, 0.5);
+  ring-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .user-profile-overlay {
+    padding: 0.5rem;
+  }
+  
+  .user-profile-modal {
+    max-width: none;
+    margin: 0;
+  }
+  
+  .user-profile-header {
+    padding: 1rem 1.5rem;
+  }
+  
+  .user-profile-content {
+    padding: 1.5rem;
+    max-height: 70vh;
+  }
+  
+  .user-profile-tabs {
+    flex-direction: column;
+  }
+  
+  .user-profile-tab {
+    padding: 0.75rem 1rem;
+    border-bottom: none;
+    border-right: 2px solid transparent;
+  }
+  
+  .user-profile-tab-active {
+    border-right-color: #7c3aed;
+    border-bottom-color: transparent;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-profile-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .user-profile-content {
+    padding: 1rem;
+  }
+  
+  .user-profile-form-actions {
+    flex-direction: column;
+  }
+  
+  .user-profile-button {
+    width: 100%;
+  }
+  
+  .user-profile-title {
+    font-size: 1.125rem;
+  }
+} 
