@@ -13,7 +13,10 @@
     "email": "Email",
     "password": "Password",
     "firstName": "First Name",
-    "lastName": "Last Name"
+    "lastName": "Last Name",
+    "back": "Back",
+    "continue": "Continue",
+    "close": "Close"
   },
   "auth": {
     "login": "Login",
@@ -22,7 +25,7 @@
     "loginTitle": "Welcome Back",
     "signupTitle": "Create Account",
     "loginSubtitle": "Sign in to your account",
-    "signupSubtitle": "Join our family board",
+    "signupSubtitle": "Join the family board",
     "email": "Email Address",
     "password": "Password",
     "confirmPassword": "Confirm Password",
@@ -33,7 +36,7 @@
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "signupLink": "Sign up here",
-    "loginLink": "Sign in here",
+    "loginLink": "Login here",
     "signingIn": "Signing in...",
     "signingUp": "Creating account...",
     "loggingOut": "Logging out...",
@@ -53,7 +56,18 @@
     "emailExists": "An account with this email already exists",
     "tooManyAttempts": "Too many login attempts. Please try again later.",
     "networkError": "Network error. Please try again.",
-    "unexpectedError": "An unexpected error occurred. Please try again."
+    "unexpectedError": "An unexpected error occurred. Please try again.",
+    "loggingIn": "Signing in...",
+    "validation": {
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email address",
+      "passwordRequired": "Password is required",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordsDoNotMatch": "Passwords do not match"
+    }
   },
   "user": {
     "firstName": "First Name",
@@ -62,5 +76,45 @@
     "password": "Password",
     "avatar": "Avatar",
     "profile": "Profile"
+  },
+  "family": {
+    "onboarding": {
+      "title": "Welcome to Family Board!",
+      "subtitle": "To get started, you need to either create a new family or join an existing one.",
+      "createOption": "Create New Family",
+      "createDescription": "Start your own family and invite others to join.",
+      "joinOption": "Join Existing Family",
+      "joinDescription": "Use an invitation code to join an existing family."
+    },
+    "create": {
+      "title": "Create Your Family",
+      "subtitle": "Start your family board and invite others to join.",
+      "name": "Family Name",
+      "namePlaceholder": "Enter your family name",
+      "description": "Description (Optional)",
+      "descriptionPlaceholder": "Describe your family (optional)",
+      "creating": "Creating family...",
+      "createError": "Failed to create family. Please try again.",
+      "nameRequired": "Family name is required",
+      "nameTooShort": "Family name must be at least 2 characters",
+      "nameTooLong": "Family name must be less than 50 characters",
+      "descriptionTooLong": "Description must be less than 200 characters"
+    },
+    "join": {
+      "title": "Join a Family",
+      "subtitle": "Enter the invitation code to join an existing family.",
+      "inviteCode": "Invitation Code",
+      "inviteCodePlaceholder": "Enter invitation code",
+      "joining": "Joining family...",
+      "joinError": "Failed to join family. Please try again.",
+      "invalidCode": "Invalid or expired invitation code",
+      "alreadyMember": "You are already a member of this family",
+      "codeRequired": "Invitation code is required"
+    },
+    "common": {
+      "back": "Back",
+      "continue": "Create Family",
+      "join": "Join Family"
+    }
   }
 } 

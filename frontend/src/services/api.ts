@@ -45,6 +45,47 @@ export interface User {
   updatedAt: string;
 }
 
+export interface Family {
+  id: string;
+  name: string;
+  description: string | null;
+  avatarUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  members?: FamilyMember[];
+}
+
+export interface FamilyMember {
+  id: string;
+  familyId: string;
+  userId: string;
+  role: 'ADMIN' | 'MEMBER';
+  joinedAt: string;
+  user?: User;
+}
+
+export interface FamilyInvite {
+  id: string;
+  familyId: string;
+  inviteCode: string;
+  invitedUserId: string | null;
+  createdBy: string;
+  expiresAt: string;
+  isUsed: boolean;
+  createdAt: string;
+}
+
+export interface CreateFamilyData {
+  name: string;
+  description?: string;
+  avatarUrl?: string;
+}
+
+export interface JoinFamilyData {
+  inviteCode: string;
+}
+
 export interface SignupData {
   firstName: string;
   lastName: string;
@@ -102,6 +143,37 @@ export const userApi = {
   
   delete: (id: string): Promise<{ data: ApiResponse<{ message: string }> }> =>
     api.delete(`/users/${id}`),
+};
+
+// Family API (protected routes)
+export const familyApi = {
+  // Get user's families
+  getUserFamilies: (): Promise<{ data: ApiResponse<Family[]> }> =>
+    api.get('/families'),
+  
+  // Create a new family
+  create: (data: CreateFamilyData): Promise<{ data: ApiResponse<Family> }> =>
+    api.post('/families', data),
+  
+  // Join a family using invite code
+  join: (data: JoinFamilyData): Promise<{ data: ApiResponse<Family> }> =>
+    api.post('/families/join', data),
+  
+  // Get family details
+  getById: (id: string): Promise<{ data: ApiResponse<Family> }> =>
+    api.get(`/families/${id}`),
+  
+  // Get family members
+  getMembers: (id: string): Promise<{ data: ApiResponse<FamilyMember[]> }> =>
+    api.get(`/families/${id}/members`),
+  
+  // Get family invites
+  getInvites: (id: string): Promise<{ data: ApiResponse<FamilyInvite[]> }> =>
+    api.get(`/families/${id}/invites`),
+  
+  // Create family invite
+  createInvite: (id: string, data: { invitedUserId?: string; expiresAt?: string }): Promise<{ data: ApiResponse<FamilyInvite> }> =>
+    api.post(`/families/${id}/invites`, data),
 };
 
 export default api; 

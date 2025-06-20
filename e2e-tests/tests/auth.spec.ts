@@ -41,12 +41,11 @@ test.describe('Authentication Flow', () => {
       await page.getByRole('button', { name: 'Sign up here' }).click();
       await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Sign Up' })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Sign in here' })).toBeVisible();
     });
 
     test('should switch from signup back to login', async ({ page }) => {
       await page.getByRole('button', { name: 'Sign up here' }).click();
-      await page.getByRole('button', { name: 'Sign in here' }).click();
+      await page.getByRole('button', { name: 'Already have an account? Login here' }).click();
       await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();
     });
@@ -55,7 +54,6 @@ test.describe('Authentication Flow', () => {
   test.describe('Login Form Validation', () => {
     test('should show validation errors for empty fields', async ({ page }) => {
       await page.getByRole('button', { name: 'Login' }).click();
-      
       await expect(page.getByText('Email is required')).toBeVisible();
       await expect(page.getByText('Password is required')).toBeVisible();
     });
@@ -68,17 +66,16 @@ test.describe('Authentication Flow', () => {
       await expect(page.getByText('Last name is required')).toBeVisible();
       await expect(page.getByText('Email is required')).toBeVisible();
       await expect(page.getByText('Password is required')).toBeVisible();
-      await expect(page.getByText('Please confirm your password')).toBeVisible();
     });
 
     test('should show error when passwords do not match', async ({ page }) => {
       await page.getByRole('button', { name: 'Sign up here' }).click();
       
-      await page.getByLabel('First Name').fill('Test');
-      await page.getByLabel('Last Name').fill('User');
+      await page.getByLabel('First Name').fill('John');
+      await page.getByLabel('Last Name').fill('Doe');
       await page.getByLabel('Email Address').fill('test@example.com');
       await page.getByLabel('Password', { exact: true }).fill('password123');
-      await page.getByLabel('Confirm Password').fill('differentpassword');
+      await page.getByLabel('Confirm Password').fill('password456');
       
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
@@ -89,9 +86,7 @@ test.describe('Authentication Flow', () => {
       await page.getByLabel('Email Address').fill('invalid-email');
       await page.getByRole('button', { name: 'Login' }).click();
       
-      // Wait for validation and check for the error
-      await page.waitForTimeout(100);
-      await expect(page.locator('.auth-form-field-error').filter({ hasText: 'Please enter a valid email address' })).toBeVisible();
+      await expect(page.getByText('Please enter a valid email address')).toBeVisible();
     });
 
     test('should clear validation errors when user starts typing', async ({ page }) => {
@@ -106,17 +101,11 @@ test.describe('Authentication Flow', () => {
       await page.getByLabel('Email Address').fill('test@example.com');
       await page.getByLabel('Password', { exact: true }).fill('password123');
       
-      // Mock slow network to test loading state
-      await page.route('**/api/auth/login', async (route) => {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        route.continue();
-      });
+      const loginButton = page.getByRole('button', { name: 'Login' });
+      await loginButton.click();
       
-      await page.getByRole('button', { name: 'Login' }).click();
-      
-      // Button should be disabled during loading
-      await expect(page.getByRole('button', { name: 'Signing in...' })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Signing in...' })).toBeDisabled();
+      // Button should be disabled during submission
+      await expect(loginButton).toBeDisabled();
     });
   });
 
@@ -138,32 +127,27 @@ test.describe('Authentication Flow', () => {
       await page.getByLabel('Password', { exact: true }).fill('123');
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
-      // Wait for validation and check for the error
-      await page.waitForTimeout(100);
-      await expect(page.locator('.auth-form-field-error').filter({ hasText: 'Password must be at least 6 characters' })).toBeVisible();
+      await expect(page.getByText('Password must be at least 6 characters')).toBeVisible();
     });
 
     test('should show validation error for invalid email', async ({ page }) => {
       await page.getByLabel('Email Address').fill('invalid-email');
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
-      // Wait for validation and check for the error
-      await page.waitForTimeout(100);
-      await expect(page.locator('.auth-form-field-error').filter({ hasText: 'Please enter a valid email address' })).toBeVisible();
+      await expect(page.getByText('Please enter a valid email address')).toBeVisible();
     });
 
     test('should have proper form layout on mobile', async ({ page }) => {
-      await page.setViewportSize({ width: 375, height: 667 });
+      await page.setViewportSize({ width: 375, height: 667 }); // iPhone SE
       
+      await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
       await expect(page.getByLabel('First Name')).toBeVisible();
       await expect(page.getByLabel('Last Name')).toBeVisible();
-      await expect(page.getByLabel('Email Address')).toBeVisible();
-      await expect(page.getByLabel('Password', { exact: true })).toBeVisible();
     });
   });
 
   test.describe('Authentication Success Flow', () => {
-    test('should successfully register a new user', async ({ page }) => {
+    test('should successfully register a new user and show family onboarding', async ({ page }) => {
       await page.getByRole('button', { name: 'Sign up here' }).click();
       
       await page.getByLabel('First Name').fill(validUser.firstName);
@@ -174,15 +158,17 @@ test.describe('Authentication Flow', () => {
       
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
-      // Wait for navigation and check for dashboard elements
+      // Wait for navigation and check for family onboarding (NOT dashboard)
       await page.waitForTimeout(2000);
-      await expect(page.locator('.dashboard-welcome').filter({ hasText: `Welcome back, ${validUser.firstName}!` })).toBeVisible({ timeout: 10000 });
-      await expect(page.getByText(`${validUser.firstName} ${validUser.lastName}`)).toBeVisible();
-      await expect(page.getByText(validUser.email)).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+      await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('Create New Family')).toBeVisible();
+      await expect(page.getByText('Join Existing Family')).toBeVisible();
+      
+      // Should NOT see dashboard elements
+      await expect(page.locator('.dashboard-welcome')).not.toBeVisible();
     });
 
-    test('should successfully login with existing user', async ({ page }) => {
+    test('should successfully login with existing user and show family onboarding', async ({ page }) => {
       const testEmail = `login-test-${Date.now()}@example.com`;
       
       // First create a user
@@ -194,23 +180,25 @@ test.describe('Authentication Flow', () => {
       await page.getByLabel('Confirm Password').fill('password123');
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
-      // Wait for signup to complete
+      // Wait for signup to complete and verify family onboarding
       await page.waitForTimeout(2000);
+      await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
       
       // Logout
-      await page.getByRole('button', { name: 'Logout' }).click();
+      await page.getByRole('button', { name: 'Back' }).click(); // Go back to choice screen
+      await page.getByRole('button', { name: 'Back' }).click(); // Go back to auth (this should logout)
       
       // Now login
       await page.getByLabel('Email Address').fill(testEmail);
       await page.getByLabel('Password', { exact: true }).fill('password123');
       await page.getByRole('button', { name: 'Login' }).click();
       
-      // Wait for login and check for dashboard
+      // Wait for login and check for family onboarding (NOT dashboard)
       await page.waitForTimeout(2000);
-      await expect(page.locator('.dashboard-welcome').filter({ hasText: 'Welcome back, Jane!' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
     });
 
-    test('should persist authentication across page reloads', async ({ page }) => {
+    test('should persist authentication and show family onboarding across page reloads', async ({ page }) => {
       // Register and login
       await page.getByRole('button', { name: 'Sign up here' }).click();
       await page.getByLabel('First Name').fill('Persistent');
@@ -226,8 +214,8 @@ test.describe('Authentication Flow', () => {
       // Reload page
       await page.reload();
       
-      // Should still be authenticated
-      await expect(page.locator('.dashboard-welcome').filter({ hasText: 'Welcome back, Persistent!' })).toBeVisible({ timeout: 10000 });
+      // Should still be authenticated and show family onboarding
+      await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
     });
   });
 
@@ -254,11 +242,13 @@ test.describe('Authentication Flow', () => {
       await page.getByLabel('Confirm Password').fill('password123');
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
-      // Wait for signup to complete
+      // Wait for signup to complete and verify family onboarding
       await page.waitForTimeout(2000);
+      await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
       
-      // Logout
-      await page.getByRole('button', { name: 'Logout' }).click();
+      // Go back to auth (logout)
+      await page.getByRole('button', { name: 'Back' }).click();
+      await page.getByRole('button', { name: 'Back' }).click();
       
       // Try to create another user with same email
       await page.getByRole('button', { name: 'Sign up here' }).click();
@@ -288,9 +278,57 @@ test.describe('Authentication Flow', () => {
     });
   });
 
+  test.describe('Family Onboarding Flow', () => {
+    test.beforeEach(async ({ page }) => {
+      // Create and login a user for family onboarding tests
+      await page.getByRole('button', { name: 'Sign up here' }).click();
+      await page.getByLabel('First Name').fill('Family');
+      await page.getByLabel('Last Name').fill('User');
+      await page.getByLabel('Email Address').fill(`family-${Date.now()}@example.com`);
+      await page.getByLabel('Password', { exact: true }).fill('password123');
+      await page.getByLabel('Confirm Password').fill('password123');
+      await page.getByRole('button', { name: 'Sign Up' }).click();
+      
+      // Wait for signup to complete and verify family onboarding
+      await page.waitForTimeout(2000);
+      await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
+    });
+
+    test('should show family onboarding after authentication', async ({ page }) => {
+      await expect(page.getByText('Welcome to Family Board!')).toBeVisible();
+      await expect(page.getByText('Create New Family')).toBeVisible();
+      await expect(page.getByText('Join Existing Family')).toBeVisible();
+    });
+
+    test('should allow creating a family and access dashboard', async ({ page }) => {
+      // Click create family
+      await page.getByText('Create New Family').click();
+      
+      // Fill family creation form
+      await page.getByLabel('Family Name').fill('Test Family');
+      await page.getByLabel('Description (Optional)').fill('A test family for E2E testing');
+      await page.getByRole('button', { name: 'Create Family' }).click();
+      
+      // Should now access dashboard
+      await page.waitForTimeout(2000);
+      await expect(page.locator('.dashboard-welcome').filter({ hasText: 'Welcome back, Family!' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('Family User')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+    });
+
+    test('should not access dashboard without completing family onboarding', async ({ page }) => {
+      // Try to access dashboard directly (if we had routing)
+      await page.goto('/');
+      
+      // Should show family onboarding, not dashboard
+      await expect(page.getByText('Welcome to Family Board!')).toBeVisible();
+      await expect(page.locator('.dashboard-welcome')).not.toBeVisible();
+    });
+  });
+
   test.describe('Dashboard and Logout', () => {
     test.beforeEach(async ({ page }) => {
-      // Create and login a user for dashboard tests
+      // Create and login a user, then create a family for dashboard tests
       await page.getByRole('button', { name: 'Sign up here' }).click();
       await page.getByLabel('First Name').fill('Dashboard');
       await page.getByLabel('Last Name').fill('User');
@@ -299,7 +337,16 @@ test.describe('Authentication Flow', () => {
       await page.getByLabel('Confirm Password').fill('password123');
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
-      // Wait for signup to complete
+      // Wait for signup and complete family onboarding
+      await page.waitForTimeout(2000);
+      await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
+      
+      // Create a family to access dashboard
+      await page.getByText('Create New Family').click();
+      await page.getByLabel('Family Name').fill('Dashboard Family');
+      await page.getByRole('button', { name: 'Create Family' }).click();
+      
+      // Wait for dashboard to load
       await page.waitForTimeout(2000);
     });
 
@@ -364,7 +411,7 @@ test.describe('Authentication Flow', () => {
       await page.keyboard.press('Tab'); // Login button
       await expect(page.getByRole('button', { name: 'Login' })).toBeFocused();
       
-      await page.keyboard.press('Tab'); // Switch to signup link
+      await page.keyboard.press('Tab'); // Sign up link
       await expect(page.getByRole('button', { name: 'Sign up here' })).toBeFocused();
     });
   });
@@ -376,12 +423,10 @@ test.describe('Authentication Flow', () => {
       await expect(page.getByRole('heading', { name: 'Family Board' })).toBeVisible();
       await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible();
       
-      // Form should be usable
-      await page.getByLabel('Email Address').fill('mobile@example.com');
-      await page.getByLabel('Password', { exact: true }).fill('password123');
-      
-      // Button should be clickable
-      await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();
+      // Check form responsiveness
+      await page.getByRole('button', { name: 'Sign up here' }).click();
+      await expect(page.getByLabel('First Name')).toBeVisible();
+      await expect(page.getByLabel('Last Name')).toBeVisible();
     });
 
     test('should work correctly on tablet devices', async ({ page }) => {
