@@ -108,13 +108,9 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
     // Handle join request rejections
     const handleJoinRequestRejected = (data: any) => {
-      // Update the request status in pending requests
+      // Remove rejected requests from pending requests array
       setPendingJoinRequests(prev => 
-        prev.map(r => 
-          r.family.id === data.familyId 
-            ? { ...r, status: 'REJECTED' as const }
-            : r
-        )
+        prev.filter(r => r.family.id !== data.familyId)
       );
     };
 
