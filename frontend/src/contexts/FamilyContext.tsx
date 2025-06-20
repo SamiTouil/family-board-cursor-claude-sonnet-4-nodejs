@@ -45,6 +45,14 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     if (isAuthenticated && !authLoading) {
       loadFamilies();
       loadPendingJoinRequests();
+      
+      // Set up periodic refresh to detect status changes
+      const refreshInterval = setInterval(() => {
+        loadFamilies();
+        loadPendingJoinRequests();
+      }, 30000); // Refresh every 30 seconds
+      
+      return () => clearInterval(refreshInterval);
     } else if (!isAuthenticated) {
       // Reset state when user logs out
       setFamilies([]);
@@ -188,7 +196,9 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     try {
       const response = await familyApi.getMyJoinRequests();
       if (response.data.success) {
-        setPendingJoinRequests(response.data.data);
+        // Only keep pending requests, filter out approved/rejected ones
+        const actualPendingRequests = response.data.data.filter((req: FamilyJoinRequest) => req.status === 'PENDING');
+        setPendingJoinRequests(actualPendingRequests);
       }
     } catch (error) {
       // eslint-disable-next-line no-console

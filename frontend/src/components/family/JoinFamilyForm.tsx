@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../contexts/FamilyContext';
 import { LoadingSpinner } from '../LoadingSpinner';
@@ -22,8 +22,19 @@ export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack, onReques
   const [isCancelling, setIsCancelling] = useState(false);
 
   // Check if user has pending join requests
-  const hasPendingRequests = pendingJoinRequests && pendingJoinRequests.length > 0;
-  const pendingRequest = pendingJoinRequests && pendingJoinRequests[0]; // Get the first pending request
+  const actualPendingRequests = pendingJoinRequests?.filter(req => req.status === 'PENDING') || [];
+  const hasPendingRequests = actualPendingRequests.length > 0;
+  const pendingRequest = actualPendingRequests[0]; // Get the first pending request
+
+  // Check if user has rejected requests - if so, redirect back to choice
+  const hasRejectedRequests = pendingJoinRequests?.some(req => req.status === 'REJECTED') || false;
+
+  // If user has rejected requests but no pending ones, redirect back to choice
+  useEffect(() => {
+    if (hasRejectedRequests && !hasPendingRequests) {
+      onRequestCancelled(); // This will redirect back to choice screen
+    }
+  }, [hasRejectedRequests, hasPendingRequests, onRequestCancelled]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
