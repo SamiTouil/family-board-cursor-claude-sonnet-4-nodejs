@@ -57,7 +57,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
   // Update hasCompletedOnboarding based on families and pending join requests
   useEffect(() => {
-    setHasCompletedOnboarding(families.length > 0 || pendingJoinRequests.length > 0);
+    setHasCompletedOnboarding(families.length > 0);
   }, [families, pendingJoinRequests]);
 
   const loadFamilies = async () => {
