@@ -168,9 +168,10 @@ describe('Dashboard', () => {
     expect(screen.getByText('Welcome back, John!')).toBeDefined()
   })
 
-  it('displays user menu button', () => {
+  it('displays clickable user avatar', () => {
     render(<Dashboard />)
     
-    expect(screen.getByRole('button', { name: 'User menu' })).toBeDefined()
+    // Check for the clickable avatar with user initials
+    expect(screen.getByRole('button', { name: 'JD' })).toBeDefined()
   })
 }) 
