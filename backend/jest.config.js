@@ -3,7 +3,7 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/?(*.)+(spec|test).ts'],
-  testPathIgnorePatterns: ['<rootDir>/src/__tests__/setup.ts'],
+  testPathIgnorePatterns: ['<rootDir>/src/__tests__/setup.ts', '<rootDir>/src/__tests__/unit-setup.ts'],
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
@@ -13,6 +13,7 @@ module.exports = {
     '!src/index.ts',
     '!src/prisma/seed.ts',
     '!src/__tests__/setup.ts',
+    '!src/__tests__/unit-setup.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],

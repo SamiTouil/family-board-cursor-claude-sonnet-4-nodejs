@@ -20,5 +20,78 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  // Family relationships
+  familyMemberships FamilyMember[]
+  createdFamilies   Family[]       @relation("FamilyCreator")
+  sentInvites       FamilyInvite[] @relation("InviteSender")
+  receivedInvites   FamilyInvite[] @relation("InviteReceiver")
+
   @@map("users")
+}
+
+model Family {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  avatarUrl   String?  @map("avatar_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Family creator (admin)
+  creatorId String @map("creator_id")
+  creator   User   @relation("FamilyCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  // Family members
+  members FamilyMember[]
+  invites FamilyInvite[]
+
+  @@map("families")
+}
+
+model FamilyMember {
+  id       String           @id @default(cuid())
+  role     FamilyMemberRole @default(MEMBER)
+  joinedAt DateTime         @default(now()) @map("joined_at")
+
+  // Relationships
+  userId   String @map("user_id")
+  familyId String @map("family_id")
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, familyId])
+  @@map("family_members")
+}
+
+model FamilyInvite {
+  id          String            @id @default(cuid())
+  code        String            @unique
+  status      FamilyInviteStatus @default(PENDING)
+  expiresAt   DateTime          @map("expires_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  respondedAt DateTime?         @map("responded_at")
+
+  // Relationships
+  familyId   String  @map("family_id")
+  senderId   String  @map("sender_id")
+  receiverId String? @map("receiver_id") // null for open invites
+  
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  sender   User   @relation("InviteSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User?  @relation("InviteReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@map("family_invites")
+}
+
+enum FamilyMemberRole {
+  ADMIN
+  MEMBER
+}
+
+enum FamilyInviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
 } 

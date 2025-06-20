@@ -9,14 +9,24 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  // Clean database before each test
-  await prisma.user.deleteMany();
+  // Clean database before each test, but handle connection errors gracefully
+  try {
+    await prisma.user.deleteMany();
+  } catch (error) {
+    // If database is not available, skip cleanup (for unit tests with mocks)
+    console.warn('Database not available for test cleanup, skipping...');
+  }
 });
 
 afterAll(async () => {
-  // Clean up and disconnect
-  await prisma.user.deleteMany();
-  await prisma.$disconnect();
+  // Clean up and disconnect, but handle connection errors gracefully
+  try {
+    await prisma.user.deleteMany();
+    await prisma.$disconnect();
+  } catch (error) {
+    // If database is not available, skip cleanup (for unit tests with mocks)
+    console.warn('Database not available for test cleanup, skipping...');
+  }
 });
 
 // Global test counter to ensure unique emails across all test files
