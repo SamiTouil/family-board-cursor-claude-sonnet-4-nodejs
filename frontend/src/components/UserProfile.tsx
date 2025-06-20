@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { useFamily } from '../contexts/FamilyContext';
 import { userApi, ChangePasswordData } from '../services/api';
+import { FamilyManagement } from './FamilyManagement';
 import './UserProfile.css';
 
 interface UserProfileProps {
@@ -11,7 +13,8 @@ interface UserProfileProps {
 export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
   const { t } = useTranslation();
   const { user, refreshUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'password'>('profile');
+  const { currentFamily } = useFamily();
+  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'family'>('profile');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -202,6 +205,21 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
             </svg>
             {t('user.changePassword')}
           </button>
+          {currentFamily && (
+            <button
+              onClick={() => setActiveTab('family')}
+              className={`user-profile-tab ${activeTab === 'family' ? 'user-profile-tab-active' : ''}`}
+              type="button"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              {t('user.familyManagement')}
+            </button>
+          )}
         </div>
 
         <div className="user-profile-content">
@@ -359,6 +377,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                 </button>
               </div>
             </form>
+          )}
+
+          {activeTab === 'family' && currentFamily && (
+            <FamilyManagement />
           )}
         </div>
       </div>

@@ -48,12 +48,18 @@ export interface User {
 export interface Family {
   id: string;
   name: string;
-  description: string | null;
-  avatarUrl: string | null;
+  description?: string;
+  avatarUrl?: string;
   createdAt: string;
   updatedAt: string;
-  createdBy: string;
-  members?: FamilyMember[];
+  creator: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  memberCount: number;
+  userRole?: 'ADMIN' | 'MEMBER';
 }
 
 export interface FamilyMember {
@@ -67,13 +73,26 @@ export interface FamilyMember {
 
 export interface FamilyInvite {
   id: string;
-  familyId: string;
-  inviteCode: string;
-  invitedUserId: string | null;
-  createdBy: string;
+  code: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
   expiresAt: string;
-  isUsed: boolean;
   createdAt: string;
+  respondedAt?: string;
+  family: {
+    id: string;
+    name: string;
+  };
+  sender: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+  receiver?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
 }
 
 export interface CreateFamilyData {
@@ -181,7 +200,7 @@ export const familyApi = {
     api.get(`/families/${id}/invites`),
   
   // Create family invite
-  createInvite: (id: string, data: { invitedUserId?: string; expiresAt?: string }): Promise<{ data: ApiResponse<FamilyInvite> }> =>
+  createInvite: (id: string, data: { receiverEmail?: string; expiresIn?: number }): Promise<{ data: ApiResponse<FamilyInvite> }> =>
     api.post(`/families/${id}/invites`, data),
 };
 

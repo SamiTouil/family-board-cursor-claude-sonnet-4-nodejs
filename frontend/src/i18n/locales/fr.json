@@ -89,7 +89,25 @@
     "changingPassword": "Changement du mot de passe...",
     "validation": {
       "currentPasswordRequired": "Le mot de passe actuel est requis"
-    }
+    },
+    "familyManagement": "Gestion de la Famille",
+    "familyMembers": "Membres de la Famille",
+    "generateInviteCode": "Générer un Code d'Invitation",
+    "inviteCode": "Code d'Invitation",
+    "copyInviteCode": "Copier le Code d'Invitation",
+    "inviteCodeCopied": "Code d'invitation copié dans le presse-papiers !",
+    "shareInviteCode": "Partagez ce code avec les membres de la famille pour rejoindre",
+    "admin": "Administrateur",
+    "member": "Membre",
+    "joinedOn": "Rejoint le",
+    "you": "Vous",
+    "noFamilyMembers": "Aucun membre de famille trouvé",
+    "loadingMembers": "Chargement des membres de la famille...",
+    "failedToLoadMembers": "Échec du chargement des membres de la famille",
+    "onlyAdminsCanManage": "Seuls les administrateurs de famille peuvent gérer les paramètres de famille",
+    "generateNewCode": "Générer un Nouveau Code",
+    "generating": "Génération...",
+    "failedToGenerateCode": "Échec de la génération du code d'invitation"
   },
   "family": {
     "onboarding": {

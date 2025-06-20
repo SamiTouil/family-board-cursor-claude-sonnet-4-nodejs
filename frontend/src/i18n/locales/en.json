@@ -90,7 +90,25 @@
     "changingPassword": "Changing Password...",
     "validation": {
       "currentPasswordRequired": "Current password is required"
-    }
+    },
+    "familyManagement": "Family Management",
+    "familyMembers": "Family Members",
+    "generateInviteCode": "Generate Invite Code",
+    "inviteCode": "Invite Code",
+    "copyInviteCode": "Copy Invite Code",
+    "inviteCodeCopied": "Invite code copied to clipboard!",
+    "shareInviteCode": "Share this code with family members to join",
+    "admin": "Admin",
+    "member": "Member",
+    "joinedOn": "Joined on",
+    "you": "You",
+    "noFamilyMembers": "No family members found",
+    "loadingMembers": "Loading family members...",
+    "failedToLoadMembers": "Failed to load family members",
+    "onlyAdminsCanManage": "Only family admins can manage family settings",
+    "generateNewCode": "Generate New Code",
+    "generating": "Generating...",
+    "failedToGenerateCode": "Failed to generate invite code"
   },
   "family": {
     "onboarding": {
