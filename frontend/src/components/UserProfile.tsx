@@ -577,6 +577,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                             {t('family.expiresIn')}
                           </label>
                           <CustomSelect
+                            id="inviteExpiry"
                             value={inviteExpiry}
                             onChange={(value) => setInviteExpiry(Number(value))}
                             options={[
