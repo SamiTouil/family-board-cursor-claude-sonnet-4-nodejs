@@ -75,7 +75,22 @@
     "email": "Email",
     "password": "Password",
     "avatar": "Avatar",
-    "profile": "Profile"
+    "profile": "Profile",
+    "editProfile": "Edit Profile",
+    "personalInfo": "Personal Info",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "profileUpdated": "Profile updated successfully",
+    "passwordChanged": "Password changed successfully",
+    "updateError": "Failed to update profile",
+    "passwordChangeError": "Failed to change password",
+    "emailNotEditable": "Email cannot be changed",
+    "changingPassword": "Changing Password...",
+    "validation": {
+      "currentPasswordRequired": "Current password is required"
+    }
   },
   "family": {
     "onboarding": {
@@ -116,5 +131,11 @@
       "continue": "Create Family",
       "join": "Join Family"
     }
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "saving": "Saving..."
   }
 } 

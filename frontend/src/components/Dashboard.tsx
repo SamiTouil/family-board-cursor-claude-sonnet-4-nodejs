@@ -1,13 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
+import { UserMenu } from './UserMenu';
+import { UserProfile } from './UserProfile';
 import './Dashboard.css';
 
 export const Dashboard: React.FC = () => {
   const { t } = useTranslation();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { currentFamily } = useFamily();
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
   // Update document title when family changes
   useEffect(() => {
@@ -17,14 +20,6 @@ export const Dashboard: React.FC = () => {
       document.title = t('app.title');
     }
   }, [currentFamily, t]);
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      // Logout error handling - error is logged in AuthContext
-    }
-  };
 
   if (!user) {
     return null; // This shouldn't happen in a protected route, but just in case
@@ -37,21 +32,7 @@ export const Dashboard: React.FC = () => {
           <h1 className="dashboard-title">
             {currentFamily ? `${currentFamily.name} Board` : t('app.title')}
           </h1>
-          <div className="dashboard-user-menu">
-            <div className="dashboard-user-info">
-              <span className="dashboard-user-name">
-                {user.firstName} {user.lastName}
-              </span>
-              <span className="dashboard-user-email">{user.email}</span>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="dashboard-logout-button"
-              type="button"
-            >
-              {t('auth.logout')}
-            </button>
-          </div>
+          <UserMenu onEditProfile={() => setShowUserProfile(true)} />
         </div>
       </header>
 
@@ -75,6 +56,10 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </main>
+      
+      {showUserProfile && (
+        <UserProfile onClose={() => setShowUserProfile(false)} />
+      )}
     </div>
   );
 }; 
