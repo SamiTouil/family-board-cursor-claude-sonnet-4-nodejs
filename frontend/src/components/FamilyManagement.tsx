@@ -2,18 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../contexts/FamilyContext';
 import { useAuth } from '../contexts/AuthContext';
-import { familyApi, FamilyMember, FamilyInvite } from '../services/api';
+import { familyApi, FamilyMember, FamilyInvite, FamilyJoinRequest } from '../services/api';
 import './FamilyManagement.css';
 
 export const FamilyManagement: React.FC = () => {
   const { t } = useTranslation();
   const { currentFamily } = useFamily();
   const { user } = useAuth();
-  const [activeSection, setActiveSection] = useState<'members' | 'invites'>('members');
+  const [activeSection, setActiveSection] = useState<'members' | 'invites' | 'requests'>('members');
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [invites, setInvites] = useState<FamilyInvite[]>([]);
+  const [joinRequests, setJoinRequests] = useState<FamilyJoinRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [isRespondingToRequest, setIsRespondingToRequest] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const isAdmin = currentFamily?.userRole === 'ADMIN';
@@ -23,6 +25,7 @@ export const FamilyManagement: React.FC = () => {
       loadMembers();
       if (isAdmin) {
         loadInvites();
+        loadJoinRequests();
       }
     }
   }, [currentFamily, isAdmin]);
@@ -56,6 +59,57 @@ export const FamilyManagement: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Failed to load invites:', error);
+    }
+  };
+
+  const loadJoinRequests = async () => {
+    if (!currentFamily || !isAdmin) return;
+
+    try {
+      const response = await familyApi.getJoinRequests(currentFamily.id);
+      if (response.data.success) {
+        setJoinRequests(response.data.data);
+      }
+    } catch (error: any) {
+      console.error('Failed to load join requests:', error);
+    }
+  };
+
+  const respondToJoinRequest = async (requestId: string, response: 'APPROVED' | 'REJECTED') => {
+    setIsRespondingToRequest(requestId);
+    setMessage(null);
+
+    try {
+      const apiResponse = await familyApi.respondToJoinRequest(requestId, response);
+      if (apiResponse.data.success) {
+        // Update the join request in state
+        setJoinRequests(prev => 
+          prev.map(req => 
+            req.id === requestId 
+              ? { ...req, status: response, respondedAt: new Date().toISOString() }
+              : req
+          )
+        );
+
+        // If approved, reload members to show the new member
+        if (response === 'APPROVED') {
+          loadMembers();
+        }
+
+        setMessage({
+          type: 'success',
+          text: response === 'APPROVED' 
+            ? t('user.joinRequestApproved') 
+            : t('user.joinRequestRejected')
+        });
+      }
+    } catch (error: any) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || t('user.failedToRespondToRequest')
+      });
+    } finally {
+      setIsRespondingToRequest(null);
     }
   };
 
@@ -110,6 +164,8 @@ export const FamilyManagement: React.FC = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const pendingRequestsCount = joinRequests.filter(req => req.status === 'PENDING').length;
+
   if (!currentFamily) {
     return null;
   }
@@ -154,6 +210,22 @@ export const FamilyManagement: React.FC = () => {
               <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
             {t('user.familyMembers')}
+          </button>
+          <button
+            onClick={() => setActiveSection('requests')}
+            className={`family-management-tab ${activeSection === 'requests' ? 'family-management-tab-active' : ''}`}
+            type="button"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M22 11h-4l-3 3"/>
+              <path d="M16 12l-3-3"/>
+            </svg>
+            {t('user.joinRequests')}
+            {pendingRequestsCount > 0 && (
+              <span className="family-management-tab-badge">{pendingRequestsCount}</span>
+            )}
           </button>
           <button
             onClick={() => setActiveSection('invites')}
@@ -226,6 +298,116 @@ export const FamilyManagement: React.FC = () => {
                         </span>
                       </div>
                     </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeSection === 'requests' && isAdmin && (
+          <div className="family-management-section">
+            <div className="family-management-section-header">
+              <h4>{t('user.joinRequests')}</h4>
+              <span className="family-management-member-count">
+                {pendingRequestsCount} pending
+              </span>
+            </div>
+
+            {joinRequests.length === 0 ? (
+              <div className="family-management-empty">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M22 11h-4l-3 3"/>
+                  <path d="M16 12l-3-3"/>
+                </svg>
+                <p>{t('user.noJoinRequests')}</p>
+              </div>
+            ) : (
+              <div className="family-management-requests">
+                {joinRequests.map((request) => (
+                  <div key={request.id} className={`family-request-card family-request-card-${request.status.toLowerCase()}`}>
+                    <div className="family-member-avatar">
+                      {request.user?.avatarUrl ? (
+                        <img src={request.user.avatarUrl} alt={`${request.user.firstName} ${request.user.lastName}`} />
+                      ) : (
+                        <div className="family-member-avatar-placeholder">
+                          {request.user?.firstName?.[0]}{request.user?.lastName?.[0]}
+                        </div>
+                      )}
+                    </div>
+                    <div className="family-request-info">
+                      <div className="family-member-name">
+                        {request.user?.firstName} {request.user?.lastName}
+                      </div>
+                      <div className="family-member-email">{request.user?.email}</div>
+                      {request.message && (
+                        <div className="family-request-message">
+                          <strong>{t('user.message')}:</strong> {request.message}
+                        </div>
+                      )}
+                      <div className="family-member-meta">
+                        <span className={`family-request-status family-request-status-${request.status.toLowerCase()}`}>
+                          {request.status === 'PENDING' && t('user.pending')}
+                          {request.status === 'APPROVED' && t('user.approved')}
+                          {request.status === 'REJECTED' && t('user.rejected')}
+                        </span>
+                        <span className="family-member-joined">
+                          {t('user.requestedOn')} {formatDate(request.createdAt)}
+                        </span>
+                        {request.respondedAt && (
+                          <span className="family-member-joined">
+                            {t('user.respondedOn')} {formatDate(request.respondedAt)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {request.status === 'PENDING' && (
+                      <div className="family-request-actions">
+                        <button
+                          onClick={() => respondToJoinRequest(request.id, 'APPROVED')}
+                          disabled={isRespondingToRequest === request.id}
+                          className="family-request-approve-btn"
+                          type="button"
+                        >
+                          {isRespondingToRequest === request.id ? (
+                            <>
+                              <div className="loading-spinner-small"></div>
+                              {t('user.approving')}
+                            </>
+                          ) : (
+                            <>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="20,6 9,17 4,12"/>
+                              </svg>
+                              {t('user.approve')}
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => respondToJoinRequest(request.id, 'REJECTED')}
+                          disabled={isRespondingToRequest === request.id}
+                          className="family-request-reject-btn"
+                          type="button"
+                        >
+                          {isRespondingToRequest === request.id ? (
+                            <>
+                              <div className="loading-spinner-small"></div>
+                              {t('user.rejecting')}
+                            </>
+                          ) : (
+                            <>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                              </svg>
+                              {t('user.reject')}
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

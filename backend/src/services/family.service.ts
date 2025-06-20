@@ -5,9 +5,11 @@ import {
   JoinFamilyData, 
   CreateInviteData, 
   UpdateMemberRoleData,
+  RespondToJoinRequestData,
   FamilyResponse,
   FamilyMemberResponse,
   FamilyInviteResponse,
+  FamilyJoinRequestResponse,
   FamilyStatsResponse
 } from '../types/family.types';
 import crypto from 'crypto';
@@ -295,12 +297,12 @@ export class FamilyService {
         firstName: updatedMember.user.firstName,
         lastName: updatedMember.user.lastName,
         email: updatedMember.user.email,
-        avatarUrl: updatedMember.user.avatarUrl || undefined,
+        avatarUrl: updatedMember.user.avatarUrl || null,
       },
     };
   }
 
-  // Create family invite (admin only)
+  // Create family invite (admin only) - Only one active invite per family
   static async createInvite(senderId: string, data: CreateInviteData): Promise<FamilyInviteResponse> {
     // Check if sender is admin
     const senderMembership = await prisma.familyMember.findUnique({
@@ -314,6 +316,34 @@ export class FamilyService {
 
     if (!senderMembership || senderMembership.role !== 'ADMIN') {
       throw new Error('Only family admins can create invites');
+    }
+
+    // Check for existing active invites and expire them
+    const existingInvites = await prisma.familyInvite.findMany({
+      where: {
+        familyId: data.familyId,
+        status: 'PENDING',
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    // Expire all existing active invites (only one active invite allowed)
+    if (existingInvites.length > 0) {
+      await prisma.familyInvite.updateMany({
+        where: {
+          familyId: data.familyId,
+          status: 'PENDING',
+          expiresAt: {
+            gt: new Date(),
+          },
+        },
+        data: {
+          status: 'EXPIRED',
+          respondedAt: new Date(),
+        },
+      });
     }
 
     let receiverId: string | null = null;
@@ -403,22 +433,16 @@ export class FamilyService {
     };
   }
 
-  // Join family with invite code
-  static async joinFamily(userId: string, data: JoinFamilyData): Promise<FamilyResponse> {
+  // Request to join family with invite code (creates join request instead of auto-joining)
+  static async requestToJoinFamily(userId: string, data: JoinFamilyData): Promise<any> {
     // Find the invite
     const invite = await prisma.familyInvite.findUnique({
       where: { code: data.code },
       include: {
         family: {
-          include: {
-            creator: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-              },
-            },
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
@@ -456,40 +480,273 @@ export class FamilyService {
       throw new Error('You are already a member of this family');
     }
 
-    // Join the family
-    await prisma.$transaction([
-      prisma.familyMember.create({
-        data: {
+    // Check if user already has a pending join request
+    const existingRequest = await prisma.familyJoinRequest.findUnique({
+      where: {
+        userId_familyId: {
           userId,
           familyId: invite.familyId,
-          role: 'MEMBER',
         },
-      }),
-      prisma.familyInvite.update({
-        where: { id: invite.id },
-        data: { 
-          status: 'ACCEPTED',
-          respondedAt: new Date(),
-        },
-      }),
-    ]);
+      },
+    });
 
-    // Get member count
-    const memberCount = await prisma.familyMember.count({
-      where: { familyId: invite.familyId },
+    if (existingRequest) {
+      if (existingRequest.status === 'PENDING') {
+        throw new Error('You already have a pending join request for this family');
+      } else if (existingRequest.status === 'REJECTED') {
+        // Allow resubmission after rejection
+        await prisma.familyJoinRequest.delete({
+          where: { id: existingRequest.id },
+        });
+      }
+    }
+
+    // Create join request
+    const joinRequest = await prisma.familyJoinRequest.create({
+      data: {
+        userId,
+        familyId: invite.familyId,
+        inviteId: invite.id,
+        message: data.message || null,
+        status: 'PENDING',
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+        family: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        invite: {
+          select: {
+            id: true,
+            code: true,
+          },
+        },
+        reviewer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
     });
 
     return {
-      id: invite.family.id,
-      name: invite.family.name,
-      description: invite.family.description || undefined,
-      avatarUrl: invite.family.avatarUrl || undefined,
-      createdAt: invite.family.createdAt,
-      updatedAt: invite.family.updatedAt,
-      creator: invite.family.creator,
-      memberCount,
-      userRole: 'MEMBER',
+      id: joinRequest.id,
+      status: joinRequest.status,
+      message: joinRequest.message || undefined,
+      createdAt: joinRequest.createdAt,
+      updatedAt: joinRequest.updatedAt,
+      respondedAt: joinRequest.respondedAt || undefined,
+      user: {
+        id: joinRequest.user.id,
+        firstName: joinRequest.user.firstName,
+        lastName: joinRequest.user.lastName,
+        email: joinRequest.user.email,
+        avatarUrl: joinRequest.user.avatarUrl,
+      },
+      family: joinRequest.family,
+      invite: joinRequest.invite,
+      reviewer: joinRequest.reviewer || undefined,
     };
+  }
+
+  // Get family join requests (admin only)
+  static async getFamilyJoinRequests(familyId: string, userId: string): Promise<FamilyJoinRequestResponse[]> {
+    // Check if user is admin
+    const membership = await prisma.familyMember.findUnique({
+      where: {
+        userId_familyId: {
+          userId,
+          familyId,
+        },
+      },
+    });
+
+    if (!membership || membership.role !== 'ADMIN') {
+      throw new Error('Only family admins can view join requests');
+    }
+
+    const joinRequests = await prisma.familyJoinRequest.findMany({
+      where: { familyId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+        family: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        invite: {
+          select: {
+            id: true,
+            code: true,
+          },
+        },
+        reviewer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return joinRequests.map((request: any) => ({
+      id: request.id,
+      status: request.status,
+      message: request.message || undefined,
+      createdAt: request.createdAt,
+      updatedAt: request.updatedAt,
+      respondedAt: request.respondedAt || undefined,
+      user: request.user,
+      family: request.family,
+      invite: request.invite,
+      reviewer: request.reviewer || undefined,
+    }));
+  }
+
+  // Respond to join request (admin only)
+  static async respondToJoinRequest(adminId: string, requestId: string, data: RespondToJoinRequestData): Promise<FamilyJoinRequestResponse> {
+    // Get the join request
+    const joinRequest = await prisma.familyJoinRequest.findUnique({
+      where: { id: requestId },
+      include: {
+        family: true,
+        user: true,
+      },
+    });
+
+    if (!joinRequest) {
+      throw new Error('Join request not found');
+    }
+
+    // Check if admin has permission
+    const adminMembership = await prisma.familyMember.findUnique({
+      where: {
+        userId_familyId: {
+          userId: adminId,
+          familyId: joinRequest.familyId,
+        },
+      },
+    });
+
+    if (!adminMembership || adminMembership.role !== 'ADMIN') {
+      throw new Error('Only family admins can respond to join requests');
+    }
+
+    // Check if request is still pending
+    if (joinRequest.status !== 'PENDING') {
+      throw new Error('This join request has already been processed');
+    }
+
+    // Process the response
+    if (data.response === 'APPROVED') {
+      // Add user to family and update request status
+      await prisma.$transaction([
+        prisma.familyMember.create({
+          data: {
+            userId: joinRequest.userId,
+            familyId: joinRequest.familyId,
+            role: 'MEMBER',
+          },
+        }),
+        prisma.familyJoinRequest.update({
+          where: { id: requestId },
+          data: {
+            status: 'APPROVED',
+            reviewerId: adminId,
+            respondedAt: new Date(),
+          },
+        }),
+      ]);
+    } else {
+      // Just update request status to rejected
+      await prisma.familyJoinRequest.update({
+        where: { id: requestId },
+        data: {
+          status: 'REJECTED',
+          reviewerId: adminId,
+          respondedAt: new Date(),
+        },
+      });
+    }
+
+    // Return updated join request
+    const updatedRequest = await prisma.familyJoinRequest.findUnique({
+      where: { id: requestId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+        family: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        invite: {
+          select: {
+            id: true,
+            code: true,
+          },
+        },
+        reviewer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    return {
+      id: updatedRequest!.id,
+      status: updatedRequest!.status,
+      message: updatedRequest!.message || undefined,
+      createdAt: updatedRequest!.createdAt,
+      updatedAt: updatedRequest!.updatedAt,
+      respondedAt: updatedRequest!.respondedAt || undefined,
+      user: updatedRequest!.user,
+      family: updatedRequest!.family,
+      invite: updatedRequest!.invite,
+      reviewer: updatedRequest!.reviewer || undefined,
+    };
+  }
+
+  // Legacy method - now redirects to requestToJoinFamily
+  static async joinFamily(userId: string, data: JoinFamilyData): Promise<FamilyJoinRequestResponse> {
+    return this.requestToJoinFamily(userId, data);
   }
 
   // Remove member from family (admin only)
@@ -652,7 +909,7 @@ export class FamilyService {
       throw new Error('Only family admins can view family stats');
     }
 
-    const [totalMembers, totalAdmins, pendingInvites, family] = await Promise.all([
+    const [totalMembers, totalAdmins, pendingInvites, pendingJoinRequests, family] = await Promise.all([
       prisma.familyMember.count({
         where: { familyId },
       }),
@@ -660,6 +917,9 @@ export class FamilyService {
         where: { familyId, role: 'ADMIN' },
       }),
       prisma.familyInvite.count({
+        where: { familyId, status: 'PENDING' },
+      }),
+      prisma.familyJoinRequest.count({
         where: { familyId, status: 'PENDING' },
       }),
       prisma.family.findUnique({
@@ -672,6 +932,7 @@ export class FamilyService {
       totalMembers,
       totalAdmins,
       pendingInvites,
+      pendingJoinRequests,
       createdAt: family!.createdAt,
     };
   }

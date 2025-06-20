@@ -25,6 +25,8 @@ model User {
   createdFamilies   Family[]       @relation("FamilyCreator")
   sentInvites       FamilyInvite[] @relation("InviteSender")
   receivedInvites   FamilyInvite[] @relation("InviteReceiver")
+  joinRequests      FamilyJoinRequest[]
+  reviewedJoinRequests FamilyJoinRequest[] @relation("JoinRequestReviewer")
 
   @@map("users")
 }
@@ -44,6 +46,7 @@ model Family {
   // Family members
   members FamilyMember[]
   invites FamilyInvite[]
+  joinRequests FamilyJoinRequest[]
 
   @@map("families")
 }
@@ -80,8 +83,32 @@ model FamilyInvite {
   family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
   sender   User   @relation("InviteSender", fields: [senderId], references: [id], onDelete: Cascade)
   receiver User?  @relation("InviteReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  joinRequests FamilyJoinRequest[]
 
   @@map("family_invites")
+}
+
+model FamilyJoinRequest {
+  id          String                 @id @default(cuid())
+  status      FamilyJoinRequestStatus @default(PENDING)
+  createdAt   DateTime               @default(now()) @map("created_at")
+  updatedAt   DateTime               @updatedAt @map("updated_at")
+  respondedAt DateTime?              @map("responded_at")
+  message     String?                // Optional message from the requester
+
+  // Relationships
+  userId     String @map("user_id")
+  familyId   String @map("family_id")
+  inviteId   String @map("invite_id") // The invite code that was used
+  reviewerId String? @map("reviewer_id") // Admin who approved/rejected
+  
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family   Family       @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  invite   FamilyInvite @relation(fields: [inviteId], references: [id], onDelete: Cascade)
+  reviewer User?        @relation("JoinRequestReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, familyId]) // One request per user per family
+  @@map("family_join_requests")
 }
 
 enum FamilyMemberRole {
@@ -94,4 +121,10 @@ enum FamilyInviteStatus {
   ACCEPTED
   REJECTED
   EXPIRED
+}
+
+enum FamilyJoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 } 

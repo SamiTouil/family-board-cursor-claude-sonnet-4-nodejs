@@ -13,9 +13,11 @@ export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack }) => {
   
   const [formData, setFormData] = useState({
     inviteCode: '',
+    message: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -28,7 +30,7 @@ export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
@@ -47,16 +49,41 @@ export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack }) => {
 
     setIsSubmitting(true);
     try {
-      await joinFamily({
-        inviteCode: formData.inviteCode.trim(),
-      });
-      // Success! The family context will handle navigation
+      const joinData: any = {
+        code: formData.inviteCode.trim(),
+      };
+      if (formData.message.trim()) {
+        joinData.message = formData.message.trim();
+      }
+      await joinFamily(joinData);
+      setIsSubmitted(true);
     } catch (error: any) {
       setErrors({ submit: error.message });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isSubmitted) {
+    return (
+      <div className="join-family-form">
+        <div className="join-family-header">
+          <button
+            onClick={onBack}
+            className="join-family-back-button"
+            type="button"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            {t('family.common.back')}
+          </button>
+          <h1 className="join-family-title">Request Submitted!</h1>
+          <p className="join-family-subtitle">{t('family.join.requestSubmitted')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="join-family-form">
@@ -93,6 +120,22 @@ export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack }) => {
             autoComplete="off"
           />
           {errors['inviteCode'] && <span className="form-error">{errors['inviteCode']}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="message" className="form-label">
+            {t('family.join.message')}
+          </label>
+          <textarea
+            id="message"
+            name="message"
+            value={formData.message}
+            onChange={handleInputChange}
+            placeholder={t('family.join.messagePlaceholder')}
+            className="form-input"
+            disabled={isSubmitting}
+            rows={3}
+          />
         </div>
 
         {errors['submit'] && (

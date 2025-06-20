@@ -102,7 +102,8 @@ export interface CreateFamilyData {
 }
 
 export interface JoinFamilyData {
-  inviteCode: string;
+  code: string;
+  message?: string | undefined;
 }
 
 export interface SignupData {
@@ -138,6 +139,35 @@ export interface ApiResponse<T> {
 export interface ApiError {
   message: string;
   code?: string;
+}
+
+export interface FamilyJoinRequest {
+  id: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  message?: string;
+  createdAt: string;
+  updatedAt: string;
+  respondedAt?: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatarUrl?: string | null;
+  };
+  family: {
+    id: string;
+    name: string;
+  };
+  invite: {
+    id: string;
+    code: string;
+  };
+  reviewer?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
 }
 
 // Authentication API
@@ -183,8 +213,8 @@ export const familyApi = {
   create: (data: CreateFamilyData): Promise<{ data: ApiResponse<Family> }> =>
     api.post('/families', data),
   
-  // Join a family using invite code
-  join: (data: JoinFamilyData): Promise<{ data: ApiResponse<Family> }> =>
+  // Join a family using invite code (now creates join request)
+  join: (data: JoinFamilyData): Promise<{ data: ApiResponse<FamilyJoinRequest> }> =>
     api.post('/families/join', data),
   
   // Get family details
@@ -202,6 +232,14 @@ export const familyApi = {
   // Create family invite
   createInvite: (id: string, data: { receiverEmail?: string; expiresIn?: number }): Promise<{ data: ApiResponse<FamilyInvite> }> =>
     api.post(`/families/${id}/invites`, data),
+  
+  // Get family join requests (admin only)
+  getJoinRequests: (id: string): Promise<{ data: ApiResponse<FamilyJoinRequest[]> }> =>
+    api.get(`/families/${id}/join-requests`),
+  
+  // Respond to join request (admin only)
+  respondToJoinRequest: (requestId: string, response: 'APPROVED' | 'REJECTED'): Promise<{ data: ApiResponse<FamilyJoinRequest> }> =>
+    api.post(`/families/join-requests/${requestId}/respond`, { response }),
 };
 
 export default api; 

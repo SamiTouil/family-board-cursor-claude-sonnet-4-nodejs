@@ -16,7 +16,8 @@
     "lastName": "Nom de famille",
     "back": "Retour",
     "continue": "Continuer",
-    "close": "Fermer"
+    "close": "Fermer",
+    "saving": "Enregistrement..."
   },
   "auth": {
     "login": "Se Connecter",
@@ -107,7 +108,25 @@
     "onlyAdminsCanManage": "Seuls les administrateurs de famille peuvent gérer les paramètres de famille",
     "generateNewCode": "Générer un Nouveau Code",
     "generating": "Génération...",
-    "failedToGenerateCode": "Échec de la génération du code d'invitation"
+    "failedToGenerateCode": "Échec de la génération du code d'invitation",
+    "joinRequestSubmitted": "Votre demande pour rejoindre la famille a été soumise. Vous serez notifié lorsqu'un administrateur examinera votre demande.",
+    "joinRequestMessage": "Message optionnel",
+    "joinRequestMessagePlaceholder": "Dites à la famille pourquoi vous aimeriez la rejoindre...",
+    "joinRequests": "Demandes d'adhésion",
+    "noJoinRequests": "Aucune demande d'adhésion pour le moment",
+    "pending": "En attente",
+    "approved": "Approuvé",
+    "rejected": "Rejeté",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "approving": "Approbation...",
+    "rejecting": "Rejet...",
+    "message": "Message",
+    "requestedOn": "Demandé le",
+    "respondedOn": "Répondu le",
+    "joinRequestApproved": "Demande d'adhésion approuvée avec succès",
+    "joinRequestRejected": "Demande d'adhésion rejetée",
+    "failedToRespondToRequest": "Échec de la réponse à la demande d'adhésion"
   },
   "family": {
     "onboarding": {
@@ -137,22 +156,20 @@
       "subtitle": "Entrez le code d'invitation pour rejoindre une famille existante.",
       "inviteCode": "Code d'Invitation",
       "inviteCodePlaceholder": "Entrez le code d'invitation",
-      "joining": "Rejoindre la famille...",
-      "joinError": "Échec de rejoindre la famille. Veuillez réessayer.",
+      "message": "Message (Optionnel)",
+      "messagePlaceholder": "Dites à la famille pourquoi vous aimeriez la rejoindre...",
+      "joining": "Soumission de la demande...",
+      "joinError": "Échec de la soumission de la demande. Veuillez réessayer.",
       "invalidCode": "Code d'invitation invalide ou expiré",
       "alreadyMember": "Vous êtes déjà membre de cette famille",
-      "codeRequired": "Le code d'invitation est requis"
+      "pendingRequest": "Vous avez déjà une demande d'adhésion en attente pour cette famille",
+      "codeRequired": "Le code d'invitation est requis",
+      "requestSubmitted": "Demande d'adhésion soumise avec succès ! Veuillez attendre l'approbation de l'administrateur."
     },
     "common": {
       "back": "Retour",
       "continue": "Créer la Famille",
       "join": "Rejoindre la Famille"
     }
-  },
-  "common": {
-    "save": "Enregistrer",
-    "cancel": "Annuler",
-    "close": "Fermer",
-    "saving": "Enregistrement..."
   }
 } 

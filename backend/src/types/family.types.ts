@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { FamilyMemberRole, FamilyInviteStatus } from '@prisma/client';
+import { FamilyMemberRole, FamilyInviteStatus, FamilyJoinRequestStatus } from '@prisma/client';
 
 // Family DTOs
 export const createFamilySchema = z.object({
@@ -16,6 +16,7 @@ export const updateFamilySchema = z.object({
 
 export const joinFamilySchema = z.object({
   code: z.string().min(6, 'Invalid invite code').max(20, 'Invalid invite code'),
+  message: z.string().max(500, 'Message too long').optional(),
 });
 
 export const createInviteSchema = z.object({
@@ -34,6 +35,10 @@ export const respondToInviteSchema = z.object({
   response: z.enum(['ACCEPTED', 'REJECTED']),
 });
 
+export const respondToJoinRequestSchema = z.object({
+  response: z.enum(['APPROVED', 'REJECTED']),
+});
+
 export const updateMemberRoleSchema = z.object({
   memberId: z.string().cuid('Invalid member ID'),
   role: z.nativeEnum(FamilyMemberRole),
@@ -45,6 +50,7 @@ export type UpdateFamilyData = z.infer<typeof updateFamilySchema>;
 export type JoinFamilyData = z.infer<typeof joinFamilySchema>;
 export type CreateInviteData = z.infer<typeof createInviteSchema>;
 export type RespondToInviteData = z.infer<typeof respondToInviteSchema>;
+export type RespondToJoinRequestData = z.infer<typeof respondToJoinRequestSchema>;
 export type UpdateMemberRoleData = z.infer<typeof updateMemberRoleSchema>;
 
 // Response types
@@ -74,7 +80,7 @@ export interface FamilyMemberResponse {
     firstName: string;
     lastName: string;
     email: string;
-    avatarUrl?: string | undefined;
+    avatarUrl?: string | null;
   };
 }
 
@@ -102,9 +108,39 @@ export interface FamilyInviteResponse {
   } | undefined;
 }
 
+export interface FamilyJoinRequestResponse {
+  id: string;
+  status: FamilyJoinRequestStatus;
+  message?: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
+  respondedAt?: Date | undefined;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatarUrl?: string | null;
+  };
+  family: {
+    id: string;
+    name: string;
+  };
+  invite: {
+    id: string;
+    code: string;
+  };
+  reviewer?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  } | undefined;
+}
+
 export interface FamilyStatsResponse {
   totalMembers: number;
   totalAdmins: number;
   pendingInvites: number;
+  pendingJoinRequests: number;
   createdAt: Date;
 } 

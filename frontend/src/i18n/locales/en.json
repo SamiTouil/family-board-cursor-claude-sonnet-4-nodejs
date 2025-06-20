@@ -16,7 +16,8 @@
     "lastName": "Last Name",
     "back": "Back",
     "continue": "Continue",
-    "close": "Close"
+    "close": "Close",
+    "saving": "Saving..."
   },
   "auth": {
     "login": "Login",
@@ -108,7 +109,25 @@
     "onlyAdminsCanManage": "Only family admins can manage family settings",
     "generateNewCode": "Generate New Code",
     "generating": "Generating...",
-    "failedToGenerateCode": "Failed to generate invite code"
+    "failedToGenerateCode": "Failed to generate invite code",
+    "joinRequestSubmitted": "Your request to join the family has been submitted. You will be notified when an admin reviews your request.",
+    "joinRequestMessage": "Optional message",
+    "joinRequestMessagePlaceholder": "Tell the family why you'd like to join...",
+    "joinRequests": "Join Requests",
+    "noJoinRequests": "No join requests yet",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approving": "Approving...",
+    "rejecting": "Rejecting...",
+    "message": "Message",
+    "requestedOn": "Requested on",
+    "respondedOn": "Responded on",
+    "joinRequestApproved": "Join request approved successfully",
+    "joinRequestRejected": "Join request rejected",
+    "failedToRespondToRequest": "Failed to respond to join request"
   },
   "family": {
     "onboarding": {
@@ -138,22 +157,20 @@
       "subtitle": "Enter the invitation code to join an existing family.",
       "inviteCode": "Invitation Code",
       "inviteCodePlaceholder": "Enter invitation code",
-      "joining": "Joining family...",
-      "joinError": "Failed to join family. Please try again.",
+      "message": "Message (Optional)",
+      "messagePlaceholder": "Tell the family why you'd like to join...",
+      "joining": "Submitting request...",
+      "joinError": "Failed to submit join request. Please try again.",
       "invalidCode": "Invalid or expired invitation code",
       "alreadyMember": "You are already a member of this family",
-      "codeRequired": "Invitation code is required"
+      "pendingRequest": "You already have a pending join request for this family",
+      "codeRequired": "Invitation code is required",
+      "requestSubmitted": "Join request submitted successfully! Please wait for admin approval."
     },
     "common": {
       "back": "Back",
       "continue": "Create Family",
       "join": "Join Family"
     }
-  },
-  "common": {
-    "save": "Save",
-    "cancel": "Cancel",
-    "close": "Close",
-    "saving": "Saving..."
   }
 } 
