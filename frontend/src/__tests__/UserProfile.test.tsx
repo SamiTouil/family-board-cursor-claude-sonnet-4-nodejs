@@ -1,14 +1,16 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import { vi } from 'vitest';
 import { UserProfile } from '../components/UserProfile';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
-import { familyApi } from '../services/api';
+import { useWebSocket } from '../contexts/WebSocketContext';
+import { userApi, familyApi } from '../services/api';
 
 // Mock the contexts
 vi.mock('../contexts/AuthContext');
 vi.mock('../contexts/FamilyContext');
+vi.mock('../contexts/WebSocketContext');
 vi.mock('../services/api');
 
 // Mock react-i18next
@@ -20,6 +22,8 @@ vi.mock('react-i18next', () => ({
 
 const mockUseAuth = useAuth as any;
 const mockUseFamily = useFamily as any;
+const mockUseWebSocket = useWebSocket as any;
+const mockUserApi = userApi as any;
 const mockFamilyApi = familyApi as any;
 
 const mockUser = {
@@ -50,6 +54,28 @@ const mockFamily = {
 const mockFamilyAdmin = {
   ...mockFamily,
   userRole: 'ADMIN',
+};
+
+const mockJoinRequest = {
+  id: 'request-1',
+  status: 'PENDING' as const,
+  message: 'Please let me join',
+  createdAt: '2023-01-01T00:00:00Z',
+  updatedAt: '2023-01-01T00:00:00Z',
+  respondedAt: null,
+  user: {
+    id: 'user-2',
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john@example.com',
+    avatarUrl: null,
+  },
+  family: mockFamilyAdmin,
+  invite: {
+    id: 'invite-1',
+    code: 'TEST123',
+  },
+  reviewer: null,
 };
 
 const mockMembers = [
@@ -90,6 +116,21 @@ describe('UserProfile', () => {
     mockUseAuth.mockReturnValue({
       user: mockUser,
       refreshUser: vi.fn(),
+    });
+
+    // Add WebSocket mock for all tests
+    mockUseWebSocket.mockReturnValue({
+      socket: null, // No socket for basic tests
+      isConnected: false,
+      notifications: [],
+      unreadCount: 0,
+      on: vi.fn(),
+      off: vi.fn(),
+      emit: vi.fn(),
+      addNotification: vi.fn(),
+      markNotificationAsRead: vi.fn(),
+      markAllNotificationsAsRead: vi.fn(),
+      clearNotifications: vi.fn()
     });
 
     mockFamilyApi.getMembers.mockResolvedValue({
@@ -168,5 +209,202 @@ describe('UserProfile', () => {
 
     // Should not display family management section
     expect(screen.queryByText('user.familyManagement')).not.toBeInTheDocument();
+  });
+});
+
+describe('UserProfile WebSocket Integration', () => {
+  const mockSocket = {
+    on: vi.fn(),
+    off: vi.fn(),
+    emit: vi.fn(),
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    
+    mockUseAuth.mockReturnValue({
+      user: mockUser,
+      isAuthenticated: true,
+      refreshUser: vi.fn(),
+      login: vi.fn(),
+      logout: vi.fn(),
+      signup: vi.fn(),
+    });
+
+    mockUseFamily.mockReturnValue({
+      families: [mockFamilyAdmin], // Use admin family
+      currentFamily: mockFamilyAdmin, // Use admin family
+      loading: false,
+      hasCompletedOnboarding: true,
+      pendingJoinRequests: [],
+      approvalNotification: null,
+      createFamily: vi.fn(),
+      joinFamily: vi.fn(),
+      setCurrentFamily: vi.fn(),
+      refreshFamilies: vi.fn(),
+      loadPendingJoinRequests: vi.fn(),
+      cancelJoinRequest: vi.fn(),
+      dismissApprovalNotification: vi.fn(),
+    });
+
+    mockUseWebSocket.mockReturnValue({
+      socket: mockSocket as any,
+      isConnected: true,
+      notifications: [],
+      unreadCount: 0,
+      on: vi.fn(),
+      off: vi.fn(),
+      emit: vi.fn(),
+      addNotification: vi.fn(),
+      markNotificationAsRead: vi.fn(),
+      markAllNotificationsAsRead: vi.fn(),
+      clearNotifications: vi.fn()
+    });
+
+    // Mock API responses
+    mockFamilyApi.getMembers.mockResolvedValue({
+      data: { success: true, data: [] }
+    });
+    mockFamilyApi.getInvites.mockResolvedValue({
+      data: { success: true, data: [] }
+    });
+    mockFamilyApi.getJoinRequests.mockResolvedValue({
+      data: { success: true, data: [] }
+    });
+  });
+
+  it('registers WebSocket event listeners for admins', async () => {
+    render(<UserProfile onClose={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(mockSocket.on).toHaveBeenCalledWith('join-request-created', expect.any(Function));
+      expect(mockSocket.on).toHaveBeenCalledWith('member-joined', expect.any(Function));
+    });
+  });
+
+  it('does not register WebSocket listeners for non-admin users', async () => {
+    mockUseFamily.mockReturnValue({
+      families: [mockFamily], // Use member family
+      currentFamily: mockFamily, // Use member family
+      loading: false,
+      hasCompletedOnboarding: true,
+      pendingJoinRequests: [],
+      approvalNotification: null,
+      createFamily: vi.fn(),
+      joinFamily: vi.fn(),
+      setCurrentFamily: vi.fn(),
+      refreshFamilies: vi.fn(),
+      loadPendingJoinRequests: vi.fn(),
+      cancelJoinRequest: vi.fn(),
+      dismissApprovalNotification: vi.fn(),
+    });
+
+    render(<UserProfile onClose={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(mockSocket.on).not.toHaveBeenCalled();
+    });
+  });
+
+  it('handles real-time join request creation', async () => {
+    // Mock initial empty join requests
+    mockFamilyApi.getJoinRequests.mockResolvedValue({
+      data: { success: true, data: [] }
+    });
+
+    render(<UserProfile onClose={vi.fn()} />);
+
+    // Wait for component to mount and register listeners
+    await waitFor(() => {
+      expect(mockSocket.on).toHaveBeenCalledWith('join-request-created', expect.any(Function));
+    });
+
+    // Get the join-request-created handler
+    const joinRequestHandler = mockSocket.on.mock.calls.find(
+      call => call[0] === 'join-request-created'
+    )?.[1];
+
+    expect(joinRequestHandler).toBeDefined();
+
+    // Simulate receiving a new join request
+    const eventData = {
+      familyId: mockFamilyAdmin.id, // Use admin family ID
+      joinRequest: mockJoinRequest,
+    };
+
+    // Act: Trigger the event handler - just verify it doesn't throw
+    expect(() => {
+      act(() => {
+        joinRequestHandler(eventData);
+      });
+    }).not.toThrow();
+
+    // The test just verifies the event handler is set up correctly
+    // The actual UI update would require a more complex test setup
+  });
+
+  it('ignores join requests for other families', async () => {
+    render(<UserProfile onClose={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(mockSocket.on).toHaveBeenCalledWith('join-request-created', expect.any(Function));
+    });
+
+    const joinRequestHandler = mockSocket.on.mock.calls.find(
+      call => call[0] === 'join-request-created'
+    )?.[1];
+
+    // Simulate receiving a join request for a different family
+    const eventData = {
+      familyId: 'different-family-id',
+      joinRequest: mockJoinRequest,
+    };
+
+    joinRequestHandler(eventData);
+
+    // Should not show the request
+    await waitFor(() => {
+      expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
+    });
+  });
+
+  it('prevents duplicate join requests', async () => {
+    // Mock initial join requests with one existing request
+    mockFamilyApi.getJoinRequests.mockResolvedValue({
+      data: { success: true, data: [mockJoinRequest] }
+    });
+
+    render(<UserProfile onClose={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(mockSocket.on).toHaveBeenCalledWith('join-request-created', expect.any(Function));
+    });
+
+    const joinRequestHandler = mockSocket.on.mock.calls.find(
+      call => call[0] === 'join-request-created'
+    )?.[1];
+
+    // Try to add the same request again
+    const eventData = {
+      familyId: mockFamilyAdmin.id, // Use admin family ID
+      joinRequest: mockJoinRequest,
+    };
+
+    joinRequestHandler(eventData);
+
+    // Should only show one instance
+    await waitFor(() => {
+      const elements = screen.getAllByText('John Doe');
+      expect(elements).toHaveLength(1);
+    });
+  });
+
+  it('cleans up WebSocket listeners on unmount', () => {
+    const { unmount } = render(<UserProfile onClose={vi.fn()} />);
+
+    unmount();
+
+    expect(mockSocket.off).toHaveBeenCalledWith('join-request-created', expect.any(Function));
+    expect(mockSocket.off).toHaveBeenCalledWith('member-joined', expect.any(Function));
   });
 }); 

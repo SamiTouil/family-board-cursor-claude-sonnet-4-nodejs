@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
+import { useWebSocket } from '../contexts/WebSocketContext';
 import { userApi, familyApi, ChangePasswordData, FamilyMember, FamilyInvite, FamilyJoinRequest } from '../services/api';
 import { CustomSelect } from './CustomSelect';
 import './UserProfile.css';
@@ -14,6 +15,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
   const { t } = useTranslation();
   const { user, refreshUser } = useAuth();
   const { currentFamily } = useFamily();
+  const { socket } = useWebSocket();
   const modalRef = useRef<HTMLDivElement>(null);
   
   const [isLoading, setIsLoading] = useState(false);
@@ -65,6 +67,42 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
       loadFamilyData();
     }
   }, [currentFamily]);
+
+  // WebSocket event listeners for real-time updates
+  useEffect(() => {
+    if (!socket || !currentFamily || !isAdmin) return;
+
+    const handleJoinRequestCreated = (data: any) => {
+      // Only handle requests for the current family
+      if (data.familyId === currentFamily.id && data.joinRequest) {
+        setJoinRequests(prev => {
+          // Check if request already exists to avoid duplicates
+          const exists = prev.some(req => req.id === data.joinRequest.id);
+          if (exists) return prev;
+          
+          // Add new request to the beginning of the list
+          return [data.joinRequest, ...prev];
+        });
+      }
+    };
+
+    const handleMemberJoined = () => {
+      // Refresh family data when a new member joins
+      if (currentFamily) {
+        loadFamilyData();
+      }
+    };
+
+    // Register event listeners
+    socket.on('join-request-created', handleJoinRequestCreated);
+    socket.on('member-joined', handleMemberJoined);
+
+    // Cleanup event listeners
+    return () => {
+      socket.off('join-request-created', handleJoinRequestCreated);
+      socket.off('member-joined', handleMemberJoined);
+    };
+  }, [socket, currentFamily, isAdmin]);
 
   const loadFamilyData = async () => {
     if (!currentFamily) return;

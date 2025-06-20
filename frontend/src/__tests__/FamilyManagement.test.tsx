@@ -5,11 +5,13 @@ import '@testing-library/jest-dom';
 import { FamilyManagement } from '../components/FamilyManagement';
 import { useFamily } from '../contexts/FamilyContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useWebSocket } from '../contexts/WebSocketContext';
 import { familyApi } from '../services/api';
 
 // Mock the contexts
 vi.mock('../contexts/FamilyContext');
 vi.mock('../contexts/AuthContext');
+vi.mock('../contexts/WebSocketContext');
 vi.mock('../services/api');
 
 // Mock react-i18next
@@ -140,6 +142,21 @@ describe('FamilyManagement', () => {
       refreshUser: vi.fn()
     });
 
+    // Mock WebSocket context
+    vi.mocked(useWebSocket).mockReturnValue({
+      socket: null,
+      isConnected: false,
+      notifications: [],
+      unreadCount: 0,
+      on: vi.fn(),
+      off: vi.fn(),
+      emit: vi.fn(),
+      addNotification: vi.fn(),
+      markNotificationAsRead: vi.fn(),
+      markAllNotificationsAsRead: vi.fn(),
+      clearNotifications: vi.fn()
+    });
+
     vi.mocked(familyApi.getMembers).mockResolvedValue({
       data: { success: true, data: mockMembers }
     });
@@ -156,10 +173,15 @@ describe('FamilyManagement', () => {
         families: [mockFamily],
         loading: false,
         hasCompletedOnboarding: true,
+        pendingJoinRequests: [],
+        approvalNotification: null,
         createFamily: vi.fn(),
         joinFamily: vi.fn(),
         setCurrentFamily: vi.fn(),
-        refreshFamilies: vi.fn()
+        refreshFamilies: vi.fn(),
+        loadPendingJoinRequests: vi.fn(),
+        cancelJoinRequest: vi.fn(),
+        dismissApprovalNotification: vi.fn()
       });
     });
 
@@ -267,10 +289,15 @@ describe('FamilyManagement', () => {
         families: [mockMemberFamily],
         loading: false,
         hasCompletedOnboarding: true,
+        pendingJoinRequests: [],
+        approvalNotification: null,
         createFamily: vi.fn(),
         joinFamily: vi.fn(),
         setCurrentFamily: vi.fn(),
-        refreshFamilies: vi.fn()
+        refreshFamilies: vi.fn(),
+        loadPendingJoinRequests: vi.fn(),
+        cancelJoinRequest: vi.fn(),
+        dismissApprovalNotification: vi.fn()
       });
     });
 
@@ -306,10 +333,15 @@ describe('FamilyManagement', () => {
         families: [mockFamily],
         loading: false,
         hasCompletedOnboarding: true,
+        pendingJoinRequests: [],
+        approvalNotification: null,
         createFamily: vi.fn(),
         joinFamily: vi.fn(),
         setCurrentFamily: vi.fn(),
-        refreshFamilies: vi.fn()
+        refreshFamilies: vi.fn(),
+        loadPendingJoinRequests: vi.fn(),
+        cancelJoinRequest: vi.fn(),
+        dismissApprovalNotification: vi.fn()
       });
     });
 
@@ -353,10 +385,15 @@ describe('FamilyManagement', () => {
         families: [],
         loading: false,
         hasCompletedOnboarding: false,
+        pendingJoinRequests: [],
+        approvalNotification: null,
         createFamily: vi.fn(),
         joinFamily: vi.fn(),
         setCurrentFamily: vi.fn(),
-        refreshFamilies: vi.fn()
+        refreshFamilies: vi.fn(),
+        loadPendingJoinRequests: vi.fn(),
+        cancelJoinRequest: vi.fn(),
+        dismissApprovalNotification: vi.fn()
       });
 
       const { container } = render(<FamilyManagement />);

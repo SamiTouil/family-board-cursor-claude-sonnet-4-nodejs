@@ -10,7 +10,7 @@ interface JoinFamilyFormProps {
 
 export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack, onRequestCancelled }) => {
   const { t } = useTranslation();
-  const { joinFamily, pendingJoinRequests, cancelJoinRequest } = useFamily();
+  const { joinFamily, pendingJoinRequests, cancelJoinRequest, families } = useFamily();
   
   const [formData, setFormData] = useState({
     inviteCode: '',
@@ -26,15 +26,21 @@ export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack, onReques
   const hasPendingRequests = actualPendingRequests.length > 0;
   const pendingRequest = actualPendingRequests[0]; // Get the first pending request
 
-  // Check if user has rejected requests - if so, redirect back to choice
-  const hasRejectedRequests = pendingJoinRequests?.some(req => req.status === 'REJECTED') || false;
-
-  // If user has rejected requests but no pending ones, redirect back to choice
+  // Handle when user's request gets rejected - redirect back to choice screen
   useEffect(() => {
-    if (hasRejectedRequests && !hasPendingRequests) {
-      onRequestCancelled(); // This will redirect back to choice screen
+    // If user was on the "Request Submitted" screen (isSubmitted = true) 
+    // but now has no pending requests, check if it was rejection or approval
+    if (isSubmitted && !hasPendingRequests) {
+      // If user still has no families, it means the request was rejected
+      // If user now has families, it means the request was approved (handled by hasCompletedOnboarding redirect)
+      if (families.length === 0) {
+        // Request was rejected - reset the submitted state and redirect back to choice
+        setIsSubmitted(false);
+        onRequestCancelled();
+      }
+      // If families.length > 0, the request was approved and the main app will handle the redirect
     }
-  }, [hasRejectedRequests, hasPendingRequests, onRequestCancelled]);
+  }, [isSubmitted, hasPendingRequests, families.length, onRequestCancelled]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
