@@ -5,6 +5,7 @@ import { useFamily } from '../contexts/FamilyContext';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { userApi, familyApi, ChangePasswordData, FamilyMember, FamilyInvite, FamilyJoinRequest } from '../services/api';
 import { CustomSelect } from './CustomSelect';
+import { UserAvatar } from './UserAvatar';
 import './UserProfile.css';
 
 interface UserProfileProps {
@@ -530,6 +531,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                 <div className="user-profile-members-list">
                   {members.map((member) => (
                     <div key={member.id} className="user-profile-member-card">
+                      <UserAvatar
+                        firstName={member.user?.firstName || ''}
+                        lastName={member.user?.lastName || ''}
+                        avatarUrl={member.user?.avatarUrl || null}
+                        size="medium"
+                      />
                       <div className="user-profile-member-info">
                         <div className="user-profile-member-name">
                           {member.user?.firstName} {member.user?.lastName}
@@ -559,6 +566,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                       <div className="user-profile-requests-list">
                         {pendingJoinRequests.map((request) => (
                           <div key={request.id} className="user-profile-request-card">
+                            <UserAvatar
+                              firstName={request.user.firstName || ''}
+                              lastName={request.user.lastName || ''}
+                              avatarUrl={request.user.avatarUrl || null}
+                              size="medium"
+                            />
                             <div className="user-profile-request-info">
                               <div className="user-profile-request-name">
                                 {request.user.firstName} {request.user.lastName}
