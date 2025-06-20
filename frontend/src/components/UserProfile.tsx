@@ -553,7 +553,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
               <div className="user-profile-subsection">
                 <h4 className="user-profile-subsection-title">{t('family.members')}</h4>
                 <div className="user-profile-members-list">
-                  {members.map((member) => (
+                  {members.map((member) => {
+                    const isCurrentUser = member.userId === user?.id;
+                    
+                    return (
                     <div key={member.id} className="user-profile-member-card">
                       <UserAvatar
                         firstName={member.user?.firstName || ''}
@@ -564,6 +567,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                       <div className="user-profile-member-info">
                         <div className="user-profile-member-name">
                           {member.user?.firstName} {member.user?.lastName}
+                          {isCurrentUser && ` (${t('user.you')})`}
                         </div>
                         <div className="user-profile-member-email">{member.user?.email}</div>
                       </div>
@@ -573,7 +577,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                         </span>
                       </div>
                       {/* Remove member button - only for admins and not for self */}
-                      {isAdmin && member.userId !== user?.id && (
+                      {isAdmin && !isCurrentUser && (
                         <div className="user-profile-member-actions">
                           <button
                             onClick={() => handleRemoveMember(member.id, `${member.user?.firstName} ${member.user?.lastName}`)}
@@ -586,7 +590,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                         </div>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
