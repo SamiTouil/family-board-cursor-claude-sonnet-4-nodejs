@@ -10,7 +10,7 @@ interface JoinFamilyFormProps {
 
 export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack, onRequestCancelled }) => {
   const { t } = useTranslation();
-  const { joinFamily, pendingJoinRequests, cancelJoinRequest } = useFamily();
+  const { joinFamily, pendingJoinRequests, cancelJoinRequest, families } = useFamily();
   
   const [formData, setFormData] = useState({
     inviteCode: '',
@@ -29,13 +29,18 @@ export const JoinFamilyForm: React.FC<JoinFamilyFormProps> = ({ onBack, onReques
   // Handle when user's request gets rejected - redirect back to choice screen
   useEffect(() => {
     // If user was on the "Request Submitted" screen (isSubmitted = true) 
-    // but now has no pending requests, it means their request was rejected
+    // but now has no pending requests, check if it was rejection or approval
     if (isSubmitted && !hasPendingRequests) {
-      // Reset the submitted state and redirect back to choice
-      setIsSubmitted(false);
-      onRequestCancelled();
+      // If user still has no families, it means the request was rejected
+      // If user now has families, it means the request was approved (handled by hasCompletedOnboarding redirect)
+      if (families.length === 0) {
+        // Request was rejected - reset the submitted state and redirect back to choice
+        setIsSubmitted(false);
+        onRequestCancelled();
+      }
+      // If families.length > 0, the request was approved and the main app will handle the redirect
     }
-  }, [isSubmitted, hasPendingRequests, onRequestCancelled]);
+  }, [isSubmitted, hasPendingRequests, families.length, onRequestCancelled]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
