@@ -1,46 +1,16 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFamily } from '../../contexts/FamilyContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { CreateFamilyForm } from './CreateFamilyForm';
 import { JoinFamilyForm } from './JoinFamilyForm';
-import { LoadingSpinner } from '../LoadingSpinner';
 import './FamilyOnboarding.css';
 
 type OnboardingStep = 'choice' | 'create' | 'join';
 
 export const FamilyOnboarding: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('choice');
-  const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
-  const { createFamily, joinFamily } = useFamily();
   const { logout } = useAuth();
-
-  const handleCreateFamily = async (data: { name: string; description?: string }) => {
-    setLoading(true);
-    try {
-      await createFamily(data);
-      // Success - the context will update hasCompletedOnboarding
-    } catch (error) {
-      // Error handling is done in the form component
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleJoinFamily = async (data: { inviteCode: string }) => {
-    setLoading(true);
-    try {
-      await joinFamily(data);
-      // Success - the context will update hasCompletedOnboarding
-    } catch (error) {
-      // Error handling is done in the form component
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleBack = () => {
     if (currentStep === 'choice') {
@@ -51,13 +21,7 @@ export const FamilyOnboarding: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="family-onboarding-loading">
-        <LoadingSpinner size="large" message={t('common.loading')} />
-      </div>
-    );
-  }
+
 
   return (
     <div className="family-onboarding">
@@ -114,29 +78,11 @@ export const FamilyOnboarding: React.FC = () => {
         )}
         
         {currentStep === 'create' && (
-          <div className="family-onboarding-form">
-            <button
-              className="family-onboarding-back-button"
-              onClick={handleBack}
-              type="button"
-            >
-              {t('common.back')}
-            </button>
-            <CreateFamilyForm onSubmit={handleCreateFamily} />
-          </div>
+          <CreateFamilyForm onBack={handleBack} />
         )}
         
         {currentStep === 'join' && (
-          <div className="family-onboarding-form">
-            <button
-              className="family-onboarding-back-button"
-              onClick={handleBack}
-              type="button"
-            >
-              {t('common.back')}
-            </button>
-            <JoinFamilyForm onSubmit={handleJoinFamily} />
-          </div>
+          <JoinFamilyForm onBack={handleBack} />
         )}
       </div>
     </div>
