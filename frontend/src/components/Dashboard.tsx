@@ -1,11 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { useFamily } from '../contexts/FamilyContext';
 import './Dashboard.css';
 
 export const Dashboard: React.FC = () => {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
+  const { currentFamily } = useFamily();
+
+  // Update document title when family changes
+  useEffect(() => {
+    if (currentFamily) {
+      document.title = `${currentFamily.name} Board`;
+    } else {
+      document.title = t('app.title');
+    }
+  }, [currentFamily, t]);
 
   const handleLogout = async () => {
     try {
@@ -23,7 +34,9 @@ export const Dashboard: React.FC = () => {
     <div className="dashboard">
       <header className="dashboard-header">
         <div className="dashboard-header-content">
-          <h1 className="dashboard-title">{t('app.title')}</h1>
+          <h1 className="dashboard-title">
+            {currentFamily ? `${currentFamily.name} Board` : t('app.title')}
+          </h1>
           <div className="dashboard-user-menu">
             <div className="dashboard-user-info">
               <span className="dashboard-user-name">
@@ -48,7 +61,10 @@ export const Dashboard: React.FC = () => {
             Welcome back, {user.firstName}!
           </h2>
           <p className="dashboard-welcome-text">
-            Welcome to your family board. This is where you'll manage your family's tasks and activities.
+            {currentFamily 
+              ? `Welcome to ${currentFamily.name}'s board. This is where you'll manage your family's tasks and activities.`
+              : "Welcome to your family board. This is where you'll manage your family's tasks and activities."
+            }
           </p>
         </div>
 

@@ -51,6 +51,10 @@ test.describe('Mandatory Family Access Control', () => {
     await expect(page.getByText('Welcome back, Family!')).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('Coming Soon')).toBeVisible();
     
+    // Check that the dashboard title shows the family name
+    await expect(page.getByRole('heading', { name: 'Test Family Board' })).toBeVisible();
+    await expect(page).toHaveTitle('Test Family Board');
+    
     // Verify we can't go back to family onboarding
     await page.goto('/');
     await expect(page.getByText('Welcome back, Family!')).toBeVisible({ timeout: 5000 });

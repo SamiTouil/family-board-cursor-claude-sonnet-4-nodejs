@@ -314,6 +314,10 @@ test.describe('Authentication Flow', () => {
       await expect(page.locator('.dashboard-welcome').filter({ hasText: 'Welcome back, Family!' })).toBeVisible({ timeout: 10000 });
       await expect(page.getByText('Family User')).toBeVisible();
       await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+      
+      // Check that the dashboard title shows the family name
+      await expect(page.getByRole('heading', { name: 'Test Family Board' })).toBeVisible();
+      await expect(page).toHaveTitle('Test Family Board');
     });
 
     test('should not access dashboard without completing family onboarding', async ({ page }) => {
@@ -354,6 +358,17 @@ test.describe('Authentication Flow', () => {
       await expect(page.getByText('Dashboard User')).toBeVisible();
       await expect(page.getByText(/dashboard-.*@example\.com/)).toBeVisible();
       await expect(page.locator('.dashboard-welcome').filter({ hasText: 'Welcome back, Dashboard!' })).toBeVisible();
+    });
+
+    test('should display family name in dashboard title', async ({ page }) => {
+      // Check that the dashboard title shows the family name
+      await expect(page.getByRole('heading', { name: 'Dashboard Family Board' })).toBeVisible();
+      
+      // Check that the document title is also updated
+      await expect(page).toHaveTitle('Dashboard Family Board');
+      
+      // Check that the welcome message includes the family name
+      await expect(page.getByText("Welcome to Dashboard Family's board. This is where you'll manage your family's tasks and activities.")).toBeVisible();
     });
 
     test('should successfully logout', async ({ page }) => {
