@@ -153,9 +153,17 @@
     "joinRequests": "Demandes d'adhésion",
     "approve": "Approuver",
     "reject": "Rejeter",
+    "remove": "Supprimer",
+    "removeMember": "Supprimer le membre de la famille",
+    "confirmRemoveMember": "Êtes-vous sûr de vouloir supprimer {{memberName}} de la famille ? Cette action ne peut pas être annulée.",
+    "memberRemovedSuccessfully": "{{memberName}} a été supprimé(e) de la famille",
+    "removeMemberError": "Échec de la suppression du membre de la famille",
     "requestApproved": "Demande approuvée avec succès",
     "requestRejected": "Demande rejetée avec succès", 
     "requestError": "Échec du traitement de la demande",
+    "joinRequestApproved": "Demande d'adhésion approuvée avec succès",
+    "joinRequestRejected": "Demande d'adhésion rejetée avec succès",
+    "joinRequestError": "Échec du traitement de la demande d'adhésion",
     "role": {
       "admin": "Administrateur",
       "member": "Membre"

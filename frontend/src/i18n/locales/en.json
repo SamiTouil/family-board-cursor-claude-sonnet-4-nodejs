@@ -154,9 +154,17 @@
     "joinRequests": "Join Requests",
     "approve": "Approve",
     "reject": "Reject",
+    "remove": "Remove",
+    "removeMember": "Remove member from family",
+    "confirmRemoveMember": "Are you sure you want to remove {{memberName}} from the family? This action cannot be undone.",
+    "memberRemovedSuccessfully": "{{memberName}} has been removed from the family",
+    "removeMemberError": "Failed to remove member from family",
     "requestApproved": "Request approved successfully",
     "requestRejected": "Request rejected successfully", 
     "requestError": "Failed to process request",
+    "joinRequestApproved": "Join request approved successfully",
+    "joinRequestRejected": "Join request rejected successfully",
+    "joinRequestError": "Failed to process join request",
     "role": {
       "admin": "Admin",
       "member": "Member"

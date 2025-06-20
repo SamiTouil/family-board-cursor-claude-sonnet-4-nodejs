@@ -398,6 +398,13 @@
   flex-shrink: 0;
 }
 
+.user-profile-member-actions {
+  margin-left: 0.75rem;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .user-profile-role-badge {
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;

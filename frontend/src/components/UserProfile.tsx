@@ -263,33 +263,57 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
   };
 
   const handleJoinRequestResponse = async (requestId: string, response: 'APPROVED' | 'REJECTED') => {
+    setIsLoading(true);
+    setMessage(null);
+
     try {
-      const result = await familyApi.respondToJoinRequest(requestId, response);
+      await familyApi.respondToJoinRequest(requestId, response);
+      setMessage({ 
+        type: 'success', 
+        text: response === 'APPROVED' 
+          ? t('family.joinRequestApproved') 
+          : t('family.joinRequestRejected')
+      });
       
-      if (result.data.success) {
-        setJoinRequests(prev => 
-          prev.map(req => 
-            req.id === requestId 
-              ? { ...req, status: response, respondedAt: new Date().toISOString() }
-              : req
-          )
-        );
-        
-        if (response === 'APPROVED') {
-          // Refresh members list
-          loadFamilyData();
-        }
-        
-        setMessage({ 
-          type: 'success', 
-          text: response === 'APPROVED' ? t('family.requestApproved') : t('family.requestRejected')
-        });
-      }
+      // Refresh family data to update the lists
+      await loadFamilyData();
     } catch (error: any) {
       setMessage({ 
         type: 'error', 
-        text: error.response?.data?.message || t('family.requestError') 
+        text: error.response?.data?.message || t('family.joinRequestError') 
       });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string, memberName: string) => {
+    if (!currentFamily) return;
+    
+    // Confirm removal
+    if (!window.confirm(t('family.confirmRemoveMember', { memberName }))) {
+      return;
+    }
+
+    setIsLoading(true);
+    setMessage(null);
+
+    try {
+      await familyApi.removeMember(currentFamily.id, memberId);
+      setMessage({ 
+        type: 'success', 
+        text: t('family.memberRemovedSuccessfully', { memberName })
+      });
+      
+      // Refresh family data to update the member list
+      await loadFamilyData();
+    } catch (error: any) {
+      setMessage({ 
+        type: 'error', 
+        text: error.response?.data?.message || t('family.removeMemberError') 
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -548,6 +572,19 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                           {t(`family.role.${member.role.toLowerCase()}`)}
                         </span>
                       </div>
+                      {/* Remove member button - only for admins and not for self */}
+                      {isAdmin && member.userId !== user?.id && (
+                        <div className="user-profile-member-actions">
+                          <button
+                            onClick={() => handleRemoveMember(member.id, `${member.user?.firstName} ${member.user?.lastName}`)}
+                            className="user-profile-button user-profile-button-danger user-profile-button-sm"
+                            disabled={isLoading}
+                            title={t('family.removeMember')}
+                          >
+                            {t('family.remove')}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
