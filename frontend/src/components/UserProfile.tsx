@@ -796,14 +796,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                             <div className="user-profile-member-name">
                               {memberName}
                               {isCurrentUser && ` (${t('family.you')})`}
-                              {member.user?.isVirtual && (
+                              {member.user?.isVirtual ? (
                                 <span className="user-profile-virtual-badge">
                                   {t('family.isVirtual')}
                                 </span>
+                              ) : (
+                                <span className={`user-profile-role-badge ${
+                                  member.role === 'ADMIN' ? 'user-profile-role-admin' : 'user-profile-role-member'
+                                }`}>
+                                  {member.role === 'ADMIN' ? t('family.admin') : t('family.member')}
+                                </span>
                               )}
-                            </div>
-                            <div className="user-profile-member-role">
-                              {member.role === 'ADMIN' ? t('family.admin') : t('family.member')}
                             </div>
                             {member.user?.email && (
                               <div className="user-profile-member-email">
