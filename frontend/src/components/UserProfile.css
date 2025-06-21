@@ -130,6 +130,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1rem;
+  gap: 1rem;
 }
 
 .user-profile-section-header h3 {
@@ -183,6 +184,14 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.user-profile-subsection-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 1rem;
 }
 
 .user-profile-count-badge {
