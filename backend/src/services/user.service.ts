@@ -9,8 +9,8 @@ type User = {
   id: string;
   firstName: string;
   lastName: string;
-  email: string;
-  password: string;
+  email: string | null;
+  password: string | null;
   avatarUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -21,30 +21,17 @@ export class UserService {
   static async createUser(data: CreateUserInput): Promise<UserResponse> {
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email },
-    });
-
-    if (existingUser) {
-      throw new Error('User with this email already exists');
-    }
-
-    const hashedPassword = await bcrypt.hash(data.password, 12);
-
-    const user = await prisma.user.create({
-      data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        password: hashedPassword,
-        avatarUrl: data.avatarUrl || null,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        isVirtual: true,
       },
-    });
-
-    return this.toUserResponse(user);
-  }
-
-  static async signup(data: CreateUserInput): Promise<{ user: UserResponse; token: string }> {
-    const existingUser = await prisma.user.findUnique({
-      where: { email: data.email },
     });
 
     if (existingUser) {
@@ -60,10 +47,69 @@ export class UserService {
         email: data.email,
         password: hashedPassword,
         avatarUrl: data.avatarUrl || null,
+        isVirtual: false,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        isVirtual: true,
       },
     });
 
-    const token = this.generateToken(user.id, user.email);
+    return this.toUserResponse(user);
+  }
+
+  static async signup(data: CreateUserInput): Promise<{ user: UserResponse; token: string }> {
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        isVirtual: true,
+      },
+    });
+
+    if (existingUser) {
+      throw new Error('Email already exists');
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password, 12);
+
+    const user = await prisma.user.create({
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: hashedPassword,
+        avatarUrl: data.avatarUrl || null,
+        isVirtual: false,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        isVirtual: true,
+      },
+    });
+
+    const token = this.generateToken(user.id, user.email!);
 
     return {
       user: this.toUserResponse(user),
@@ -74,6 +120,17 @@ export class UserService {
   static async getUserById(id: string): Promise<UserResponse | null> {
     const user = await prisma.user.findUnique({
       where: { id },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        isVirtual: true,
+      },
     });
 
     return user ? this.toUserResponse(user) : null;
@@ -82,12 +139,34 @@ export class UserService {
   static async getUserByEmail(email: string): Promise<User | null> {
     return prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        isVirtual: true,
+      },
     }) as Promise<User | null>;
   }
 
   static async updateUser(id: string, data: UpdateUserInput): Promise<UserResponse> {
     const user = await prisma.user.findUnique({
       where: { id },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        isVirtual: true,
+      },
     });
 
     if (!user) {
@@ -107,6 +186,17 @@ export class UserService {
     const updatedUser = await prisma.user.update({
       where: { id },
       data: updateData,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        isVirtual: true,
+      },
     });
 
     return this.toUserResponse(updatedUser);
@@ -115,6 +205,17 @@ export class UserService {
   static async changePassword(id: string, data: ChangePasswordInput): Promise<UserResponse> {
     const user = await prisma.user.findUnique({
       where: { id },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        isVirtual: true,
+      },
     });
 
     if (!user) {
@@ -123,6 +224,10 @@ export class UserService {
 
     if (user.isVirtual) {
       throw new Error('Virtual users cannot change passwords');
+    }
+
+    if (!user.password) {
+      throw new Error('User has no password set');
     }
 
     const isCurrentPasswordValid = await bcrypt.compare(data.currentPassword, user.password);
@@ -135,6 +240,17 @@ export class UserService {
     const updatedUser = await prisma.user.update({
       where: { id },
       data: { password: hashedNewPassword },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        isVirtual: true,
+      },
     });
 
     return this.toUserResponse(updatedUser);
@@ -149,11 +265,15 @@ export class UserService {
   static async login(data: LoginInput): Promise<{ user: UserResponse; token: string }> {
     const user = await this.getUserByEmail(data.email);
 
-    if (!user || !(await bcrypt.compare(data.password, user.password))) {
+    if (!user || !user.password || !(await bcrypt.compare(data.password, user.password))) {
       throw new Error('Invalid credentials');
     }
 
-    const token = this.generateToken(user.id, user.email);
+    if (user.isVirtual) {
+      throw new Error('Cannot login as virtual user');
+    }
+
+    const token = this.generateToken(user.id, user.email!);
 
     return {
       user: this.toUserResponse(user),
@@ -164,13 +284,24 @@ export class UserService {
   static async refreshToken(userId: string): Promise<{ user: UserResponse; token: string }> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        isVirtual: true,
+      },
     });
 
     if (!user) {
       throw new Error('User not found');
     }
 
-    const token = this.generateToken(user.id, user.email);
+    const token = this.generateToken(user.id, user.email!);
 
     return {
       user: this.toUserResponse(user),
@@ -202,6 +333,17 @@ export class UserService {
   static async loginWithGoogle(googleUser: any): Promise<{ user: UserResponse; token: string; isNewUser: boolean }> {
     let user = await prisma.user.findUnique({
       where: { email: googleUser.email },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        isVirtual: true,
+      },
     });
 
     let isNewUser = false;
@@ -214,6 +356,18 @@ export class UserService {
           email: googleUser.email,
           avatarUrl: googleUser.picture || null,
           password: null,
+          isVirtual: false,
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          password: true,
+          avatarUrl: true,
+          createdAt: true,
+          updatedAt: true,
+          isVirtual: true,
         },
       });
       isNewUser = true;
@@ -223,7 +377,7 @@ export class UserService {
       throw new Error('Cannot login as virtual user');
     }
 
-    const token = this.generateToken(user.id, user.email);
+    const token = this.generateToken(user.id, user.email!);
 
     return {
       user: this.toUserResponse(user),

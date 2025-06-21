@@ -65,7 +65,7 @@ export interface FamilyResponse {
     id: string;
     firstName: string;
     lastName: string;
-    email: string;
+    email: string | null;
   };
   memberCount: number;
   userRole?: FamilyMemberRole;
@@ -106,7 +106,7 @@ export interface FamilyInviteResponse {
     id: string;
     firstName: string;
     lastName: string;
-    email: string;
+    email: string | null;
   } | undefined;
 }
 
@@ -121,7 +121,7 @@ export interface FamilyJoinRequestResponse {
     id: string;
     firstName: string;
     lastName: string;
-    email: string;
+    email: string | null;
     avatarUrl?: string | null;
   };
   family: {

@@ -21,6 +21,8 @@ async function main(): Promise<void> {
     },
   });
 
+  console.log('✅ Created demo user:', user.email);
+
 // Create a demo user
 const hashedSamiPassword = await bcrypt.hash('123456', 12);
   
