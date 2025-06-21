@@ -43,9 +43,14 @@ export const UpdateTaskSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+export const DuplicateTaskSchema = z.object({
+  name: z.string().min(1, 'Task name is required').max(100, 'Task name is too long').optional(),
+});
+
 // DTOs for API requests/responses
 export type CreateTaskDto = z.infer<typeof CreateTaskSchema>;
 export type UpdateTaskDto = z.infer<typeof UpdateTaskSchema>;
+export type DuplicateTaskDto = z.infer<typeof DuplicateTaskSchema>;
 
 export interface TaskResponseDto {
   id: string;

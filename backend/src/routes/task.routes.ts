@@ -4,6 +4,7 @@ import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.midd
 import {
   CreateTaskSchema,
   UpdateTaskSchema,
+  DuplicateTaskSchema,
   TaskQueryParams
 } from '../types/task.types';
 import { z } from 'zod';
@@ -333,7 +334,7 @@ router.post('/:taskId/restore', async (req: AuthenticatedRequest, res: Response)
 });
 
 // Duplicate a task (admin only)
-router.post('/:taskId/duplicate', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/:taskId/duplicate', validateBody(DuplicateTaskSchema), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.userId;
     const { taskId } = req.params;
