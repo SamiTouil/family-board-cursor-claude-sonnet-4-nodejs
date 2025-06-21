@@ -1,0 +1,71 @@
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+}
+
+.page-description {
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tasks-page {
+  background-color: #f9fafb;
+  padding: 0.5rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.tasks-content {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex: 1;
+}
+
+.placeholder-content {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #666;
+}
+
+.placeholder-content h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.placeholder-content p {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tasks-page {
+    padding: 0.5rem 1rem;
+  }
+  
+  .tasks-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tasks-page {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .tasks-content {
+    padding: 1rem;
+  }
+}

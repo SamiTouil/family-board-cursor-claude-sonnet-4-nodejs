@@ -92,16 +92,15 @@ describe('Dashboard', () => {
     document.title = 'Family Board'
   })
 
-  it('displays default title when no current family', () => {
+  it('sets default document title when no current family', () => {
     mockFamilyContext.currentFamily = null
     
     render(<Dashboard />)
     
-    expect(screen.getByText('Family Board')).toBeDefined()
     expect(document.title).toBe('Family Board')
   })
 
-  it('displays family name in title when current family exists', () => {
+  it('sets family-specific document title when current family exists', () => {
     const mockFamily: Family = {
       id: 'family-1',
       name: 'Smith Family',
@@ -123,11 +122,10 @@ describe('Dashboard', () => {
     
     render(<Dashboard />)
     
-    expect(screen.getByText('Smith Family Board')).toBeDefined()
     expect(document.title).toBe('Smith Family Board')
   })
 
-  it('displays family-specific title and content', () => {
+  it('displays family information in UserSummaryCard', () => {
     const mockFamily: Family = {
       id: 'family-1',
       name: 'Johnson Family',
@@ -149,8 +147,6 @@ describe('Dashboard', () => {
     
     render(<Dashboard />)
     
-    // Check for family name in title
-    expect(screen.getByText('Johnson Family Board')).toBeDefined()
     // Check for family name in UserSummaryCard
     expect(screen.getByText('Johnson Family')).toBeDefined()
     // Check for family description in UserSummaryCard
@@ -167,19 +163,20 @@ describe('Dashboard', () => {
     expect(screen.getByText('Family board features will be implemented here.')).toBeDefined()
   })
 
-  it('displays user information in UserSummaryCard and UserMenu', () => {
+  it('displays user information in UserSummaryCard', () => {
     render(<Dashboard />)
     
-    // Check for user name in both UserMenu and UserSummaryCard
-    expect(screen.getAllByText('John Doe')).toHaveLength(2) // UserMenu + UserSummaryCard
-    // Check for email in both UserMenu and UserSummaryCard
-    expect(screen.getAllByText('john@example.com')).toHaveLength(2) // UserMenu + UserSummaryCard
+    // Check for user name in UserSummaryCard
+    expect(screen.getByText('John Doe')).toBeDefined()
+    // Check for email in UserSummaryCard
+    expect(screen.getByText('john@example.com')).toBeDefined()
   })
 
-  it('displays clickable user avatar', () => {
+  it('renders dashboard structure correctly', () => {
     render(<Dashboard />)
     
-    // Check for the clickable avatar with user initials
-    expect(screen.getByRole('button', { name: 'JD' })).toBeDefined()
+    // Check for main dashboard structure
+    expect(screen.getByRole('heading', { name: 'Coming Soon' })).toBeDefined()
+    expect(screen.getByText('Family board features will be implemented here.')).toBeDefined()
   })
 }) 

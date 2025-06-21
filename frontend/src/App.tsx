@@ -1,12 +1,15 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { FamilyProvider, useFamily } from './contexts/FamilyContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
 import { AuthPage } from './components/auth/AuthPage';
-import { Dashboard } from './components/Dashboard';
 import { FamilyOnboarding } from './components/family/FamilyOnboarding';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+import TasksPage from './pages/TasksPage';
 import './App.css';
 
 const AppContent: React.FC = () => {
@@ -30,7 +33,14 @@ const AppContent: React.FC = () => {
     return <FamilyOnboarding />;
   }
 
-  return <Dashboard />;
+  return (
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<HomePage />} />
+        <Route path="tasks" element={<TasksPage />} />
+      </Route>
+    </Routes>
+  );
 };
 
 function App(): JSX.Element {
@@ -39,7 +49,9 @@ function App(): JSX.Element {
       <AuthProvider>
         <WebSocketProvider>
           <FamilyProvider>
-            <AppContent />
+            <Router>
+              <AppContent />
+            </Router>
           </FamilyProvider>
         </WebSocketProvider>
       </AuthProvider>
