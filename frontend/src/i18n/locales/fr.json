@@ -90,7 +90,8 @@
     "emailNotEditable": "L'email ne peut pas être modifié",
     "changingPassword": "Changement du mot de passe...",
     "validation": {
-      "currentPasswordRequired": "Le mot de passe actuel est requis"
+      "currentPasswordRequired": "Le mot de passe actuel est requis",
+      "invalidAvatarUrl": "Veuillez entrer une URL valide pour votre avatar"
     },
     "familyManagement": "Gestion de la Famille",
     "familyMembers": "Membres de la Famille",

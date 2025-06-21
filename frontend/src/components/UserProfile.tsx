@@ -12,6 +12,16 @@ interface UserProfileProps {
   onClose: () => void;
 }
 
+// Helper function to validate URL
+const isValidUrl = (string: string): boolean => {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return false;
+  }
+};
+
 export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
   const { t } = useTranslation();
   const { user, refreshUser } = useAuth();
@@ -26,6 +36,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
+    avatarUrl: user?.avatarUrl || '',
   });
 
   // Password form state
@@ -143,6 +154,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
 
     if (!profileData.lastName.trim()) {
       errors['lastName'] = t('auth.validation.lastNameRequired');
+    }
+
+    // Validate avatar URL if provided
+    if (profileData.avatarUrl.trim() && !isValidUrl(profileData.avatarUrl.trim())) {
+      errors['avatarUrl'] = t('user.validation.invalidAvatarUrl');
     }
 
     setProfileErrors(errors);
@@ -434,6 +450,30 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                   {profileErrors['lastName'] && (
                     <span className="user-profile-error">{profileErrors['lastName']}</span>
                   )}
+                </div>
+              </div>
+
+              <div className="user-profile-form-row">
+                <div className="user-profile-form-group">
+                  <label htmlFor="avatarUrl" className="user-profile-label">
+                    {t('user.avatar')} URL ({t('common.optional')})
+                  </label>
+                  <input
+                    type="url"
+                    id="avatarUrl"
+                    name="avatarUrl"
+                    value={profileData.avatarUrl}
+                    onChange={handleProfileInputChange}
+                    className={`user-profile-input ${profileErrors['avatarUrl'] ? 'user-profile-input-error' : ''}`}
+                    placeholder="https://example.com/avatar.jpg"
+                    disabled={isLoading}
+                  />
+                  {profileErrors['avatarUrl'] && (
+                    <span className="user-profile-error">{profileErrors['avatarUrl']}</span>
+                  )}
+                  <span className="user-profile-help">
+                    Enter a URL to an image that will be used as your avatar
+                  </span>
                 </div>
               </div>
 
