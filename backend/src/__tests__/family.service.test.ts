@@ -853,6 +853,16 @@ describe('FamilyService', () => {
         }
         return Promise.resolve(null);
       });
+
+      // Mock the transaction function
+      (mockPrisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
+        // Create a mock transaction object with the same methods
+        const mockTx = {
+          user: { create: mockPrisma.user.create },
+          familyMember: { create: mockPrisma.familyMember.create },
+        };
+        return callback(mockTx);
+      });
     });
 
     it('should create virtual member successfully when user is admin', async () => {
