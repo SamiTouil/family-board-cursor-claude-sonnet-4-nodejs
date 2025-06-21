@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { UserMenu } from './UserMenu';
 import { UserProfile } from './UserProfile';
+import Logo from './Logo';
 import './Dashboard.css';
 
 export const Dashboard: React.FC = () => {
@@ -29,9 +30,12 @@ export const Dashboard: React.FC = () => {
     <div className="dashboard">
       <header className="dashboard-header">
         <div className="dashboard-header-content">
-          <h1 className="dashboard-title">
-            {currentFamily ? `${currentFamily.name} Board` : t('app.title')}
-          </h1>
+          <div className="dashboard-title-container">
+            <Logo size={48} className="dashboard-logo" />
+            <h1 className="dashboard-title">
+              {currentFamily ? `${currentFamily.name} Board` : t('app.title')}
+            </h1>
+          </div>
           <div className="dashboard-header-actions">
             <UserMenu onEditProfile={() => setShowUserProfile(true)} />
           </div>
