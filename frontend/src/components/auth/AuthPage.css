@@ -28,10 +28,22 @@
   padding: 2rem;
 }
 
+.auth-page-brand-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.auth-page-logo {
+  flex-shrink: 0;
+}
+
 .auth-page-brand-title {
   font-size: 3rem;
   font-weight: 800;
-  margin: 0 0 1rem 0;
+  margin: 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -83,6 +95,11 @@
   .auth-page-background {
     min-height: auto;
     gap: 1rem;
+  }
+  
+  .auth-page-brand-header {
+    flex-direction: column;
+    gap: 0.75rem;
   }
   
   .auth-page-brand-title {
