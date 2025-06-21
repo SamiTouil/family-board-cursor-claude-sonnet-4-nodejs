@@ -496,8 +496,8 @@ export class FamilyService {
     if (existingRequest) {
       if (existingRequest.status === 'PENDING') {
         throw new Error('You already have a pending join request for this family');
-      } else if (existingRequest.status === 'REJECTED') {
-        // Allow resubmission after rejection
+      } else if (existingRequest.status === 'REJECTED' || existingRequest.status === 'APPROVED') {
+        // Allow resubmission after rejection or if user was approved but later removed
         await prisma.familyJoinRequest.delete({
           where: { id: existingRequest.id },
         });
