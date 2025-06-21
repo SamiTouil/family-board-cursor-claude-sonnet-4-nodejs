@@ -867,6 +867,32 @@
   font-size: 1.125rem;
 }
 
+/* Family edit inline form styles */
+.user-profile-family-edit-inline {
+  background-color: #f0f9ff;
+  border: 2px solid #0ea5e9;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  animation: slideDown 0.3s ease-out;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.user-profile-family-edit-inline .user-profile-form-title {
+  color: #0369a1;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-profile-family-edit-inline .user-profile-form-title::before {
+  content: '🏠';
+  font-size: 1.125rem;
+}
+
 @keyframes slideDown {
   from {
     opacity: 0;
