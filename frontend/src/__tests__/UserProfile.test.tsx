@@ -159,6 +159,18 @@ describe('UserProfile', () => {
     });
   });
 
+  it('displays Settings title in dialog header', () => {
+    mockUseFamily.mockReturnValue({
+      currentFamily: mockFamily,
+    });
+
+    render(<UserProfile onClose={vi.fn()} />);
+
+    // Should display Settings title instead of Profile
+    expect(screen.getByText('user.settings')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'user.settings' })).toBeInTheDocument();
+  });
+
   it('loads family members for non-admin users', async () => {
     mockUseFamily.mockReturnValue({
       currentFamily: mockFamily, // MEMBER role

@@ -51,6 +51,7 @@ vi.mock('react-i18next', () => ({
     t: (key: string) => {
       const translations: Record<string, string> = {
         'user.editProfile': 'Edit Profile',
+        'user.openSettings': 'Settings',
         'auth.logout': 'Logout',
       }
       return translations[key] || key
@@ -88,7 +89,7 @@ describe('UserMenu', () => {
     fireEvent.click(avatar)
     
     expect(screen.getByText('Notifications')).toBeDefined()
-    expect(screen.getByText('Edit Profile')).toBeDefined()
+    expect(screen.getByText('Settings')).toBeDefined()
     expect(screen.getByText('Logout')).toBeDefined()
   })
 
@@ -145,14 +146,14 @@ describe('UserMenu', () => {
     expect(screen.getByText('No notifications')).toBeDefined()
   })
 
-  it('calls onEditProfile when edit profile is clicked', () => {
+  it('calls onEditProfile when settings is clicked', () => {
     const { container } = render(<UserMenu onEditProfile={mockOnEditProfile} />)
     
     const avatar = container.querySelector('.user-avatar')!
     fireEvent.click(avatar)
     
-    const editProfileButton = screen.getByText('Edit Profile')
-    fireEvent.click(editProfileButton)
+    const settingsButton = screen.getByText('Settings')
+    fireEvent.click(settingsButton)
     
     expect(mockOnEditProfile).toHaveBeenCalledTimes(1)
   })
@@ -169,19 +170,19 @@ describe('UserMenu', () => {
     expect(mockAuthContext.logout).toHaveBeenCalledTimes(1)
   })
 
-  it('closes dropdown when edit profile is clicked', () => {
+  it('closes dropdown when settings is clicked', () => {
     const { container } = render(<UserMenu onEditProfile={mockOnEditProfile} />)
     
     const avatar = container.querySelector('.user-avatar')!
     fireEvent.click(avatar)
     
-    expect(screen.getByText('Edit Profile')).toBeDefined()
+    expect(screen.getByText('Settings')).toBeDefined()
     
-    const editProfileButton = screen.getByText('Edit Profile')
-    fireEvent.click(editProfileButton)
+    const settingsButton = screen.getByText('Settings')
+    fireEvent.click(settingsButton)
     
     // Dropdown should be closed after clicking
-    expect(screen.queryByText('Edit Profile')).toBeNull()
+    expect(screen.queryByText('Settings')).toBeNull()
   })
 
   it('closes dropdown when logout is clicked', () => {
@@ -205,11 +206,11 @@ describe('UserMenu', () => {
     const avatar = container.querySelector('.user-avatar')!
     fireEvent.click(avatar)
     
-    expect(screen.getByText('Edit Profile')).toBeDefined()
+    expect(screen.getByText('Settings')).toBeDefined()
     
     fireEvent.keyDown(document, { key: 'Escape' })
     
-    // Dropdown should be closed after escape
-    expect(screen.queryByText('Edit Profile')).toBeNull()
+    // Dropdown should be closed after pressing escape
+    expect(screen.queryByText('Settings')).toBeNull()
   })
 }); 
