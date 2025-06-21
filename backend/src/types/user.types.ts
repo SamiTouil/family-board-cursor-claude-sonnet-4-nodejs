@@ -15,6 +15,12 @@ export const CreateVirtualMemberSchema = z.object({
   familyId: z.string().min(1, 'Family ID is required'),
 });
 
+export const UpdateVirtualMemberSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  avatarUrl: z.string().url().optional(),
+});
+
 export const UpdateUserSchema = z.object({
   firstName: z.string().min(1, 'First name is required').optional(),
   lastName: z.string().min(1, 'Last name is required').optional(),
@@ -38,6 +44,7 @@ export const ChangePasswordSchema = z.object({
 
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;
 export type CreateVirtualMemberInput = z.infer<typeof CreateVirtualMemberSchema>;
+export type UpdateVirtualMemberInput = z.infer<typeof UpdateVirtualMemberSchema>;
 export type UpdateUserInput = z.infer<typeof UpdateUserSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;

@@ -10,7 +10,7 @@ import {
   respondToJoinRequestSchema,
 } from '../types/family.types';
 import { z } from 'zod';
-import { CreateVirtualMemberSchema } from '../types/user.types';
+import { CreateVirtualMemberSchema, UpdateVirtualMemberSchema } from '../types/user.types';
 
 const router = Router();
 
@@ -522,6 +522,35 @@ router.post('/:familyId/virtual-members', validateBody(CreateVirtualMemberSchema
     res.status(403).json({
       success: false,
       message: error instanceof Error ? error.message : 'Failed to create virtual member',
+    });
+  }
+});
+
+// Update virtual member (admin only)
+router.put('/:familyId/virtual-members/:userId', validateBody(UpdateVirtualMemberSchema), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const adminId = req.user!.userId;
+    const { familyId, userId: virtualUserId } = req.params;
+    
+    if (!familyId || !virtualUserId) {
+      res.status(400).json({
+        success: false,
+        message: 'Family ID and User ID are required',
+      });
+      return;
+    }
+    
+    const updatedVirtualMember = await FamilyService.updateVirtualMember(adminId, familyId, virtualUserId, req.body);
+    
+    res.json({
+      success: true,
+      message: 'Virtual member updated successfully',
+      data: updatedVirtualMember,
+    });
+  } catch (error) {
+    res.status(403).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to update virtual member',
     });
   }
 });

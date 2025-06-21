@@ -13,6 +13,7 @@ import {
   FamilyStatsResponse,
   CreateVirtualMemberInput
 } from '../types/family.types';
+import { UpdateVirtualMemberInput } from '../types/user.types';
 import crypto from 'crypto';
 import { getWebSocketService } from './websocket.service';
 
@@ -1129,6 +1130,77 @@ export class FamilyService {
         email: result.user.email || null,
         avatarUrl: result.user.avatarUrl || null,
         isVirtual: result.user.isVirtual,
+      },
+    };
+  }
+
+  // Update virtual member (admin only)
+  static async updateVirtualMember(adminId: string, familyId: string, virtualUserId: string, data: UpdateVirtualMemberInput): Promise<FamilyMemberResponse> {
+    // Check if admin user is actually admin
+    const adminMembership = await prisma.familyMember.findUnique({
+      where: {
+        userId_familyId: {
+          userId: adminId,
+          familyId: familyId,
+        },
+      },
+    });
+
+    if (!adminMembership || adminMembership.role !== 'ADMIN') {
+      throw new Error('Only family admins can update virtual members');
+    }
+
+    // Check if the user being updated is a virtual member of this family
+    const virtualMembership = await prisma.familyMember.findUnique({
+      where: {
+        userId_familyId: {
+          userId: virtualUserId,
+          familyId: familyId,
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!virtualMembership) {
+      throw new Error('Virtual member not found in this family');
+    }
+
+    if (!virtualMembership.user.isVirtual) {
+      throw new Error('Only virtual members can be updated through this endpoint');
+    }
+
+    // Update the virtual user
+    const updatedUser = await prisma.user.update({
+      where: { id: virtualUserId },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        avatarUrl: data.avatarUrl || null,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        avatarUrl: true,
+        isVirtual: true,
+      },
+    });
+
+    return {
+      id: virtualMembership.id,
+      userId: virtualMembership.userId,
+      role: virtualMembership.role,
+      joinedAt: virtualMembership.joinedAt,
+      user: {
+        id: updatedUser.id,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email || null,
+        avatarUrl: updatedUser.avatarUrl || null,
+        isVirtual: updatedUser.isVirtual,
       },
     };
   }

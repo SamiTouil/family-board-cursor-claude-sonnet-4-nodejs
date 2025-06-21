@@ -184,6 +184,12 @@ export interface CreateVirtualMemberData {
   familyId: string;
 }
 
+export interface UpdateVirtualMemberData {
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string;
+}
+
 // Authentication API
 export const authApi = {
   signup: (data: SignupData): Promise<{ data: ApiResponse<AuthResponse> }> =>
@@ -250,6 +256,10 @@ export const familyApi = {
   // Create virtual member (admin only)
   createVirtualMember: (familyId: string, data: CreateVirtualMemberData): Promise<{ data: ApiResponse<FamilyMember> }> =>
     api.post(`/families/${familyId}/virtual-members`, data),
+  
+  // Update virtual member (admin only)
+  updateVirtualMember: (familyId: string, userId: string, data: UpdateVirtualMemberData): Promise<{ data: ApiResponse<FamilyMember> }> =>
+    api.put(`/families/${familyId}/virtual-members/${userId}`, data),
   
   // Get family invites
   getInvites: (id: string): Promise<{ data: ApiResponse<FamilyInvite[]> }> =>
