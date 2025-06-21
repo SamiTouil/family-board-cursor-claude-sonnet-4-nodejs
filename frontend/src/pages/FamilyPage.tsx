@@ -10,8 +10,8 @@ const FamilyPage: React.FC = () => {
   return (
     <div className="tasks-page">
       <div className="family-layout">
-        <FamilyManagement />
         <UserSummaryCard />
+        <FamilyManagement />
       </div>
     </div>
   );
