@@ -24,8 +24,8 @@ describe('Logo Component', () => {
   it('applies default size when size prop is not provided', () => {
     const { container } = render(<Logo />);
     const svg = container.querySelector('svg');
-    expect(svg?.getAttribute('width')).toBe('40');
-    expect(svg?.getAttribute('height')).toBe('40');
+    expect(svg?.getAttribute('width')).toBe('46');
+    expect(svg?.getAttribute('height')).toBe('46');
   });
 
   it('applies custom className', () => {
