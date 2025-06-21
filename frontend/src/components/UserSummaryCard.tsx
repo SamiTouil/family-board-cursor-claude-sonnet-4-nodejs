@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { UserAvatar } from './UserAvatar';
+import { RoleTag } from './RoleTag';
 import './UserSummaryCard.css';
 
 export const UserSummaryCard: React.FC = () => {
@@ -48,9 +49,10 @@ export const UserSummaryCard: React.FC = () => {
           
           <div className="user-summary-card-role">
             {currentFamily && (
-              <span className="user-summary-card-role-tag">
-                {currentFamily.userRole || 'Member'}
-              </span>
+              <RoleTag 
+                role={currentFamily.userRole || 'MEMBER'} 
+                className="user-summary-card-role-tag-spacing"
+              />
             )}
           </div>
         </div>

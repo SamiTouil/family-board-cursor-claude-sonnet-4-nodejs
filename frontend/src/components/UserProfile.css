@@ -462,27 +462,7 @@
   gap: 0.5rem;
 }
 
-.user-profile-role-badge {
-  padding: 0.375rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-  margin-left: 0.5rem;
-  display: inline-flex;
-  align-items: center;
-}
-
-.user-profile-role-admin {
-  background-color: #fef3c7;
-  color: #92400e;
-}
-
-.user-profile-role-member {
-  background-color: #e0e7ff;
-  color: #3730a3;
-}
+/* Role badges now handled by RoleTag component */
 
 /* Join Requests */
 .user-profile-requests-list {
@@ -939,20 +919,7 @@
   line-height: 1.4;
 }
 
-/* Virtual member badge */
-.user-profile-virtual-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.375rem 0.75rem;
-  background: #7c3aed;
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 1rem;
-  margin-left: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
+/* Virtual member badge now handled by RoleTag component */
 
 .user-profile-section-header {
   display: flex;

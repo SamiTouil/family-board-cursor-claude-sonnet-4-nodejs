@@ -94,7 +94,7 @@ describe('UserSummaryCard', () => {
     expect(screen.getByText('A wonderful family board for testing')).toBeInTheDocument();
     
     // Check if role is displayed
-    expect(screen.getByText('ADMIN')).toBeInTheDocument();
+    expect(screen.getByText('family.admin')).toBeInTheDocument();
     
     // Check if UserAvatar is rendered with correct props
     const avatar = screen.getByTestId('user-avatar');
@@ -133,7 +133,7 @@ describe('UserSummaryCard', () => {
 
     render(<UserSummaryCard />);
 
-    expect(screen.getByText('Member')).toBeInTheDocument();
+    expect(screen.getByText('family.member')).toBeInTheDocument();
   });
 
   it('does not display role when no current family', () => {
@@ -170,8 +170,8 @@ describe('UserSummaryCard', () => {
     expect(screen.getByText('john.doe@example.com')).toBeInTheDocument();
     
     // Role should not be displayed
-    expect(screen.queryByText('ADMIN')).not.toBeInTheDocument();
-    expect(screen.queryByText('Member')).not.toBeInTheDocument();
+    expect(screen.queryByText('family.admin')).not.toBeInTheDocument();
+    expect(screen.queryByText('family.member')).not.toBeInTheDocument();
   });
 
   it('handles user with null avatarUrl', () => {
