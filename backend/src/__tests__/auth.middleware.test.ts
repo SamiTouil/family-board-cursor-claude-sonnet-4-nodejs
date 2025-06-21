@@ -28,7 +28,7 @@ describe('Auth Middleware', () => {
     const result = await UserService.signup(mockUser);
     validToken = result.token;
     userId = result.user.id;
-    currentUserEmail = result.user.email;
+    currentUserEmail = result.user.email!; // Non-null assertion since we just created a regular user
   });
 
   describe('authenticateToken', () => {

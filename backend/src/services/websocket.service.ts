@@ -13,12 +13,12 @@ if (process.env['NODE_ENV'] !== 'production') globalThis.__prisma = prisma;
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
-  userEmail?: string;
+  userEmail?: string | undefined;
 }
 
 interface SocketUser {
   id: string;
-  email: string;
+  email: string | null;
   socketId: string;
 }
 
@@ -82,15 +82,13 @@ export class WebSocketService {
 
   private async authenticateSocket(socket: AuthenticatedSocket, next: (err?: Error) => void) {
     try {
-      const token = socket.handshake.auth['token'] || socket.handshake.headers.authorization?.replace('Bearer ', '');
-      
+      const token = socket.handshake.auth['token'];
       if (!token) {
-        return next(new Error('Authentication token required'));
+        return next(new Error('No authentication token provided'));
       }
 
       const decoded = jwt.verify(token, process.env['JWT_SECRET'] || 'fallback-secret') as any;
       
-      // Verify user exists
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
         select: { id: true, email: true },
@@ -101,7 +99,9 @@ export class WebSocketService {
       }
 
       socket.userId = user.id;
-      socket.userEmail = user.email;
+      if (user.email) {
+        socket.userEmail = user.email;
+      }
       next();
     } catch (error) {
       console.error('Socket authentication error:', error);

@@ -36,6 +36,7 @@ jest.mock('@prisma/client', () => {
     user: {
       findUnique: jest.fn(),
       findMany: jest.fn(),
+      create: jest.fn(),
     },
     $transaction: jest.fn(),
     familyJoinRequest: {
@@ -806,6 +807,238 @@ describe('FamilyService', () => {
         code: inviteCode,
         message: 'Please let me rejoin',
       })).rejects.toThrow('You already have a pending join request for this family');
+    });
+  });
+
+  describe('createVirtualMember', () => {
+    let family: any;
+    let adminUser: any;
+    let memberUser: any;
+
+    beforeEach(() => {
+      // Mock test users
+      adminUser = {
+        id: 'admin-user-1',
+        firstName: 'Admin',
+        lastName: 'User',
+        email: 'admin@test.com',
+        password: 'hashedpassword',
+        isVirtual: false,
+      };
+
+      memberUser = {
+        id: 'member-user-1',
+        firstName: 'Member',
+        lastName: 'User',
+        email: 'member@test.com',
+        password: 'hashedpassword',
+        isVirtual: false,
+      };
+
+      // Mock test family
+      family = {
+        id: 'family-1',
+        name: 'Test Family',
+        description: 'Test Description',
+        creatorId: adminUser.id,
+      };
+
+      // Mock the family member lookup for admin check
+      (mockPrisma.familyMember.findUnique as jest.Mock).mockImplementation(({ where }) => {
+        if (where.userId_familyId?.userId === adminUser.id && where.userId_familyId?.familyId === family.id) {
+          return Promise.resolve({ userId: adminUser.id, familyId: family.id, role: 'ADMIN' });
+        }
+        if (where.userId_familyId?.userId === memberUser.id && where.userId_familyId?.familyId === family.id) {
+          return Promise.resolve({ userId: memberUser.id, familyId: family.id, role: 'MEMBER' });
+        }
+        return Promise.resolve(null);
+      });
+
+      // Mock the transaction function
+      (mockPrisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
+        // Create a mock transaction object with the same methods
+        const mockTx = {
+          user: { create: mockPrisma.user.create },
+          familyMember: { create: mockPrisma.familyMember.create },
+        };
+        return callback(mockTx);
+      });
+    });
+
+    it('should create virtual member successfully when user is admin', async () => {
+      const virtualMemberData = {
+        firstName: 'Grandma',
+        lastName: 'Smith',
+        avatarUrl: 'https://example.com/grandma.jpg',
+        familyId: family.id,
+      };
+
+      const mockVirtualUser = {
+        id: 'virtual-user-1',
+        firstName: 'Grandma',
+        lastName: 'Smith',
+        email: null,
+        password: null,
+        avatarUrl: 'https://example.com/grandma.jpg',
+        isVirtual: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockFamilyMember = {
+        id: 'family-member-1',
+        userId: mockVirtualUser.id,
+        familyId: family.id,
+        role: 'MEMBER',
+        joinedAt: new Date(),
+        user: mockVirtualUser,
+      };
+
+      (mockPrisma.user.create as jest.Mock).mockResolvedValue(mockVirtualUser);
+      (mockPrisma.familyMember.create as jest.Mock).mockResolvedValue(mockFamilyMember);
+
+      const result = await FamilyService.createVirtualMember(adminUser.id, virtualMemberData);
+
+      expect(mockPrisma.user.create).toHaveBeenCalledWith({
+        data: {
+          firstName: 'Grandma',
+          lastName: 'Smith',
+          email: null,
+          password: null,
+          avatarUrl: 'https://example.com/grandma.jpg',
+          isVirtual: true,
+        },
+      });
+
+      expect(mockPrisma.familyMember.create).toHaveBeenCalledWith({
+        data: {
+          userId: mockVirtualUser.id,
+          familyId: family.id,
+          role: 'MEMBER',
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              avatarUrl: true,
+              isVirtual: true,
+            },
+          },
+        },
+      });
+
+      // Check the structure matches what the service returns
+      expect(result).toMatchObject({
+        id: 'family-member-1',
+        userId: 'virtual-user-1',
+        role: 'MEMBER',
+        joinedAt: expect.any(Date),
+        user: {
+          id: 'virtual-user-1',
+          firstName: 'Grandma',
+          lastName: 'Smith',
+          email: null,
+          avatarUrl: 'https://example.com/grandma.jpg',
+          isVirtual: true,
+        },
+      });
+    });
+
+    it('should create virtual member without avatar URL', async () => {
+      const virtualMemberData = {
+        firstName: 'Uncle',
+        lastName: 'Bob',
+        familyId: family.id,
+      };
+
+      const mockVirtualUser = {
+        id: 'virtual-user-2',
+        firstName: 'Uncle',
+        lastName: 'Bob',
+        email: null,
+        password: null,
+        avatarUrl: null,
+        isVirtual: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockFamilyMember = {
+        id: 'family-member-2',
+        userId: mockVirtualUser.id,
+        familyId: family.id,
+        role: 'MEMBER',
+        joinedAt: new Date(),
+        user: mockVirtualUser,
+      };
+
+      (mockPrisma.user.create as jest.Mock).mockResolvedValue(mockVirtualUser);
+      (mockPrisma.familyMember.create as jest.Mock).mockResolvedValue(mockFamilyMember);
+
+      const result = await FamilyService.createVirtualMember(adminUser.id, virtualMemberData);
+
+      expect(mockPrisma.user.create).toHaveBeenCalledWith({
+        data: {
+          firstName: 'Uncle',
+          lastName: 'Bob',
+          email: null,
+          password: null,
+          avatarUrl: null,
+          isVirtual: true,
+        },
+      });
+
+      expect(result.user).toMatchObject({
+        firstName: 'Uncle',
+        lastName: 'Bob',
+        email: null,
+        avatarUrl: null,
+        isVirtual: true,
+      });
+    });
+
+    it('should throw error when user is not admin', async () => {
+      const virtualMemberData = {
+        firstName: 'Grandma',
+        lastName: 'Smith',
+        familyId: family.id,
+      };
+
+      await expect(
+        FamilyService.createVirtualMember(memberUser.id, virtualMemberData)
+      ).rejects.toThrow('Only family admins can create virtual members');
+    });
+
+    it('should throw error when user is not family member', async () => {
+      const outsideUserId = 'outside-user-1';
+
+      const virtualMemberData = {
+        firstName: 'Grandma',
+        lastName: 'Smith',
+        familyId: family.id,
+      };
+
+      await expect(
+        FamilyService.createVirtualMember(outsideUserId, virtualMemberData)
+      ).rejects.toThrow('Only family admins can create virtual members');
+    });
+
+    it('should throw error when family does not exist', async () => {
+      const virtualMemberData = {
+        firstName: 'Grandma',
+        lastName: 'Smith',
+        familyId: 'non-existent-family',
+      };
+
+      // Mock no family member found (user not in family)
+      (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await expect(
+        FamilyService.createVirtualMember(adminUser.id, virtualMemberData)
+      ).rejects.toThrow('Only family admins can create virtual members');
     });
   });
 }); 

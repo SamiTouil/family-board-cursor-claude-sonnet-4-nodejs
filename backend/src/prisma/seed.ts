@@ -22,6 +22,23 @@ async function main(): Promise<void> {
   });
 
   console.log('✅ Created demo user:', user.email);
+
+// Create a demo user
+const hashedSamiPassword = await bcrypt.hash('123456', 12);
+  
+const samiUser = await prisma.user.upsert({
+  where: { email: 'sami@sami.com' },
+  update: {},
+  create: {
+    firstName: 'Sami',
+    lastName: 'Touil',
+    email: 'sami@sami.com',
+    password: hashedSamiPassword,
+    avatarUrl: 'https://media.licdn.com/dms/image/v2/D4E03AQE4IJVovK-HKw/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1713184099424?e=1755734400&v=beta&t=4O-si3Ynb3QBu2RIwpXo98WcKd0OPvL83t54aNAiojY',
+  },
+});
+
+  console.log('✅ Created Sami user:', samiUser.email);
 }
 
 main()

@@ -8,6 +8,13 @@ export const CreateUserSchema = z.object({
   avatarUrl: z.string().url().optional(),
 });
 
+export const CreateVirtualMemberSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  avatarUrl: z.string().url().optional(),
+  familyId: z.string().min(1, 'Family ID is required'),
+});
+
 export const UpdateUserSchema = z.object({
   firstName: z.string().min(1, 'First name is required').optional(),
   lastName: z.string().min(1, 'Last name is required').optional(),
@@ -30,6 +37,7 @@ export const ChangePasswordSchema = z.object({
 });
 
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;
+export type CreateVirtualMemberInput = z.infer<typeof CreateVirtualMemberSchema>;
 export type UpdateUserInput = z.infer<typeof UpdateUserSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
@@ -38,8 +46,9 @@ export interface UserResponse {
   id: string;
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
   avatarUrl: string | null;
+  isVirtual: boolean;
   createdAt: Date;
   updatedAt: Date;
 } 

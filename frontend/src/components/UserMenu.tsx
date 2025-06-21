@@ -116,7 +116,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onEditProfile }) => {
         <UserAvatar
           firstName={user.firstName}
           lastName={user.lastName}
-          avatarUrl={user.avatarUrl}
+          avatarUrl={user.avatarUrl ?? null}
           size="medium"
           className="user-menu-avatar"
           onClick={() => setIsOpen(!isOpen)}

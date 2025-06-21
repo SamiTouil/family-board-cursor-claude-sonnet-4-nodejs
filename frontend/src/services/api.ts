@@ -39,8 +39,9 @@ export interface User {
   id: string;
   firstName: string;
   lastName: string;
-  email: string;
-  avatarUrl: string | null;
+  email: string | null;
+  avatarUrl?: string | null;
+  isVirtual?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -170,6 +171,13 @@ export interface FamilyJoinRequest {
   };
 }
 
+export interface CreateVirtualMemberData {
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string;
+  familyId: string;
+}
+
 // Authentication API
 export const authApi = {
   signup: (data: SignupData): Promise<{ data: ApiResponse<AuthResponse> }> =>
@@ -228,6 +236,10 @@ export const familyApi = {
   // Remove family member (admin only)
   removeMember: (familyId: string, memberId: string): Promise<{ data: ApiResponse<{ message: string }> }> =>
     api.delete(`/families/${familyId}/members/${memberId}`),
+  
+  // Create virtual member (admin only)
+  createVirtualMember: (familyId: string, data: CreateVirtualMemberData): Promise<{ data: ApiResponse<FamilyMember> }> =>
+    api.post(`/families/${familyId}/virtual-members`, data),
   
   // Get family invites
   getInvites: (id: string): Promise<{ data: ApiResponse<FamilyInvite[]> }> =>
