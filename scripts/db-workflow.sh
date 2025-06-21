@@ -26,6 +26,15 @@ reset_db() {
     echo "✅ Database reset completed!"
 }
 
+# Function to safely push schema changes
+safe_push() {
+    echo "🛡️  Safely pushing schema changes with automatic reseed..."
+    cd backend
+    npm run db:safe-push
+    cd ..
+    echo "✅ Schema pushed and database reseeded!"
+}
+
 # Function to show current DB stats
 show_stats() {
     echo "📊 Current database statistics:"
@@ -42,6 +51,9 @@ case "${1:-}" in
     "reset")
         reset_db
         ;;
+    "safe-push")
+        safe_push
+        ;;
     "stats")
         show_stats
         ;;
@@ -52,18 +64,19 @@ case "${1:-}" in
         reset_db
         ;;
     *)
-        echo "Usage: $0 {export|reset|stats|full}"
+        echo "Usage: $0 {export|reset|safe-push|stats|full}"
         echo ""
         echo "Commands:"
-        echo "  export  - Export current database state to JSON"
-        echo "  reset   - Reset database using current seed data"
-        echo "  stats   - Show current database statistics"
-        echo "  full    - Export current state, then reset with seed"
+        echo "  export     - Export current database state to JSON"
+        echo "  reset      - Reset database using current seed data"
+        echo "  safe-push  - Export data, push schema changes, then reseed (RECOMMENDED)"
+        echo "  stats      - Show current database statistics"
+        echo "  full       - Export current state, then reset with seed"
         echo ""
         echo "Examples:"
-        echo "  $0 export  # Save current DB state"
-        echo "  $0 reset   # Reset DB with saved state"
-        echo "  $0 full    # Export current state and reset"
+        echo "  $0 safe-push  # Safely apply schema changes (RECOMMENDED)"
+        echo "  $0 export     # Save current DB state"
+        echo "  $0 reset      # Reset DB with saved state"
         exit 1
         ;;
 esac
