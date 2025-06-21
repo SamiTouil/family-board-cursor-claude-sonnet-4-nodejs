@@ -18,7 +18,10 @@
     "test:frontend": "cd frontend && npm test",
     "test:e2e": "cd e2e-tests && npm test",
     "test:all": "npm run test && npm run test:e2e",
-    "clean": "docker-compose down -v && docker system prune -f"
+    "clean": "docker-compose down -v && docker system prune -f",
+    "db:safe-push": "./scripts/db-workflow.sh safe-push",
+    "db:export": "./scripts/db-workflow.sh export",
+    "db:reset": "./scripts/db-workflow.sh reset"
   },
   "engines": {
     "node": ">=18.0.0",
