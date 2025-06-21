@@ -1,0 +1,147 @@
+{
+  "users": [
+    {
+      "id": "cmc66ntmr0006ap3efbtkn388",
+      "firstName": "Grandmother",
+      "lastName": "Smith",
+      "email": null,
+      "password": null,
+      "avatarUrl": "https://example.com/avatar.jpg",
+      "isVirtual": true,
+      "createdAt": "2025-06-21T11:56:24.387Z",
+      "updatedAt": "2025-06-21T11:56:24.387Z"
+    },
+    {
+      "id": "cmc66osup0009ap3euxjtgzu5",
+      "firstName": "Sami",
+      "lastName": "Touil",
+      "email": "sami@sami.com",
+      "password": "$2a$12$52Ebh1sTjSafdChIY3HhF.M/s1ISJO/AGtqZW/nkYzhZvEFAAvg.y",
+      "avatarUrl": "https://media.licdn.com/dms/image/v2/D4E03AQE4IJVovK-HKw/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1713184099424?e=1755734400&v=beta&t=4O-si3Ynb3QBu2RIwpXo98WcKd0OPvL83t54aNAiojY",
+      "isVirtual": false,
+      "createdAt": "2025-06-21T11:57:10.033Z",
+      "updatedAt": "2025-06-21T14:24:30.306Z"
+    },
+    {
+      "id": "cmc66pohx000fap3eeljuts01",
+      "firstName": "Mamie",
+      "lastName": "Maria",
+      "email": null,
+      "password": null,
+      "avatarUrl": null,
+      "isVirtual": true,
+      "createdAt": "2025-06-21T11:57:51.046Z",
+      "updatedAt": "2025-06-21T11:57:51.046Z"
+    },
+    {
+      "id": "cmc6bcbqk0001jni3imm98zmx",
+      "firstName": "Mamie",
+      "lastName": "Magdeleine",
+      "email": null,
+      "password": null,
+      "avatarUrl": null,
+      "isVirtual": true,
+      "createdAt": "2025-06-21T14:07:26.060Z",
+      "updatedAt": "2025-06-21T14:07:26.060Z"
+    },
+    {
+      "id": "cmc6bmytj0004jni3edhfwhuw",
+      "firstName": "Lydia",
+      "lastName": "Bianchi",
+      "email": "lydia@lydia.com",
+      "password": "$2a$12$Q4ce6j/DZ9JHGdVhbebq6uYJXAVu7T33EKcbHcE545lwC1k9EuCf2",
+      "avatarUrl": "https://media.licdn.com/dms/image/v2/D4E03AQHxl3KpYHzdzA/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1726076529609?e=1755734400&v=beta&t=Da8sj232WTxSpzsScl0hOVhRkylPDR4ovAFW2rqv26Y",
+      "isVirtual": false,
+      "createdAt": "2025-06-21T14:15:42.535Z",
+      "updatedAt": "2025-06-21T14:27:17.285Z"
+    },
+    {
+      "id": "cmc6bzxvp000cjni3hze2x6zf",
+      "firstName": "Creche",
+      "lastName": "LPCR",
+      "email": null,
+      "password": null,
+      "avatarUrl": null,
+      "isVirtual": true,
+      "createdAt": "2025-06-21T14:25:47.845Z",
+      "updatedAt": "2025-06-21T14:25:47.845Z"
+    }
+  ],
+  "families": [
+    {
+      "id": "cmc66ox86000bap3ezyaalsu7",
+      "name": "Bianchi Touil",
+      "description": null,
+      "avatarUrl": null,
+      "createdAt": "2025-06-21T11:57:15.703Z",
+      "updatedAt": "2025-06-21T11:57:15.703Z",
+      "creatorId": "cmc66osup0009ap3euxjtgzu5"
+    }
+  ],
+  "familyMembers": [
+    {
+      "id": "cmc66ox86000dap3emq6iovta",
+      "role": "ADMIN",
+      "joinedAt": "2025-06-21T11:57:15.703Z",
+      "userId": "cmc66osup0009ap3euxjtgzu5",
+      "familyId": "cmc66ox86000bap3ezyaalsu7"
+    },
+    {
+      "id": "cmc66pohz000hap3eozxydxwu",
+      "role": "MEMBER",
+      "joinedAt": "2025-06-21T11:57:51.048Z",
+      "userId": "cmc66pohx000fap3eeljuts01",
+      "familyId": "cmc66ox86000bap3ezyaalsu7"
+    },
+    {
+      "id": "cmc6bcbql0003jni3aqe04v1y",
+      "role": "MEMBER",
+      "joinedAt": "2025-06-21T14:07:26.062Z",
+      "userId": "cmc6bcbqk0001jni3imm98zmx",
+      "familyId": "cmc66ox86000bap3ezyaalsu7"
+    },
+    {
+      "id": "cmc6bn6or000ajni33is44l35",
+      "role": "MEMBER",
+      "joinedAt": "2025-06-21T14:15:52.731Z",
+      "userId": "cmc6bmytj0004jni3edhfwhuw",
+      "familyId": "cmc66ox86000bap3ezyaalsu7"
+    },
+    {
+      "id": "cmc6bzxvq000ejni3inxhr3ho",
+      "role": "MEMBER",
+      "joinedAt": "2025-06-21T14:25:47.847Z",
+      "userId": "cmc6bzxvp000cjni3hze2x6zf",
+      "familyId": "cmc66ox86000bap3ezyaalsu7"
+    }
+  ],
+  "familyInvites": [
+    {
+      "id": "cmc6bn1ue0006jni3shodfrfq",
+      "code": "63F43780",
+      "status": "PENDING",
+      "expiresAt": "2025-06-28T14:15:46.454Z",
+      "createdAt": "2025-06-21T14:15:46.455Z",
+      "updatedAt": "2025-06-21T14:15:46.455Z",
+      "respondedAt": null,
+      "familyId": "cmc66ox86000bap3ezyaalsu7",
+      "senderId": "cmc66osup0009ap3euxjtgzu5",
+      "receiverId": null
+    }
+  ],
+  "familyJoinRequests": [
+    {
+      "id": "cmc6bn5520008jni3h299p18r",
+      "status": "APPROVED",
+      "createdAt": "2025-06-21T14:15:50.727Z",
+      "updatedAt": "2025-06-21T14:15:52.731Z",
+      "respondedAt": "2025-06-21T14:15:52.730Z",
+      "message": null,
+      "userId": "cmc6bmytj0004jni3edhfwhuw",
+      "familyId": "cmc66ox86000bap3ezyaalsu7",
+      "inviteId": "cmc6bn1ue0006jni3shodfrfq",
+      "reviewerId": "cmc66osup0009ap3euxjtgzu5"
+    }
+  ],
+  "exportedAt": "2025-06-21T14:36:44.467Z"
+}
