@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor, act, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { UserProfile } from '../components/UserProfile';
@@ -1024,6 +1024,11 @@ describe('Family Editing Functionality', () => {
     const editButton = screen.getByText('family.editButton');
     await user.click(editButton);
 
+    // Wait for the inline edit form to appear
+    await waitFor(() => {
+      expect(screen.getByText('family.edit.title')).toBeInTheDocument();
+    });
+
     const descriptionInput = screen.getByLabelText(/family\.description/);
     const submitButton = screen.getByRole('button', { name: /common\.save/ });
 
@@ -1226,7 +1231,11 @@ describe('Family Editing Functionality', () => {
 
     expect(screen.getByText('family.edit.title')).toBeInTheDocument();
 
-    const cancelButton = screen.getByText('common.cancel');
+    // Find the cancel button within the family edit form specifically
+    const familyEditForm = screen.getByText('family.edit.title').closest('.user-profile-family-edit-inline');
+    expect(familyEditForm).toBeInTheDocument();
+    
+    const cancelButton = within(familyEditForm as HTMLElement).getByText('common.cancel');
     await user.click(cancelButton);
 
     expect(screen.queryByText('family.edit.title')).not.toBeInTheDocument();

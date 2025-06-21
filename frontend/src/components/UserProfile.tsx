@@ -82,7 +82,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     avatarUrl: currentFamily?.avatarUrl || '',
   });
   const [familyErrors, setFamilyErrors] = useState<Record<string, string>>({});
-  const [showFamilyEditForm, setShowFamilyEditForm] = useState(false);
+  const [editingFamily, setEditingFamily] = useState(false);
 
   const isAdmin = currentFamily?.userRole === 'ADMIN';
 
@@ -624,6 +624,43 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     return Object.keys(errors).length === 0;
   };
 
+  const handleEditFamily = () => {
+    if (currentFamily) {
+      setFamilyData({
+        name: currentFamily.name || '',
+        description: currentFamily.description || '',
+        avatarUrl: currentFamily.avatarUrl || '',
+      });
+      setFamilyErrors({});
+      setEditingFamily(true);
+
+      // Auto-focus on the first field after a short delay
+      setTimeout(() => {
+        const firstInput = document.getElementById('familyNameInline');
+        if (firstInput) {
+          firstInput.focus();
+          // Scroll to the edit form
+          if (typeof firstInput.scrollIntoView === 'function') {
+            firstInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      }, 100);
+    }
+  };
+
+  const handleCancelEditFamily = () => {
+    setEditingFamily(false);
+    setFamilyErrors({});
+    // Reset form data to current family data
+    if (currentFamily) {
+      setFamilyData({
+        name: currentFamily.name || '',
+        description: currentFamily.description || '',
+        avatarUrl: currentFamily.avatarUrl || '',
+      });
+    }
+  };
+
   const handleUpdateFamily = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -650,7 +687,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
       await familyApi.update(currentFamily.id, updateData);
       
       // Close form
-      setShowFamilyEditForm(false);
+      setEditingFamily(false);
       
       // Refresh family data in context
       await refreshFamilies();
@@ -910,21 +947,19 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                 <span className="user-profile-family-name">{currentFamily.name}</span>
               </div>
 
-              {/* Family Edit Form - Admin only */}
-              {isAdmin && showFamilyEditForm && (
-                <div className="user-profile-subsection">
-                  <div className="user-profile-subsection-header">
-                    <h4 className="user-profile-subsection-title">{t('family.edit.title')}</h4>
-                  </div>
+              {/* Inline Family Edit Form */}
+              {isAdmin && editingFamily && (
+                <div className="user-profile-family-edit-inline">
+                  <h4 className="user-profile-form-title">{t('family.edit.title')}</h4>
                   <p className="user-profile-help-text">{t('family.edit.subtitle')}</p>
                   <form onSubmit={handleUpdateFamily} className="user-profile-form">
                     <div className="user-profile-form-group">
-                      <label htmlFor="familyName" className="user-profile-label">
+                      <label htmlFor="familyNameInline" className="user-profile-label">
                         {t('family.name')}
                       </label>
                       <input
                         type="text"
-                        id="familyName"
+                        id="familyNameInline"
                         name="name"
                         value={familyData.name}
                         onChange={handleFamilyInputChange}
@@ -938,11 +973,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                     </div>
 
                     <div className="user-profile-form-group">
-                      <label htmlFor="familyDescription" className="user-profile-label">
+                      <label htmlFor="familyDescriptionInline" className="user-profile-label">
                         {t('family.description')} ({t('common.optional')})
                       </label>
                       <textarea
-                        id="familyDescription"
+                        id="familyDescriptionInline"
                         name="description"
                         value={familyData.description}
                         onChange={handleFamilyInputChange}
@@ -957,12 +992,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                     </div>
 
                     <div className="user-profile-form-group">
-                      <label htmlFor="familyAvatarUrl" className="user-profile-label">
+                      <label htmlFor="familyAvatarUrlInline" className="user-profile-label">
                         {t('family.avatar')} ({t('common.optional')})
                       </label>
                       <input
                         type="url"
-                        id="familyAvatarUrl"
+                        id="familyAvatarUrlInline"
                         name="avatarUrl"
                         value={familyData.avatarUrl}
                         onChange={handleFamilyInputChange}
@@ -983,6 +1018,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                       >
                         {isLoading ? t('family.edit.updating') : t('common.save')}
                       </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelEditFamily}
+                        className="user-profile-button user-profile-button-secondary"
+                        disabled={isLoading}
+                      >
+                        {t('common.cancel')}
+                      </button>
                     </div>
                   </form>
                 </div>
@@ -995,11 +1038,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                   {isAdmin && (
                     <div className="user-profile-button-group">
                       <button
-                        onClick={() => setShowFamilyEditForm(!showFamilyEditForm)}
+                        onClick={editingFamily ? handleCancelEditFamily : handleEditFamily}
                         className="user-profile-button user-profile-button-secondary user-profile-button-sm"
                         disabled={isLoading}
                       >
-                        {showFamilyEditForm ? t('common.cancel') : t('family.editButton')}
+                        {editingFamily ? t('common.cancel') : t('family.editButton')}
                       </button>
                       <button
                         onClick={() => setShowVirtualMemberForm(!showVirtualMemberForm)}
