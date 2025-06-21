@@ -36,6 +36,7 @@ jest.mock('@prisma/client', () => {
     user: {
       findUnique: jest.fn(),
       findMany: jest.fn(),
+      create: jest.fn(),
     },
     $transaction: jest.fn(),
     familyJoinRequest: {
