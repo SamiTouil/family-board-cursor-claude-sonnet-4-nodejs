@@ -10,7 +10,8 @@ import {
   FamilyMemberResponse,
   FamilyInviteResponse,
   FamilyJoinRequestResponse,
-  FamilyStatsResponse
+  FamilyStatsResponse,
+  CreateVirtualMemberInput
 } from '../types/family.types';
 import crypto from 'crypto';
 import { getWebSocketService } from './websocket.service';
@@ -235,6 +236,7 @@ export class FamilyService {
             lastName: true,
             email: true,
             avatarUrl: true,
+            isVirtual: true,
           },
         },
       },
@@ -252,8 +254,9 @@ export class FamilyService {
         id: member.user.id,
         firstName: member.user.firstName,
         lastName: member.user.lastName,
-        email: member.user.email,
+        email: member.user.email || null,
         avatarUrl: member.user.avatarUrl || null,
+        isVirtual: member.user.isVirtual,
       },
     }));
   }
@@ -1058,5 +1061,75 @@ export class FamilyService {
     await prisma.familyJoinRequest.delete({
       where: { id: requestId },
     });
+  }
+
+  // Create virtual member (admin only)
+  static async createVirtualMember(adminId: string, data: CreateVirtualMemberInput): Promise<FamilyMemberResponse> {
+    // Check if admin user is actually admin
+    const adminMembership = await prisma.familyMember.findUnique({
+      where: {
+        userId_familyId: {
+          userId: adminId,
+          familyId: data.familyId,
+        },
+      },
+    });
+
+    if (!adminMembership || adminMembership.role !== 'ADMIN') {
+      throw new Error('Only family admins can create virtual members');
+    }
+
+    // Create virtual user and add to family in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create virtual user
+      const virtualUser = await tx.user.create({
+        data: {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          avatarUrl: data.avatarUrl || null,
+          isVirtual: true,
+          email: null,
+          password: null,
+        },
+      });
+
+      // Add virtual user to family
+      const familyMember = await tx.familyMember.create({
+        data: {
+          userId: virtualUser.id,
+          familyId: data.familyId,
+          role: 'MEMBER',
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              avatarUrl: true,
+              isVirtual: true,
+            },
+          },
+        },
+      });
+
+      return familyMember;
+    });
+
+    return {
+      id: result.id,
+      userId: result.userId,
+      role: result.role,
+      joinedAt: result.joinedAt,
+      user: {
+        id: result.user.id,
+        firstName: result.user.firstName,
+        lastName: result.user.lastName,
+        email: result.user.email || null,
+        avatarUrl: result.user.avatarUrl || null,
+        isVirtual: result.user.isVirtual,
+      },
+    };
   }
 } 

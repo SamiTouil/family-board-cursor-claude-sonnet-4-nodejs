@@ -672,153 +672,153 @@ describe('UserProfile Remove Member Functionality', () => {
   });
 });
 
-  describe('Avatar URL editing', () => {
-    beforeEach(() => {
-      mockUseFamily.mockReturnValue({
-        currentFamily: null, // No family for profile editing tests
-      });
+describe('Avatar URL editing', () => {
+  beforeEach(() => {
+    mockUseFamily.mockReturnValue({
+      currentFamily: null, // No family for profile editing tests
+    });
+  });
+
+  it('should render avatar URL input field', () => {
+    render(<UserProfile onClose={vi.fn()} />);
+    
+    const avatarUrlInput = screen.getByLabelText(/user\.avatar.*url/i);
+    expect(avatarUrlInput).toBeInTheDocument();
+    expect(avatarUrlInput).toHaveAttribute('type', 'url');
+    expect(avatarUrlInput).toHaveAttribute('placeholder', 'https://example.com/avatar.jpg');
+  });
+
+  it('should populate avatar URL field with user data', () => {
+    const userWithAvatar = {
+      ...mockUser,
+      avatarUrl: 'https://example.com/avatar.jpg'
+    };
+    
+    mockUseAuth.mockReturnValue({
+      user: userWithAvatar,
+      refreshUser: vi.fn(),
     });
 
-    it('should render avatar URL input field', () => {
-      render(<UserProfile onClose={vi.fn()} />);
-      
-      const avatarUrlInput = screen.getByLabelText(/user\.avatar.*url/i);
-      expect(avatarUrlInput).toBeInTheDocument();
-      expect(avatarUrlInput).toHaveAttribute('type', 'url');
-      expect(avatarUrlInput).toHaveAttribute('placeholder', 'https://example.com/avatar.jpg');
-    });
+    render(<UserProfile onClose={vi.fn()} />);
+    
+    const avatarUrlInput = screen.getByLabelText(/user\.avatar.*url/i) as HTMLInputElement;
+    expect(avatarUrlInput.value).toBe('https://example.com/avatar.jpg');
+  });
 
-    it('should populate avatar URL field with user data', () => {
-      const userWithAvatar = {
-        ...mockUser,
-        avatarUrl: 'https://example.com/avatar.jpg'
-      };
-      
-      mockUseAuth.mockReturnValue({
-        user: userWithAvatar,
-        refreshUser: vi.fn(),
-      });
+  it('should handle avatar URL input changes', async () => {
+    const user = userEvent.setup();
+    render(<UserProfile onClose={vi.fn()} />);
+    
+    const avatarUrlInput = screen.getByLabelText(/user\.avatar.*url/i);
+    await user.clear(avatarUrlInput);
+    await user.type(avatarUrlInput, 'https://newavatar.com/image.png');
+    
+    expect((avatarUrlInput as HTMLInputElement).value).toBe('https://newavatar.com/image.png');
+  });
 
-      render(<UserProfile onClose={vi.fn()} />);
-      
-      const avatarUrlInput = screen.getByLabelText(/user\.avatar.*url/i) as HTMLInputElement;
-      expect(avatarUrlInput.value).toBe('https://example.com/avatar.jpg');
-    });
-
-    it('should handle avatar URL input changes', async () => {
-      const user = userEvent.setup();
-      render(<UserProfile onClose={vi.fn()} />);
-      
-      const avatarUrlInput = screen.getByLabelText(/user\.avatar.*url/i);
+  it('should validate invalid avatar URLs', async () => {
+    const user = userEvent.setup();
+    const mockUpdate = vi.fn();
+    mockUserApi.update = mockUpdate;
+    
+    render(<UserProfile onClose={vi.fn()} />);
+    
+    const firstNameInput = screen.getByLabelText(/user\.firstName/i);
+    const lastNameInput = screen.getByLabelText(/user\.lastName/i);
+    const avatarUrlInput = screen.getByLabelText(/user\.avatar.*url/i);
+    const submitButton = screen.getByRole('button', { name: /user\.updateProfile/i });
+    
+    // Fill required fields and enter invalid URL
+    await act(async () => {
+      await user.clear(firstNameInput);
+      await user.type(firstNameInput, 'John');
+      await user.clear(lastNameInput);
+      await user.type(lastNameInput, 'Doe');
       await user.clear(avatarUrlInput);
-      await user.type(avatarUrlInput, 'https://newavatar.com/image.png');
-      
-      expect((avatarUrlInput as HTMLInputElement).value).toBe('https://newavatar.com/image.png');
+      await user.type(avatarUrlInput, 'invalid-url');
     });
-
-    it('should validate invalid avatar URLs', async () => {
-      const user = userEvent.setup();
-      const mockUpdate = vi.fn();
-      mockUserApi.update = mockUpdate;
-      
-      render(<UserProfile onClose={vi.fn()} />);
-      
-      const firstNameInput = screen.getByLabelText(/user\.firstName/i);
-      const lastNameInput = screen.getByLabelText(/user\.lastName/i);
-      const avatarUrlInput = screen.getByLabelText(/user\.avatar.*url/i);
-      const submitButton = screen.getByRole('button', { name: /user\.updateProfile/i });
-      
-      // Fill required fields and enter invalid URL
-      await act(async () => {
-        await user.clear(firstNameInput);
-        await user.type(firstNameInput, 'John');
-        await user.clear(lastNameInput);
-        await user.type(lastNameInput, 'Doe');
-        await user.clear(avatarUrlInput);
-        await user.type(avatarUrlInput, 'invalid-url');
-      });
-      
-      await act(async () => {
-        await user.click(submitButton);
-      });
-      
-      // Verify that the API was not called due to validation failure
-      await waitFor(() => {
-        // Either the error message is shown OR the API call was prevented
-        const hasErrorMessage = screen.queryByText(/user\.validation\.invalidAvatarUrl/i);
-        if (!hasErrorMessage) {
-          // If no error message, ensure API wasn't called with invalid data
-          expect(mockUpdate).not.toHaveBeenCalled();
-        } else {
-          expect(hasErrorMessage).toBeInTheDocument();
-        }
-      });
+    
+    await act(async () => {
+      await user.click(submitButton);
     });
+    
+    // Verify that the API was not called due to validation failure
+    await waitFor(() => {
+      // Either the error message is shown OR the API call was prevented
+      const hasErrorMessage = screen.queryByText(/user\.validation\.invalidAvatarUrl/i);
+      if (!hasErrorMessage) {
+        // If no error message, ensure API wasn't called with invalid data
+        expect(mockUpdate).not.toHaveBeenCalled();
+      } else {
+        expect(hasErrorMessage).toBeInTheDocument();
+      }
+    });
+  });
 
-    it('should accept valid avatar URLs', async () => {
-      const user = userEvent.setup();
-      mockUserApi.update.mockResolvedValue({ data: { success: true } });
+  it('should accept valid avatar URLs', async () => {
+    const user = userEvent.setup();
+    mockUserApi.update.mockResolvedValue({ data: { success: true } });
 
-      render(<UserProfile onClose={vi.fn()} />);
-      
-      const firstNameInput = screen.getByLabelText(/user\.firstName/i);
-      const lastNameInput = screen.getByLabelText(/user\.lastName/i);
-      const avatarUrlInput = screen.getByLabelText(/user\.avatar.*url/i);
-      const submitButton = screen.getByRole('button', { name: /user\.updateProfile/i });
-      
-      // Fill in valid data
-      await act(async () => {
-        await user.clear(firstNameInput);
-        await user.type(firstNameInput, 'John');
-        await user.clear(lastNameInput);
-        await user.type(lastNameInput, 'Doe');
-        await user.clear(avatarUrlInput);
-        await user.type(avatarUrlInput, 'https://example.com/avatar.jpg');
-      });
-      
-      await act(async () => {
-        await user.click(submitButton);
-      });
-      
-      await waitFor(() => {
-        expect(mockUserApi.update).toHaveBeenCalledWith(mockUser.id, {
-          firstName: 'John',
-          lastName: 'Doe',
-          avatarUrl: 'https://example.com/avatar.jpg'
-        });
+    render(<UserProfile onClose={vi.fn()} />);
+    
+    const firstNameInput = screen.getByLabelText(/user\.firstName/i);
+    const lastNameInput = screen.getByLabelText(/user\.lastName/i);
+    const avatarUrlInput = screen.getByLabelText(/user\.avatar.*url/i);
+    const submitButton = screen.getByRole('button', { name: /user\.updateProfile/i });
+    
+    // Fill in valid data
+    await act(async () => {
+      await user.clear(firstNameInput);
+      await user.type(firstNameInput, 'John');
+      await user.clear(lastNameInput);
+      await user.type(lastNameInput, 'Doe');
+      await user.clear(avatarUrlInput);
+      await user.type(avatarUrlInput, 'https://example.com/avatar.jpg');
+    });
+    
+    await act(async () => {
+      await user.click(submitButton);
+    });
+    
+    await waitFor(() => {
+      expect(mockUserApi.update).toHaveBeenCalledWith(mockUser.id, {
+        firstName: 'John',
+        lastName: 'Doe',
+        avatarUrl: 'https://example.com/avatar.jpg'
       });
     });
+  });
 
-    it('should allow empty avatar URL', async () => {
-      const user = userEvent.setup();
-      mockUserApi.update.mockResolvedValue({ data: { success: true } });
+  it('should allow empty avatar URL', async () => {
+    const user = userEvent.setup();
+    mockUserApi.update.mockResolvedValue({ data: { success: true } });
 
-      render(<UserProfile onClose={vi.fn()} />);
-      
-      const firstNameInput = screen.getByLabelText(/user\.firstName/i);
-      const lastNameInput = screen.getByLabelText(/user\.lastName/i);
-      const avatarUrlInput = screen.getByLabelText(/user\.avatar.*url/i);
-      const submitButton = screen.getByRole('button', { name: /user\.updateProfile/i });
-      
-      // Fill in valid data with empty avatar URL
-      await act(async () => {
-        await user.clear(firstNameInput);
-        await user.type(firstNameInput, 'John');
-        await user.clear(lastNameInput);
-        await user.type(lastNameInput, 'Doe');
-        await user.clear(avatarUrlInput);
-      });
-      
-      await act(async () => {
-        await user.click(submitButton);
-      });
-      
-      await waitFor(() => {
-        expect(mockUserApi.update).toHaveBeenCalledWith(mockUser.id, {
-          firstName: 'John',
-          lastName: 'Doe',
-          avatarUrl: ''
-        });
+    render(<UserProfile onClose={vi.fn()} />);
+    
+    const firstNameInput = screen.getByLabelText(/user\.firstName/i);
+    const lastNameInput = screen.getByLabelText(/user\.lastName/i);
+    const avatarUrlInput = screen.getByLabelText(/user\.avatar.*url/i);
+    const submitButton = screen.getByRole('button', { name: /user\.updateProfile/i });
+    
+    // Fill in valid data with empty avatar URL
+    await act(async () => {
+      await user.clear(firstNameInput);
+      await user.type(firstNameInput, 'John');
+      await user.clear(lastNameInput);
+      await user.type(lastNameInput, 'Doe');
+      await user.clear(avatarUrlInput);
+    });
+    
+    await act(async () => {
+      await user.click(submitButton);
+    });
+    
+    await waitFor(() => {
+      expect(mockUserApi.update).toHaveBeenCalledWith(mockUser.id, {
+        firstName: 'John',
+        lastName: 'Doe',
+        avatarUrl: ''
       });
     });
-  }); 
+  });
+}); 

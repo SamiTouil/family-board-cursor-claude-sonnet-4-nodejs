@@ -10,6 +10,7 @@ import {
   respondToJoinRequestSchema,
 } from '../types/family.types';
 import { z } from 'zod';
+import { CreateVirtualMemberSchema } from '../types/user.types';
 
 const router = Router();
 
@@ -483,6 +484,44 @@ router.get('/:familyId/stats', async (req: AuthenticatedRequest, res: Response):
     res.status(403).json({
       success: false,
       message: error instanceof Error ? error.message : 'Access denied',
+    });
+  }
+});
+
+// Create virtual member (admin only)
+router.post('/:familyId/virtual-members', validateBody(CreateVirtualMemberSchema), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const { familyId } = req.params;
+    
+    if (!familyId) {
+      res.status(400).json({
+        success: false,
+        message: 'Family ID is required',
+      });
+      return;
+    }
+    
+    // Validate that familyId in URL matches familyId in body
+    if (req.body.familyId !== familyId) {
+      res.status(400).json({
+        success: false,
+        message: 'Family ID mismatch',
+      });
+      return;
+    }
+    
+    const virtualMember = await FamilyService.createVirtualMember(userId, req.body);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Virtual member created successfully',
+      data: virtualMember,
+    });
+  } catch (error) {
+    res.status(403).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to create virtual member',
     });
   }
 });

@@ -80,8 +80,9 @@ export interface FamilyMemberResponse {
     id: string;
     firstName: string;
     lastName: string;
-    email: string;
+    email: string | null;
     avatarUrl?: string | null;
+    isVirtual?: boolean;
   };
 }
 
@@ -144,4 +145,7 @@ export interface FamilyStatsResponse {
   pendingInvites: number;
   pendingJoinRequests: number;
   createdAt: Date;
-} 
+}
+
+// Re-export from user types for convenience
+export type { CreateVirtualMemberInput } from './user.types'; 

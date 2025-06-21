@@ -808,4 +808,165 @@ describe('FamilyService', () => {
       })).rejects.toThrow('You already have a pending join request for this family');
     });
   });
+
+  describe('createVirtualMember', () => {
+    let family: any;
+    let adminUser: any;
+    let memberUser: any;
+
+    beforeEach(async () => {
+      // Create test users
+      adminUser = await mockPrisma.user.create({
+        data: {
+          firstName: 'Admin',
+          lastName: 'User',
+          email: 'admin@test.com',
+          password: 'password123',
+        },
+      });
+
+      memberUser = await mockPrisma.user.create({
+        data: {
+          firstName: 'Member',
+          lastName: 'User',
+          email: 'member@test.com',
+          password: 'password123',
+        },
+      });
+
+      // Create test family
+      family = await mockPrisma.family.create({
+        data: {
+          name: 'Test Family',
+          description: 'Test Description',
+          creatorId: adminUser.id,
+          members: {
+            create: [
+              {
+                userId: adminUser.id,
+                role: 'ADMIN',
+              },
+              {
+                userId: memberUser.id,
+                role: 'MEMBER',
+              },
+            ],
+          },
+        },
+      });
+    });
+
+    it('should create virtual member successfully when user is admin', async () => {
+      const virtualMemberData = {
+        firstName: 'Grandma',
+        lastName: 'Smith',
+        avatarUrl: 'https://example.com/grandma.jpg',
+        familyId: family.id,
+      };
+
+      const result = await FamilyService.createVirtualMember(adminUser.id, virtualMemberData);
+
+      expect(result).toMatchObject({
+        userId: expect.any(String),
+        role: 'MEMBER',
+        joinedAt: expect.any(Date),
+        user: {
+          id: expect.any(String),
+          firstName: 'Grandma',
+          lastName: 'Smith',
+          email: null,
+          avatarUrl: 'https://example.com/grandma.jpg',
+          isVirtual: true,
+        },
+      });
+
+      // Verify virtual user was created in database
+      const virtualUser = await mockPrisma.user.findUnique({
+        where: { id: result.user.id },
+      });
+
+      expect(virtualUser).toMatchObject({
+        firstName: 'Grandma',
+        lastName: 'Smith',
+        email: null,
+        password: null,
+        avatarUrl: 'https://example.com/grandma.jpg',
+        isVirtual: true,
+      });
+
+      // Verify family member was created
+      const familyMember = await mockPrisma.familyMember.findUnique({
+        where: { id: result.id },
+      });
+
+      expect(familyMember).toMatchObject({
+        userId: result.user.id,
+        familyId: family.id,
+        role: 'MEMBER',
+      });
+    });
+
+    it('should create virtual member without avatar URL', async () => {
+      const virtualMemberData = {
+        firstName: 'Uncle',
+        lastName: 'Bob',
+        familyId: family.id,
+      };
+
+      const result = await FamilyService.createVirtualMember(adminUser.id, virtualMemberData);
+
+      expect(result.user).toMatchObject({
+        firstName: 'Uncle',
+        lastName: 'Bob',
+        email: null,
+        avatarUrl: null,
+        isVirtual: true,
+      });
+    });
+
+    it('should throw error when user is not admin', async () => {
+      const virtualMemberData = {
+        firstName: 'Grandma',
+        lastName: 'Smith',
+        familyId: family.id,
+      };
+
+      await expect(
+        FamilyService.createVirtualMember(memberUser.id, virtualMemberData)
+      ).rejects.toThrow('Only family admins can create virtual members');
+    });
+
+    it('should throw error when user is not family member', async () => {
+      const outsideUser = await mockPrisma.user.create({
+        data: {
+          firstName: 'Outside',
+          lastName: 'User',
+          email: 'outside@test.com',
+          password: 'password123',
+        },
+      });
+
+      const virtualMemberData = {
+        firstName: 'Grandma',
+        lastName: 'Smith',
+        familyId: family.id,
+      };
+
+      await expect(
+        FamilyService.createVirtualMember(outsideUser.id, virtualMemberData)
+      ).rejects.toThrow('Only family admins can create virtual members');
+    });
+
+    it('should throw error when family does not exist', async () => {
+      const virtualMemberData = {
+        firstName: 'Grandma',
+        lastName: 'Smith',
+        familyId: 'non-existent-family',
+      };
+
+      await expect(
+        FamilyService.createVirtualMember(adminUser.id, virtualMemberData)
+      ).rejects.toThrow();
+    });
+  });
 }); 
