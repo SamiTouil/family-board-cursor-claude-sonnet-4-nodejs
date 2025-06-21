@@ -288,29 +288,35 @@
   margin-top: 0.5rem;
 }
 
+/* Buttons */
 .user-profile-button {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  border: 1px solid transparent;
-  min-width: 100px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
 }
 
 .user-profile-button:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
+.user-profile-button-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .user-profile-button-sm {
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  min-width: 80px;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .user-profile-button-primary {

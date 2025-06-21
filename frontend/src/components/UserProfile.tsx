@@ -789,15 +789,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                 </div>
                 <h3 className="user-profile-section-title">{t('user.familyManagement')}</h3>
                 <span className="user-profile-family-name">{currentFamily.name}</span>
-                {isAdmin && (
-                  <button
-                    onClick={() => setShowFamilyEditForm(!showFamilyEditForm)}
-                    className="user-profile-button user-profile-button-secondary user-profile-button-sm"
-                    disabled={isLoading}
-                  >
-                    {showFamilyEditForm ? t('common.cancel') : t('family.edit')}
-                  </button>
-                )}
               </div>
 
               {/* Family Edit Form - Admin only */}
@@ -883,13 +874,22 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                 <div className="user-profile-subsection-header">
                   <h4 className="user-profile-subsection-title">{t('family.members')}</h4>
                   {isAdmin && (
-                    <button
-                      onClick={() => setShowVirtualMemberForm(!showVirtualMemberForm)}
-                      className="user-profile-button user-profile-button-secondary user-profile-button-sm"
-                      disabled={isLoading}
-                    >
-                      {showVirtualMemberForm ? t('common.cancel') : t('family.createVirtualMember')}
-                    </button>
+                    <div className="user-profile-button-group">
+                      <button
+                        onClick={() => setShowFamilyEditForm(!showFamilyEditForm)}
+                        className="user-profile-button user-profile-button-secondary user-profile-button-sm"
+                        disabled={isLoading}
+                      >
+                        {showFamilyEditForm ? t('common.cancel') : t('family.editButton')}
+                      </button>
+                      <button
+                        onClick={() => setShowVirtualMemberForm(!showVirtualMemberForm)}
+                        className="user-profile-button user-profile-button-secondary user-profile-button-sm"
+                        disabled={isLoading}
+                      >
+                        {showVirtualMemberForm ? t('common.cancel') : t('family.createVirtualMember')}
+                      </button>
+                    </div>
                   )}
                 </div>
 

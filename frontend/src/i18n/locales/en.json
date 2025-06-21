@@ -137,7 +137,7 @@
     "description": "Description",
     "avatar": "Family Avatar URL",
     "create": "Create Family",
-    "edit": "Edit Family",
+    "editButton": "Edit Family",
     "join": "Join Family",
     "inviteCode": "Invite Code",
     "members": "Family Members",

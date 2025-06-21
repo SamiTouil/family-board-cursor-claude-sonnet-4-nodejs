@@ -136,7 +136,7 @@
     "description": "Description",
     "avatar": "URL de l'avatar de famille",
     "create": "Créer une famille",
-    "edit": "Modifier la famille",
+    "editButton": "Modifier la famille",
     "join": "Rejoindre une famille",
     "inviteCode": "Code d'invitation",
     "members": "Membres de la famille",
