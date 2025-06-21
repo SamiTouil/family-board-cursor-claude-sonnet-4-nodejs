@@ -64,7 +64,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     avatarUrl: '',
   });
   const [virtualMemberErrors, setVirtualMemberErrors] = useState<Record<string, string>>({});
-  const [showVirtualMemberForm, setShowVirtualMemberForm] = useState(false);
+  const [addingVirtualMember, setAddingVirtualMember] = useState(false);
 
   // Virtual member editing state
   const [editingVirtualMember, setEditingVirtualMember] = useState<string | null>(null);
@@ -453,7 +453,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
       // Reset form and close
       setVirtualMemberData({ firstName: '', lastName: '', avatarUrl: '' });
       setVirtualMemberErrors({});
-      setShowVirtualMemberForm(false);
+      setAddingVirtualMember(false);
       
       // Refresh family data
       await loadFamilyData();
@@ -472,6 +472,31 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Virtual member adding functions
+  const handleAddVirtualMember = () => {
+    setVirtualMemberData({ firstName: '', lastName: '', avatarUrl: '' });
+    setVirtualMemberErrors({});
+    setAddingVirtualMember(true);
+
+    // Auto-focus on the first field after a short delay
+    setTimeout(() => {
+      const firstInput = document.getElementById('virtualFirstNameInline');
+      if (firstInput) {
+        firstInput.focus();
+        // Scroll to the edit form
+        if (typeof firstInput.scrollIntoView === 'function') {
+          firstInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }, 100);
+  };
+
+  const handleCancelAddVirtualMember = () => {
+    setAddingVirtualMember(false);
+    setVirtualMemberData({ firstName: '', lastName: '', avatarUrl: '' });
+    setVirtualMemberErrors({});
   };
 
   // Virtual member editing functions
@@ -1045,34 +1070,35 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                         {editingFamily ? t('common.cancel') : t('family.editButton')}
                       </button>
                       <button
-                        onClick={() => setShowVirtualMemberForm(!showVirtualMemberForm)}
+                        onClick={addingVirtualMember ? handleCancelAddVirtualMember : handleAddVirtualMember}
                         className="user-profile-button user-profile-button-secondary user-profile-button-sm"
                         disabled={isLoading}
                       >
-                        {showVirtualMemberForm ? t('common.cancel') : t('family.createVirtualMember')}
+                        {addingVirtualMember ? t('common.cancel') : t('family.createVirtualMember')}
                       </button>
                     </div>
                   )}
                 </div>
 
-                {/* Virtual Member Creation Form */}
-                {isAdmin && showVirtualMemberForm && (
-                  <div className="user-profile-virtual-member-form">
-                    <p className="user-profile-help-text">{t('family.virtualMemberDescription')}</p>
+                {/* Virtual Member Creation Form - Inline */}
+                {isAdmin && addingVirtualMember && (
+                  <div className="user-profile-virtual-member-add-inline">
+                    <h5 className="user-profile-form-title">{t('family.createVirtualMember')}</h5>
                     <form onSubmit={handleCreateVirtualMember} className="user-profile-form">
                       <div className="user-profile-form-row">
                         <div className="user-profile-form-group">
-                          <label htmlFor="virtualFirstName" className="user-profile-label">
+                          <label htmlFor="virtualFirstNameInline" className="user-profile-label">
                             {t('user.firstName')}
                           </label>
                           <input
                             type="text"
-                            id="virtualFirstName"
+                            id="virtualFirstNameInline"
                             name="firstName"
                             value={virtualMemberData.firstName}
                             onChange={handleVirtualMemberInputChange}
                             className={`user-profile-input ${virtualMemberErrors['firstName'] ? 'user-profile-input-error' : ''}`}
                             disabled={isLoading}
+                            autoFocus
                           />
                           {virtualMemberErrors['firstName'] && (
                             <span className="user-profile-error">{virtualMemberErrors['firstName']}</span>
@@ -1080,12 +1106,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                         </div>
 
                         <div className="user-profile-form-group">
-                          <label htmlFor="virtualLastName" className="user-profile-label">
+                          <label htmlFor="virtualLastNameInline" className="user-profile-label">
                             {t('user.lastName')}
                           </label>
                           <input
                             type="text"
-                            id="virtualLastName"
+                            id="virtualLastNameInline"
                             name="lastName"
                             value={virtualMemberData.lastName}
                             onChange={handleVirtualMemberInputChange}
@@ -1099,12 +1125,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                       </div>
 
                       <div className="user-profile-form-group">
-                        <label htmlFor="virtualAvatarUrl" className="user-profile-label">
+                        <label htmlFor="virtualAvatarUrlInline" className="user-profile-label">
                           {t('user.avatar')} URL ({t('common.optional')})
                         </label>
                         <input
                           type="url"
-                          id="virtualAvatarUrl"
+                          id="virtualAvatarUrlInline"
                           name="avatarUrl"
                           value={virtualMemberData.avatarUrl}
                           onChange={handleVirtualMemberInputChange}
@@ -1119,11 +1145,19 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
 
                       <div className="user-profile-form-actions">
                         <button
+                          type="button"
+                          onClick={handleCancelAddVirtualMember}
+                          className="user-profile-button user-profile-button-secondary"
+                          disabled={isLoading}
+                        >
+                          {t('common.cancel')}
+                        </button>
+                        <button
                           type="submit"
                           className="user-profile-button user-profile-button-primary"
                           disabled={isLoading}
                         >
-                          {isLoading ? t('common.loading') : t('family.createVirtualMember')}
+                          {isLoading ? t('common.loading') : t('common.save')}
                         </button>
                       </div>
                     </form>
