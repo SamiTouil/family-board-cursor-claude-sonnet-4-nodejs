@@ -136,6 +136,7 @@
     "description": "Description",
     "avatar": "URL de l'avatar de famille",
     "create": "Créer une famille",
+    "edit": "Modifier la famille",
     "join": "Rejoindre une famille",
     "inviteCode": "Code d'invitation",
     "members": "Membres de la famille",
@@ -213,6 +214,18 @@
       "nameTooShort": "Le nom de la famille doit contenir au moins 2 caractères",
       "nameTooLong": "Le nom de la famille doit contenir moins de 50 caractères",
       "descriptionTooLong": "La description doit contenir moins de 200 caractères"
+    },
+    "edit": {
+      "title": "Modifier les détails de la famille",
+      "subtitle": "Mettre à jour les informations de votre famille",
+      "updating": "Mise à jour de la famille...",
+      "updateError": "Impossible de mettre à jour la famille. Veuillez réessayer.",
+      "updated": "Famille mise à jour avec succès",
+      "nameRequired": "Le nom de famille est requis",
+      "nameTooShort": "Le nom de famille doit faire au moins 2 caractères",
+      "nameTooLong": "Le nom de famille doit faire moins de 50 caractères",
+      "descriptionTooLong": "La description doit faire moins de 200 caractères",
+      "invalidAvatarUrl": "Veuillez entrer une URL valide pour l'avatar"
     },
     "join": {
       "title": "Rejoindre une Famille",
