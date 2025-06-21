@@ -66,8 +66,7 @@ export const FamilyManagement: React.FC = () => {
             <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
           </svg>
         </div>
-        <h2 className="family-management-title">{t('user.familyManagement')}</h2>
-        <span className="family-management-family-name">{currentFamily.name}</span>
+        <h2 className="family-management-title">{currentFamily.name} Family</h2>
       </div>
 
       {/* Success/Error Messages */}
