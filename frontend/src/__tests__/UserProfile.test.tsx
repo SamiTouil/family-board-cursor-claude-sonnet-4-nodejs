@@ -474,9 +474,15 @@ describe('UserProfile Remove Member Functionality', () => {
 
     render(<UserProfile onClose={vi.fn()} />);
 
-    // Wait for family data to load
+    // Wait for family data to load and members to be rendered
     await waitFor(() => {
-      expect(screen.getByText('family.members')).toBeInTheDocument();
+      expect(mockFamilyApi.getMembers).toHaveBeenCalledWith('1');
+    });
+
+    // Wait for members to be rendered - look for email addresses which are more reliable
+    await waitFor(() => {
+      expect(screen.getByText('admin@example.com')).toBeInTheDocument();
+      expect(screen.getByText('member@example.com')).toBeInTheDocument();
     });
 
     // Should show remove buttons for members that are not the current user
@@ -491,9 +497,15 @@ describe('UserProfile Remove Member Functionality', () => {
 
     render(<UserProfile onClose={vi.fn()} />);
 
-    // Wait for family data to load
+    // Wait for family data to load and members to be rendered
     await waitFor(() => {
-      expect(screen.getByText('family.members')).toBeInTheDocument();
+      expect(mockFamilyApi.getMembers).toHaveBeenCalledWith('1');
+    });
+
+    // Wait for members to be rendered - look for email addresses which are more reliable
+    await waitFor(() => {
+      expect(screen.getByText('admin@example.com')).toBeInTheDocument();
+      expect(screen.getByText('member@example.com')).toBeInTheDocument();
     });
 
     // Should not show any remove buttons
@@ -514,9 +526,15 @@ describe('UserProfile Remove Member Functionality', () => {
 
     render(<UserProfile onClose={vi.fn()} />);
 
-    // Wait for family data to load
+    // Wait for family data to load and members to be rendered
     await waitFor(() => {
-      expect(screen.getByText('family.members')).toBeInTheDocument();
+      expect(mockFamilyApi.getMembers).toHaveBeenCalledWith('1');
+    });
+
+    // Wait for members to be rendered - look for email addresses which are more reliable
+    await waitFor(() => {
+      expect(screen.getByText('admin@example.com')).toBeInTheDocument();
+      expect(screen.getByText('member@example.com')).toBeInTheDocument();
     });
 
     // Should show remove buttons, but not for the current user (admin)
@@ -537,9 +555,15 @@ describe('UserProfile Remove Member Functionality', () => {
 
     render(<UserProfile onClose={vi.fn()} />);
 
-    // Wait for family data to load
+    // Wait for family data to load and members to be rendered
     await waitFor(() => {
-      expect(screen.getByText('family.members')).toBeInTheDocument();
+      expect(mockFamilyApi.getMembers).toHaveBeenCalledWith('1');
+    });
+
+    // Wait for members to be rendered - look for email addresses which are more reliable
+    await waitFor(() => {
+      expect(screen.getByText('admin@example.com')).toBeInTheDocument();
+      expect(screen.getByText('member@example.com')).toBeInTheDocument();
     });
 
     // Click the first remove button
@@ -574,9 +598,15 @@ describe('UserProfile Remove Member Functionality', () => {
 
     render(<UserProfile onClose={vi.fn()} />);
 
-    // Wait for family data to load
+    // Wait for family data to load and members to be rendered
     await waitFor(() => {
-      expect(screen.getByText('family.members')).toBeInTheDocument();
+      expect(mockFamilyApi.getMembers).toHaveBeenCalledWith('1');
+    });
+
+    // Wait for members to be rendered - look for email addresses which are more reliable
+    await waitFor(() => {
+      expect(screen.getByText('admin@example.com')).toBeInTheDocument();
+      expect(screen.getByText('member@example.com')).toBeInTheDocument();
     });
 
     // Click the first remove button
@@ -613,9 +643,15 @@ describe('UserProfile Remove Member Functionality', () => {
 
     render(<UserProfile onClose={vi.fn()} />);
 
-    // Wait for family data to load
+    // Wait for family data to load and members to be rendered
     await waitFor(() => {
-      expect(screen.getByText('family.members')).toBeInTheDocument();
+      expect(mockFamilyApi.getMembers).toHaveBeenCalledWith('1');
+    });
+
+    // Wait for members to be rendered - look for email addresses which are more reliable
+    await waitFor(() => {
+      expect(screen.getByText('admin@example.com')).toBeInTheDocument();
+      expect(screen.getByText('member@example.com')).toBeInTheDocument();
     });
 
     // Click the first remove button
