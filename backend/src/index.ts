@@ -7,6 +7,7 @@ import { initI18n } from './config/i18n';
 import { userRoutes } from './routes/user.routes';
 import { authRoutes } from './routes/auth.routes';
 import familyRoutes from './routes/family.routes';
+import taskRoutes from './routes/task.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { initializeWebSocket } from './services/websocket.service';
 
@@ -37,6 +38,7 @@ async function startServer(): Promise<void> {
     app.use('/api/auth', authRoutes);
     app.use('/api/users', userRoutes);
     app.use('/api/families', familyRoutes);
+    app.use('/api/tasks', taskRoutes);
 
     // Error handling
     app.use(errorHandler);
