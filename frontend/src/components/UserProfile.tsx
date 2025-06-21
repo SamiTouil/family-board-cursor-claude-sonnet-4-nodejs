@@ -6,6 +6,7 @@ import { useWebSocket } from '../contexts/WebSocketContext';
 import { userApi, familyApi, ChangePasswordData, FamilyMember, FamilyInvite, FamilyJoinRequest, UpdateFamilyData, UpdateVirtualMemberData } from '../services/api';
 import { CustomSelect } from './CustomSelect';
 import { UserAvatar } from './UserAvatar';
+import { RoleTag } from './RoleTag';
 import './UserProfile.css';
 
 interface UserProfileProps {
@@ -1190,17 +1191,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                               <div className="user-profile-member-name">
                                 {memberName}
                                 {isCurrentUser && ` (${t('family.you')})`}
-                                {member.user?.isVirtual ? (
-                                  <span className="user-profile-virtual-badge">
-                                    {t('family.isVirtual')}
-                                  </span>
-                                ) : (
-                                  <span className={`user-profile-role-badge ${
-                                    member.role === 'ADMIN' ? 'user-profile-role-admin' : 'user-profile-role-member'
-                                  }`}>
-                                    {member.role === 'ADMIN' ? t('family.admin') : t('family.member')}
-                                  </span>
-                                )}
+                                <RoleTag 
+                                  role={member.user?.isVirtual ? 'VIRTUAL' : member.role} 
+                                />
                               </div>
                               {member.user?.email && (
                                 <div className="user-profile-member-email">
