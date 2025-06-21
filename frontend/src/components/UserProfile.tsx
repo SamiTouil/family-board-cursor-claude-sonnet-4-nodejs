@@ -683,7 +683,94 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
 
               {/* Family Members */}
               <div className="user-profile-subsection">
-                <h4 className="user-profile-subsection-title">{t('family.members')}</h4>
+                <div className="user-profile-subsection-header">
+                  <h4 className="user-profile-subsection-title">{t('family.members')}</h4>
+                  {isAdmin && (
+                    <button
+                      onClick={() => setShowVirtualMemberForm(!showVirtualMemberForm)}
+                      className="user-profile-button user-profile-button-secondary user-profile-button-sm"
+                      disabled={isLoading}
+                    >
+                      {showVirtualMemberForm ? t('common.cancel') : t('family.createVirtualMember')}
+                    </button>
+                  )}
+                </div>
+
+                {/* Virtual Member Creation Form */}
+                {isAdmin && showVirtualMemberForm && (
+                  <div className="user-profile-virtual-member-form">
+                    <p className="user-profile-help-text">{t('family.virtualMemberDescription')}</p>
+                    <form onSubmit={handleCreateVirtualMember} className="user-profile-form">
+                      <div className="user-profile-form-row">
+                        <div className="user-profile-form-group">
+                          <label htmlFor="virtualFirstName" className="user-profile-label">
+                            {t('user.firstName')}
+                          </label>
+                          <input
+                            type="text"
+                            id="virtualFirstName"
+                            name="firstName"
+                            value={virtualMemberData.firstName}
+                            onChange={handleVirtualMemberInputChange}
+                            className={`user-profile-input ${virtualMemberErrors['firstName'] ? 'user-profile-input-error' : ''}`}
+                            disabled={isLoading}
+                          />
+                          {virtualMemberErrors['firstName'] && (
+                            <span className="user-profile-error">{virtualMemberErrors['firstName']}</span>
+                          )}
+                        </div>
+
+                        <div className="user-profile-form-group">
+                          <label htmlFor="virtualLastName" className="user-profile-label">
+                            {t('user.lastName')}
+                          </label>
+                          <input
+                            type="text"
+                            id="virtualLastName"
+                            name="lastName"
+                            value={virtualMemberData.lastName}
+                            onChange={handleVirtualMemberInputChange}
+                            className={`user-profile-input ${virtualMemberErrors['lastName'] ? 'user-profile-input-error' : ''}`}
+                            disabled={isLoading}
+                          />
+                          {virtualMemberErrors['lastName'] && (
+                            <span className="user-profile-error">{virtualMemberErrors['lastName']}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="user-profile-form-group">
+                        <label htmlFor="virtualAvatarUrl" className="user-profile-label">
+                          {t('user.avatar')} URL ({t('common.optional')})
+                        </label>
+                        <input
+                          type="url"
+                          id="virtualAvatarUrl"
+                          name="avatarUrl"
+                          value={virtualMemberData.avatarUrl}
+                          onChange={handleVirtualMemberInputChange}
+                          className={`user-profile-input ${virtualMemberErrors['avatarUrl'] ? 'user-profile-input-error' : ''}`}
+                          placeholder="https://example.com/avatar.jpg"
+                          disabled={isLoading}
+                        />
+                        {virtualMemberErrors['avatarUrl'] && (
+                          <span className="user-profile-error">{virtualMemberErrors['avatarUrl']}</span>
+                        )}
+                      </div>
+
+                      <div className="user-profile-form-actions">
+                        <button
+                          type="submit"
+                          className="user-profile-button user-profile-button-primary"
+                          disabled={isLoading}
+                        >
+                          {isLoading ? t('common.loading') : t('family.createVirtualMember')}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
                 <div className="user-profile-members-list">
                   {members.map((member) => {
                     const isCurrentUser = member.userId === user?.id;
@@ -873,156 +960,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                   </div>
                 </>
               )}
-
-              {/* Family Members Section */}
-              <div className="user-profile-section">
-                <div className="user-profile-section-header">
-                  <h3 className="user-profile-section-title">{t('family.members')}</h3>
-                  {isAdmin && (
-                    <button
-                      onClick={() => setShowVirtualMemberForm(!showVirtualMemberForm)}
-                      className="user-profile-button user-profile-button-secondary user-profile-button-sm"
-                      disabled={isLoading}
-                    >
-                      {showVirtualMemberForm ? t('common.cancel') : t('family.createVirtualMember')}
-                    </button>
-                  )}
-                </div>
-
-                {/* Virtual Member Creation Form */}
-                {isAdmin && showVirtualMemberForm && (
-                  <div className="user-profile-virtual-member-form">
-                    <p className="user-profile-help-text">{t('family.virtualMemberDescription')}</p>
-                    <form onSubmit={handleCreateVirtualMember} className="user-profile-form">
-                      <div className="user-profile-form-row">
-                        <div className="user-profile-form-group">
-                          <label htmlFor="virtualFirstName" className="user-profile-label">
-                            {t('user.firstName')}
-                          </label>
-                          <input
-                            type="text"
-                            id="virtualFirstName"
-                            name="firstName"
-                            value={virtualMemberData.firstName}
-                            onChange={handleVirtualMemberInputChange}
-                            className={`user-profile-input ${virtualMemberErrors['firstName'] ? 'user-profile-input-error' : ''}`}
-                            disabled={isLoading}
-                          />
-                          {virtualMemberErrors['firstName'] && (
-                            <span className="user-profile-error">{virtualMemberErrors['firstName']}</span>
-                          )}
-                        </div>
-
-                        <div className="user-profile-form-group">
-                          <label htmlFor="virtualLastName" className="user-profile-label">
-                            {t('user.lastName')}
-                          </label>
-                          <input
-                            type="text"
-                            id="virtualLastName"
-                            name="lastName"
-                            value={virtualMemberData.lastName}
-                            onChange={handleVirtualMemberInputChange}
-                            className={`user-profile-input ${virtualMemberErrors['lastName'] ? 'user-profile-input-error' : ''}`}
-                            disabled={isLoading}
-                          />
-                          {virtualMemberErrors['lastName'] && (
-                            <span className="user-profile-error">{virtualMemberErrors['lastName']}</span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="user-profile-form-group">
-                        <label htmlFor="virtualAvatarUrl" className="user-profile-label">
-                          {t('user.avatar')} URL ({t('common.optional')})
-                        </label>
-                        <input
-                          type="url"
-                          id="virtualAvatarUrl"
-                          name="avatarUrl"
-                          value={virtualMemberData.avatarUrl}
-                          onChange={handleVirtualMemberInputChange}
-                          className={`user-profile-input ${virtualMemberErrors['avatarUrl'] ? 'user-profile-input-error' : ''}`}
-                          placeholder="https://example.com/avatar.jpg"
-                          disabled={isLoading}
-                        />
-                        {virtualMemberErrors['avatarUrl'] && (
-                          <span className="user-profile-error">{virtualMemberErrors['avatarUrl']}</span>
-                        )}
-                      </div>
-
-                      <div className="user-profile-form-actions">
-                        <button
-                          type="submit"
-                          className="user-profile-button user-profile-button-primary"
-                          disabled={isLoading}
-                        >
-                          {isLoading ? t('common.loading') : t('family.createVirtualMember')}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-
-                <div className="user-profile-members-list">
-                  {members.map((member) => {
-                    const isCurrentUser = member.userId === user?.id;
-                    const memberName = `${member.user?.firstName} ${member.user?.lastName}`;
-                    
-                    return (
-                      <div key={member.id} className="user-profile-member">
-                        <div className="user-profile-member-info">
-                          <div className="user-profile-member-avatar">
-                            {member.user?.avatarUrl ? (
-                              <img 
-                                src={member.user.avatarUrl} 
-                                alt={memberName}
-                                className="user-profile-avatar-img"
-                              />
-                            ) : (
-                              <div className="user-profile-avatar-placeholder">
-                                {member.user?.firstName?.[0]}{member.user?.lastName?.[0]}
-                              </div>
-                            )}
-                          </div>
-                          <div className="user-profile-member-details">
-                            <div className="user-profile-member-name">
-                              {memberName}
-                              {isCurrentUser && ` (${t('family.you')})`}
-                              {member.user?.isVirtual && (
-                                <span className="user-profile-virtual-badge">
-                                  {t('family.isVirtual')}
-                                </span>
-                              )}
-                            </div>
-                            <div className="user-profile-member-role">
-                              {member.role === 'ADMIN' ? t('family.admin') : t('family.member')}
-                            </div>
-                            {member.user?.email && (
-                              <div className="user-profile-member-email">
-                                {member.user.email}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {isAdmin && !isCurrentUser && (
-                          <div className="user-profile-member-actions">
-                            <button
-                              onClick={() => handleRemoveMember(member.id, memberName)}
-                              className="user-profile-button user-profile-button-danger user-profile-button-sm"
-                              disabled={isLoading}
-                              title={t('family.removeMember')}
-                            >
-                              {t('family.remove')}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
             </section>
           )}
         </div>
