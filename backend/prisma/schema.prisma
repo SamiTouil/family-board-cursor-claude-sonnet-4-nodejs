@@ -44,10 +44,11 @@ model Family {
   creatorId String @map("creator_id")
   creator   User   @relation("FamilyCreator", fields: [creatorId], references: [id], onDelete: Cascade)
 
-  // Family members
+  // Family members and related entities
   members FamilyMember[]
   invites FamilyInvite[]
   joinRequests FamilyJoinRequest[]
+  tasks   Task[]
 
   @@map("families")
 }
@@ -128,4 +129,23 @@ enum FamilyJoinRequestStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model Task {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  color            String   // Hex color code (e.g., "#FF5733")
+  icon             String   // Icon identifier (e.g., "cleaning", "cooking", "shopping")
+  defaultStartTime String   // Time in HH:MM format (UTC) - e.g., "14:30"
+  defaultDuration  Int      // Duration in minutes
+  isActive         Boolean  @default(true) // Soft delete flag
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  familyId String @map("family_id")
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
 } 
