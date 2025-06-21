@@ -125,6 +125,13 @@
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
+.dashboard-content-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
 .dashboard-placeholder {
   text-align: center;
   padding: 3rem 1rem;
@@ -172,6 +179,11 @@
   
   .dashboard-welcome-title {
     font-size: 1.5rem;
+  }
+  
+  .dashboard-content-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 }
 

@@ -163,8 +163,10 @@ describe('Dashboard', () => {
   it('displays user information', () => {
     render(<Dashboard />)
     
-    expect(screen.getByText('John Doe')).toBeDefined()
-    expect(screen.getByText('john@example.com')).toBeDefined()
+    // Check for user name in both UserMenu and UserSummaryCard
+    expect(screen.getAllByText('John Doe')).toHaveLength(2) // UserMenu + UserSummaryCard
+    // Check for email in the header (UserMenu)
+    expect(screen.getAllByText('john@example.com')).toHaveLength(2) // UserMenu + UserSummaryCard
     expect(screen.getByText('Welcome back, John!')).toBeDefined()
   })
 

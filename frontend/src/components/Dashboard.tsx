@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { UserMenu } from './UserMenu';
 import { UserProfile } from './UserProfile';
+import { UserSummaryCard } from './UserSummaryCard';
 import Logo from './Logo';
 import './Dashboard.css';
 
@@ -56,9 +57,13 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="dashboard-content">
-          <div className="dashboard-placeholder">
-            <h3>Coming Soon</h3>
-            <p>Family board features will be implemented here.</p>
+          <div className="dashboard-content-grid">
+            <UserSummaryCard />
+            
+            <div className="dashboard-placeholder">
+              <h3>Coming Soon</h3>
+              <p>Family board features will be implemented here.</p>
+            </div>
           </div>
         </div>
       </main>
