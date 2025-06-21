@@ -225,6 +225,10 @@ export const familyApi = {
   getMembers: (id: string): Promise<{ data: ApiResponse<FamilyMember[]> }> =>
     api.get(`/families/${id}/members`),
   
+  // Remove family member (admin only)
+  removeMember: (familyId: string, memberId: string): Promise<{ data: ApiResponse<{ message: string }> }> =>
+    api.delete(`/families/${familyId}/members/${memberId}`),
+  
   // Get family invites
   getInvites: (id: string): Promise<{ data: ApiResponse<FamilyInvite[]> }> =>
     api.get(`/families/${id}/invites`),

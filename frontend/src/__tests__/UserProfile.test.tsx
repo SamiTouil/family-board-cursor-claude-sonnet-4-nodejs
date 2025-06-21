@@ -1,11 +1,15 @@
 import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { UserProfile } from '../components/UserProfile';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { userApi, familyApi } from '../services/api';
+
+// Setup jest-dom matchers
+import '@testing-library/jest-dom';
 
 // Mock the contexts
 vi.mock('../contexts/AuthContext');
@@ -406,5 +410,264 @@ describe('UserProfile WebSocket Integration', () => {
 
     expect(mockSocket.off).toHaveBeenCalledWith('join-request-created', expect.any(Function));
     expect(mockSocket.off).toHaveBeenCalledWith('member-joined', expect.any(Function));
+  });
+});
+
+describe('UserProfile Remove Member Functionality', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    
+    mockUseAuth.mockReturnValue({
+      user: mockUser,
+      refreshUser: vi.fn(),
+    });
+
+    mockUseWebSocket.mockReturnValue({
+      socket: null,
+      isConnected: false,
+      notifications: [],
+      unreadCount: 0,
+      on: vi.fn(),
+      off: vi.fn(),
+      emit: vi.fn(),
+      addNotification: vi.fn(),
+      markNotificationAsRead: vi.fn(),
+      markAllNotificationsAsRead: vi.fn(),
+      clearNotifications: vi.fn()
+    });
+
+    // Mock successful family data loading
+    mockFamilyApi.getMembers.mockResolvedValue({
+      data: {
+        success: true,
+        data: mockMembers,
+      },
+    });
+
+    mockFamilyApi.getInvites.mockResolvedValue({
+      data: {
+        success: true,
+        data: [],
+      },
+    });
+
+    mockFamilyApi.getJoinRequests.mockResolvedValue({
+      data: {
+        success: true,
+        data: [],
+      },
+    });
+
+    // Mock successful remove member API
+    mockFamilyApi.removeMember.mockResolvedValue({
+      data: {
+        success: true,
+        message: 'Member removed successfully',
+      },
+    });
+  });
+
+  it('shows remove button for admin users on other members', async () => {
+    mockUseFamily.mockReturnValue({
+      currentFamily: mockFamilyAdmin, // ADMIN role
+    });
+
+    render(<UserProfile onClose={vi.fn()} />);
+
+    // Wait for family data to load and members to be rendered
+    await waitFor(() => {
+      expect(mockFamilyApi.getMembers).toHaveBeenCalledWith('1');
+    });
+
+    // Wait for members to be rendered - look for email addresses which are more reliable
+    await waitFor(() => {
+      expect(screen.getByText('admin@example.com')).toBeInTheDocument();
+      expect(screen.getByText('member@example.com')).toBeInTheDocument();
+    });
+
+    // Should show remove buttons for members that are not the current user
+    const removeButtons = screen.getAllByText('family.remove');
+    expect(removeButtons.length).toBeGreaterThan(0);
+  });
+
+  it('does not show remove button for non-admin users', async () => {
+    mockUseFamily.mockReturnValue({
+      currentFamily: mockFamily, // MEMBER role
+    });
+
+    render(<UserProfile onClose={vi.fn()} />);
+
+    // Wait for family data to load and members to be rendered
+    await waitFor(() => {
+      expect(mockFamilyApi.getMembers).toHaveBeenCalledWith('1');
+    });
+
+    // Wait for members to be rendered - look for email addresses which are more reliable
+    await waitFor(() => {
+      expect(screen.getByText('admin@example.com')).toBeInTheDocument();
+      expect(screen.getByText('member@example.com')).toBeInTheDocument();
+    });
+
+    // Should not show any remove buttons
+    expect(screen.queryByText('family.remove')).not.toBeInTheDocument();
+  });
+
+  it('does not show remove button for self', async () => {
+    // Mock user as admin but also as a member in the family
+    const adminUser = { ...mockUser, id: '1' };
+    mockUseAuth.mockReturnValue({
+      user: adminUser,
+      refreshUser: vi.fn(),
+    });
+
+    mockUseFamily.mockReturnValue({
+      currentFamily: mockFamilyAdmin, // ADMIN role
+    });
+
+    render(<UserProfile onClose={vi.fn()} />);
+
+    // Wait for family data to load and members to be rendered
+    await waitFor(() => {
+      expect(mockFamilyApi.getMembers).toHaveBeenCalledWith('1');
+    });
+
+    // Wait for members to be rendered - look for email addresses which are more reliable
+    await waitFor(() => {
+      expect(screen.getByText('admin@example.com')).toBeInTheDocument();
+      expect(screen.getByText('member@example.com')).toBeInTheDocument();
+    });
+
+    // Should show remove buttons, but not for the current user (admin)
+    const removeButtons = screen.getAllByText('family.remove');
+    // Should be fewer buttons than total members (excluding self)
+    expect(removeButtons.length).toBeLessThan(mockMembers.length);
+  });
+
+  it('calls removeMember API when remove button is clicked and confirmed', async () => {
+    // Mock window.confirm to return true
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    mockUseFamily.mockReturnValue({
+      currentFamily: mockFamilyAdmin, // ADMIN role
+    });
+
+    const user = userEvent.setup();
+
+    render(<UserProfile onClose={vi.fn()} />);
+
+    // Wait for family data to load and members to be rendered
+    await waitFor(() => {
+      expect(mockFamilyApi.getMembers).toHaveBeenCalledWith('1');
+    });
+
+    // Wait for members to be rendered - look for email addresses which are more reliable
+    await waitFor(() => {
+      expect(screen.getByText('admin@example.com')).toBeInTheDocument();
+      expect(screen.getByText('member@example.com')).toBeInTheDocument();
+    });
+
+    // Click the first remove button
+    const removeButtons = screen.getAllByText('family.remove');
+    await user.click(removeButtons[0]);
+
+    // Should show confirmation dialog
+    expect(confirmSpy).toHaveBeenCalledWith(
+      expect.stringContaining('family.confirmRemoveMember')
+    );
+
+    // Should call the API
+    await waitFor(() => {
+      expect(mockFamilyApi.removeMember).toHaveBeenCalledWith('1', expect.any(String));
+    });
+
+    // Should reload family data
+    expect(mockFamilyApi.getMembers).toHaveBeenCalledTimes(2); // Initial load + refresh after removal
+
+    confirmSpy.mockRestore();
+  });
+
+  it('does not call removeMember API when removal is cancelled', async () => {
+    // Mock window.confirm to return false
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    mockUseFamily.mockReturnValue({
+      currentFamily: mockFamilyAdmin, // ADMIN role
+    });
+
+    const user = userEvent.setup();
+
+    render(<UserProfile onClose={vi.fn()} />);
+
+    // Wait for family data to load and members to be rendered
+    await waitFor(() => {
+      expect(mockFamilyApi.getMembers).toHaveBeenCalledWith('1');
+    });
+
+    // Wait for members to be rendered - look for email addresses which are more reliable
+    await waitFor(() => {
+      expect(screen.getByText('admin@example.com')).toBeInTheDocument();
+      expect(screen.getByText('member@example.com')).toBeInTheDocument();
+    });
+
+    // Click the first remove button
+    const removeButtons = screen.getAllByText('family.remove');
+    await user.click(removeButtons[0]);
+
+    // Should show confirmation dialog
+    expect(confirmSpy).toHaveBeenCalled();
+
+    // Should NOT call the API
+    expect(mockFamilyApi.removeMember).not.toHaveBeenCalled();
+
+    confirmSpy.mockRestore();
+  });
+
+  it('handles remove member API errors gracefully', async () => {
+    // Mock API to return error
+    mockFamilyApi.removeMember.mockRejectedValue({
+      response: {
+        data: {
+          message: 'Failed to remove member',
+        },
+      },
+    });
+
+    // Mock window.confirm to return true
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    mockUseFamily.mockReturnValue({
+      currentFamily: mockFamilyAdmin, // ADMIN role
+    });
+
+    const user = userEvent.setup();
+
+    render(<UserProfile onClose={vi.fn()} />);
+
+    // Wait for family data to load and members to be rendered
+    await waitFor(() => {
+      expect(mockFamilyApi.getMembers).toHaveBeenCalledWith('1');
+    });
+
+    // Wait for members to be rendered - look for email addresses which are more reliable
+    await waitFor(() => {
+      expect(screen.getByText('admin@example.com')).toBeInTheDocument();
+      expect(screen.getByText('member@example.com')).toBeInTheDocument();
+    });
+
+    // Click the first remove button
+    const removeButtons = screen.getAllByText('family.remove');
+    await user.click(removeButtons[0]);
+
+    // Should call the API and handle error
+    await waitFor(() => {
+      expect(mockFamilyApi.removeMember).toHaveBeenCalled();
+    });
+
+    // Should show error message
+    await waitFor(() => {
+      expect(screen.getByText('Failed to remove member')).toBeInTheDocument();
+    });
+
+    confirmSpy.mockRestore();
   });
 }); 

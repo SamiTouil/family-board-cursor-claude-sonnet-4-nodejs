@@ -41,6 +41,7 @@ jest.mock('@prisma/client', () => {
     familyJoinRequest: {
       findUnique: jest.fn(),
       create: jest.fn(),
+      delete: jest.fn(),
     },
   };
 
@@ -583,6 +584,33 @@ describe('FamilyService', () => {
         'Only family admins can remove members'
       );
     });
+
+    it('should throw error when admin tries to remove themselves', async () => {
+      const adminId = 'admin-1';
+      const familyId = 'family-1';
+      const memberId = 'member-1';
+
+      const mockAdminMembership = {
+        role: 'ADMIN',
+      };
+
+      const mockMemberToRemove = {
+        id: memberId,
+        userId: adminId, // Same as adminId - trying to remove self
+        familyId,
+        family: {
+          creatorId: 'creator-1', // Different from adminId
+        },
+      };
+
+      (mockPrisma.familyMember.findUnique as jest.Mock)
+        .mockResolvedValueOnce(mockAdminMembership)
+        .mockResolvedValueOnce(mockMemberToRemove);
+
+      await expect(FamilyService.removeMember(familyId, adminId, memberId)).rejects.toThrow(
+        'Cannot remove yourself from the family'
+      );
+    });
   });
 
   describe('leaveFamily', () => {
@@ -675,6 +703,109 @@ describe('FamilyService', () => {
       await expect(FamilyService.deleteFamily(familyId, userId)).rejects.toThrow(
         'Family not found'
       );
+    });
+  });
+
+  describe('requestToJoinFamily', () => {
+    it('should allow user to rejoin after being removed (APPROVED -> removed -> new request)', async () => {
+      const userId = 'user-1';
+      const familyId = 'family-1';
+      const inviteCode = 'TEST123';
+
+      // Mock invite
+      const mockInvite = {
+        id: 'invite-1',
+        code: inviteCode,
+        familyId,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day from now
+        receiverId: null,
+      };
+
+      // Mock existing APPROVED join request (user was previously approved but later removed)
+      const mockExistingRequest = {
+        id: 'existing-request-1',
+        status: 'APPROVED',
+        userId,
+        familyId,
+      };
+
+      // Mock the new join request after deletion
+      const mockNewJoinRequest = {
+        id: 'new-request-1',
+        status: 'PENDING',
+        message: 'Please let me rejoin',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        respondedAt: null,
+        user: {
+          id: userId,
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+          avatarUrl: null,
+        },
+        family: {
+          id: familyId,
+          name: 'Test Family',
+        },
+        invite: {
+          id: 'invite-1',
+          code: inviteCode,
+        },
+        reviewer: null,
+      };
+
+      (mockPrisma.familyInvite.findUnique as jest.Mock).mockResolvedValue(mockInvite);
+      (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(null); // Not a member
+      (mockPrisma.familyJoinRequest.findUnique as jest.Mock).mockResolvedValue(mockExistingRequest);
+      (mockPrisma.familyJoinRequest.delete as jest.Mock).mockResolvedValue({});
+      (mockPrisma.familyJoinRequest.create as jest.Mock).mockResolvedValue(mockNewJoinRequest);
+
+      const result = await FamilyService.requestToJoinFamily(userId, {
+        code: inviteCode,
+        message: 'Please let me rejoin',
+      });
+
+      // Should delete the old APPROVED request
+      expect(mockPrisma.familyJoinRequest.delete).toHaveBeenCalledWith({
+        where: { id: 'existing-request-1' },
+      });
+
+      // Should create a new PENDING request
+      expect(mockPrisma.familyJoinRequest.create).toHaveBeenCalledWith({
+        data: {
+          userId,
+          familyId,
+          inviteId: 'invite-1',
+          message: 'Please let me rejoin',
+          status: 'PENDING',
+        },
+        include: expect.any(Object),
+      });
+
+      expect(result.status).toBe('PENDING');
+      expect(result.message).toBe('Please let me rejoin');
+    });
+
+    it('should throw error when user already has pending join request', async () => {
+      const userId = 'user-1';
+      const familyId = 'family-1';
+      const inviteCode = 'TEST123';
+
+      // Mock existing PENDING join request
+      const mockExistingRequest = {
+        id: 'existing-request-1',
+        status: 'PENDING',
+        userId,
+        familyId,
+      };
+
+      (mockPrisma.familyJoinRequest.findUnique as jest.Mock).mockResolvedValue(mockExistingRequest);
+
+      await expect(FamilyService.requestToJoinFamily(userId, {
+        code: inviteCode,
+        message: 'Please let me rejoin',
+      })).rejects.toThrow('You already have a pending join request for this family');
     });
   });
 }); 
