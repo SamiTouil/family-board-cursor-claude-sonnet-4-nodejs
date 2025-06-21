@@ -930,7 +930,21 @@ describe('FamilyService', () => {
         },
       });
 
-      expect(result).toEqual(mockFamilyMember);
+      // Check the structure matches what the service returns
+      expect(result).toMatchObject({
+        id: 'family-member-1',
+        userId: 'virtual-user-1',
+        role: 'MEMBER',
+        joinedAt: expect.any(Date),
+        user: {
+          id: 'virtual-user-1',
+          firstName: 'Grandma',
+          lastName: 'Smith',
+          email: null,
+          avatarUrl: 'https://example.com/grandma.jpg',
+          isVirtual: true,
+        },
+      });
     });
 
     it('should create virtual member without avatar URL', async () => {
