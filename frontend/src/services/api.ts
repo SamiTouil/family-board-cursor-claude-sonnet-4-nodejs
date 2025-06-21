@@ -102,6 +102,12 @@ export interface CreateFamilyData {
   avatarUrl?: string;
 }
 
+export interface UpdateFamilyData {
+  name?: string;
+  description?: string;
+  avatarUrl?: string;
+}
+
 export interface JoinFamilyData {
   code: string;
   message?: string | undefined;
@@ -220,6 +226,10 @@ export const familyApi = {
   // Create a new family
   create: (data: CreateFamilyData): Promise<{ data: ApiResponse<Family> }> =>
     api.post('/families', data),
+  
+  // Update family (admin only)
+  update: (id: string, data: UpdateFamilyData): Promise<{ data: ApiResponse<Family> }> =>
+    api.put(`/families/${id}`, data),
   
   // Join a family using invite code (now creates join request)
   join: (data: JoinFamilyData): Promise<{ data: ApiResponse<FamilyJoinRequest> }> =>

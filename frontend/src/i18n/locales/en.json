@@ -137,6 +137,7 @@
     "description": "Description",
     "avatar": "Family Avatar URL",
     "create": "Create Family",
+    "editButton": "Edit Family",
     "join": "Join Family",
     "inviteCode": "Invite Code",
     "members": "Family Members",
@@ -209,6 +210,18 @@
       "nameTooShort": "Family name must be at least 2 characters",
       "nameTooLong": "Family name must be less than 50 characters",
       "descriptionTooLong": "Description must be less than 200 characters"
+    },
+    "edit": {
+      "title": "Edit Family Details",
+      "subtitle": "Update your family information",
+      "updating": "Updating family...",
+      "updateError": "Failed to update family. Please try again.",
+      "updated": "Family updated successfully",
+      "nameRequired": "Family name is required",
+      "nameTooShort": "Family name must be at least 2 characters",
+      "nameTooLong": "Family name must be less than 50 characters",
+      "descriptionTooLong": "Description must be less than 200 characters",
+      "invalidAvatarUrl": "Please enter a valid URL for the avatar"
     },
     "join": {
       "title": "Join a Family",

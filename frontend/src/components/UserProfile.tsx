@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { useWebSocket } from '../contexts/WebSocketContext';
-import { userApi, familyApi, ChangePasswordData, FamilyMember, FamilyInvite, FamilyJoinRequest } from '../services/api';
+import { userApi, familyApi, ChangePasswordData, FamilyMember, FamilyInvite, FamilyJoinRequest, UpdateFamilyData } from '../services/api';
 import { CustomSelect } from './CustomSelect';
 import { UserAvatar } from './UserAvatar';
 import './UserProfile.css';
@@ -25,7 +25,7 @@ const isValidUrl = (string: string): boolean => {
 export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
   const { t } = useTranslation();
   const { user, refreshUser } = useAuth();
-  const { currentFamily } = useFamily();
+  const { currentFamily, refreshFamilies } = useFamily();
   const { socket } = useWebSocket();
   const modalRef = useRef<HTMLDivElement>(null);
   
@@ -66,6 +66,15 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
   const [virtualMemberErrors, setVirtualMemberErrors] = useState<Record<string, string>>({});
   const [showVirtualMemberForm, setShowVirtualMemberForm] = useState(false);
 
+  // Family editing form state
+  const [familyData, setFamilyData] = useState({
+    name: currentFamily?.name || '',
+    description: currentFamily?.description || '',
+    avatarUrl: currentFamily?.avatarUrl || '',
+  });
+  const [familyErrors, setFamilyErrors] = useState<Record<string, string>>({});
+  const [showFamilyEditForm, setShowFamilyEditForm] = useState(false);
+
   const isAdmin = currentFamily?.userRole === 'ADMIN';
 
   // Click outside to close
@@ -86,6 +95,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
   useEffect(() => {
     if (currentFamily) {
       loadFamilyData();
+    }
+  }, [currentFamily]);
+
+  // Update family form data when currentFamily changes
+  useEffect(() => {
+    if (currentFamily) {
+      setFamilyData({
+        name: currentFamily.name || '',
+        description: currentFamily.description || '',
+        avatarUrl: currentFamily.avatarUrl || '',
+      });
     }
   }, [currentFamily]);
 
@@ -445,6 +465,96 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     }
   };
 
+  const handleFamilyInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFamilyData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+    
+    // Clear error when user starts typing
+    if (familyErrors[name]) {
+      setFamilyErrors(prev => ({
+        ...prev,
+        [name]: '',
+      }));
+    }
+  };
+
+  const validateFamilyForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!familyData.name.trim()) {
+      errors['name'] = t('family.edit.nameRequired');
+    } else if (familyData.name.trim().length < 2) {
+      errors['name'] = t('family.edit.nameTooShort');
+    } else if (familyData.name.trim().length > 50) {
+      errors['name'] = t('family.edit.nameTooLong');
+    }
+
+    if (familyData.description.trim().length > 200) {
+      errors['description'] = t('family.edit.descriptionTooLong');
+    }
+
+    // Validate avatar URL if provided
+    if (familyData.avatarUrl.trim() && !isValidUrl(familyData.avatarUrl.trim())) {
+      errors['avatarUrl'] = t('family.edit.invalidAvatarUrl');
+    }
+
+    setFamilyErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleUpdateFamily = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!currentFamily || !validateFamilyForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+    setMessage(null);
+    
+    try {
+      const updateData: UpdateFamilyData = {
+        name: familyData.name.trim(),
+      };
+
+      if (familyData.description.trim()) {
+        updateData.description = familyData.description.trim();
+      }
+
+      if (familyData.avatarUrl.trim()) {
+        updateData.avatarUrl = familyData.avatarUrl.trim();
+      }
+
+      await familyApi.update(currentFamily.id, updateData);
+      
+      // Close form
+      setShowFamilyEditForm(false);
+      
+      // Refresh family data in context
+      await refreshFamilies();
+      
+      // Also refresh local family data
+      await loadFamilyData();
+      
+      // Show success message
+      setMessage({ 
+        type: 'success', 
+        text: t('family.edit.updated') 
+      });
+      
+    } catch (error: any) {
+      setMessage({ 
+        type: 'error', 
+        text: error.response?.data?.message || t('family.edit.updateError') 
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!user) {
     return null;
   }
@@ -681,18 +791,105 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                 <span className="user-profile-family-name">{currentFamily.name}</span>
               </div>
 
+              {/* Family Edit Form - Admin only */}
+              {isAdmin && showFamilyEditForm && (
+                <div className="user-profile-subsection">
+                  <div className="user-profile-subsection-header">
+                    <h4 className="user-profile-subsection-title">{t('family.edit.title')}</h4>
+                  </div>
+                  <p className="user-profile-help-text">{t('family.edit.subtitle')}</p>
+                  <form onSubmit={handleUpdateFamily} className="user-profile-form">
+                    <div className="user-profile-form-group">
+                      <label htmlFor="familyName" className="user-profile-label">
+                        {t('family.name')}
+                      </label>
+                      <input
+                        type="text"
+                        id="familyName"
+                        name="name"
+                        value={familyData.name}
+                        onChange={handleFamilyInputChange}
+                        className={`user-profile-input ${familyErrors['name'] ? 'user-profile-input-error' : ''}`}
+                        placeholder={t('family.create.namePlaceholder')}
+                        disabled={isLoading}
+                      />
+                      {familyErrors['name'] && (
+                        <span className="user-profile-error">{familyErrors['name']}</span>
+                      )}
+                    </div>
+
+                    <div className="user-profile-form-group">
+                      <label htmlFor="familyDescription" className="user-profile-label">
+                        {t('family.description')} ({t('common.optional')})
+                      </label>
+                      <textarea
+                        id="familyDescription"
+                        name="description"
+                        value={familyData.description}
+                        onChange={handleFamilyInputChange}
+                        className={`user-profile-input ${familyErrors['description'] ? 'user-profile-input-error' : ''}`}
+                        placeholder={t('family.create.descriptionPlaceholder')}
+                        rows={3}
+                        disabled={isLoading}
+                      />
+                      {familyErrors['description'] && (
+                        <span className="user-profile-error">{familyErrors['description']}</span>
+                      )}
+                    </div>
+
+                    <div className="user-profile-form-group">
+                      <label htmlFor="familyAvatarUrl" className="user-profile-label">
+                        {t('family.avatar')} ({t('common.optional')})
+                      </label>
+                      <input
+                        type="url"
+                        id="familyAvatarUrl"
+                        name="avatarUrl"
+                        value={familyData.avatarUrl}
+                        onChange={handleFamilyInputChange}
+                        className={`user-profile-input ${familyErrors['avatarUrl'] ? 'user-profile-input-error' : ''}`}
+                        placeholder="https://example.com/family-avatar.jpg"
+                        disabled={isLoading}
+                      />
+                      {familyErrors['avatarUrl'] && (
+                        <span className="user-profile-error">{familyErrors['avatarUrl']}</span>
+                      )}
+                    </div>
+
+                    <div className="user-profile-form-actions">
+                      <button
+                        type="submit"
+                        className="user-profile-button user-profile-button-primary"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? t('family.edit.updating') : t('common.save')}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
               {/* Family Members */}
               <div className="user-profile-subsection">
                 <div className="user-profile-subsection-header">
                   <h4 className="user-profile-subsection-title">{t('family.members')}</h4>
                   {isAdmin && (
-                    <button
-                      onClick={() => setShowVirtualMemberForm(!showVirtualMemberForm)}
-                      className="user-profile-button user-profile-button-secondary user-profile-button-sm"
-                      disabled={isLoading}
-                    >
-                      {showVirtualMemberForm ? t('common.cancel') : t('family.createVirtualMember')}
-                    </button>
+                    <div className="user-profile-button-group">
+                      <button
+                        onClick={() => setShowFamilyEditForm(!showFamilyEditForm)}
+                        className="user-profile-button user-profile-button-secondary user-profile-button-sm"
+                        disabled={isLoading}
+                      >
+                        {showFamilyEditForm ? t('common.cancel') : t('family.editButton')}
+                      </button>
+                      <button
+                        onClick={() => setShowVirtualMemberForm(!showVirtualMemberForm)}
+                        className="user-profile-button user-profile-button-secondary user-profile-button-sm"
+                        disabled={isLoading}
+                      >
+                        {showVirtualMemberForm ? t('common.cancel') : t('family.createVirtualMember')}
+                      </button>
+                    </div>
                   )}
                 </div>
 
