@@ -10,6 +10,7 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import TasksPage from './pages/TasksPage';
+import FamilyPage from './pages/FamilyPage';
 import './App.css';
 
 const AppContent: React.FC = () => {
@@ -37,6 +38,7 @@ const AppContent: React.FC = () => {
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<HomePage />} />
+        <Route path="family" element={<FamilyPage />} />
         <Route path="tasks" element={<TasksPage />} />
       </Route>
     </Routes>

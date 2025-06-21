@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { HomeIcon, TasksIcon } from './icons';
+import { HomeIcon, FamilyIcon, TasksIcon } from './icons';
 import './Navigation.css';
 
 const Navigation: React.FC = () => {
@@ -12,6 +12,11 @@ const Navigation: React.FC = () => {
       path: '/',
       icon: HomeIcon,
       label: 'Home'
+    },
+    {
+      path: '/family',
+      icon: FamilyIcon,
+      label: 'Family'
     },
     {
       path: '/tasks',
