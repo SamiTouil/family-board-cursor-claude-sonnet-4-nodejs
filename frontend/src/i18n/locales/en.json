@@ -91,7 +91,8 @@
     "emailNotEditable": "Email cannot be changed",
     "changingPassword": "Changing Password...",
     "validation": {
-      "currentPasswordRequired": "Current password is required"
+      "currentPasswordRequired": "Current password is required",
+      "invalidAvatarUrl": "Please enter a valid URL for your avatar"
     },
     "familyManagement": "Family Management",
     "familyMembers": "Family Members",
