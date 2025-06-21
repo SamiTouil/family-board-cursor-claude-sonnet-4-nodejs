@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { UserMenu } from './UserMenu';
 import { UserProfile } from './UserProfile';
 import Navigation from './Navigation';
-import LogoReversed from './LogoReversed';
+import Logo from './Logo';
 import './Layout.css';
 
 const Layout: React.FC = () => {
@@ -18,14 +18,18 @@ const Layout: React.FC = () => {
   return (
     <div className="layout">
       <header className="layout-header">
-        <div className="layout-header-left">
-          <LogoReversed />
-        </div>
-        
-        <Navigation />
-        
-        <div className="layout-header-right">
-          <UserMenu onEditProfile={() => setShowUserProfile(true)} />
+        <div className="layout-header-container">
+          <div className="layout-header-left">
+            <Logo />
+          </div>
+          
+          <Navigation />
+          
+          <div className="layout-header-right">
+            <UserMenu 
+              onEditProfile={() => setShowUserProfile(true)}
+            />
+          </div>
         </div>
       </header>
       

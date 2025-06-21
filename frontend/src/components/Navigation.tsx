@@ -41,7 +41,10 @@ const Navigation: React.FC = () => {
             disabled={active}
             title={item.label}
           >
-            <IconComponent size={28} />
+            <div className="navigation-icon">
+              <IconComponent size={28} />
+            </div>
+            <span className="navigation-label">{item.label}</span>
           </button>
         );
       })}

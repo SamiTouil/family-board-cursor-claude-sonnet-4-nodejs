@@ -17,8 +17,11 @@
 }
 
 .tasks-page {
+  background-color: #f9fafb;
+  padding: 0.5rem 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .tasks-content {
@@ -26,6 +29,7 @@
   border-radius: 12px;
   padding: 2rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex: 1;
 }
 
 .placeholder-content {
@@ -43,4 +47,25 @@
 .placeholder-content p {
   font-size: 1rem;
   line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tasks-page {
+    padding: 0.5rem 1rem;
+  }
+  
+  .tasks-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tasks-page {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .tasks-content {
+    padding: 1rem;
+  }
 }
