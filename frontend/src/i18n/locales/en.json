@@ -164,6 +164,7 @@
     "virtualMembers": "Virtual Members",
     "createVirtualMember": "Add Virtual Member",
     "virtualMemberCreated": "Virtual member added successfully",
+    "virtualMemberCreateError": "Failed to create virtual member",
     "virtualMemberDescription": "Virtual members are family members who don't use the app but can be assigned tasks",
     "isVirtual": "Virtual Member",
     "inviteEmail": "Email Address",

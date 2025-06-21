@@ -406,6 +406,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     }
 
     setIsLoading(true);
+    setMessage(null);
+    
     try {
       const virtualMemberPayload: any = {
         firstName: virtualMemberData.firstName.trim(),
@@ -428,12 +430,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
       await loadFamilyData();
       
       // Show success message
-      // You might want to add a toast notification here
-      console.log(t('family.virtualMemberCreated'));
+      setMessage({ 
+        type: 'success', 
+        text: t('family.virtualMemberCreated') 
+      });
       
-    } catch (error) {
-      console.error('Failed to create virtual member:', error);
-      // Handle error - you might want to show an error message
+    } catch (error: any) {
+      setMessage({ 
+        type: 'error', 
+        text: error.response?.data?.message || t('family.virtualMemberCreateError') 
+      });
     } finally {
       setIsLoading(false);
     }
