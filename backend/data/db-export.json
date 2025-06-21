@@ -1,17 +1,6 @@
 {
   "users": [
     {
-      "id": "cmc66ntmr0006ap3efbtkn388",
-      "firstName": "Grandmother",
-      "lastName": "Smith",
-      "email": null,
-      "password": null,
-      "avatarUrl": "https://example.com/avatar.jpg",
-      "isVirtual": true,
-      "createdAt": "2025-06-21T11:56:24.387Z",
-      "updatedAt": "2025-06-21T11:56:24.387Z"
-    },
-    {
       "id": "cmc66osup0009ap3euxjtgzu5",
       "firstName": "Sami",
       "lastName": "Touil",
@@ -28,7 +17,7 @@
       "lastName": "Maria",
       "email": null,
       "password": null,
-      "avatarUrl": null,
+      "avatarUrl": "https://www.maison-bianchi.fr/globalflexit/images/UserFiles/Image/860_860_1_maria-bianchi-2-1.jpg",
       "isVirtual": true,
       "createdAt": "2025-06-21T11:57:51.046Z",
       "updatedAt": "2025-06-21T11:57:51.046Z"
@@ -39,7 +28,7 @@
       "lastName": "Magdeleine",
       "email": null,
       "password": null,
-      "avatarUrl": null,
+      "avatarUrl": "https://www.biscuits-mistral.fr/wp-content/uploads/2023/06/Madeleine-coquille-001-450x450.jpg",
       "isVirtual": true,
       "createdAt": "2025-06-21T14:07:26.060Z",
       "updatedAt": "2025-06-21T14:07:26.060Z"
@@ -61,7 +50,7 @@
       "lastName": "LPCR",
       "email": null,
       "password": null,
-      "avatarUrl": null,
+      "avatarUrl": "https://is3-ssl.mzstatic.com/image/thumb/Purple125/v4/f2/2b/d6/f22bd6f8-1540-2903-991c-ded7f39cfabf/AppIcon-0-0-1x_U007emarketing-0-0-0-6-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/512x512bb.jpg",
       "isVirtual": true,
       "createdAt": "2025-06-21T14:25:47.845Z",
       "updatedAt": "2025-06-21T14:25:47.845Z"

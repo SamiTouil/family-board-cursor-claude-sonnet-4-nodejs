@@ -746,7 +746,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     <div className="user-profile-overlay">
       <div className="user-profile-modal" ref={modalRef}>
         <div className="user-profile-header">
-          <h2 className="user-profile-title">{t('user.profile')}</h2>
+          <h2 className="user-profile-title">{t('user.settings')}</h2>
           <button
             onClick={onClose}
             className="user-profile-close"
