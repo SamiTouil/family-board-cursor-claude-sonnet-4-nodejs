@@ -44,22 +44,10 @@ export const Dashboard: React.FC = () => {
       </header>
 
       <main className="dashboard-main">
-        <div className="dashboard-welcome">
-          <h2 className="dashboard-welcome-title">
-            Welcome back, {user.firstName}!
-          </h2>
-          <p className="dashboard-welcome-text">
-            {currentFamily 
-              ? `Welcome to ${currentFamily.name}'s board. This is where you'll manage your family's tasks and activities.`
-              : "Welcome to your family board. This is where you'll manage your family's tasks and activities."
-            }
-          </p>
-        </div>
-
-        <div className="dashboard-content">
-          <div className="dashboard-content-grid">
-            <UserSummaryCard />
-            
+        <div className="dashboard-top-section">
+          <UserSummaryCard />
+          
+          <div className="dashboard-content">
             <div className="dashboard-placeholder">
               <h3>Coming Soon</h3>
               <p>Family board features will be implemented here.</p>

@@ -66,7 +66,7 @@ vi.mock('../components/family/FamilyOnboarding', () => ({
   FamilyOnboarding: () => <div data-testid="family-onboarding">Family Onboarding</div>,
 }))
 
-vi.mock('../components/dashboard/Dashboard', () => ({
+vi.mock('../components/Dashboard', () => ({
   Dashboard: () => <div data-testid="dashboard">Dashboard</div>,
 }))
 
@@ -153,9 +153,8 @@ describe('App', () => {
     
     render(<App />)
     
-    // Check for dashboard content instead of test id
-    expect(screen.getByText('Welcome back, John!')).toBeDefined()
-    expect(screen.getAllByText('john@example.com')).toHaveLength(2) // UserMenu + UserSummaryCard
+    // Check for dashboard component
+    expect(screen.getByTestId('dashboard')).toBeDefined()
   })
 
   it('renders without crashing', () => {

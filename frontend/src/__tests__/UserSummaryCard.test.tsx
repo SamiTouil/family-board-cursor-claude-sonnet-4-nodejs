@@ -35,6 +35,7 @@ describe('UserSummaryCard', () => {
   const mockFamily = {
     id: '1',
     name: 'Test Family',
+    description: 'A wonderful family board for testing',
     userRole: 'ADMIN' as const,
     createdAt: '2023-01-01T00:00:00Z',
     updatedAt: '2023-01-01T00:00:00Z',
@@ -85,6 +86,12 @@ describe('UserSummaryCard', () => {
     
     // Check if email is displayed
     expect(screen.getByText('john.doe@example.com')).toBeInTheDocument();
+    
+    // Check if family name is displayed
+    expect(screen.getByText('Test Family')).toBeInTheDocument();
+    
+    // Check if family description is displayed
+    expect(screen.getByText('A wonderful family board for testing')).toBeInTheDocument();
     
     // Check if role is displayed
     expect(screen.getByText('ADMIN')).toBeInTheDocument();
@@ -282,5 +289,79 @@ describe('UserSummaryCard', () => {
     // Check info section
     const infoSection = card?.querySelector('.user-summary-card-info');
     expect(infoSection).toBeInTheDocument();
+  });
+
+  it('displays family information correctly', () => {
+    mockUseAuth.mockReturnValue({
+      user: mockUser,
+      loading: false,
+      login: vi.fn(),
+      signup: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+      isAuthenticated: true
+    });
+
+    mockUseFamily.mockReturnValue({
+      currentFamily: mockFamily,
+      families: [mockFamily],
+      loading: false,
+      hasCompletedOnboarding: true,
+      pendingJoinRequests: [],
+      approvalNotification: null,
+      createFamily: vi.fn(),
+      joinFamily: vi.fn(),
+      setCurrentFamily: vi.fn(),
+      refreshFamilies: vi.fn(),
+      loadPendingJoinRequests: vi.fn(),
+      cancelJoinRequest: vi.fn(),
+      dismissApprovalNotification: vi.fn()
+    });
+
+    render(<UserSummaryCard />);
+
+    // Check if family name is displayed
+    expect(screen.getByText('Test Family')).toBeInTheDocument();
+    
+    // Check if family description is displayed
+    expect(screen.getByText('A wonderful family board for testing')).toBeInTheDocument();
+  });
+
+  it('handles family without description', () => {
+    const familyWithoutDescription = { ...mockFamily, description: undefined };
+    
+    mockUseAuth.mockReturnValue({
+      user: mockUser,
+      loading: false,
+      login: vi.fn(),
+      signup: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+      isAuthenticated: true
+    });
+
+    mockUseFamily.mockReturnValue({
+      currentFamily: familyWithoutDescription,
+      families: [familyWithoutDescription],
+      loading: false,
+      hasCompletedOnboarding: true,
+      pendingJoinRequests: [],
+      approvalNotification: null,
+      createFamily: vi.fn(),
+      joinFamily: vi.fn(),
+      setCurrentFamily: vi.fn(),
+      refreshFamilies: vi.fn(),
+      loadPendingJoinRequests: vi.fn(),
+      cancelJoinRequest: vi.fn(),
+      dismissApprovalNotification: vi.fn()
+    });
+
+    render(<UserSummaryCard />);
+
+    // Check if family name is displayed
+    expect(screen.getByText('Test Family')).toBeInTheDocument();
+    
+    // Check if family description is not displayed
+    expect(screen.queryByText('A wonderful family board for testing')).not.toBeInTheDocument();
   });
 }); 

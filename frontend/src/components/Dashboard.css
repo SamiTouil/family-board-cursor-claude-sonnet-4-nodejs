@@ -123,9 +123,10 @@
   border-radius: 12px;
   padding: 2rem;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  flex: 1;
 }
 
-.dashboard-content-grid {
+.dashboard-top-section {
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 2rem;
@@ -181,7 +182,7 @@
     font-size: 1.5rem;
   }
   
-  .dashboard-content-grid {
+  .dashboard-top-section {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
@@ -211,5 +212,9 @@
   
   .dashboard-welcome-title {
     font-size: 1.25rem;
+  }
+  
+  .dashboard-top-section {
+    gap: 1rem;
   }
 } 

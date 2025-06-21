@@ -38,12 +38,21 @@ export const UserSummaryCard: React.FC = () => {
           </p>
           
           {currentFamily && (
-            <div className="user-summary-card-role">
+            <>
+              <p className="user-summary-card-family-name">{currentFamily.name}</p>
+              {currentFamily.description && (
+                <p className="user-summary-card-family-description">{currentFamily.description}</p>
+              )}
+            </>
+          )}
+          
+          <div className="user-summary-card-role">
+            {currentFamily && (
               <span className="user-summary-card-role-tag">
                 {currentFamily.userRole || 'Member'}
               </span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
