@@ -66,7 +66,7 @@ vi.mock('../components/family/FamilyOnboarding', () => ({
   FamilyOnboarding: () => <div data-testid="family-onboarding">Family Onboarding</div>,
 }))
 
-vi.mock('../components/dashboard/Dashboard', () => ({
+vi.mock('../components/Dashboard', () => ({
   Dashboard: () => <div data-testid="dashboard">Dashboard</div>,
 }))
 
@@ -138,18 +138,23 @@ describe('App', () => {
     mockFamilyContext.families = [{
       id: 'family-1',
       name: 'Test Family',
-      description: null,
-      avatarUrl: null,
+      description: undefined,
+      avatarUrl: undefined,
       createdAt: '2023-01-01T00:00:00Z',
       updatedAt: '2023-01-01T00:00:00Z',
-      createdBy: '1',
+      creator: {
+        id: '1',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com'
+      },
+      memberCount: 1
     }]
     
     render(<App />)
     
-    // Check for dashboard content instead of test id
-    expect(screen.getByText('Welcome back, John!')).toBeDefined()
-    expect(screen.getByText('john@example.com')).toBeDefined()
+    // Check for dashboard component
+    expect(screen.getByTestId('dashboard')).toBeDefined()
   })
 
   it('renders without crashing', () => {

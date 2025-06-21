@@ -127,7 +127,7 @@ describe('Dashboard', () => {
     expect(document.title).toBe('Smith Family Board')
   })
 
-  it('displays family-specific welcome message', () => {
+  it('displays family-specific title and content', () => {
     const mockFamily: Family = {
       id: 'family-1',
       name: 'Johnson Family',
@@ -149,23 +149,31 @@ describe('Dashboard', () => {
     
     render(<Dashboard />)
     
-    expect(screen.getByText("Welcome to Johnson Family's board. This is where you'll manage your family's tasks and activities.")).toBeDefined()
+    // Check for family name in title
+    expect(screen.getByText('Johnson Family Board')).toBeDefined()
+    // Check for family name in UserSummaryCard
+    expect(screen.getByText('Johnson Family')).toBeDefined()
+    // Check for family description in UserSummaryCard
+    expect(screen.getByText('A test family')).toBeDefined()
   })
 
-  it('displays generic welcome message when no current family', () => {
+  it('displays Coming Soon placeholder', () => {
     mockFamilyContext.currentFamily = null
     
     render(<Dashboard />)
     
-    expect(screen.getByText("Welcome to your family board. This is where you'll manage your family's tasks and activities.")).toBeDefined()
+    // Check for the Coming Soon placeholder
+    expect(screen.getByText('Coming Soon')).toBeDefined()
+    expect(screen.getByText('Family board features will be implemented here.')).toBeDefined()
   })
 
-  it('displays user information', () => {
+  it('displays user information in UserSummaryCard and UserMenu', () => {
     render(<Dashboard />)
     
-    expect(screen.getByText('John Doe')).toBeDefined()
-    expect(screen.getByText('john@example.com')).toBeDefined()
-    expect(screen.getByText('Welcome back, John!')).toBeDefined()
+    // Check for user name in both UserMenu and UserSummaryCard
+    expect(screen.getAllByText('John Doe')).toHaveLength(2) // UserMenu + UserSummaryCard
+    // Check for email in both UserMenu and UserSummaryCard
+    expect(screen.getAllByText('john@example.com')).toHaveLength(2) // UserMenu + UserSummaryCard
   })
 
   it('displays clickable user avatar', () => {
