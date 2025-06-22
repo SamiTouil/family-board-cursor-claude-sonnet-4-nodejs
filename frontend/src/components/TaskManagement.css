@@ -260,7 +260,7 @@
   gap: 8px;
   padding: 8px 12px;
   background: #fafafa;
-  border: 1px solid #e5e7eb;
+  border: 2px solid #e5e7eb;
   border-radius: 6px;
   transition: all 0.2s ease;
   width: fit-content;
@@ -273,13 +273,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.task-management-task-color {
-  width: 3px;
-  height: 100%;
-  min-height: 24px;
-  border-radius: 1px;
-  flex-shrink: 0;
-}
+
 
 .task-management-task-info {
   flex: 1;
@@ -424,12 +418,6 @@
   .task-management-task-actions {
     width: 100%;
     justify-content: flex-end;
-  }
-
-  .task-management-task-color {
-    width: 100%;
-    height: 4px;
-    min-height: 4px;
   }
 }
 
