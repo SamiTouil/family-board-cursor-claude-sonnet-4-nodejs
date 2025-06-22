@@ -403,6 +403,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .task-management-task-icon {
@@ -421,6 +423,11 @@
   font-weight: 600;
   color: #111827;
   margin: 0 8px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .task-management-task-meta {

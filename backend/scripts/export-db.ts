@@ -10,6 +10,7 @@ interface DbExport {
   familyMembers: any[];
   familyInvites: any[];
   familyJoinRequests: any[];
+  tasks: any[];
   exportedAt: string;
 }
 
@@ -18,7 +19,7 @@ async function exportDatabase(): Promise<void> {
 
   try {
     // Export all data with relationships
-    const [users, families, familyMembers, familyInvites, familyJoinRequests] = await Promise.all([
+    const [users, families, familyMembers, familyInvites, familyJoinRequests, tasks] = await Promise.all([
       prisma.user.findMany({
         orderBy: { createdAt: 'asc' }
       }),
@@ -33,6 +34,9 @@ async function exportDatabase(): Promise<void> {
       }),
       prisma.familyJoinRequest.findMany({
         orderBy: { createdAt: 'asc' }
+      }),
+      prisma.task.findMany({
+        orderBy: { createdAt: 'asc' }
       })
     ]);
 
@@ -42,6 +46,7 @@ async function exportDatabase(): Promise<void> {
       familyMembers,
       familyInvites,
       familyJoinRequests,
+      tasks,
       exportedAt: new Date().toISOString()
     };
 
@@ -63,6 +68,7 @@ async function exportDatabase(): Promise<void> {
     console.log(`   - Family Members: ${familyMembers.length}`);
     console.log(`   - Family Invites: ${familyInvites.length}`);
     console.log(`   - Join Requests: ${familyJoinRequests.length}`);
+    console.log(`   - Tasks: ${tasks.length}`);
 
   } catch (error) {
     console.error('❌ Export failed:', error);

@@ -11,6 +11,7 @@ interface DbExport {
   familyMembers: any[];
   familyInvites: any[];
   familyJoinRequests: any[];
+  tasks: any[];
   exportedAt: string;
 }
 
@@ -112,6 +113,32 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
     });
   }
   console.log(`✅ Seeded ${exportData.familyJoinRequests.length} join requests`);
+
+  // Seed tasks (depend on families)
+  if (exportData.tasks && exportData.tasks.length > 0) {
+    for (const taskData of exportData.tasks) {
+      await prisma.task.upsert({
+        where: { id: taskData.id },
+        update: {},
+        create: {
+          id: taskData.id,
+          name: taskData.name,
+          description: taskData.description,
+          color: taskData.color,
+          icon: taskData.icon,
+          defaultStartTime: taskData.defaultStartTime,
+          defaultDuration: taskData.defaultDuration,
+          isActive: taskData.isActive,
+          familyId: taskData.familyId,
+          createdAt: taskData.createdAt,
+          updatedAt: taskData.updatedAt,
+        },
+      });
+    }
+    console.log(`✅ Seeded ${exportData.tasks.length} tasks`);
+  } else {
+    console.log(`ℹ️ No tasks to seed`);
+  }
 
   console.log(`🎉 Successfully seeded database from export (${exportData.exportedAt})`);
 }
