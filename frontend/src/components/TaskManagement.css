@@ -351,22 +351,24 @@
 /* Tasks List */
 .task-management-tasks-list {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
 }
 
 .task-management-task {
   position: relative;
-  display: inline-flex;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 12px;
   background: #fafafa;
   border: 2px solid #e5e7eb;
-  border-radius: 6px;
+  border-radius: 8px;
   transition: all 0.2s ease;
-  width: fit-content;
-  max-width: 100%;
+  width: 280px;
+  min-height: 120px;
+  flex-shrink: 0;
 }
 
 .task-management-task:hover {
@@ -456,9 +458,9 @@
 
 .task-management-task-actions {
   position: absolute;
-  top: 50%;
+  top: 8px;
   right: 8px;
-  transform: translateY(-50%) translateX(100%);
+  transform: translateX(100%);
   display: flex;
   gap: 4px;
   opacity: 0;
@@ -467,7 +469,7 @@
 }
 
 .task-management-task:hover .task-management-task-actions {
-  transform: translateY(-50%) translateX(0);
+  transform: translateX(0);
   opacity: 1;
 }
 
@@ -542,6 +544,19 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+  .task-management-task {
+    width: 240px;
+  }
+}
+
+@media (max-width: 900px) {
+  .task-management-task {
+    width: 200px;
+    min-height: 100px;
+  }
+}
+
 @media (max-width: 768px) {
   .task-management-header {
     padding: 0 1rem;
@@ -580,16 +595,13 @@
     flex-direction: column;
   }
 
-  .task-management-task {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+  .task-management-tasks-list {
+    gap: 8px;
   }
 
-  .task-management-task-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  .task-management-task {
+    width: 100%;
+    min-height: auto;
   }
 
   .task-management-task-actions {
@@ -597,6 +609,7 @@
     transform: none;
     opacity: 1;
     margin-left: auto;
+    margin-top: -4px;
   }
 }
 
