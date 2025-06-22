@@ -1,7 +1,7 @@
 /* Dashboard Styles */
 .dashboard {
   background-color: #f9fafb;
-  padding: 0.5rem 2rem;
+  padding: 0.5rem 2rem 0.5rem 10px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -42,7 +42,7 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .dashboard {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1rem 0.5rem 10px;
   }
   
   .dashboard-top-section {
@@ -57,7 +57,7 @@
 
 @media (max-width: 480px) {
   .dashboard {
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 0.75rem 0.5rem 10px;
   }
   
   .dashboard-content {
