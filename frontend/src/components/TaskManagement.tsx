@@ -56,35 +56,8 @@ export const TaskManagement: React.FC = () => {
       // const response = await taskApi.getByFamily(currentFamily.id);
       // setTasks(response.data.data);
       
-      // Mock data for now
-      setTasks([
-        {
-          id: '1',
-          name: 'Clean Kitchen',
-          description: 'Clean counters, dishes, and appliances',
-          color: '#FF5733',
-          icon: 'cleaning',
-          defaultStartTime: '09:00',
-          defaultDuration: 30,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          familyId: currentFamily.id,
-        },
-        {
-          id: '2',
-          name: 'Grocery Shopping',
-          description: 'Weekly grocery shopping',
-          color: '#33FF57',
-          icon: 'shopping',
-          defaultStartTime: '10:00',
-          defaultDuration: 60,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          familyId: currentFamily.id,
-        },
-      ]);
+      // Start with empty task list - tasks will be added when created by user
+      setTasks([]);
     } catch (error) {
       console.error('Error loading tasks:', error);
       setMessage({ type: 'error', text: t('tasks.loadError') });
