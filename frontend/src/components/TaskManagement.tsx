@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useFamily } from '../contexts/FamilyContext';
-import { taskApi, Task, CreateTaskData, dayTemplateApi, DayTemplate, DayTemplateItem, CreateDayTemplateData } from '../services/api';
+import { taskApi, Task, CreateTaskData, dayTemplateApi, DayTemplate, DayTemplateItem, CreateDayTemplateData, FamilyMember, familyApi } from '../services/api';
 import { TaskAssignmentCard } from './TaskAssignmentCard';
 import './TaskManagement.css';
 
@@ -33,6 +33,7 @@ export const TaskManagement: React.FC = () => {
   // DayTemplate state
   const [templates, setTemplates] = useState<DayTemplate[]>([]);
   const [templateItems, setTemplateItems] = useState<Record<string, DayTemplateItem[]>>({});
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
 
   const [addingTemplate, setAddingTemplate] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<DayTemplate | null>(null);
@@ -43,6 +44,16 @@ export const TaskManagement: React.FC = () => {
   const [templateErrors, setTemplateErrors] = useState<Record<string, string>>({});
   const [showTemplateItems, setShowTemplateItems] = useState<Record<string, boolean>>({});
 
+  // Template item form state
+  const [addingTemplateItem, setAddingTemplateItem] = useState<string | null>(null); // templateId when adding
+  const [templateItemData, setTemplateItemData] = useState({
+    taskId: '',
+    memberId: '',
+    overrideTime: '',
+    overrideDuration: ''
+  });
+  const [templateItemErrors, setTemplateItemErrors] = useState<Record<string, string>>({});
+
   // Check if user is admin (can create/manage tasks)
   const isAdmin = currentFamily?.userRole === 'ADMIN';
 
@@ -50,6 +61,7 @@ export const TaskManagement: React.FC = () => {
     if (currentFamily) {
       loadTasks();
       loadTemplates();
+      loadFamilyMembers();
     }
   }, [currentFamily]);
 
@@ -75,6 +87,17 @@ export const TaskManagement: React.FC = () => {
       setTemplates(response.data.templates);
     } catch (error) {
       console.error('Error loading templates:', error);
+    }
+  };
+
+  const loadFamilyMembers = async () => {
+    if (!currentFamily) return;
+    
+    try {
+      const response = await familyApi.getMembers(currentFamily.id);
+      setFamilyMembers(response.data.data);
+    } catch (error) {
+      console.error('Error loading family members:', error);
     }
   };
 
@@ -386,7 +409,8 @@ export const TaskManagement: React.FC = () => {
 
     console.log('Creating template with data:', {
       familyId: currentFamily.id,
-      templateData: templateData
+      templateData: templateData,
+      userToken: localStorage.getItem('token') ? 'present' : 'missing'
     });
 
     setIsLoading(true);
@@ -401,6 +425,8 @@ export const TaskManagement: React.FC = () => {
       }
 
       console.log('Sending API request with:', createData);
+      console.log('API URL will be:', `/api/families/${currentFamily.id}/day-templates`);
+      
       const response = await dayTemplateApi.create(currentFamily.id, createData);
       console.log('API response:', response);
 
@@ -414,8 +440,20 @@ export const TaskManagement: React.FC = () => {
       handleCancelTemplateForm(true);
     } catch (error: any) {
       console.error('Template creation error:', error);
-      console.error('Error response:', error?.response);
-      const errorMessage = error?.response?.data?.message || 'Failed to create template';
+      console.error('Error response data:', error?.response?.data);
+      console.error('Error response status:', error?.response?.status);
+      console.error('Error response headers:', error?.response?.headers);
+      console.error('Error config:', error?.config);
+      
+      let errorMessage = 'Failed to create template';
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       setMessage({ type: 'error', text: errorMessage });
     } finally {
       setIsLoading(false);
@@ -542,6 +580,124 @@ export const TaskManagement: React.FC = () => {
       setMessage({ type: 'success', text: 'Task removed from template' });
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || 'Failed to remove task from template';
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddTemplateItem = (templateId: string) => {
+    setAddingTemplateItem(templateId);
+    setTemplateItemData({
+      taskId: '',
+      memberId: '',
+      overrideTime: '',
+      overrideDuration: ''
+    });
+    setTemplateItemErrors({});
+    setMessage(null);
+  };
+
+  const handleCancelTemplateItemForm = () => {
+    setAddingTemplateItem(null);
+    setTemplateItemData({
+      taskId: '',
+      memberId: '',
+      overrideTime: '',
+      overrideDuration: ''
+    });
+    setTemplateItemErrors({});
+  };
+
+  const handleTemplateItemInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setTemplateItemData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error when user starts typing/selecting
+    if (templateItemErrors[name]) {
+      setTemplateItemErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateTemplateItemForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!templateItemData.taskId) {
+      errors['taskId'] = 'Please select a task';
+    }
+
+    // Validate override time format if provided
+    if (templateItemData.overrideTime && !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(templateItemData.overrideTime)) {
+      errors['overrideTime'] = 'Time must be in HH:MM format (e.g., 09:30)';
+    }
+
+    // Validate override duration if provided
+    if (templateItemData.overrideDuration) {
+      const duration = parseInt(templateItemData.overrideDuration);
+      if (isNaN(duration) || duration < 1 || duration > 1440) {
+        errors['overrideDuration'] = 'Duration must be between 1 and 1440 minutes';
+      }
+    }
+
+    setTemplateItemErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleCreateTemplateItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateTemplateItemForm() || !addingTemplateItem || !currentFamily) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const createData: any = {
+        taskId: templateItemData.taskId,
+      };
+
+      // Only add memberId if it's not empty (empty means unassigned)
+      if (templateItemData.memberId) {
+        createData.memberId = templateItemData.memberId;
+      }
+
+      // Only add overrides if they're provided
+      if (templateItemData.overrideTime) {
+        createData.overrideTime = templateItemData.overrideTime;
+      }
+
+      if (templateItemData.overrideDuration) {
+        createData.overrideDuration = parseInt(templateItemData.overrideDuration);
+      }
+
+      const response = await dayTemplateApi.addItem(currentFamily.id, addingTemplateItem, createData);
+      
+      // Add the new item to the cache
+      setTemplateItems(prev => ({
+        ...prev,
+        [addingTemplateItem]: [...(prev[addingTemplateItem] || []), response.data]
+      }));
+      
+      // Show success message
+      setMessage({ type: 'success', text: 'Task added to template successfully' });
+      
+      // Close the form
+      handleCancelTemplateItemForm();
+    } catch (error: any) {
+      let errorMessage = 'Failed to add task to template';
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
       setMessage({ type: 'error', text: errorMessage });
     } finally {
       setIsLoading(false);
@@ -1012,10 +1168,140 @@ export const TaskManagement: React.FC = () => {
                   {/* Template Items */}
                   {showTemplateItems[template.id] && (
                     <div className="task-management-template-items">
+                      {/* Add Task to Template Button */}
+                      {isAdmin && addingTemplateItem !== template.id && (
+                        <div className="task-management-template-add-item">
+                          <button
+                            className="task-management-button task-management-button-primary task-management-button-sm"
+                            onClick={() => handleAddTemplateItem(template.id)}
+                            disabled={isLoading}
+                          >
+                            Add Task to Template
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Add Template Item Form */}
+                      {isAdmin && addingTemplateItem === template.id && (
+                        <div className="task-management-task-add-inline">
+                          <h5 className="task-management-form-title">Add Task to Template</h5>
+                          <p className="task-management-help-text">
+                            Select a task and optionally assign it to a family member or leave it unassigned
+                          </p>
+                          <form className="task-management-form" onSubmit={handleCreateTemplateItem}>
+                            <div className="task-management-form-group">
+                              <label htmlFor="templateItemTask" className="task-management-label">
+                                Task *
+                              </label>
+                              <select
+                                id="templateItemTask"
+                                name="taskId"
+                                className="task-management-input"
+                                value={templateItemData.taskId}
+                                onChange={handleTemplateItemInputChange}
+                                disabled={isLoading}
+                                required
+                              >
+                                <option value="">Select a task...</option>
+                                {tasks.filter(task => task.isActive).map(task => (
+                                  <option key={task.id} value={task.id}>
+                                    {task.icon} {task.name} ({task.defaultStartTime}, {formatDuration(task.defaultDuration)})
+                                  </option>
+                                ))}
+                              </select>
+                              {templateItemErrors['taskId'] && (
+                                <p className="task-management-error">{templateItemErrors['taskId']}</p>
+                              )}
+                            </div>
+
+                            <div className="task-management-form-group">
+                              <label htmlFor="templateItemMember" className="task-management-label">
+                                Assign to Member (Optional)
+                              </label>
+                              <select
+                                id="templateItemMember"
+                                name="memberId"
+                                className="task-management-input"
+                                value={templateItemData.memberId}
+                                onChange={handleTemplateItemInputChange}
+                                disabled={isLoading}
+                              >
+                                <option value="">Unassigned (any member can do this)</option>
+                                {familyMembers.map(member => (
+                                  <option key={member.id} value={member.user?.id}>
+                                    {member.user?.firstName} {member.user?.lastName}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="task-management-form-row">
+                              <div className="task-management-form-group">
+                                <label htmlFor="templateItemTime" className="task-management-label">
+                                  Override Time (Optional)
+                                </label>
+                                <input
+                                  type="time"
+                                  id="templateItemTime"
+                                  name="overrideTime"
+                                  className="task-management-input"
+                                  value={templateItemData.overrideTime}
+                                  onChange={handleTemplateItemInputChange}
+                                  disabled={isLoading}
+                                  placeholder="HH:MM"
+                                />
+                                {templateItemErrors['overrideTime'] && (
+                                  <p className="task-management-error">{templateItemErrors['overrideTime']}</p>
+                                )}
+                              </div>
+
+                              <div className="task-management-form-group">
+                                <label htmlFor="templateItemDuration" className="task-management-label">
+                                  Override Duration (Optional)
+                                </label>
+                                <input
+                                  type="number"
+                                  id="templateItemDuration"
+                                  name="overrideDuration"
+                                  className="task-management-input"
+                                  value={templateItemData.overrideDuration}
+                                  onChange={handleTemplateItemInputChange}
+                                  disabled={isLoading}
+                                  placeholder="Minutes"
+                                  min="1"
+                                  max="1440"
+                                />
+                                {templateItemErrors['overrideDuration'] && (
+                                  <p className="task-management-error">{templateItemErrors['overrideDuration']}</p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="task-management-form-actions">
+                              <button
+                                type="submit"
+                                className="task-management-button task-management-button-primary"
+                                disabled={isLoading}
+                              >
+                                {isLoading ? 'Adding...' : 'Add Task'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleCancelTemplateItemForm}
+                                className="task-management-button task-management-button-secondary"
+                                disabled={isLoading}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        </div>
+                      )}
+
                       {templateItems[template.id]?.length === 0 ? (
                         <div className="task-management-template-empty">
                           <p>No tasks in this template yet</p>
-                          {isAdmin && (
+                          {isAdmin && addingTemplateItem !== template.id && (
                             <p className="task-management-help-text">
                               Add tasks to this template to create reusable scheduling patterns
                             </p>

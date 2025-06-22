@@ -824,4 +824,14 @@
   .task-management-template-items-grid {
     gap: 8px;
   }
+}
+
+/* Template Item Management Styles */
+.task-management-template-add-item {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.task-management-template-add-item .task-management-button {
+  min-width: 160px;
 } 

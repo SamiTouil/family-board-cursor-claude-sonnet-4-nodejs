@@ -49,18 +49,32 @@ async function checkFamilyAdmin(userId: string, familyId: string): Promise<void>
  * Create a new day template
  */
 router.post('/:familyId/day-templates', async (req: AuthenticatedRequest, res: Response) => {
+  console.log('=== DAY TEMPLATE CREATE REQUEST ===');
+  console.log('URL params:', req.params);
+  console.log('Request body:', req.body);
+  console.log('User from token:', req.user);
+  console.log('Headers:', req.headers.authorization ? 'Auth header present' : 'No auth header');
+  
   try {
     const { familyId } = req.params;
     const userId = req.user!.userId;
     
+    console.log('Extracted familyId:', familyId);
+    console.log('Extracted userId:', userId);
+    
     if (!familyId) {
+      console.log('ERROR: Missing familyId');
       return res.status(400).json({ error: 'Family ID is required' });
     }
 
+    console.log('Checking family admin permissions...');
     // Check if user is admin of the family
     await checkFamilyAdmin(userId, familyId);
+    console.log('Admin check passed!');
 
+    console.log('Creating template with service...');
     const template = await dayTemplateService.createDayTemplate(req.body, familyId);
+    console.log('Template created successfully:', template.id);
     
     const response: DayTemplateResponseDto = {
       id: template.id,
@@ -87,7 +101,13 @@ router.post('/:familyId/day-templates', async (req: AuthenticatedRequest, res: R
 
     return res.status(201).json(response);
   } catch (error) {
+    console.log('=== DAY TEMPLATE CREATE ERROR ===');
+    console.log('Error type:', error?.constructor?.name);
+    console.log('Error message:', (error as any)?.message);
+    console.log('Full error:', error);
+    
     if (error instanceof z.ZodError) {
+      console.log('Zod validation error:', error.errors);
       return res.status(400).json({
         error: 'Validation failed',
         details: error.errors,
@@ -96,14 +116,16 @@ router.post('/:familyId/day-templates', async (req: AuthenticatedRequest, res: R
     
     if (error instanceof Error) {
       if (error.message.includes('Access denied')) {
+        console.log('Access denied error');
         return res.status(403).json({ error: error.message });
       }
       if (error.message.includes('already exists')) {
+        console.log('Duplicate name error');
         return res.status(409).json({ error: error.message });
       }
     }
 
-    console.error('Error creating day template:', error);
+    console.error('Unexpected error creating day template:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -113,16 +135,27 @@ router.post('/:familyId/day-templates', async (req: AuthenticatedRequest, res: R
  * Get all day templates for a family with filtering and pagination
  */
 router.get('/:familyId/day-templates', async (req: AuthenticatedRequest, res: Response) => {
+  console.log('=== DAY TEMPLATE GET REQUEST ===');
+  console.log('URL params:', req.params);
+  console.log('Query params:', req.query);
+  console.log('User from token:', req.user);
+  
   try {
     const { familyId } = req.params;
     const userId = req.user!.userId;
     
+    console.log('Extracted familyId:', familyId);
+    console.log('Extracted userId:', userId);
+    
     if (!familyId) {
+      console.log('ERROR: Missing familyId');
       return res.status(400).json({ error: 'Family ID is required' });
     }
 
+    console.log('Checking family membership...');
     // Check if user is a member of the family
     await checkFamilyMembership(userId, familyId);
+    console.log('Family membership check passed!');
 
     const {
       isActive,
@@ -146,7 +179,14 @@ router.get('/:familyId/day-templates', async (req: AuthenticatedRequest, res: Re
       queryParams.search = search as string;
     }
 
+    console.log('Calling dayTemplateService.getDayTemplates with params:', queryParams);
     const result = await dayTemplateService.getDayTemplates(familyId, queryParams);
+    console.log('Service call successful, got result:', { 
+      templatesCount: result.templates.length,
+      total: result.total,
+      page: result.page,
+      limit: result.limit
+    });
     
     const response = {
       templates: result.templates.map((template): DayTemplateResponseDto => ({
@@ -179,12 +219,19 @@ router.get('/:familyId/day-templates', async (req: AuthenticatedRequest, res: Re
       },
     };
 
+    console.log('Sending response with', response.templates.length, 'templates');
     return res.json(response);
   } catch (error) {
+    console.log('=== DAY TEMPLATE GET ERROR ===');
+    console.log('Error type:', error?.constructor?.name);
+    console.log('Error message:', (error as any)?.message);
+    console.log('Full error:', error);
+    
     if (error instanceof Error && error.message.includes('Access denied')) {
+      console.log('Access denied error');
       return res.status(403).json({ error: error.message });
     }
-    console.error('Error fetching day templates:', error);
+    console.error('Unexpected error fetching day templates:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
