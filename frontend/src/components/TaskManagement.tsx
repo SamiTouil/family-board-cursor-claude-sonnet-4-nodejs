@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useFamily } from '../contexts/FamilyContext';
 import { taskApi, Task, CreateTaskData } from '../services/api';
-import TasksIcon from './icons/TasksIcon';
 import './TaskManagement.css';
 
 export const TaskManagement: React.FC = () => {
@@ -285,11 +284,6 @@ export const TaskManagement: React.FC = () => {
   return (
     <div className="task-management">
       <div className="task-management-header">
-        <div className="task-management-avatar">
-          <div className="task-management-avatar-icon">
-            <TasksIcon size={24} />
-          </div>
-        </div>
         <h2 className="task-management-title">{t('tasks.management')}</h2>
       </div>
       
