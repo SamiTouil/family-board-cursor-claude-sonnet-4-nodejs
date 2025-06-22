@@ -278,6 +278,14 @@
     "createError": "Failed to create task",
     "loadError": "Failed to load tasks",
     "noTasks": "No Tasks Yet",
-    "noTasksDescription": "Get started by creating your first task for the family"
+    "noTasksDescription": "Get started by creating your first task for the family",
+    "validation": {
+      "nameRequired": "Task name is required",
+      "nameTooShort": "Task name must be at least 2 characters",
+      "nameTooLong": "Task name must be less than 100 characters",
+      "descriptionTooLong": "Description must be less than 500 characters",
+      "durationTooShort": "Duration must be at least 1 minute",
+      "durationTooLong": "Duration cannot exceed 24 hours (1440 minutes)"
+    }
   }
 } 

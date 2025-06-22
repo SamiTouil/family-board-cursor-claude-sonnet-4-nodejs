@@ -279,6 +279,14 @@
     "createError": "Échec de la création de la tâche",
     "loadError": "Échec du chargement des tâches",
     "noTasks": "Aucune Tâche",
-    "noTasksDescription": "Commencez par créer votre première tâche pour la famille"
+    "noTasksDescription": "Commencez par créer votre première tâche pour la famille",
+    "validation": {
+      "nameRequired": "Le nom de la tâche est requis",
+      "nameTooShort": "Le nom de la tâche doit contenir au moins 2 caractères",
+      "nameTooLong": "Le nom de la tâche doit contenir moins de 100 caractères",
+      "descriptionTooLong": "La description doit contenir moins de 500 caractères",
+      "durationTooShort": "La durée doit être d'au moins 1 minute",
+      "durationTooLong": "La durée ne peut pas dépasser 24 heures (1440 minutes)"
+    }
   }
 } 

@@ -28,6 +28,16 @@ export const TaskManagement: React.FC = () => {
   const [addingTask, setAddingTask] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Form state for task creation
+  const [taskData, setTaskData] = useState({
+    name: '',
+    description: '',
+    color: '#6366f1',
+    defaultStartTime: '09:00',
+    defaultDuration: 30,
+  });
+  const [taskErrors, setTaskErrors] = useState<Record<string, string>>({});
+
   // Check if user is admin (can create/manage tasks)
   const isAdmin = currentFamily?.userRole === 'ADMIN';
 
@@ -83,14 +93,120 @@ export const TaskManagement: React.FC = () => {
     }
   };
 
+  const validateTaskForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!taskData.name.trim()) {
+      errors['name'] = t('tasks.validation.nameRequired');
+    } else if (taskData.name.trim().length < 2) {
+      errors['name'] = t('tasks.validation.nameTooShort');
+    } else if (taskData.name.trim().length > 100) {
+      errors['name'] = t('tasks.validation.nameTooLong');
+    }
+
+    if (taskData.description.length > 500) {
+      errors['description'] = t('tasks.validation.descriptionTooLong');
+    }
+
+    if (taskData.defaultDuration < 1) {
+      errors['defaultDuration'] = t('tasks.validation.durationTooShort');
+    } else if (taskData.defaultDuration > 1440) {
+      errors['defaultDuration'] = t('tasks.validation.durationTooLong');
+    }
+
+    setTaskErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleAddTask = () => {
     setAddingTask(true);
     setMessage(null);
+    setTaskErrors({});
+    // Reset form data
+    setTaskData({
+      name: '',
+      description: '',
+      color: '#6366f1',
+      defaultStartTime: '09:00',
+      defaultDuration: 30,
+    });
   };
 
   const handleCancelAddTask = () => {
     setAddingTask(false);
     setMessage(null);
+    setTaskErrors({});
+    // Reset form data
+    setTaskData({
+      name: '',
+      description: '',
+      color: '#6366f1',
+      defaultStartTime: '09:00',
+      defaultDuration: 30,
+    });
+  };
+
+  const handleTaskInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setTaskData(prev => ({
+      ...prev,
+      [name]: name === 'defaultDuration' ? parseInt(value) || 0 : value
+    }));
+    
+    // Clear error when user starts typing
+    if (taskErrors[name]) {
+      setTaskErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateTaskForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // TODO: Implement actual API call
+      // const response = await taskApi.create({
+      //   ...taskData,
+      //   familyId: currentFamily!.id
+      // });
+      
+      // For now, create a mock task and add it to the list
+      const newTask: Task = {
+        id: Date.now().toString(), // Simple ID generation for mock
+        name: taskData.name.trim(),
+        description: taskData.description.trim() || null,
+        color: taskData.color,
+        icon: 'task', // Default icon for now
+        defaultStartTime: taskData.defaultStartTime,
+        defaultDuration: taskData.defaultDuration,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        familyId: currentFamily!.id,
+      };
+
+      // Add the new task to the list
+      setTasks(prev => [...prev, newTask]);
+      
+      // Show success message
+      setMessage({ type: 'success', text: t('tasks.created') });
+      
+      // Close the form
+      handleCancelAddTask();
+    } catch (error) {
+      console.error('Error creating task:', error);
+      setMessage({ type: 'error', text: t('tasks.createError') });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const formatDuration = (minutes: number): string => {
@@ -154,7 +270,7 @@ export const TaskManagement: React.FC = () => {
             <div className="task-management-task-add-inline">
               <h5 className="task-management-form-title">{t('tasks.createTask')}</h5>
               <p className="task-management-help-text">{t('tasks.createTaskHelp')}</p>
-              <form className="task-management-form">
+              <form className="task-management-form" onSubmit={handleCreateTask}>
                 <div className="task-management-form-row">
                   <div className="task-management-form-group">
                     <label htmlFor="taskName" className="task-management-label">
@@ -168,7 +284,12 @@ export const TaskManagement: React.FC = () => {
                       placeholder={t('tasks.namePlaceholder')}
                       disabled={isLoading}
                       autoFocus
+                      value={taskData.name}
+                      onChange={handleTaskInputChange}
                     />
+                    {taskErrors['name'] && (
+                      <p className="task-management-error">{taskErrors['name']}</p>
+                    )}
                   </div>
 
                   <div className="task-management-form-group">
@@ -180,8 +301,9 @@ export const TaskManagement: React.FC = () => {
                       id="taskColor"
                       name="color"
                       className="task-management-input task-management-color-input"
-                      defaultValue="#6366f1"
+                      defaultValue={taskData.color}
                       disabled={isLoading}
+                      onChange={handleTaskInputChange}
                     />
                   </div>
                 </div>
@@ -197,7 +319,12 @@ export const TaskManagement: React.FC = () => {
                     placeholder={t('tasks.descriptionPlaceholder')}
                     rows={3}
                     disabled={isLoading}
+                    value={taskData.description}
+                    onChange={handleTaskInputChange}
                   />
+                  {taskErrors['description'] && (
+                    <p className="task-management-error">{taskErrors['description']}</p>
+                  )}
                 </div>
 
                 <div className="task-management-form-row">
@@ -210,8 +337,9 @@ export const TaskManagement: React.FC = () => {
                       id="taskStartTime"
                       name="defaultStartTime"
                       className="task-management-input"
-                      defaultValue="09:00"
+                      defaultValue={taskData.defaultStartTime}
                       disabled={isLoading}
+                      onChange={handleTaskInputChange}
                     />
                   </div>
 
@@ -228,7 +356,12 @@ export const TaskManagement: React.FC = () => {
                       min="1"
                       max="1440"
                       disabled={isLoading}
+                      value={taskData.defaultDuration}
+                      onChange={handleTaskInputChange}
                     />
+                    {taskErrors['defaultDuration'] && (
+                      <p className="task-management-error">{taskErrors['defaultDuration']}</p>
+                    )}
                   </div>
                 </div>
 
