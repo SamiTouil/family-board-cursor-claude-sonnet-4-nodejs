@@ -37,11 +37,6 @@ export const TaskAssignmentCard: React.FC<TaskAssignmentCardProps> = ({
     return assignment.overrideDuration || assignment.task?.defaultDuration || 30;
   };
 
-  const getDisplayDate = (): string => {
-    const date = new Date(assignment.assignedDate);
-    return date.toLocaleDateString();
-  };
-
   const handleCardClick = () => {
     if (isClickable && onClick) {
       onClick(assignment);
@@ -100,24 +95,13 @@ export const TaskAssignmentCard: React.FC<TaskAssignmentCardProps> = ({
           </div>
           
           <div className="task-assignment-card-description-row">
-            <div className="task-assignment-card-details">
-              {assignment.member ? (
-                <span className="task-assignment-card-member-name">
-                  {assignment.member.firstName} {assignment.member.lastName}
-                </span>
-              ) : (
-                <span className="task-assignment-card-unassigned-text">Unassigned</span>
-              )}
-              <span className="task-assignment-card-date">{getDisplayDate()}</span>
-            </div>
+            {assignment.task?.description ? (
+              <p className="task-assignment-card-description">{assignment.task.description}</p>
+            ) : (
+              <div className="task-assignment-card-description-spacer"></div>
+            )}
             <span className="task-assignment-card-duration">{formatDuration(getDisplayDuration())}</span>
           </div>
-
-          {assignment.task?.description && (
-            <div className="task-assignment-card-task-description">
-              <p className="task-assignment-card-description">{assignment.task.description}</p>
-            </div>
-          )}
         </div>
       </div>
 
