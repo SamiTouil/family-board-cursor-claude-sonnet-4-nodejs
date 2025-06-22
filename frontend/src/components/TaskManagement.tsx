@@ -84,6 +84,7 @@ export const TaskManagement: React.FC = () => {
     
     try {
       const response = await dayTemplateApi.getFamilyTemplates(currentFamily.id);
+      console.log('Loaded templates:', response.data.templates);
       setTemplates(response.data.templates);
     } catch (error) {
       console.error('Error loading templates:', error);
@@ -535,11 +536,17 @@ export const TaskManagement: React.FC = () => {
     if (!currentFamily) return;
     
     try {
+      console.log('Loading template items for template ID:', templateId);
       const response = await dayTemplateApi.getItems(currentFamily.id, templateId);
-      setTemplateItems(prev => ({
-        ...prev,
-        [templateId]: response.data
-      }));
+      console.log('Template items API response:', response);
+      setTemplateItems(prev => {
+        const newState = {
+          ...prev,
+          [templateId]: response.data
+        };
+        console.log('Updated templateItems state:', newState);
+        return newState;
+      });
     } catch (error) {
       console.error('Error loading template items:', error);
     }
@@ -548,11 +555,13 @@ export const TaskManagement: React.FC = () => {
   // Load template items when templates are loaded
   useEffect(() => {
     templates.forEach(template => {
+      console.log('Checking template:', template.id, 'has items:', !!templateItems[template.id]);
       if (!templateItems[template.id]) {
+        console.log('Loading template items for template:', template.id, template.name);
         loadTemplateItems(template.id);
       }
     });
-  }, [templates]);
+  }, [templates]); // Only depend on templates, not templateItems to avoid infinite loop
 
   const handleDeleteTemplateItem = async (templateId: string, itemId: string) => {
     if (!confirm('Are you sure you want to remove this task from the template?')) {
@@ -1289,32 +1298,39 @@ export const TaskManagement: React.FC = () => {
                             </p>
                           )}
                         </div>
-                      ) : (
+                      ) : templateItems[template.id] ? (
                         <div className="task-management-template-items-grid">
-                          {templateItems[template.id]?.filter(item => item.task).map((item) => (
-                            <TaskAssignmentCard
-                              key={item.id}
-                              assignment={{
-                                id: item.id,
-                                memberId: item.memberId,
-                                taskId: item.taskId,
-                                overrideTime: item.overrideTime,
-                                overrideDuration: item.overrideDuration,
-                                assignedDate: new Date().toISOString(), // Template items don't have assigned date
-                                createdAt: item.createdAt,
-                                updatedAt: item.updatedAt,
-                                member: item.member || null,
-                                task: item.task!,
-                              }}
-                              {...(isAdmin && {
-                                onDelete: (itemId) => {
-                                  handleDeleteTemplateItem(template.id, itemId);
-                                }
-                              })}
-                              isAdmin={isAdmin}
-                              isLoading={isLoading}
-                            />
-                          ))}
+                          {templateItems[template.id]?.filter(item => item.task).map((item) => {
+                            console.log('Rendering template item:', item);
+                            return (
+                              <TaskAssignmentCard
+                                key={item.id}
+                                assignment={{
+                                  id: item.id,
+                                  memberId: item.memberId,
+                                  taskId: item.taskId,
+                                  overrideTime: item.overrideTime,
+                                  overrideDuration: item.overrideDuration,
+                                  assignedDate: new Date().toISOString(), // Template items don't have assigned date
+                                  createdAt: item.createdAt,
+                                  updatedAt: item.updatedAt,
+                                  member: item.member || null,
+                                  task: item.task!,
+                                }}
+                                {...(isAdmin && {
+                                  onDelete: (itemId) => {
+                                    handleDeleteTemplateItem(template.id, itemId);
+                                  }
+                                })}
+                                isAdmin={isAdmin}
+                                isLoading={isLoading}
+                              />
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="task-management-template-empty">
+                          <p>Loading template items...</p>
                         </div>
                       )}
                     </div>
