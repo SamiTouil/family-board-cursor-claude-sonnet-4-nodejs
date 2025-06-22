@@ -263,12 +263,120 @@ export const TaskManagement: React.FC = () => {
     return `${mins}m`;
   };
 
-  // Predefined icon options
-  const iconOptions = [
-    '✅', '📝', '🏠', '🍳', '🧹', '🛒', '💼', '📚', 
-    '🏃‍♂️', '🧘‍♀️', '🎵', '🎨', '🌱', '🔧', '💻', '📞',
-    '🚗', '✈️', '🎯', '⭐', '🔥', '💡', '🎉', '❤️'
+  // Comprehensive emoji database with search keywords
+  const emojiDatabase = [
+    // Task & Work
+    { emoji: '✅', keywords: ['check', 'done', 'task', 'complete', 'finish', 'checkmark'] },
+    { emoji: '📝', keywords: ['note', 'write', 'document', 'text', 'memo', 'plan'] },
+    { emoji: '💼', keywords: ['work', 'business', 'office', 'job', 'briefcase', 'professional'] },
+    { emoji: '📚', keywords: ['book', 'study', 'learn', 'education', 'reading', 'library'] },
+    { emoji: '📞', keywords: ['phone', 'call', 'contact', 'communication', 'telephone'] },
+    { emoji: '💻', keywords: ['computer', 'laptop', 'code', 'programming', 'tech', 'work'] },
+    { emoji: '📊', keywords: ['chart', 'graph', 'data', 'analytics', 'report', 'statistics'] },
+    { emoji: '📅', keywords: ['calendar', 'schedule', 'date', 'appointment', 'meeting', 'plan'] },
+    
+    // Home & Lifestyle
+    { emoji: '🏠', keywords: ['home', 'house', 'family', 'domestic', 'residence'] },
+    { emoji: '🍳', keywords: ['cook', 'cooking', 'kitchen', 'food', 'meal', 'recipe'] },
+    { emoji: '🧹', keywords: ['clean', 'cleaning', 'tidy', 'sweep', 'housework', 'chores'] },
+    { emoji: '🛒', keywords: ['shop', 'shopping', 'grocery', 'buy', 'purchase', 'store'] },
+    { emoji: '🌱', keywords: ['plant', 'garden', 'grow', 'nature', 'green', 'gardening'] },
+    { emoji: '🔧', keywords: ['tool', 'fix', 'repair', 'maintenance', 'wrench', 'diy'] },
+    { emoji: '🧺', keywords: ['laundry', 'basket', 'clothes', 'washing', 'household'] },
+    { emoji: '🍽️', keywords: ['dinner', 'meal', 'eat', 'food', 'dining', 'plate'] },
+    
+    // Health & Fitness
+    { emoji: '🏃‍♂️', keywords: ['run', 'running', 'exercise', 'fitness', 'sport', 'jog'] },
+    { emoji: '🧘‍♀️', keywords: ['yoga', 'meditation', 'relax', 'mindfulness', 'zen', 'peace'] },
+    { emoji: '💪', keywords: ['strong', 'strength', 'gym', 'workout', 'muscle', 'fitness'] },
+    { emoji: '🚴‍♂️', keywords: ['bike', 'cycling', 'bicycle', 'exercise', 'ride'] },
+    { emoji: '🏊‍♂️', keywords: ['swim', 'swimming', 'pool', 'water', 'exercise'] },
+    { emoji: '⚽', keywords: ['football', 'soccer', 'sport', 'game', 'play'] },
+    
+    // Creative & Entertainment
+    { emoji: '🎵', keywords: ['music', 'song', 'audio', 'listen', 'melody', 'sound'] },
+    { emoji: '🎨', keywords: ['art', 'paint', 'creative', 'design', 'draw', 'artistic'] },
+    { emoji: '📷', keywords: ['photo', 'camera', 'picture', 'photography', 'capture'] },
+    { emoji: '🎬', keywords: ['movie', 'film', 'video', 'cinema', 'watch', 'entertainment'] },
+    { emoji: '🎮', keywords: ['game', 'gaming', 'play', 'video game', 'controller'] },
+    { emoji: '📖', keywords: ['read', 'reading', 'book', 'story', 'novel', 'literature'] },
+    
+    // Travel & Transportation
+    { emoji: '🚗', keywords: ['car', 'drive', 'vehicle', 'transport', 'travel', 'road'] },
+    { emoji: '✈️', keywords: ['plane', 'flight', 'travel', 'vacation', 'trip', 'fly'] },
+    { emoji: '🚌', keywords: ['bus', 'public transport', 'commute', 'travel'] },
+    { emoji: '🚲', keywords: ['bicycle', 'bike', 'cycle', 'pedal', 'eco'] },
+    { emoji: '🗺️', keywords: ['map', 'navigation', 'direction', 'location', 'travel'] },
+    
+    // Goals & Motivation
+    { emoji: '🎯', keywords: ['target', 'goal', 'aim', 'focus', 'objective', 'achievement'] },
+    { emoji: '⭐', keywords: ['star', 'favorite', 'important', 'priority', 'special'] },
+    { emoji: '🔥', keywords: ['fire', 'hot', 'urgent', 'priority', 'energy', 'passion'] },
+    { emoji: '💡', keywords: ['idea', 'light', 'bulb', 'creative', 'inspiration', 'think'] },
+    { emoji: '🎉', keywords: ['party', 'celebrate', 'celebration', 'fun', 'happy', 'achievement'] },
+    { emoji: '❤️', keywords: ['love', 'heart', 'care', 'family', 'relationship', 'important'] },
+    { emoji: '⚡', keywords: ['energy', 'power', 'fast', 'quick', 'urgent', 'electric'] },
+    { emoji: '🏆', keywords: ['trophy', 'win', 'achievement', 'success', 'award', 'victory'] },
+    
+    // Time & Schedule
+    { emoji: '⏰', keywords: ['time', 'clock', 'alarm', 'schedule', 'reminder', 'deadline'] },
+    { emoji: '📆', keywords: ['date', 'calendar', 'schedule', 'appointment', 'plan'] },
+    { emoji: '⏳', keywords: ['hourglass', 'time', 'deadline', 'waiting', 'patience'] },
+    { emoji: '🕐', keywords: ['one', 'clock', 'time', 'hour', 'schedule'] },
+    
+    // Money & Finance
+    { emoji: '💰', keywords: ['money', 'cash', 'finance', 'budget', 'pay', 'income'] },
+    { emoji: '💳', keywords: ['card', 'credit', 'payment', 'purchase', 'money'] },
+    { emoji: '📈', keywords: ['growth', 'increase', 'profit', 'success', 'improvement'] },
+    { emoji: '💎', keywords: ['diamond', 'valuable', 'precious', 'luxury', 'expensive'] },
+    
+    // Weather & Nature
+    { emoji: '☀️', keywords: ['sun', 'sunny', 'bright', 'weather', 'day', 'warm'] },
+    { emoji: '🌧️', keywords: ['rain', 'weather', 'wet', 'storm', 'cloud'] },
+    { emoji: '🌳', keywords: ['tree', 'nature', 'environment', 'green', 'outdoor'] },
+    { emoji: '🌸', keywords: ['flower', 'spring', 'beautiful', 'nature', 'pink'] },
+    
+    // Food & Cooking
+    { emoji: '🍎', keywords: ['apple', 'fruit', 'healthy', 'food', 'snack', 'red'] },
+    { emoji: '🥗', keywords: ['salad', 'healthy', 'green', 'vegetable', 'diet'] },
+    { emoji: '☕', keywords: ['coffee', 'drink', 'morning', 'caffeine', 'energy'] },
+    { emoji: '🍕', keywords: ['pizza', 'food', 'dinner', 'italian', 'meal'] },
+    
+    // Communication
+    { emoji: '💬', keywords: ['chat', 'message', 'talk', 'communication', 'conversation'] },
+    { emoji: '📧', keywords: ['email', 'mail', 'message', 'communication', 'send'] },
+    { emoji: '📱', keywords: ['phone', 'mobile', 'smartphone', 'device', 'communication'] },
+    
+    // Miscellaneous
+    { emoji: '🎁', keywords: ['gift', 'present', 'surprise', 'celebration', 'birthday'] },
+    { emoji: '🔑', keywords: ['key', 'access', 'unlock', 'important', 'security'] },
+    { emoji: '🌟', keywords: ['star', 'sparkle', 'special', 'magic', 'outstanding'] },
+    { emoji: '🚀', keywords: ['rocket', 'launch', 'fast', 'space', 'progress', 'startup'] },
+    { emoji: '🎪', keywords: ['circus', 'fun', 'entertainment', 'colorful', 'event'] }
   ];
+
+  // Icon search state
+  const [iconSearch, setIconSearch] = useState('');
+  const [filteredIcons, setFilteredIcons] = useState(emojiDatabase.slice(0, 24));
+
+  // Filter icons based on search
+  const handleIconSearch = (searchTerm: string) => {
+    setIconSearch(searchTerm);
+    
+    if (!searchTerm.trim()) {
+      // Show default selection when no search
+      setFilteredIcons(emojiDatabase.slice(0, 24));
+      return;
+    }
+    
+    const filtered = emojiDatabase.filter(item => 
+      item.keywords.some(keyword => 
+        keyword.toLowerCase().includes(searchTerm.toLowerCase())
+      ) || item.emoji.includes(searchTerm)
+    );
+    
+    setFilteredIcons(filtered.slice(0, 32)); // Show more results when searching
+  };
 
   const handleIconSelect = (icon: string) => {
     setTaskData(prev => ({ ...prev, icon }));
@@ -378,19 +486,44 @@ export const TaskManagement: React.FC = () => {
                       <span className="task-management-icon-preview-emoji">{taskData.icon}</span>
                       <span className="task-management-icon-preview-label">Selected</span>
                     </div>
-                    <div className="task-management-icon-grid">
-                      {iconOptions.map((icon) => (
-                        <button
-                          key={icon}
-                          type="button"
-                          className={`task-management-icon-option ${taskData.icon === icon ? 'selected' : ''}`}
-                          onClick={() => handleIconSelect(icon)}
-                          disabled={isLoading}
-                        >
-                          {icon}
-                        </button>
-                      ))}
+                    
+                    <div className="task-management-icon-search">
+                      <input
+                        type="text"
+                        placeholder="Search icons... (e.g., 'work', 'home', 'fitness')"
+                        value={iconSearch}
+                        onChange={(e) => handleIconSearch(e.target.value)}
+                        className="task-management-icon-search-input"
+                        disabled={isLoading}
+                      />
                     </div>
+                    
+                    <div className="task-management-icon-grid">
+                      {filteredIcons.length > 0 ? (
+                        filteredIcons.map((item) => (
+                          <button
+                            key={item.emoji}
+                            type="button"
+                            className={`task-management-icon-option ${taskData.icon === item.emoji ? 'selected' : ''}`}
+                            onClick={() => handleIconSelect(item.emoji)}
+                            title={item.keywords.join(', ')}
+                            disabled={isLoading}
+                          >
+                            {item.emoji}
+                          </button>
+                        ))
+                      ) : (
+                        <div className="task-management-icon-no-results">
+                          No icons found for "{iconSearch}"
+                        </div>
+                      )}
+                    </div>
+                    
+                    {iconSearch && (
+                      <div className="task-management-icon-search-info">
+                        {filteredIcons.length} icon{filteredIcons.length !== 1 ? 's' : ''} found
+                      </div>
+                    )}
                   </div>
                 </div>
 
