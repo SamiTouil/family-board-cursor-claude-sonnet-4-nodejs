@@ -399,6 +399,7 @@ export const TaskManagement: React.FC = () => {
                           previewConfig={{
                             showPreview: false
                           }}
+                          skinTonesDisabled={true}
                         />
                       </div>
                     )}

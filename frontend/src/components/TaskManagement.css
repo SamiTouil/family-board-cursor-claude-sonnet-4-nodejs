@@ -178,6 +178,16 @@
   width: 100% !important;
 }
 
+/* Hide category navigation buttons */
+.task-management-emoji-picker-container .EmojiPickerReact .epr-category-nav {
+  display: none !important;
+}
+
+/* Hide skin tone picker button */
+.task-management-emoji-picker-container .EmojiPickerReact .epr-skin-tone-select {
+  display: none !important;
+}
+
 .task-management-emoji-picker-container .EmojiPickerReact .epr-search-container input {
   border: 1px solid #d1d5db;
   border-radius: 6px;
