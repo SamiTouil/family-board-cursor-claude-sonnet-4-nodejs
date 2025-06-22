@@ -115,6 +115,12 @@
   gap: 12px;
 }
 
+.task-management-icon-selector-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .task-management-icon-preview {
   display: flex;
   align-items: center;

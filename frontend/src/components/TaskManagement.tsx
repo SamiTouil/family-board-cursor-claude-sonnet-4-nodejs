@@ -375,19 +375,21 @@ export const TaskManagement: React.FC = () => {
                     Icon
                   </label>
                   <div className="task-management-icon-selector">
-                    <div className="task-management-icon-preview">
-                      <span className="task-management-icon-preview-emoji">{taskData.icon || '✅'}</span>
-                      <span className="task-management-icon-preview-label">Selected</span>
+                    <div className="task-management-icon-selector-row">
+                      <div className="task-management-icon-preview">
+                        <span className="task-management-icon-preview-emoji">{taskData.icon || '✅'}</span>
+                        <span className="task-management-icon-preview-label">Selected</span>
+                      </div>
+                      
+                      <button
+                        type="button"
+                        className="task-management-emoji-picker-button"
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        disabled={isLoading}
+                      >
+                        {showEmojiPicker ? 'Close Emoji Picker' : 'Choose Emoji'}
+                      </button>
                     </div>
-                    
-                    <button
-                      type="button"
-                      className="task-management-emoji-picker-button"
-                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      disabled={isLoading}
-                    >
-                      {showEmojiPicker ? 'Close Emoji Picker' : 'Choose Emoji'}
-                    </button>
                     
                     {showEmojiPicker && (
                       <div className="task-management-emoji-picker-container">
@@ -514,7 +516,7 @@ export const TaskManagement: React.FC = () => {
                   className={`task-management-task ${isAdmin ? 'task-management-task-clickable' : ''}`}
                   style={{ 
                     borderColor: task.color,
-                    backgroundColor: `${task.color}08`
+                    backgroundColor: `${task.color}18`
                   }}
                   onClick={isAdmin ? () => handleEditTask(task) : undefined}
                   title={isAdmin ? 'Click to edit task' : undefined}
