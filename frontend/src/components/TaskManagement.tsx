@@ -42,7 +42,6 @@ export const TaskManagement: React.FC = () => {
       const response = await taskApi.getFamilyTasks(currentFamily.id, { isActive: true });
       setTasks(response.data.data);
     } catch (error) {
-      console.error('Failed to load tasks:', error);
       setMessage({ type: 'error', text: t('tasks.loadError') });
     } finally {
       setIsLoading(false);
@@ -170,7 +169,6 @@ export const TaskManagement: React.FC = () => {
       // Close the form
       handleCancelForm();
     } catch (error: any) {
-      console.error('Failed to create task:', error);
       const errorMessage = error?.response?.data?.message || t('tasks.createError');
       setMessage({ type: 'error', text: errorMessage });
     } finally {
@@ -215,7 +213,6 @@ export const TaskManagement: React.FC = () => {
       // Close the form
       handleCancelForm();
     } catch (error: any) {
-      console.error('Failed to update task:', error);
       const errorMessage = error?.response?.data?.message || 'Failed to update task';
       setMessage({ type: 'error', text: errorMessage });
     } finally {
@@ -238,7 +235,6 @@ export const TaskManagement: React.FC = () => {
       // Show success message
       setMessage({ type: 'success', text: 'Task deleted successfully' });
     } catch (error: any) {
-      console.error('Failed to delete task:', error);
       const errorMessage = error?.response?.data?.message || 'Failed to delete task';
       setMessage({ type: 'error', text: errorMessage });
     } finally {
