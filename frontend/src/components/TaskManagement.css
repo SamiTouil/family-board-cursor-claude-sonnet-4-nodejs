@@ -367,7 +367,6 @@
   border-radius: 8px;
   transition: all 0.2s ease;
   width: 280px;
-  min-height: 120px;
   flex-shrink: 0;
 }
 
@@ -553,7 +552,6 @@
 @media (max-width: 900px) {
   .task-management-task {
     width: 200px;
-    min-height: 100px;
   }
 }
 
@@ -601,7 +599,6 @@
 
   .task-management-task {
     width: 100%;
-    min-height: auto;
   }
 
   .task-management-task-actions {
