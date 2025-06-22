@@ -9,7 +9,7 @@
   border: 2px solid #e5e7eb;
   border-radius: 8px;
   transition: all 0.2s ease;
-  width: 280px;
+  width: 252px;
   flex-shrink: 0;
 }
 
@@ -211,13 +211,13 @@
 /* Responsive Design */
 @media (max-width: 1200px) {
   .task-assignment-card {
-    width: 240px;
+    width: 204px;
   }
 }
 
 @media (max-width: 900px) {
   .task-assignment-card {
-    width: 200px;
+    width: 170px;
   }
 }
 

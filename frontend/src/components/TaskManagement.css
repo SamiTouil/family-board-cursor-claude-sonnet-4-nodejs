@@ -732,7 +732,6 @@ select.task-management-input:disabled {
   padding: 16px;
   transition: all 0.2s ease;
   width: fit-content;
-  min-width: 300px;
   max-width: 100%;
 }
 
