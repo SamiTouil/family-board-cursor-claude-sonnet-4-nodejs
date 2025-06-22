@@ -287,7 +287,7 @@ describe('TaskManagement', () => {
     expect(mockTaskApi.createTask).not.toHaveBeenCalled();
   });
 
-  it('opens edit form when edit button is clicked', async () => {
+  it('opens edit form when task is clicked', async () => {
     mockTaskApi.getFamilyTasks.mockResolvedValue({
       data: { success: true, data: mockTasks },
     });
@@ -295,8 +295,8 @@ describe('TaskManagement', () => {
     render(<TaskManagement />);
 
     await waitFor(() => {
-      const editButtons = screen.getAllByTitle('common.edit');
-      fireEvent.click(editButtons[0]);
+      const taskElements = screen.getAllByTitle('Click to edit task');
+      fireEvent.click(taskElements[0]);
     });
 
     // Check that form is pre-filled with task data
@@ -321,10 +321,10 @@ describe('TaskManagement', () => {
 
     render(<TaskManagement />);
 
-    // Open edit form
+    // Open edit form by clicking on task
     await waitFor(() => {
-      const editButtons = screen.getAllByTitle('common.edit');
-      fireEvent.click(editButtons[0]);
+      const taskElements = screen.getAllByTitle('Click to edit task');
+      fireEvent.click(taskElements[0]);
     });
 
     // Update task name
