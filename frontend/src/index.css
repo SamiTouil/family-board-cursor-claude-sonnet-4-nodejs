@@ -4,6 +4,15 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Modern approach: Reserve space for scrollbar to prevent layout shifts */
+  scrollbar-gutter: stable;
+  /* Fallback for browsers that don't support scrollbar-gutter */
+  overflow-y: scroll;
+  /* Ensure consistent behavior across browsers */
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -13,6 +22,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #ffffff;
   color: #333333;
+  /* Ensure consistent height behavior */
+  min-height: 100%;
 }
 
 #root {
