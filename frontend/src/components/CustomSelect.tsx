@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import './CustomSelect.css';
 
 interface SelectOption {
   value: number | string;
@@ -75,10 +76,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   };
 
   return (
-    <div className={`user-profile-select-wrapper ${className}`} ref={selectRef}>
+    <div className={`custom-select-wrapper ${className}`} ref={selectRef}>
       <div
         id={id}
-        className={`user-profile-select ${isOpen ? 'user-profile-select-open' : ''} ${disabled ? 'user-profile-select-disabled' : ''}`}
+        className={`custom-select ${isOpen ? 'custom-select-open' : ''} ${disabled ? 'custom-select-disabled' : ''}`}
         onClick={handleToggle}
         onKeyDown={handleKeyDown}
         tabIndex={disabled ? -1 : 0}
@@ -87,21 +88,21 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         aria-haspopup="listbox"
         aria-disabled={disabled}
       >
-        <span className="user-profile-select-value">
+        <span className="custom-select-value">
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <div className="user-profile-select-arrow">
+        <div className="custom-select-arrow">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M6 9l6 6 6-6"/>
           </svg>
         </div>
       </div>
       
-      <div className={`user-profile-select-dropdown ${isOpen ? 'user-profile-select-dropdown-open' : ''}`}>
+      <div className={`custom-select-dropdown ${isOpen ? 'custom-select-dropdown-open' : ''}`}>
         {options.map((option) => (
           <button
             key={option.value}
-            className={`user-profile-select-option ${option.value === value ? 'user-profile-select-option-selected' : ''}`}
+            className={`custom-select-option ${option.value === value ? 'custom-select-option-selected' : ''}`}
             onClick={() => handleOptionClick(option.value)}
             role="option"
             aria-selected={option.value === value}
