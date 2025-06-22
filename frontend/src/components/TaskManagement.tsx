@@ -46,6 +46,7 @@ export const TaskManagement: React.FC = () => {
 
   // Template item form state
   const [addingTemplateItem, setAddingTemplateItem] = useState<string | null>(null); // templateId when adding
+  const [editingTemplateItem, setEditingTemplateItem] = useState<{ templateId: string; item: DayTemplateItem } | null>(null); // template item being edited
   const [templateItemData, setTemplateItemData] = useState({
     taskId: '',
     memberId: '',
@@ -317,6 +318,20 @@ export const TaskManagement: React.FC = () => {
       return `${hours}h ${mins > 0 ? `${mins}m` : ''}`.trim();
     }
     return `${mins}m`;
+  };
+
+  // Helper function to get the effective time for sorting template items
+  const getEffectiveTime = (item: any): string => {
+    return item.overrideTime || item.task?.defaultStartTime || '00:00';
+  };
+
+  // Helper function to sort template items by time
+  const sortTemplateItemsByTime = (items: any[]): any[] => {
+    return [...items].sort((a, b) => {
+      const timeA = getEffectiveTime(a);
+      const timeB = getEffectiveTime(b);
+      return timeA.localeCompare(timeB);
+    });
   };
 
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
@@ -601,6 +616,7 @@ export const TaskManagement: React.FC = () => {
 
   const handleAddTemplateItem = (templateId: string) => {
     setAddingTemplateItem(templateId);
+    setEditingTemplateItem(null);
     setTemplateItemData({
       taskId: '',
       memberId: '',
@@ -611,8 +627,22 @@ export const TaskManagement: React.FC = () => {
     setMessage(null);
   };
 
+  const handleEditTemplateItem = (templateId: string, item: DayTemplateItem) => {
+    setEditingTemplateItem({ templateId, item });
+    setAddingTemplateItem(null);
+    setTemplateItemData({
+      taskId: item.taskId,
+      memberId: item.memberId || '',
+      overrideTime: item.overrideTime || '',
+      overrideDuration: item.overrideDuration?.toString() || ''
+    });
+    setTemplateItemErrors({});
+    setMessage(null);
+  };
+
   const handleCancelTemplateItemForm = () => {
     setAddingTemplateItem(null);
+    setEditingTemplateItem(null);
     setTemplateItemData({
       taskId: '',
       memberId: '',
@@ -705,6 +735,67 @@ export const TaskManagement: React.FC = () => {
       handleCancelTemplateItemForm();
     } catch (error: any) {
       let errorMessage = 'Failed to add task to template';
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateTemplateItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateTemplateItemForm() || !editingTemplateItem || !currentFamily) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const updateData: any = {
+        taskId: templateItemData.taskId,
+      };
+
+      // Only add memberId if it's not empty (empty means unassigned)
+      if (templateItemData.memberId) {
+        updateData.memberId = templateItemData.memberId;
+      }
+
+      // Only add overrides if they're provided
+      if (templateItemData.overrideTime) {
+        updateData.overrideTime = templateItemData.overrideTime;
+      }
+
+      if (templateItemData.overrideDuration) {
+        updateData.overrideDuration = parseInt(templateItemData.overrideDuration);
+      }
+
+      const response = await dayTemplateApi.updateItem(
+        currentFamily.id, 
+        editingTemplateItem.templateId, 
+        editingTemplateItem.item.id, 
+        updateData
+      );
+      
+      // Update the item in the cache
+      setTemplateItems(prev => ({
+        ...prev,
+        [editingTemplateItem.templateId]: (prev[editingTemplateItem.templateId] || []).map(item => 
+          item.id === editingTemplateItem.item.id ? response.data : item
+        )
+      }));
+      
+      // Show success message
+      setMessage({ type: 'success', text: 'Template item updated successfully' });
+      
+      // Close the form
+      handleCancelTemplateItemForm();
+    } catch (error: any) {
+      let errorMessage = 'Failed to update template item';
       if (error?.response?.data?.error) {
         errorMessage = error.response.data.error;
       } else if (error?.response?.data?.message) {
@@ -1147,14 +1238,12 @@ export const TaskManagement: React.FC = () => {
                       {template.description && (
                         <p className="task-management-template-description">{template.description}</p>
                       )}
-                    </div>
-                    <div className="task-management-template-actions">
                       {isAdmin && (
-                        <>
+                        <div className="task-management-template-actions">
                           <button
                             className="task-management-button task-management-button-primary task-management-button-sm"
                             onClick={() => handleAddTemplateItem(template.id)}
-                            disabled={isLoading || addingTemplateItem === template.id}
+                            disabled={isLoading || addingTemplateItem === template.id || (editingTemplateItem?.templateId === template.id)}
                           >
                             Add Task to Template
                           </button>
@@ -1173,7 +1262,7 @@ export const TaskManagement: React.FC = () => {
                           >
                             ×
                           </button>
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1181,14 +1270,19 @@ export const TaskManagement: React.FC = () => {
                   {/* Template Items */}
                   <div className="task-management-template-items">
 
-                      {/* Add Template Item Form */}
-                      {isAdmin && addingTemplateItem === template.id && (
+                      {/* Add/Edit Template Item Form */}
+                      {isAdmin && (addingTemplateItem === template.id || editingTemplateItem?.templateId === template.id) && (
                         <div className="task-management-task-add-inline">
-                          <h5 className="task-management-form-title">Add Task to Template</h5>
+                          <h5 className="task-management-form-title">
+                            {editingTemplateItem ? 'Edit Template Item' : 'Add Task to Template'}
+                          </h5>
                           <p className="task-management-help-text">
-                            Select a task and optionally assign it to a family member or leave it unassigned
+                            {editingTemplateItem 
+                              ? 'Update the task assignment details'
+                              : 'Select a task and optionally assign it to a family member or leave it unassigned'
+                            }
                           </p>
-                          <form className="task-management-form" onSubmit={handleCreateTemplateItem}>
+                          <form className="task-management-form" onSubmit={editingTemplateItem ? handleUpdateTemplateItem : handleCreateTemplateItem}>
                             <div className="task-management-form-group">
                               <label htmlFor="templateItemTask" className="task-management-label">
                                 Task *
@@ -1283,7 +1377,10 @@ export const TaskManagement: React.FC = () => {
                                 className="task-management-button task-management-button-primary"
                                 disabled={isLoading}
                               >
-                                {isLoading ? 'Adding...' : 'Add Task'}
+                                {isLoading 
+                                  ? (editingTemplateItem ? 'Updating...' : 'Adding...') 
+                                  : (editingTemplateItem ? 'Update Task' : 'Add Task')
+                                }
                               </button>
                               <button
                                 type="button"
@@ -1309,8 +1406,8 @@ export const TaskManagement: React.FC = () => {
                         </div>
                       ) : templateItems[template.id] ? (
                         <div className="task-management-template-items-grid">
-                          {templateItems[template.id]?.filter(item => item.task).map((item) => {
-                            console.log('Rendering template item:', item);
+                          {sortTemplateItemsByTime(templateItems[template.id]?.filter(item => item.task) || []).map((item) => {
+                            console.log('Rendering template item:', item, 'effective time:', getEffectiveTime(item));
                             return (
                               <TaskAssignmentCard
                                 key={item.id}
@@ -1327,10 +1424,12 @@ export const TaskManagement: React.FC = () => {
                                   task: item.task!,
                                 }}
                                 {...(isAdmin && {
+                                  onClick: () => handleEditTemplateItem(template.id, item),
                                   onDelete: (itemId) => {
                                     handleDeleteTemplateItem(template.id, itemId);
                                   }
                                 })}
+                                isClickable={isAdmin}
                                 isAdmin={isAdmin}
                                 isLoading={isLoading}
                               />

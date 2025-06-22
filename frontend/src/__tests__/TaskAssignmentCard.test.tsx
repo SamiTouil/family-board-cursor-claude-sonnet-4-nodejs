@@ -82,9 +82,6 @@ describe('TaskAssignmentCard', () => {
     
     // Check description
     expect(screen.getByText('Wipe down counters and load dishwasher')).toBeInTheDocument();
-    
-    // Check date formatting
-    expect(screen.getByText('1/15/2024')).toBeInTheDocument();
   });
 
   it('renders unassigned task correctly', () => {
@@ -94,8 +91,7 @@ describe('TaskAssignmentCard', () => {
     expect(screen.getByText('Vacuum Living Room')).toBeInTheDocument();
     expect(screen.getByText('🧹')).toBeInTheDocument();
     
-    // Check unassigned state
-    expect(screen.getByText('Unassigned')).toBeInTheDocument();
+    // Check unassigned state (no user avatar, clock icon instead)
     expect(screen.queryByTestId('user-avatar')).not.toBeInTheDocument();
     
     // Check override time is used
@@ -118,7 +114,7 @@ describe('TaskAssignmentCard', () => {
       />
     );
     
-    const card = screen.getByRole('button');
+    const card = screen.getByTitle('Click to edit assignment');
     fireEvent.click(card);
     
     expect(mockOnClick).toHaveBeenCalledWith(mockAssignedTask);

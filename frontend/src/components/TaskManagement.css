@@ -691,8 +691,9 @@
 /* DayTemplate specific styles */
 .task-management-templates-list {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 16px;
+  align-items: flex-start;
 }
 
 .task-management-template {
@@ -701,6 +702,9 @@
   border-radius: 12px;
   padding: 16px;
   transition: all 0.2s ease;
+  width: fit-content;
+  min-width: 300px;
+  max-width: 100%;
 }
 
 .task-management-template:hover {
@@ -709,15 +713,11 @@
 }
 
 .task-management-template-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   margin-bottom: 12px;
 }
 
 .task-management-template-info {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
 }
 
 .task-management-template-name {
@@ -738,7 +738,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+  margin-top: 12px;
+  flex-wrap: wrap;
 }
 
 .task-management-template-action {
@@ -803,22 +804,15 @@
 
 .task-management-template-items-grid {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 2px;
+  align-items: stretch;
 }
 
 /* Responsive adjustments for templates */
 @media (max-width: 768px) {
-  .task-management-template-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
   .task-management-template-actions {
-    width: 100%;
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
 
   .task-management-template-items-grid {
