@@ -108,6 +108,75 @@
   cursor: pointer;
 }
 
+/* Icon Selector */
+.task-management-icon-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-management-icon-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.task-management-icon-preview-emoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.task-management-icon-preview-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.task-management-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  max-width: 280px;
+}
+
+.task-management-icon-option {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+
+.task-management-icon-option:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  transform: scale(1.05);
+}
+
+.task-management-icon-option.selected {
+  border-color: #3b82f6;
+  background: #dbeafe;
+  box-shadow: 0 0 0 2px #3b82f620;
+}
+
+.task-management-icon-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .task-management-error {
   font-size: 0.75rem;
   color: #ef4444;
@@ -305,6 +374,12 @@
 
 .task-management-task-icon {
   color: #6b7280;
+  flex-shrink: 0;
+}
+
+.task-management-task-icon-emoji {
+  font-size: 16px;
+  line-height: 1;
   flex-shrink: 0;
 }
 

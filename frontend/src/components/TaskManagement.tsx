@@ -20,6 +20,7 @@ export const TaskManagement: React.FC = () => {
     name: '',
     description: '',
     color: '#6366f1',
+    icon: '✅',
     defaultStartTime: '09:00',
     defaultDuration: 30,
   });
@@ -83,6 +84,7 @@ export const TaskManagement: React.FC = () => {
       name: '',
       description: '',
       color: '#6366f1',
+      icon: '✅',
       defaultStartTime: '09:00',
       defaultDuration: 30,
     });
@@ -98,6 +100,7 @@ export const TaskManagement: React.FC = () => {
       name: task.name,
       description: task.description || '',
       color: task.color,
+      icon: task.icon || '✅',
       defaultStartTime: task.defaultStartTime,
       defaultDuration: task.defaultDuration,
     });
@@ -120,6 +123,7 @@ export const TaskManagement: React.FC = () => {
       name: '',
       description: '',
       color: '#6366f1',
+      icon: '✅',
       defaultStartTime: '09:00',
       defaultDuration: 30,
     });
@@ -155,7 +159,7 @@ export const TaskManagement: React.FC = () => {
       const createData: CreateTaskData = {
         name: taskData.name.trim(),
         color: taskData.color,
-        icon: 'task', // Default icon for now
+        icon: taskData.icon,
         defaultStartTime: taskData.defaultStartTime,
         defaultDuration: taskData.defaultDuration,
       };
@@ -196,6 +200,7 @@ export const TaskManagement: React.FC = () => {
       const updateData: any = {
         name: taskData.name.trim(),
         color: taskData.color,
+        icon: taskData.icon,
         defaultStartTime: taskData.defaultStartTime,
         defaultDuration: taskData.defaultDuration,
       };
@@ -256,6 +261,17 @@ export const TaskManagement: React.FC = () => {
       return `${hours}h ${mins > 0 ? `${mins}m` : ''}`.trim();
     }
     return `${mins}m`;
+  };
+
+  // Predefined icon options
+  const iconOptions = [
+    '✅', '📝', '🏠', '🍳', '🧹', '🛒', '💼', '📚', 
+    '🏃‍♂️', '🧘‍♀️', '🎵', '🎨', '🌱', '🔧', '💻', '📞',
+    '🚗', '✈️', '🎯', '⭐', '🔥', '💡', '🎉', '❤️'
+  ];
+
+  const handleIconSelect = (icon: string) => {
+    setTaskData(prev => ({ ...prev, icon }));
   };
 
   if (!currentFamily) {
@@ -350,6 +366,31 @@ export const TaskManagement: React.FC = () => {
                       disabled={isLoading}
                       onChange={handleTaskInputChange}
                     />
+                  </div>
+                </div>
+
+                <div className="task-management-form-group">
+                  <label className="task-management-label">
+                    Icon
+                  </label>
+                  <div className="task-management-icon-selector">
+                    <div className="task-management-icon-preview">
+                      <span className="task-management-icon-preview-emoji">{taskData.icon}</span>
+                      <span className="task-management-icon-preview-label">Selected</span>
+                    </div>
+                    <div className="task-management-icon-grid">
+                      {iconOptions.map((icon) => (
+                        <button
+                          key={icon}
+                          type="button"
+                          className={`task-management-icon-option ${taskData.icon === icon ? 'selected' : ''}`}
+                          onClick={() => handleIconSelect(icon)}
+                          disabled={isLoading}
+                        >
+                          {icon}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -469,7 +510,7 @@ export const TaskManagement: React.FC = () => {
                   <div className="task-management-task-info">
                     <div className="task-management-task-header">
                       <div className="task-management-task-title">
-                        <TasksIcon size={16} className="task-management-task-icon" />
+                        <span className="task-management-task-icon-emoji">{task.icon}</span>
                         <h6 className="task-management-task-name">{task.name}</h6>
                       </div>
                       <div className="task-management-task-meta">

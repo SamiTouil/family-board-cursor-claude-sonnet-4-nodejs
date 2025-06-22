@@ -243,7 +243,7 @@ describe('TaskManagement', () => {
         name: 'New Task',
         description: 'Test description',
         color: '#6366f1',
-        icon: 'task',
+        icon: '✅',
         defaultStartTime: '09:00',
         defaultDuration: 45,
       });
@@ -340,6 +340,7 @@ describe('TaskManagement', () => {
         name: 'Updated Task Name',
         description: 'Clean all surfaces and dishes',
         color: '#FF5733',
+        icon: 'cleaning',
         defaultStartTime: '09:00',
         defaultDuration: 60,
       });
