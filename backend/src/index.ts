@@ -42,7 +42,7 @@ async function startServer(): Promise<void> {
     app.use('/api/families', familyRoutes);
     app.use('/api/tasks', taskRoutes);
     app.use('/api', taskAssignmentRoutes);
-    app.use('/api', dayTemplateRoutes);
+    app.use('/api/families', dayTemplateRoutes);
 
     // Error handling
     app.use(errorHandler);

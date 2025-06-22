@@ -384,8 +384,6 @@
   filter: brightness(0.98);
 }
 
-
-
 .task-management-task-info {
   flex: 1;
   min-width: 0;
@@ -688,4 +686,146 @@
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.1);
+}
+
+/* DayTemplate specific styles */
+.task-management-templates-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.task-management-template {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+  width: fit-content;
+  min-width: 300px;
+  max-width: 100%;
+}
+
+.task-management-template:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.task-management-template-header {
+  margin-bottom: 12px;
+}
+
+.task-management-template-info {
+  width: 100%;
+}
+
+.task-management-template-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px 0;
+}
+
+.task-management-template-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.task-management-template-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.task-management-template-action {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  max-width: 28px;
+  max-height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  color: #6b7280;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+  font-family: system-ui, -apple-system, sans-serif;
+  box-sizing: border-box;
+}
+
+.task-management-template-action:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.task-management-template-action.delete:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.task-management-template-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.task-management-template-items {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 16px;
+  margin-top: 12px;
+}
+
+.task-management-template-empty {
+  text-align: center;
+  padding: 24px;
+  color: #6b7280;
+}
+
+.task-management-template-empty p {
+  margin: 0 0 8px 0;
+  font-size: 0.875rem;
+}
+
+.task-management-template-items-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: stretch;
+}
+
+/* Responsive adjustments for templates */
+@media (max-width: 768px) {
+  .task-management-template-actions {
+    justify-content: flex-start;
+  }
+
+  .task-management-template-items-grid {
+    gap: 8px;
+  }
+}
+
+/* Template Item Management Styles */
+.task-management-template-add-item {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.task-management-template-add-item .task-management-button {
+  min-width: 160px;
 } 

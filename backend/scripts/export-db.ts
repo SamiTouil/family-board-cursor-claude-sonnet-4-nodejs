@@ -11,6 +11,8 @@ interface DbExport {
   familyInvites: any[];
   familyJoinRequests: any[];
   tasks: any[];
+  dayTemplates: any[];
+  dayTemplateItems: any[];
   exportedAt: string;
 }
 
@@ -19,7 +21,7 @@ async function exportDatabase(): Promise<void> {
 
   try {
     // Export all data with relationships
-    const [users, families, familyMembers, familyInvites, familyJoinRequests, tasks] = await Promise.all([
+    const [users, families, familyMembers, familyInvites, familyJoinRequests, tasks, dayTemplates, dayTemplateItems] = await Promise.all([
       prisma.user.findMany({
         orderBy: { createdAt: 'asc' }
       }),
@@ -37,6 +39,12 @@ async function exportDatabase(): Promise<void> {
       }),
       prisma.task.findMany({
         orderBy: { createdAt: 'asc' }
+      }),
+      prisma.dayTemplate.findMany({
+        orderBy: { createdAt: 'asc' }
+      }),
+      prisma.dayTemplateItem.findMany({
+        orderBy: { createdAt: 'asc' }
       })
     ]);
 
@@ -47,6 +55,8 @@ async function exportDatabase(): Promise<void> {
       familyInvites,
       familyJoinRequests,
       tasks,
+      dayTemplates,
+      dayTemplateItems,
       exportedAt: new Date().toISOString()
     };
 
@@ -69,6 +79,8 @@ async function exportDatabase(): Promise<void> {
     console.log(`   - Family Invites: ${familyInvites.length}`);
     console.log(`   - Join Requests: ${familyJoinRequests.length}`);
     console.log(`   - Tasks: ${tasks.length}`);
+    console.log(`   - Day Templates: ${dayTemplates.length}`);
+    console.log(`   - Day Template Items: ${dayTemplateItems.length}`);
 
   } catch (error) {
     console.error('❌ Export failed:', error);

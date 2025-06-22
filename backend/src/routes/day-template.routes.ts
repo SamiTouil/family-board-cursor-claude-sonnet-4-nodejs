@@ -7,11 +7,40 @@ import {
   DayTemplateItemResponseDto,
   ApplyDayTemplateDto,
 } from '../types/task.types';
+import { PrismaClient } from '@prisma/client';
 
 const router = Router();
+const prisma = new PrismaClient();
 
 // Apply auth middleware to all routes
 router.use(authenticateToken);
+
+// Helper method to check if user is a family member
+async function checkFamilyMembership(userId: string, familyId: string): Promise<{ role: string }> {
+  const membership = await prisma.familyMember.findUnique({
+    where: {
+      userId_familyId: {
+        userId,
+        familyId,
+      },
+    },
+  });
+
+  if (!membership) {
+    throw new Error('Access denied: You are not a member of this family');
+  }
+
+  return { role: membership.role };
+}
+
+// Helper method to check if user is family admin
+async function checkFamilyAdmin(userId: string, familyId: string): Promise<void> {
+  const membership = await checkFamilyMembership(userId, familyId);
+  
+  if (membership.role !== 'ADMIN') {
+    throw new Error('Access denied: Only family admins can perform this action');
+  }
+}
 
 // ==================== DAY TEMPLATE CRUD ====================
 
@@ -20,13 +49,32 @@ router.use(authenticateToken);
  * Create a new day template
  */
 router.post('/:familyId/day-templates', async (req: AuthenticatedRequest, res: Response) => {
+  console.log('=== DAY TEMPLATE CREATE REQUEST ===');
+  console.log('URL params:', req.params);
+  console.log('Request body:', req.body);
+  console.log('User from token:', req.user);
+  console.log('Headers:', req.headers.authorization ? 'Auth header present' : 'No auth header');
+  
   try {
     const { familyId } = req.params;
+    const userId = req.user!.userId;
+    
+    console.log('Extracted familyId:', familyId);
+    console.log('Extracted userId:', userId);
+    
     if (!familyId) {
+      console.log('ERROR: Missing familyId');
       return res.status(400).json({ error: 'Family ID is required' });
     }
 
+    console.log('Checking family admin permissions...');
+    // Check if user is admin of the family
+    await checkFamilyAdmin(userId, familyId);
+    console.log('Admin check passed!');
+
+    console.log('Creating template with service...');
     const template = await dayTemplateService.createDayTemplate(req.body, familyId);
+    console.log('Template created successfully:', template.id);
     
     const response: DayTemplateResponseDto = {
       id: template.id,
@@ -53,7 +101,13 @@ router.post('/:familyId/day-templates', async (req: AuthenticatedRequest, res: R
 
     return res.status(201).json(response);
   } catch (error) {
+    console.log('=== DAY TEMPLATE CREATE ERROR ===');
+    console.log('Error type:', error?.constructor?.name);
+    console.log('Error message:', (error as any)?.message);
+    console.log('Full error:', error);
+    
     if (error instanceof z.ZodError) {
+      console.log('Zod validation error:', error.errors);
       return res.status(400).json({
         error: 'Validation failed',
         details: error.errors,
@@ -61,12 +115,17 @@ router.post('/:familyId/day-templates', async (req: AuthenticatedRequest, res: R
     }
     
     if (error instanceof Error) {
+      if (error.message.includes('Access denied')) {
+        console.log('Access denied error');
+        return res.status(403).json({ error: error.message });
+      }
       if (error.message.includes('already exists')) {
+        console.log('Duplicate name error');
         return res.status(409).json({ error: error.message });
       }
     }
 
-    console.error('Error creating day template:', error);
+    console.error('Unexpected error creating day template:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -76,11 +135,27 @@ router.post('/:familyId/day-templates', async (req: AuthenticatedRequest, res: R
  * Get all day templates for a family with filtering and pagination
  */
 router.get('/:familyId/day-templates', async (req: AuthenticatedRequest, res: Response) => {
+  console.log('=== DAY TEMPLATE GET REQUEST ===');
+  console.log('URL params:', req.params);
+  console.log('Query params:', req.query);
+  console.log('User from token:', req.user);
+  
   try {
     const { familyId } = req.params;
+    const userId = req.user!.userId;
+    
+    console.log('Extracted familyId:', familyId);
+    console.log('Extracted userId:', userId);
+    
     if (!familyId) {
+      console.log('ERROR: Missing familyId');
       return res.status(400).json({ error: 'Family ID is required' });
     }
+
+    console.log('Checking family membership...');
+    // Check if user is a member of the family
+    await checkFamilyMembership(userId, familyId);
+    console.log('Family membership check passed!');
 
     const {
       isActive,
@@ -104,7 +179,14 @@ router.get('/:familyId/day-templates', async (req: AuthenticatedRequest, res: Re
       queryParams.search = search as string;
     }
 
+    console.log('Calling dayTemplateService.getDayTemplates with params:', queryParams);
     const result = await dayTemplateService.getDayTemplates(familyId, queryParams);
+    console.log('Service call successful, got result:', { 
+      templatesCount: result.templates.length,
+      total: result.total,
+      page: result.page,
+      limit: result.limit
+    });
     
     const response = {
       templates: result.templates.map((template): DayTemplateResponseDto => ({
@@ -137,9 +219,19 @@ router.get('/:familyId/day-templates', async (req: AuthenticatedRequest, res: Re
       },
     };
 
+    console.log('Sending response with', response.templates.length, 'templates');
     return res.json(response);
   } catch (error) {
-    console.error('Error fetching day templates:', error);
+    console.log('=== DAY TEMPLATE GET ERROR ===');
+    console.log('Error type:', error?.constructor?.name);
+    console.log('Error message:', (error as any)?.message);
+    console.log('Full error:', error);
+    
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      console.log('Access denied error');
+      return res.status(403).json({ error: error.message });
+    }
+    console.error('Unexpected error fetching day templates:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -278,6 +370,54 @@ router.delete('/:familyId/day-templates/:id', async (req: AuthenticatedRequest, 
 });
 
 // ==================== DAY TEMPLATE ITEM CRUD ====================
+
+/**
+ * GET /api/families/:familyId/day-templates/:templateId/items
+ * Get all items for a day template
+ */
+router.get('/:familyId/day-templates/:templateId/items', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { familyId, templateId } = req.params;
+    const userId = req.user!.userId;
+    
+    if (!familyId || !templateId) {
+      return res.status(400).json({ error: 'Family ID and Template ID are required' });
+    }
+
+    // Check if user is a member of the family
+    await checkFamilyMembership(userId, familyId);
+
+    const templateItems = await dayTemplateService.getTemplateItems(templateId, familyId);
+    
+    const response = templateItems.map((item): DayTemplateItemResponseDto => ({
+      id: item.id,
+      memberId: item.memberId,
+      taskId: item.taskId,
+      overrideTime: item.overrideTime,
+      overrideDuration: item.overrideDuration,
+      sortOrder: item.sortOrder,
+      createdAt: item.createdAt.toISOString(),
+      updatedAt: item.updatedAt.toISOString(),
+      dayTemplateId: item.dayTemplateId,
+      member: item.member,
+      task: item.task,
+    }));
+
+    return res.json(response);
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ error: error.message });
+      }
+      if (error.message.includes('Access denied')) {
+        return res.status(403).json({ error: error.message });
+      }
+    }
+
+    console.error('Error getting template items:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 /**
  * POST /api/families/:familyId/day-templates/:templateId/items

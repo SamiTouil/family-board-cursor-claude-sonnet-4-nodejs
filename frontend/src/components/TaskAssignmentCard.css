@@ -1,0 +1,248 @@
+/* TaskAssignmentCard Component Styles */
+.task-assignment-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: #fafafa;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.task-assignment-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.task-assignment-card-clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.task-assignment-card-clickable:hover {
+  filter: brightness(0.98);
+}
+
+.task-assignment-card-content {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* Avatar Section - spans two lines */
+.task-assignment-card-avatar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px; /* Slight adjustment to align with first line */
+}
+
+.task-assignment-card-unassigned-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  border: 2px solid #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-assignment-card-unassigned-icon {
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Task Info Section */
+.task-assignment-card-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.task-assignment-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1px;
+  min-height: 20px;
+}
+
+.task-assignment-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-assignment-card-icon-emoji {
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.task-assignment-card-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-assignment-card-time-container {
+  display: flex;
+  align-items: center;
+  font-size: 0.7rem;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.task-assignment-card-time {
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.task-assignment-card-description-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+  gap: 6px;
+  font-size: 0.7rem;
+}
+
+.task-assignment-card-description-spacer {
+  flex: 1;
+}
+
+.task-assignment-card-duration {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.task-assignment-card-description {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.2;
+  flex: 1;
+}
+
+/* Actions */
+.task-assignment-card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  transform: translateX(100%);
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+}
+
+.task-assignment-card:hover .task-assignment-card-actions {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.task-assignment-card-action {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  max-width: 28px;
+  max-height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  color: #6b7280;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+  font-family: system-ui, -apple-system, sans-serif;
+  box-sizing: border-box;
+}
+
+.task-assignment-card-action:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.task-assignment-card-action.delete:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.task-assignment-card-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .task-assignment-card {
+    width: 240px;
+  }
+}
+
+@media (max-width: 900px) {
+  .task-assignment-card {
+    width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .task-assignment-card {
+    width: 100%;
+  }
+
+  .task-assignment-card-actions {
+    position: static;
+    transform: none;
+    opacity: 1;
+    margin-left: auto;
+    margin-top: -4px;
+  }
+
+  .task-assignment-card-content {
+    gap: 8px;
+  }
+
+  .task-assignment-card-name {
+    font-size: 0.9rem;
+  }
+
+  .task-assignment-card-details {
+    font-size: 0.7rem;
+  }
+} 

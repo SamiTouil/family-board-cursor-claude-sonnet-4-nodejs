@@ -12,6 +12,8 @@ interface DbExport {
   familyInvites: any[];
   familyJoinRequests: any[];
   tasks: any[];
+  dayTemplates: any[];
+  dayTemplateItems: any[];
   exportedAt: string;
 }
 
@@ -138,6 +140,50 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
     console.log(`✅ Seeded ${exportData.tasks.length} tasks`);
   } else {
     console.log(`ℹ️ No tasks to seed`);
+  }
+
+  // Seed day templates (depend on families)
+  if (exportData.dayTemplates && exportData.dayTemplates.length > 0) {
+    for (const templateData of exportData.dayTemplates) {
+      await prisma.dayTemplate.upsert({
+        where: { id: templateData.id },
+        update: {},
+        create: {
+          id: templateData.id,
+          name: templateData.name,
+          description: templateData.description,
+          familyId: templateData.familyId,
+          createdAt: templateData.createdAt,
+          updatedAt: templateData.updatedAt,
+        },
+      });
+    }
+    console.log(`✅ Seeded ${exportData.dayTemplates.length} day templates`);
+  } else {
+    console.log(`ℹ️ No day templates to seed`);
+  }
+
+  // Seed day template items (depend on day templates, tasks, and family members)
+  if (exportData.dayTemplateItems && exportData.dayTemplateItems.length > 0) {
+    for (const itemData of exportData.dayTemplateItems) {
+      await prisma.dayTemplateItem.upsert({
+        where: { id: itemData.id },
+        update: {},
+        create: {
+          id: itemData.id,
+          dayTemplateId: itemData.dayTemplateId,
+          taskId: itemData.taskId,
+          memberId: itemData.memberId,
+          overrideTime: itemData.overrideTime,
+          overrideDuration: itemData.overrideDuration,
+          createdAt: itemData.createdAt,
+          updatedAt: itemData.updatedAt,
+        },
+      });
+    }
+    console.log(`✅ Seeded ${exportData.dayTemplateItems.length} day template items`);
+  } else {
+    console.log(`ℹ️ No day template items to seed`);
   }
 
   console.log(`🎉 Successfully seeded database from export (${exportData.exportedAt})`);
