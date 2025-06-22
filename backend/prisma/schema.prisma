@@ -24,6 +24,7 @@ model User {
   joinRequests         FamilyJoinRequest[]
   familyMemberships    FamilyMember[]
   taskAssignments      TaskAssignment[]
+  dayTemplateItems     DayTemplateItem[]
 
   @@map("users")
 }
@@ -41,6 +42,7 @@ model Family {
   joinRequests FamilyJoinRequest[]
   members      FamilyMember[]
   tasks        Task[]
+  dayTemplates DayTemplate[]
 
   @@map("families")
 }
@@ -98,19 +100,20 @@ model FamilyJoinRequest {
 }
 
 model Task {
-  id               String           @id @default(cuid())
-  name             String
-  description      String?
-  color            String
-  icon             String
-  defaultStartTime String
-  defaultDuration  Int
-  isActive         Boolean          @default(true)
-  createdAt        DateTime         @default(now()) @map("created_at")
-  updatedAt        DateTime         @updatedAt @map("updated_at")
-  familyId         String           @map("family_id")
-  assignments      TaskAssignment[]
-  family           Family           @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  id                 String              @id @default(cuid())
+  name               String
+  description        String?
+  color              String
+  icon               String
+  defaultStartTime   String
+  defaultDuration    Int
+  isActive           Boolean             @default(true)
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  familyId           String              @map("family_id")
+  assignments        TaskAssignment[]
+  dayTemplateItems   DayTemplateItem[]
+  family             Family              @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   @@map("tasks")
 }
@@ -134,6 +137,44 @@ model TaskAssignment {
   // Note: For unassigned tasks (memberId = null), we allow multiple entries per task per date
   @@unique([memberId, taskId, assignedDate])
   @@map("task_assignments")
+}
+
+// DayTemplate represents a reusable template for scheduling tasks
+// Examples: "Weekday", "Weekend", "School Day", "Holiday"
+model DayTemplate {
+  id          String            @id @default(cuid())
+  name        String            // Template name (e.g., "Weekday", "Weekend")
+  description String?           // Optional description
+  isActive    Boolean           @default(true) // Whether this template can be used
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  familyId    String            @map("family_id")
+  family      Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  items       DayTemplateItem[] // Tasks included in this template
+
+  @@unique([familyId, name]) // Unique template names per family
+  @@map("day_templates")
+}
+
+// DayTemplateItem represents a task assignment within a day template
+// Contains the same assignment information as TaskAssignment but as a template
+model DayTemplateItem {
+  id               String      @id @default(cuid())
+  memberId         String?     @map("member_id")         // Optional - null means unassigned in template
+  taskId           String      @map("task_id")
+  overrideTime     String?     @map("override_time")     // Optional time override in HH:MM format (UTC)
+  overrideDuration Int?        @map("override_duration") // Optional duration override in minutes
+  sortOrder        Int         @default(0)               // Order within the template for consistent application
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  dayTemplateId    String      @map("day_template_id")
+  dayTemplate      DayTemplate @relation(fields: [dayTemplateId], references: [id], onDelete: Cascade)
+  member           User?       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  task             Task        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  // Ensure one template item per member per task per template (allow multiple unassigned)
+  @@unique([dayTemplateId, memberId, taskId])
+  @@map("day_template_items")
 }
 
 enum FamilyMemberRole {

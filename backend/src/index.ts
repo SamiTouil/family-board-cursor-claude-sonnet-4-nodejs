@@ -9,6 +9,7 @@ import { authRoutes } from './routes/auth.routes';
 import familyRoutes from './routes/family.routes';
 import taskRoutes from './routes/task.routes';
 import taskAssignmentRoutes from './routes/task-assignment.routes';
+import dayTemplateRoutes from './routes/day-template.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { initializeWebSocket } from './services/websocket.service';
 
@@ -41,6 +42,7 @@ async function startServer(): Promise<void> {
     app.use('/api/families', familyRoutes);
     app.use('/api/tasks', taskRoutes);
     app.use('/api', taskAssignmentRoutes);
+    app.use('/api', dayTemplateRoutes);
 
     // Error handling
     app.use(errorHandler);

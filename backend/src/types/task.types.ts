@@ -208,4 +208,156 @@ export const TASK_COLORS = [
   '#FFFF33', // Bright Yellow
 ] as const;
 
-export type TaskColor = typeof TASK_COLORS[number]; 
+export type TaskColor = typeof TASK_COLORS[number];
+
+// ==================== DAY TEMPLATE TYPES ====================
+
+// DayTemplate interface matching Prisma model
+export interface DayTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  familyId: string;
+}
+
+// DayTemplateItem interface matching Prisma model
+export interface DayTemplateItem {
+  id: string;
+  memberId: string | null; // null means unassigned in template
+  taskId: string;
+  overrideTime: string | null; // HH:MM format in UTC, overrides task's defaultStartTime
+  overrideDuration: number | null; // Duration in minutes, overrides task's defaultDuration
+  sortOrder: number; // Order within the template
+  createdAt: Date;
+  updatedAt: Date;
+  dayTemplateId: string;
+}
+
+// DayTemplate with related data
+export interface DayTemplateWithRelations extends DayTemplate {
+  items: DayTemplateItemWithRelations[];
+  family: {
+    id: string;
+    name: string;
+  };
+}
+
+// DayTemplateItem with related data
+export interface DayTemplateItemWithRelations extends DayTemplateItem {
+  member: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    avatarUrl: string | null;
+    isVirtual: boolean;
+  } | null; // null for unassigned template items
+  task: {
+    id: string;
+    name: string;
+    description: string | null;
+    color: string;
+    icon: string;
+    defaultStartTime: string;
+    defaultDuration: number;
+    familyId: string;
+  };
+  dayTemplate: {
+    id: string;
+    name: string;
+    description: string | null;
+  };
+}
+
+// DayTemplate validation schemas
+export const CreateDayTemplateSchema = z.object({
+  name: z.string().min(1, 'Template name is required').max(100, 'Template name is too long'),
+  description: z.string().max(500, 'Description is too long').optional().nullable(),
+});
+
+export const UpdateDayTemplateSchema = z.object({
+  name: z.string().min(1, 'Template name is required').max(100, 'Template name is too long').optional(),
+  description: z.string().max(500, 'Description is too long').optional().nullable(),
+  isActive: z.boolean().optional(),
+});
+
+// DayTemplateItem validation schemas
+export const CreateDayTemplateItemSchema = z.object({
+  memberId: z.string().min(1, 'Member ID is required').optional().nullable(), // Optional - null means unassigned
+  taskId: z.string().min(1, 'Task ID is required'),
+  overrideTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Override time must be in HH:MM format (e.g., 14:30)').optional().nullable(),
+  overrideDuration: z.number().int().min(1, 'Duration must be at least 1 minute').max(1440, 'Duration cannot exceed 24 hours').optional().nullable(),
+  sortOrder: z.number().int().min(0).default(0).optional(),
+});
+
+export const UpdateDayTemplateItemSchema = z.object({
+  memberId: z.string().min(1, 'Member ID is required').optional().nullable(),
+  overrideTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Override time must be in HH:MM format (e.g., 14:30)').optional().nullable(),
+  overrideDuration: z.number().int().min(1, 'Duration must be at least 1 minute').max(1440, 'Duration cannot exceed 24 hours').optional().nullable(),
+  sortOrder: z.number().int().min(0).optional(),
+});
+
+// DTOs for API requests/responses
+export type CreateDayTemplateDto = z.infer<typeof CreateDayTemplateSchema>;
+export type UpdateDayTemplateDto = z.infer<typeof UpdateDayTemplateSchema>;
+export type CreateDayTemplateItemDto = z.infer<typeof CreateDayTemplateItemSchema>;
+export type UpdateDayTemplateItemDto = z.infer<typeof UpdateDayTemplateItemSchema>;
+
+export interface DayTemplateResponseDto {
+  id: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  createdAt: string; // ISO string for API responses
+  updatedAt: string; // ISO string for API responses
+  familyId: string;
+  items?: DayTemplateItemResponseDto[];
+}
+
+export interface DayTemplateItemResponseDto {
+  id: string;
+  memberId: string | null; // null for unassigned template items
+  taskId: string;
+  overrideTime: string | null;
+  overrideDuration: number | null;
+  sortOrder: number;
+  createdAt: string; // ISO string for API responses
+  updatedAt: string; // ISO string for API responses
+  dayTemplateId: string;
+  member?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    avatarUrl: string | null;
+    isVirtual: boolean;
+  } | null; // null for unassigned template items
+  task?: {
+    id: string;
+    name: string;
+    description: string | null;
+    color: string;
+    icon: string;
+    defaultStartTime: string;
+    defaultDuration: number;
+    familyId: string;
+  };
+}
+
+// Query parameters for listing day templates
+export interface DayTemplateQueryParams {
+  isActive?: boolean;
+  search?: string; // Search in name or description
+  page?: number;
+  limit?: number;
+}
+
+// DTO for applying a day template to specific dates
+export interface ApplyDayTemplateDto {
+  templateId: string;
+  dates: string[]; // Array of ISO date strings (YYYY-MM-DD)
+  overrideMemberAssignments?: boolean; // Whether to override existing member assignments
+} 
