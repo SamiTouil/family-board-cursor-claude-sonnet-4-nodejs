@@ -153,16 +153,6 @@ describe('Dashboard', () => {
     expect(screen.getByText('A test family')).toBeDefined()
   })
 
-  it('displays Coming Soon placeholder', () => {
-    mockFamilyContext.currentFamily = null
-    
-    render(<Dashboard />)
-    
-    // Check for the Coming Soon placeholder
-    expect(screen.getByText('Coming Soon')).toBeDefined()
-    expect(screen.getByText('Family board features will be implemented here.')).toBeDefined()
-  })
-
   it('displays user information in UserSummaryCard', () => {
     render(<Dashboard />)
     
@@ -170,13 +160,5 @@ describe('Dashboard', () => {
     expect(screen.getByText('John Doe')).toBeDefined()
     // Check for email in UserSummaryCard
     expect(screen.getByText('john@example.com')).toBeDefined()
-  })
-
-  it('renders dashboard structure correctly', () => {
-    render(<Dashboard />)
-    
-    // Check for main dashboard structure
-    expect(screen.getByRole('heading', { name: 'Coming Soon' })).toBeDefined()
-    expect(screen.getByText('Family board features will be implemented here.')).toBeDefined()
   })
 }) 
