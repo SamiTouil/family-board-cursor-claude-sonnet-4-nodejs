@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../contexts/FamilyContext';
+import TasksIcon from './icons/TasksIcon';
 import './TaskManagement.css';
 
 // Task interfaces (will be moved to types later if needed)
@@ -110,12 +111,10 @@ export const TaskManagement: React.FC = () => {
   return (
     <div className="task-management">
       <div className="task-management-header">
-        <div className="task-management-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 11H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-2"/>
-            <rect x="9" y="7" width="6" height="4" rx="2"/>
-            <path d="M9 15l2 2 4-4"/>
-          </svg>
+        <div className="task-management-avatar">
+          <div className="task-management-avatar-icon">
+            <TasksIcon size={24} />
+          </div>
         </div>
         <h2 className="task-management-title">{t('tasks.management')}</h2>
       </div>

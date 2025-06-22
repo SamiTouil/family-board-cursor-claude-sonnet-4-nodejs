@@ -18,18 +18,6 @@
   gap: 12px;
 }
 
-.task-management-icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  color: white;
-}
-
 .task-management-title {
   font-size: 1.5rem;
   font-weight: 600;
@@ -480,4 +468,20 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.task-management-avatar {
+  flex-shrink: 0;
+}
+
+.task-management-avatar-icon {
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
 } 
