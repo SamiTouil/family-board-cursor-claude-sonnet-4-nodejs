@@ -184,17 +184,17 @@ describe('TaskManagement', () => {
 
   it('creates a new task successfully', async () => {
     const newTask = {
-      id: 'task-3',
+      id: 'new-task-1',
       name: 'New Task',
       description: 'Test description',
       color: '#6366f1',
       icon: 'task',
-      defaultStartTime: '10:00',
+      defaultStartTime: '09:00',
       defaultDuration: 45,
       isActive: true,
-      createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z',
       familyId: 'family-1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     mockTaskApi.getFamilyTasks.mockResolvedValue({
@@ -206,26 +206,38 @@ describe('TaskManagement', () => {
 
     render(<TaskManagement />);
 
-    // Open create form
+    // Wait for initial load and open create form
     await waitFor(() => {
-      const createButton = screen.getByText('tasks.createFirstTask');
-      fireEvent.click(createButton);
+      expect(screen.getByText('tasks.createFirstTask')).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByText('tasks.createFirstTask'));
+
+    // Wait for form to be visible by checking for form elements
+    await waitFor(() => {
+      expect(screen.getByLabelText('tasks.name')).toBeDefined();
     });
 
     // Fill form
-    fireEvent.change(screen.getByLabelText('tasks.name'), {
+    const nameInput = screen.getByLabelText('tasks.name');
+    const descriptionInput = screen.getByLabelText('tasks.description (common.optional)');
+    const durationInput = screen.getByLabelText('tasks.defaultDuration (tasks.minutes)');
+
+    fireEvent.change(nameInput, {
       target: { value: 'New Task' },
     });
-    fireEvent.change(screen.getByLabelText('tasks.description (common.optional)'), {
+    fireEvent.change(descriptionInput, {
       target: { value: 'Test description' },
     });
-    fireEvent.change(screen.getByLabelText('tasks.defaultDuration (tasks.minutes)'), {
+    fireEvent.change(durationInput, {
       target: { value: '45' },
     });
 
-    // Submit form
-    fireEvent.click(screen.getByText('tasks.createTask'));
+    // Submit form by clicking the submit button
+    const submitButton = screen.getByRole('button', { name: 'tasks.createTask' });
+    fireEvent.click(submitButton);
 
+    // Wait for API call
     await waitFor(() => {
       expect(mockTaskApi.createTask).toHaveBeenCalledWith('family-1', {
         name: 'New Task',
@@ -235,7 +247,7 @@ describe('TaskManagement', () => {
         defaultStartTime: '09:00',
         defaultDuration: 45,
       });
-    });
+    }, { timeout: 3000 });
 
     // Check success message
     await waitFor(() => {
@@ -250,19 +262,28 @@ describe('TaskManagement', () => {
 
     render(<TaskManagement />);
 
-    // Open create form
+    // Wait for initial load and open create form
     await waitFor(() => {
-      const createButton = screen.getByText('tasks.createFirstTask');
-      fireEvent.click(createButton);
+      expect(screen.getByText('tasks.createFirstTask')).toBeDefined();
     });
 
-    // Submit form without filling required fields
-    fireEvent.click(screen.getByText('tasks.createTask'));
+    fireEvent.click(screen.getByText('tasks.createFirstTask'));
 
+    // Wait for form to be visible by checking for form elements
+    await waitFor(() => {
+      expect(screen.getByLabelText('tasks.name')).toBeDefined();
+    });
+
+    // Submit form without filling required fields (name should be empty by default)
+    const submitButton = screen.getByRole('button', { name: 'tasks.createTask' });
+    fireEvent.click(submitButton);
+
+    // Wait for validation error to appear
     await waitFor(() => {
       expect(screen.getByText('tasks.validation.nameRequired')).toBeDefined();
-    });
+    }, { timeout: 3000 });
 
+    // Ensure API was not called
     expect(mockTaskApi.createTask).not.toHaveBeenCalled();
   });
 

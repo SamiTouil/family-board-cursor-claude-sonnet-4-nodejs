@@ -103,10 +103,17 @@ export const TaskManagement: React.FC = () => {
     });
   };
 
-  const handleCancelForm = () => {
+  const handleCancelForm = (preserveMessageOrEvent?: boolean | React.MouseEvent) => {
     setAddingTask(false);
     setEditingTask(null);
-    setMessage(null);
+    
+    // If it's a boolean or undefined, use it as preserveMessage flag
+    // If it's a mouse event, don't preserve the message (default behavior)
+    const preserveMessage = typeof preserveMessageOrEvent === 'boolean' ? preserveMessageOrEvent : false;
+    
+    if (!preserveMessage) {
+      setMessage(null);
+    }
     setTaskErrors({});
     // Reset form data
     setTaskData({
@@ -159,15 +166,15 @@ export const TaskManagement: React.FC = () => {
       }
 
       const response = await taskApi.createTask(currentFamily.id, createData);
-      
+
       // Add the new task to the list
       setTasks(prev => [...prev, response.data.data]);
       
       // Show success message
       setMessage({ type: 'success', text: t('tasks.created') });
       
-      // Close the form
-      handleCancelForm();
+      // Close the form but preserve the success message
+      handleCancelForm(true);
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || t('tasks.createError');
       setMessage({ type: 'error', text: errorMessage });
@@ -210,8 +217,8 @@ export const TaskManagement: React.FC = () => {
       // Show success message
       setMessage({ type: 'success', text: 'Task updated successfully' });
       
-      // Close the form
-      handleCancelForm();
+      // Close the form but preserve the success message
+      handleCancelForm(true);
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || 'Failed to update task';
       setMessage({ type: 'error', text: errorMessage });
