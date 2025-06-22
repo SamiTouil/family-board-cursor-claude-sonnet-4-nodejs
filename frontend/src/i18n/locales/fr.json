@@ -259,5 +259,34 @@
       "continue": "Créer la Famille",
       "join": "Rejoindre la Famille"
     }
+  },
+  "tasks": {
+    "management": "Gestion des Tâches",
+    "currentTasks": "Tâches Actuelles",
+    "createTask": "Créer une Tâche",
+    "createTaskHelp": "Créer une nouvelle tâche pour votre famille",
+    "createFirstTask": "Créer Votre Première Tâche",
+    "name": "Nom de la Tâche",
+    "namePlaceholder": "Entrez le nom de la tâche",
+    "description": "Description",
+    "descriptionPlaceholder": "Décrivez ce qui doit être fait",
+    "color": "Couleur",
+    "defaultStartTime": "Heure de Début par Défaut",
+    "defaultDuration": "Durée par Défaut",
+    "minutes": "minutes",
+    "creating": "Création...",
+    "created": "Tâche créée avec succès",
+    "createError": "Échec de la création de la tâche",
+    "loadError": "Échec du chargement des tâches",
+    "noTasks": "Aucune Tâche",
+    "noTasksDescription": "Commencez par créer votre première tâche pour la famille",
+    "validation": {
+      "nameRequired": "Le nom de la tâche est requis",
+      "nameTooShort": "Le nom de la tâche doit contenir au moins 2 caractères",
+      "nameTooLong": "Le nom de la tâche doit contenir moins de 100 caractères",
+      "descriptionTooLong": "La description doit contenir moins de 500 caractères",
+      "durationTooShort": "La durée doit être d'au moins 1 minute",
+      "durationTooLong": "La durée ne peut pas dépasser 24 heures (1440 minutes)"
+    }
   }
 } 
