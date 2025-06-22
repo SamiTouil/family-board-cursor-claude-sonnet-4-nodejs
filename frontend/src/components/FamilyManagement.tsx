@@ -2,26 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../contexts/FamilyContext';
 import { useAuth } from '../contexts/AuthContext';
-import { useWebSocket } from '../contexts/WebSocketContext';
-import { UserAvatar } from './UserAvatar';
 import { RoleTag } from './RoleTag';
-import { CustomSelect } from './CustomSelect';
-import { familyApi, FamilyMember, FamilyJoinRequest, FamilyInvite, UpdateFamilyData } from '../services/api';
+import { familyApi, FamilyMember } from '../services/api';
 import './FamilyManagement.css';
 
 export const FamilyManagement: React.FC = () => {
   const { t } = useTranslation();
-  const { currentFamily, refreshFamilies, pendingJoinRequests, loadPendingJoinRequests } = useFamily();
+  const { currentFamily } = useFamily();
   const { user } = useAuth();
-  const { on, off } = useWebSocket();
 
-  // State for family members and invites
+  // State for family members
   const [members, setMembers] = useState<FamilyMember[]>([]);
-  const [invites, setInvites] = useState<FamilyInvite[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  const isAdmin = currentFamily?.userRole === 'ADMIN';
 
   // Load family data when component mounts
   useEffect(() => {
@@ -34,20 +26,13 @@ export const FamilyManagement: React.FC = () => {
     if (!currentFamily) return;
 
     try {
-      const [membersResponse, invitesResponse] = await Promise.all([
-        familyApi.getMembers(currentFamily.id),
-        familyApi.getInvites(currentFamily.id),
-      ]);
+      const membersResponse = await familyApi.getMembers(currentFamily.id);
 
       if (membersResponse.data.success) {
         setMembers(membersResponse.data.data);
       }
-
-      if (invitesResponse.data.success) {
-        setInvites(invitesResponse.data.data);
-      }
     } catch (error) {
-      console.error('Failed to load family data:', error);
+      setMessage({ type: 'error', text: t('family.loadError') });
     }
   };
 
