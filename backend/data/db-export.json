@@ -187,7 +187,7 @@
     },
     {
       "id": "cmc7okmyh000l8bio6hnowvpi",
-      "name": "Couche du matin",
+      "name": "Couche matin",
       "description": "Changer la couche de Mila",
       "color": "#fff2d5",
       "icon": "💩",
@@ -195,7 +195,7 @@
       "defaultDuration": 5,
       "isActive": true,
       "createdAt": "2025-06-22T13:05:35.033Z",
-      "updatedAt": "2025-06-22T13:26:14.098Z",
+      "updatedAt": "2025-06-22T21:32:38.725Z",
       "familyId": "cmc66ox86000bap3ezyaalsu7"
     },
     {
@@ -226,7 +226,7 @@
     },
     {
       "id": "cmc7opp2c000r8bio7tb40pzf",
-      "name": "Retour de la crèche",
+      "name": "Retour Crèche",
       "description": "Ramener Mila à la maison",
       "color": "#ffe2d6",
       "icon": "🏡",
@@ -234,7 +234,7 @@
       "defaultDuration": 20,
       "isActive": true,
       "createdAt": "2025-06-22T13:09:31.045Z",
-      "updatedAt": "2025-06-22T13:20:48.679Z",
+      "updatedAt": "2025-06-22T21:32:07.619Z",
       "familyId": "cmc66ox86000bap3ezyaalsu7"
     },
     {
@@ -294,19 +294,28 @@
     {
       "id": "cmc83r5sb0001fasmrf3tdvfu",
       "name": "Week day - Sami le matin",
-      "description": "Jour de semaine classique, Sami le matin",
+      "description": "Weekday classique, Sami le matin",
       "isActive": true,
       "createdAt": "2025-06-22T20:10:33.609Z",
-      "updatedAt": "2025-06-22T20:52:45.479Z",
+      "updatedAt": "2025-06-22T21:29:00.184Z",
       "familyId": "cmc66ox86000bap3ezyaalsu7"
     },
     {
       "id": "cmc853scn00013sxstzapzlsd",
       "name": "Week day - Lydia le matin",
-      "description": "Jour de semaine classique, Lydia le matin",
+      "description": "Weekday classique, Lydia le matin",
       "isActive": true,
       "createdAt": "2025-06-22T20:48:22.343Z",
-      "updatedAt": "2025-06-22T20:52:40.908Z",
+      "updatedAt": "2025-06-22T21:28:40.733Z",
+      "familyId": "cmc66ox86000bap3ezyaalsu7"
+    },
+    {
+      "id": "cmc86lz5e00016364jefvbodg",
+      "name": "Week day - Unassigned",
+      "description": "Week day empty",
+      "isActive": true,
+      "createdAt": "2025-06-22T21:30:30.578Z",
+      "updatedAt": "2025-06-22T21:30:30.578Z",
       "familyId": "cmc66ox86000bap3ezyaalsu7"
     }
   ],
@@ -552,7 +561,18 @@
       "createdAt": "2025-06-22T21:05:59.908Z",
       "updatedAt": "2025-06-22T21:05:59.908Z",
       "dayTemplateId": "cmc83r5sb0001fasmrf3tdvfu"
+    },
+    {
+      "id": "cmc86m3yq00036364v69wzr4n",
+      "memberId": null,
+      "taskId": "cmc7ofgps000f8biovh4tq1fg",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-22T21:30:36.818Z",
+      "updatedAt": "2025-06-22T21:30:36.818Z",
+      "dayTemplateId": "cmc86lz5e00016364jefvbodg"
     }
   ],
-  "exportedAt": "2025-06-22T21:08:56.500Z"
+  "exportedAt": "2025-06-22T21:33:31.170Z"
 }
