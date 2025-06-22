@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useFamily } from '../contexts/FamilyContext';
-import { taskApi, Task, CreateTaskData } from '../services/api';
+import { taskApi, Task, CreateTaskData, dayTemplateApi, DayTemplate, DayTemplateItem, CreateDayTemplateData } from '../services/api';
+import { TaskAssignmentCard } from './TaskAssignmentCard';
 import './TaskManagement.css';
 
 export const TaskManagement: React.FC = () => {
@@ -29,12 +30,26 @@ export const TaskManagement: React.FC = () => {
   // Emoji picker state
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
+  // DayTemplate state
+  const [templates, setTemplates] = useState<DayTemplate[]>([]);
+  const [templateItems, setTemplateItems] = useState<Record<string, DayTemplateItem[]>>({});
+
+  const [addingTemplate, setAddingTemplate] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<DayTemplate | null>(null);
+  const [templateData, setTemplateData] = useState({
+    name: '',
+    description: '',
+  });
+  const [templateErrors, setTemplateErrors] = useState<Record<string, string>>({});
+  const [showTemplateItems, setShowTemplateItems] = useState<Record<string, boolean>>({});
+
   // Check if user is admin (can create/manage tasks)
   const isAdmin = currentFamily?.userRole === 'ADMIN';
 
   useEffect(() => {
     if (currentFamily) {
       loadTasks();
+      loadTemplates();
     }
   }, [currentFamily]);
 
@@ -49,6 +64,17 @@ export const TaskManagement: React.FC = () => {
       setMessage({ type: 'error', text: t('tasks.loadError') });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadTemplates = async () => {
+    if (!currentFamily) return;
+    
+    try {
+      const response = await dayTemplateApi.getFamilyTemplates(currentFamily.id);
+      setTemplates(response.data.templates);
+    } catch (error) {
+      console.error('Error loading templates:', error);
     }
   };
 
@@ -272,6 +298,241 @@ export const TaskManagement: React.FC = () => {
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
     setTaskData(prev => ({ ...prev, icon: emojiData.emoji }));
     setShowEmojiPicker(false);
+  };
+
+  // DayTemplate management functions
+  const validateTemplateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!templateData.name.trim()) {
+      errors['name'] = 'Template name is required';
+    } else if (templateData.name.trim().length < 2) {
+      errors['name'] = 'Template name must be at least 2 characters';
+    } else if (templateData.name.trim().length > 100) {
+      errors['name'] = 'Template name cannot exceed 100 characters';
+    }
+
+    if (templateData.description.length > 500) {
+      errors['description'] = 'Description cannot exceed 500 characters';
+    }
+
+    setTemplateErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleAddTemplate = () => {
+    setAddingTemplate(true);
+    setEditingTemplate(null);
+    setMessage(null);
+    setTemplateErrors({});
+    setTemplateData({
+      name: '',
+      description: '',
+    });
+  };
+
+  const handleEditTemplate = (template: DayTemplate) => {
+    setEditingTemplate(template);
+    setAddingTemplate(false);
+    setMessage(null);
+    setTemplateErrors({});
+    setTemplateData({
+      name: template.name,
+      description: template.description || '',
+    });
+  };
+
+  const handleCancelTemplateForm = (preserveMessage?: boolean) => {
+    setAddingTemplate(false);
+    setEditingTemplate(null);
+    
+    if (!preserveMessage) {
+      setMessage(null);
+    }
+    setTemplateErrors({});
+    setTemplateData({
+      name: '',
+      description: '',
+    });
+  };
+
+  const handleTemplateInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setTemplateData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error when user starts typing
+    if (templateErrors[name]) {
+      setTemplateErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleCreateTemplate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateTemplateForm() || !currentFamily) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const trimmedDescription = templateData.description.trim();
+      const createData: CreateDayTemplateData = {
+        name: templateData.name.trim(),
+      };
+      
+      if (trimmedDescription) {
+        createData.description = trimmedDescription;
+      }
+
+      const response = await dayTemplateApi.create(currentFamily.id, createData);
+
+      // Add the new template to the list
+      setTemplates(prev => [...prev, response.data]);
+      
+      // Show success message
+      setMessage({ type: 'success', text: 'Template created successfully' });
+      
+      // Close the form but preserve the success message
+      handleCancelTemplateForm(true);
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || 'Failed to create template';
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateTemplate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateTemplateForm() || !editingTemplate || !currentFamily) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const trimmedDescription = templateData.description.trim();
+      const updateData: any = {
+        name: templateData.name.trim(),
+      };
+      
+      if (trimmedDescription) {
+        updateData.description = trimmedDescription;
+      } else {
+        updateData.description = undefined;
+      }
+
+      const response = await dayTemplateApi.update(currentFamily.id, editingTemplate.id, updateData);
+      
+      // Update the template in the list
+      setTemplates(prev => prev.map(template => 
+        template.id === editingTemplate.id ? response.data : template
+      ));
+      
+      // Show success message
+      setMessage({ type: 'success', text: 'Template updated successfully' });
+      
+      // Close the form but preserve the success message
+      handleCancelTemplateForm(true);
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || 'Failed to update template';
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId: string) => {
+    if (!confirm('Are you sure you want to delete this template? This will also remove all template items.')) {
+      return;
+    }
+
+    if (!currentFamily) return;
+
+    setIsLoading(true);
+    try {
+      await dayTemplateApi.delete(currentFamily.id, templateId);
+      
+      // Remove the template from the list
+      setTemplates(prev => prev.filter(template => template.id !== templateId));
+      
+      // Remove template items from cache
+      setTemplateItems(prev => {
+        const newItems = { ...prev };
+        delete newItems[templateId];
+        return newItems;
+      });
+      
+      // Show success message
+      setMessage({ type: 'success', text: 'Template deleted successfully' });
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || 'Failed to delete template';
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadTemplateItems = async (templateId: string) => {
+    if (!currentFamily) return;
+    
+    try {
+      const response = await dayTemplateApi.getItems(currentFamily.id, templateId);
+      setTemplateItems(prev => ({
+        ...prev,
+        [templateId]: response.data
+      }));
+    } catch (error) {
+      console.error('Error loading template items:', error);
+    }
+  };
+
+  const toggleTemplateItems = async (templateId: string) => {
+    const isCurrentlyShown = showTemplateItems[templateId];
+    
+    setShowTemplateItems(prev => ({
+      ...prev,
+      [templateId]: !isCurrentlyShown
+    }));
+    
+    // Load items if we're showing them and haven't loaded them yet
+    if (!isCurrentlyShown && !templateItems[templateId]) {
+      await loadTemplateItems(templateId);
+    }
+  };
+
+  const handleDeleteTemplateItem = async (templateId: string, itemId: string) => {
+    if (!confirm('Are you sure you want to remove this task from the template?')) {
+      return;
+    }
+
+    if (!currentFamily) return;
+
+    setIsLoading(true);
+    try {
+      await dayTemplateApi.removeItem(currentFamily.id, templateId, itemId);
+      
+      // Remove the item from the cache
+      setTemplateItems(prev => ({
+        ...prev,
+        [templateId]: prev[templateId]?.filter(item => item.id !== itemId) || []
+      }));
+      
+      // Show success message
+      setMessage({ type: 'success', text: 'Task removed from template' });
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || 'Failed to remove task from template';
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!currentFamily) {
@@ -569,6 +830,212 @@ export const TaskManagement: React.FC = () => {
                       >
 ×
                       </button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* DayTemplate Section */}
+        <div className="task-management-subsection">
+          <div className="task-management-subsection-header">
+            <h4 className="task-management-subsection-title">
+              Day Templates
+              {templates.length > 0 && (
+                <span className="task-management-count-badge">{templates.length}</span>
+              )}
+            </h4>
+            {isAdmin && (
+              <div className="task-management-button-group">
+                <button
+                  onClick={addingTemplate || editingTemplate ? () => handleCancelTemplateForm() : handleAddTemplate}
+                  className="task-management-button task-management-button-primary task-management-button-sm"
+                  disabled={isLoading}
+                >
+                  {addingTemplate || editingTemplate ? 'Cancel' : 'Create Template'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Template Creation/Edit Form - Inline */}
+          {isAdmin && (addingTemplate || editingTemplate) && (
+            <div className="task-management-task-add-inline">
+              <h5 className="task-management-form-title">
+                {editingTemplate ? 'Edit Template' : 'Create Template'}
+              </h5>
+              <p className="task-management-help-text">
+                {editingTemplate ? 'Update template details' : 'Create a reusable template for scheduling tasks'}
+              </p>
+              <form className="task-management-form" onSubmit={editingTemplate ? handleUpdateTemplate : handleCreateTemplate}>
+                <div className="task-management-form-group">
+                  <label htmlFor="templateName" className="task-management-label">
+                    Template Name
+                  </label>
+                  <input
+                    type="text"
+                    id="templateName"
+                    name="name"
+                    className="task-management-input"
+                    placeholder="e.g., Weekday, Weekend, School Day"
+                    disabled={isLoading}
+                    autoFocus
+                    value={templateData.name}
+                    onChange={handleTemplateInputChange}
+                  />
+                  {templateErrors['name'] && (
+                    <p className="task-management-error">{templateErrors['name']}</p>
+                  )}
+                </div>
+
+                <div className="task-management-form-group">
+                  <label htmlFor="templateDescription" className="task-management-label">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    id="templateDescription"
+                    name="description"
+                    className="task-management-input"
+                    placeholder="Describe when this template should be used"
+                    rows={3}
+                    disabled={isLoading}
+                    value={templateData.description}
+                    onChange={handleTemplateInputChange}
+                  />
+                  {templateErrors['description'] && (
+                    <p className="task-management-error">{templateErrors['description']}</p>
+                  )}
+                </div>
+
+                <div className="task-management-form-actions">
+                  <button
+                    type="submit"
+                    className="task-management-button task-management-button-primary"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Saving...' : (editingTemplate ? 'Update Template' : 'Create Template')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCancelTemplateForm();
+                    }}
+                    className="task-management-button task-management-button-secondary"
+                    disabled={isLoading}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Templates List */}
+          <div className="task-management-templates-list">
+            {templates.length === 0 ? (
+              <div className="task-management-empty-state">
+                <div className="task-management-empty-icon">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                    <rect x="9" y="3" width="6" height="4" rx="2"/>
+                    <path d="M12 12v4"/>
+                    <path d="M10 14h4"/>
+                  </svg>
+                </div>
+                <h5 className="task-management-empty-title">No Templates Yet</h5>
+                <p className="task-management-empty-description">Create reusable templates to quickly schedule recurring task patterns</p>
+                {isAdmin && !(addingTemplate || editingTemplate) && (
+                  <button
+                    onClick={handleAddTemplate}
+                    className="task-management-button task-management-button-primary"
+                  >
+                    Create First Template
+                  </button>
+                )}
+              </div>
+            ) : (
+              templates.map((template) => (
+                <div key={template.id} className="task-management-template">
+                  <div className="task-management-template-header">
+                    <div className="task-management-template-info">
+                      <h6 className="task-management-template-name">{template.name}</h6>
+                      {template.description && (
+                        <p className="task-management-template-description">{template.description}</p>
+                      )}
+                    </div>
+                    <div className="task-management-template-actions">
+                      <button
+                        className="task-management-button task-management-button-sm task-management-button-secondary"
+                        onClick={() => toggleTemplateItems(template.id)}
+                        disabled={isLoading}
+                      >
+                        {showTemplateItems[template.id] ? 'Hide Items' : 'Show Items'}
+                      </button>
+                      {isAdmin && (
+                        <>
+                          <button
+                            className="task-management-button task-management-button-sm task-management-button-secondary"
+                            onClick={() => handleEditTemplate(template)}
+                            disabled={isLoading}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="task-management-template-action delete"
+                            title="Delete template"
+                            onClick={() => handleDeleteTemplate(template.id)}
+                            disabled={isLoading}
+                          >
+                            ×
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Template Items */}
+                  {showTemplateItems[template.id] && (
+                    <div className="task-management-template-items">
+                      {templateItems[template.id]?.length === 0 ? (
+                        <div className="task-management-template-empty">
+                          <p>No tasks in this template yet</p>
+                          {isAdmin && (
+                            <p className="task-management-help-text">
+                              Add tasks to this template to create reusable scheduling patterns
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="task-management-template-items-grid">
+                          {templateItems[template.id]?.filter(item => item.task).map((item) => (
+                            <TaskAssignmentCard
+                              key={item.id}
+                              assignment={{
+                                id: item.id,
+                                memberId: item.memberId,
+                                taskId: item.taskId,
+                                overrideTime: item.overrideTime,
+                                overrideDuration: item.overrideDuration,
+                                assignedDate: new Date().toISOString(), // Template items don't have assigned date
+                                createdAt: item.createdAt,
+                                updatedAt: item.updatedAt,
+                                member: item.member || null,
+                                task: item.task!,
+                              }}
+                              {...(isAdmin && {
+                                onDelete: (itemId) => {
+                                  handleDeleteTemplateItem(template.id, itemId);
+                                }
+                              })}
+                              isAdmin={isAdmin}
+                              isLoading={isLoading}
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

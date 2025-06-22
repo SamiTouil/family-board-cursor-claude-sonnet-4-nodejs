@@ -238,6 +238,121 @@ export interface TaskStats {
   averageDuration: number;
 }
 
+// TaskAssignment interfaces
+export interface TaskAssignment {
+  id: string;
+  memberId: string | null; // null means unassigned task
+  taskId: string;
+  overrideTime: string | null; // HH:MM format in UTC, overrides task's defaultStartTime
+  overrideDuration: number | null; // Duration in minutes, overrides task's defaultDuration
+  assignedDate: string; // ISO string for API responses
+  createdAt: string;
+  updatedAt: string;
+  member?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    avatarUrl: string | null;
+    isVirtual: boolean;
+  } | null; // null for unassigned tasks
+  task?: {
+    id: string;
+    name: string;
+    description: string | null;
+    color: string;
+    icon: string;
+    defaultStartTime: string;
+    defaultDuration: number;
+    familyId: string;
+  };
+}
+
+export interface CreateTaskAssignmentData {
+  memberId?: string | null; // Optional - null means unassigned
+  taskId: string;
+  overrideTime?: string | null;
+  overrideDuration?: number | null;
+  assignedDate: string; // ISO datetime string
+}
+
+export interface UpdateTaskAssignmentData {
+  overrideTime?: string | null;
+  overrideDuration?: number | null;
+  assignedDate?: string;
+}
+
+// DayTemplate interfaces
+export interface DayTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+  familyId: string;
+}
+
+export interface DayTemplateItem {
+  id: string;
+  memberId: string | null; // null means unassigned in template
+  taskId: string;
+  overrideTime: string | null;
+  overrideDuration: number | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  dayTemplateId: string;
+  member?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    avatarUrl: string | null;
+    isVirtual: boolean;
+  } | null;
+  task?: {
+    id: string;
+    name: string;
+    description: string | null;
+    color: string;
+    icon: string;
+    defaultStartTime: string;
+    defaultDuration: number;
+    familyId: string;
+  };
+}
+
+export interface CreateDayTemplateData {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateDayTemplateData {
+  name?: string;
+  description?: string;
+}
+
+export interface CreateDayTemplateItemData {
+  memberId?: string | null;
+  taskId: string;
+  overrideTime?: string | null;
+  overrideDuration?: number | null;
+  sortOrder?: number;
+}
+
+export interface UpdateDayTemplateItemData {
+  memberId?: string | null;
+  overrideTime?: string | null;
+  overrideDuration?: number | null;
+  sortOrder?: number;
+}
+
+export interface ApplyDayTemplateData {
+  templateId: string;
+  dates: string[]; // Array of ISO date strings (YYYY-MM-DD)
+  overrideMemberAssignments?: boolean;
+}
+
 // Authentication API
 export const authApi = {
   signup: (data: SignupData): Promise<{ data: ApiResponse<AuthResponse> }> =>
@@ -379,6 +494,123 @@ export const taskApi = {
   // Duplicate a task (admin only)
   duplicate: (taskId: string, name?: string): Promise<{ data: ApiResponse<Task> }> =>
     api.post(`/tasks/${taskId}/duplicate`, { name }),
+};
+
+// TaskAssignment API (protected routes)
+export const taskAssignmentApi = {
+  // Get all task assignments for a family
+  getFamilyAssignments: (familyId: string, params?: {
+    memberId?: string;
+    taskId?: string;
+    assignedDate?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{ data: { assignments: TaskAssignment[]; pagination: any } }> => {
+    const searchParams = new URLSearchParams();
+    if (params?.memberId) searchParams.append('memberId', params.memberId);
+    if (params?.taskId) searchParams.append('taskId', params.taskId);
+    if (params?.assignedDate) searchParams.append('assignedDate', params.assignedDate);
+    if (params?.startDate) searchParams.append('startDate', params.startDate);
+    if (params?.endDate) searchParams.append('endDate', params.endDate);
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    
+    const queryString = searchParams.toString();
+    return api.get(`/families/${familyId}/task-assignments${queryString ? `?${queryString}` : ''}`);
+  },
+  
+  // Create a new task assignment
+  create: (familyId: string, data: CreateTaskAssignmentData): Promise<{ data: TaskAssignment }> =>
+    api.post(`/families/${familyId}/task-assignments`, data),
+  
+  // Get a specific task assignment
+  getById: (familyId: string, assignmentId: string): Promise<{ data: TaskAssignment }> =>
+    api.get(`/families/${familyId}/task-assignments/${assignmentId}`),
+  
+  // Update a task assignment
+  update: (familyId: string, assignmentId: string, data: UpdateTaskAssignmentData): Promise<{ data: TaskAssignment }> =>
+    api.put(`/families/${familyId}/task-assignments/${assignmentId}`, data),
+  
+  // Delete a task assignment
+  delete: (familyId: string, assignmentId: string): Promise<{ data: ApiResponse<{ message: string }> }> =>
+    api.delete(`/families/${familyId}/task-assignments/${assignmentId}`),
+  
+  // Get assignments for a specific task
+  getTaskAssignments: (familyId: string, taskId: string, params?: {
+    startDate?: string;
+    endDate?: string;
+  }): Promise<{ data: TaskAssignment[] }> => {
+    const searchParams = new URLSearchParams();
+    if (params?.startDate) searchParams.append('startDate', params.startDate);
+    if (params?.endDate) searchParams.append('endDate', params.endDate);
+    
+    const queryString = searchParams.toString();
+    return api.get(`/families/${familyId}/tasks/${taskId}/assignments${queryString ? `?${queryString}` : ''}`);
+  },
+  
+  // Bulk create task assignments
+  bulkCreate: (familyId: string, data: CreateTaskAssignmentData[]): Promise<{ data: { assignments: TaskAssignment[]; errors: any[] } }> =>
+    api.post(`/families/${familyId}/task-assignments/bulk`, { assignments: data }),
+};
+
+// DayTemplate API (protected routes)
+export const dayTemplateApi = {
+  // Get all day templates for a family
+  getFamilyTemplates: (familyId: string, params?: {
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{ data: { templates: DayTemplate[]; pagination: any } }> => {
+    const searchParams = new URLSearchParams();
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    
+    const queryString = searchParams.toString();
+    return api.get(`/families/${familyId}/day-templates${queryString ? `?${queryString}` : ''}`);
+  },
+  
+  // Create a new day template
+  create: (familyId: string, data: CreateDayTemplateData): Promise<{ data: DayTemplate }> =>
+    api.post(`/families/${familyId}/day-templates`, data),
+  
+  // Get a specific day template
+  getById: (familyId: string, templateId: string): Promise<{ data: DayTemplate }> =>
+    api.get(`/families/${familyId}/day-templates/${templateId}`),
+  
+  // Update a day template
+  update: (familyId: string, templateId: string, data: UpdateDayTemplateData): Promise<{ data: DayTemplate }> =>
+    api.put(`/families/${familyId}/day-templates/${templateId}`, data),
+  
+  // Delete a day template
+  delete: (familyId: string, templateId: string): Promise<{ data: ApiResponse<{ message: string }> }> =>
+    api.delete(`/families/${familyId}/day-templates/${templateId}`),
+  
+  // Duplicate a day template
+  duplicate: (familyId: string, templateId: string, name?: string): Promise<{ data: DayTemplate }> =>
+    api.post(`/families/${familyId}/day-templates/${templateId}/duplicate`, { name }),
+  
+  // Get template items
+  getItems: (familyId: string, templateId: string): Promise<{ data: DayTemplateItem[] }> =>
+    api.get(`/families/${familyId}/day-templates/${templateId}/items`),
+  
+  // Add item to template
+  addItem: (familyId: string, templateId: string, data: CreateDayTemplateItemData): Promise<{ data: DayTemplateItem }> =>
+    api.post(`/families/${familyId}/day-templates/${templateId}/items`, data),
+  
+  // Update template item
+  updateItem: (familyId: string, templateId: string, itemId: string, data: UpdateDayTemplateItemData): Promise<{ data: DayTemplateItem }> =>
+    api.put(`/families/${familyId}/day-templates/${templateId}/items/${itemId}`, data),
+  
+  // Remove item from template
+  removeItem: (familyId: string, templateId: string, itemId: string): Promise<{ data: ApiResponse<{ message: string }> }> =>
+    api.delete(`/families/${familyId}/day-templates/${templateId}/items/${itemId}`),
+  
+  // Apply template to dates
+  apply: (familyId: string, data: ApplyDayTemplateData): Promise<{ data: { assignments: TaskAssignment[]; errors: any[] } }> =>
+    api.post(`/families/${familyId}/day-templates/apply`, data),
 };
 
 export default api; 
