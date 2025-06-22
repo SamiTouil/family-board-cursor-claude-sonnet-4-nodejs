@@ -1,23 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../contexts/FamilyContext';
+import { taskApi, Task, CreateTaskData } from '../services/api';
 import TasksIcon from './icons/TasksIcon';
 import './TaskManagement.css';
-
-// Task interfaces (will be moved to types later if needed)
-export interface Task {
-  id: string;
-  name: string;
-  description: string | null;
-  color: string;
-  icon: string;
-  defaultStartTime: string;
-  defaultDuration: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  familyId: string;
-}
 
 export const TaskManagement: React.FC = () => {
   const { t } = useTranslation();
@@ -26,9 +12,10 @@ export const TaskManagement: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [addingTask, setAddingTask] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Form state for task creation
+  // Form state for task creation/editing
   const [taskData, setTaskData] = useState({
     name: '',
     description: '',
@@ -52,12 +39,8 @@ export const TaskManagement: React.FC = () => {
     
     setIsLoading(true);
     try {
-      // TODO: Implement task API call
-      // const response = await taskApi.getByFamily(currentFamily.id);
-      // setTasks(response.data.data);
-      
-      // Start with empty task list - tasks will be added when created by user
-      setTasks([]);
+      const response = await taskApi.getFamilyTasks(currentFamily.id, { isActive: true });
+      setTasks(response.data.data);
     } catch (error) {
       setMessage({ type: 'error', text: t('tasks.loadError') });
     } finally {
@@ -92,6 +75,7 @@ export const TaskManagement: React.FC = () => {
 
   const handleAddTask = () => {
     setAddingTask(true);
+    setEditingTask(null);
     setMessage(null);
     setTaskErrors({});
     // Reset form data
@@ -104,9 +88,32 @@ export const TaskManagement: React.FC = () => {
     });
   };
 
-  const handleCancelAddTask = () => {
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
     setAddingTask(false);
     setMessage(null);
+    setTaskErrors({});
+    // Pre-fill form with task data
+    setTaskData({
+      name: task.name,
+      description: task.description || '',
+      color: task.color,
+      defaultStartTime: task.defaultStartTime,
+      defaultDuration: task.defaultDuration,
+    });
+  };
+
+  const handleCancelForm = (preserveMessageOrEvent?: boolean | React.MouseEvent) => {
+    setAddingTask(false);
+    setEditingTask(null);
+    
+    // If it's a boolean or undefined, use it as preserveMessage flag
+    // If it's a mouse event, don't preserve the message (default behavior)
+    const preserveMessage = typeof preserveMessageOrEvent === 'boolean' ? preserveMessageOrEvent : false;
+    
+    if (!preserveMessage) {
+      setMessage(null);
+    }
     setTaskErrors({});
     // Reset form data
     setTaskData({
@@ -138,43 +145,105 @@ export const TaskManagement: React.FC = () => {
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateTaskForm()) {
+    if (!validateTaskForm() || !currentFamily) {
       return;
     }
 
     setIsLoading(true);
     try {
-      // TODO: Implement actual API call
-      // const response = await taskApi.create({
-      //   ...taskData,
-      //   familyId: currentFamily!.id
-      // });
-      
-      // For now, create a mock task and add it to the list
-      const newTask: Task = {
-        id: Date.now().toString(), // Simple ID generation for mock
+      const trimmedDescription = taskData.description.trim();
+      const createData: CreateTaskData = {
         name: taskData.name.trim(),
-        description: taskData.description.trim() || null,
         color: taskData.color,
         icon: 'task', // Default icon for now
         defaultStartTime: taskData.defaultStartTime,
         defaultDuration: taskData.defaultDuration,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        familyId: currentFamily!.id,
       };
+      
+      // Only add description if it's not empty
+      if (trimmedDescription) {
+        createData.description = trimmedDescription;
+      }
+
+      const response = await taskApi.createTask(currentFamily.id, createData);
 
       // Add the new task to the list
-      setTasks(prev => [...prev, newTask]);
+      setTasks(prev => [...prev, response.data.data]);
       
       // Show success message
       setMessage({ type: 'success', text: t('tasks.created') });
       
-      // Close the form
-      handleCancelAddTask();
-    } catch (error) {
-      setMessage({ type: 'error', text: t('tasks.createError') });
+      // Close the form but preserve the success message
+      handleCancelForm(true);
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || t('tasks.createError');
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateTaskForm() || !editingTask) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const trimmedDescription = taskData.description.trim();
+      const updateData: any = {
+        name: taskData.name.trim(),
+        color: taskData.color,
+        defaultStartTime: taskData.defaultStartTime,
+        defaultDuration: taskData.defaultDuration,
+      };
+      
+      // Only add description if it's not empty, otherwise set to undefined to clear it
+      if (trimmedDescription) {
+        updateData.description = trimmedDescription;
+      } else {
+        updateData.description = undefined;
+      }
+
+      const response = await taskApi.update(editingTask.id, updateData);
+      
+      // Update the task in the list
+      setTasks(prev => prev.map(task => 
+        task.id === editingTask.id ? response.data.data : task
+      ));
+      
+      // Show success message
+      setMessage({ type: 'success', text: 'Task updated successfully' });
+      
+      // Close the form but preserve the success message
+      handleCancelForm(true);
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || 'Failed to update task';
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm('Are you sure you want to delete this task?')) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await taskApi.delete(taskId);
+      
+      // Remove the task from the list
+      setTasks(prev => prev.filter(task => task.id !== taskId));
+      
+      // Show success message
+      setMessage({ type: 'success', text: 'Task deleted successfully' });
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || 'Failed to delete task';
+      setMessage({ type: 'error', text: errorMessage });
     } finally {
       setIsLoading(false);
     }
@@ -194,6 +263,7 @@ export const TaskManagement: React.FC = () => {
   }
 
   const activeTasks = tasks.filter(task => task.isActive);
+  const isFormOpen = addingTask || editingTask;
 
   return (
     <div className="task-management">
@@ -226,22 +296,26 @@ export const TaskManagement: React.FC = () => {
             {isAdmin && (
               <div className="task-management-button-group">
                 <button
-                  onClick={addingTask ? handleCancelAddTask : handleAddTask}
+                  onClick={isFormOpen ? handleCancelForm : handleAddTask}
                   className="task-management-button task-management-button-primary task-management-button-sm"
                   disabled={isLoading}
                 >
-                  {addingTask ? t('common.cancel') : t('tasks.createTask')}
+                  {isFormOpen ? t('common.cancel') : t('tasks.createTask')}
                 </button>
               </div>
             )}
           </div>
 
-          {/* Task Creation Form - Inline */}
-          {isAdmin && addingTask && (
+          {/* Task Creation/Edit Form - Inline */}
+          {isAdmin && isFormOpen && (
             <div className="task-management-task-add-inline">
-              <h5 className="task-management-form-title">{t('tasks.createTask')}</h5>
-              <p className="task-management-help-text">{t('tasks.createTaskHelp')}</p>
-              <form className="task-management-form" onSubmit={handleCreateTask}>
+              <h5 className="task-management-form-title">
+                {editingTask ? 'Edit Task' : t('tasks.createTask')}
+              </h5>
+              <p className="task-management-help-text">
+                {editingTask ? 'Update task details' : t('tasks.createTaskHelp')}
+              </p>
+              <form className="task-management-form" onSubmit={editingTask ? handleUpdateTask : handleCreateTask}>
                 <div className="task-management-form-row">
                   <div className="task-management-form-group">
                     <label htmlFor="taskName" className="task-management-label">
@@ -272,7 +346,7 @@ export const TaskManagement: React.FC = () => {
                       id="taskColor"
                       name="color"
                       className="task-management-input task-management-color-input"
-                      defaultValue={taskData.color}
+                      value={taskData.color}
                       disabled={isLoading}
                       onChange={handleTaskInputChange}
                     />
@@ -308,7 +382,7 @@ export const TaskManagement: React.FC = () => {
                       id="taskStartTime"
                       name="defaultStartTime"
                       className="task-management-input"
-                      defaultValue={taskData.defaultStartTime}
+                      value={taskData.defaultStartTime}
                       disabled={isLoading}
                       onChange={handleTaskInputChange}
                     />
@@ -342,11 +416,11 @@ export const TaskManagement: React.FC = () => {
                     className="task-management-button task-management-button-primary"
                     disabled={isLoading}
                   >
-                    {isLoading ? t('tasks.creating') : t('tasks.createTask')}
+                    {isLoading ? t('tasks.creating') : (editingTask ? 'Update Task' : t('tasks.createTask'))}
                   </button>
                   <button
                     type="button"
-                    onClick={handleCancelAddTask}
+                    onClick={handleCancelForm}
                     className="task-management-button task-management-button-secondary"
                     disabled={isLoading}
                   >
@@ -371,7 +445,7 @@ export const TaskManagement: React.FC = () => {
                 </div>
                 <h5 className="task-management-empty-title">{t('tasks.noTasks')}</h5>
                 <p className="task-management-empty-description">{t('tasks.noTasksDescription')}</p>
-                {isAdmin && !addingTask && (
+                {isAdmin && !isFormOpen && (
                   <button
                     onClick={handleAddTask}
                     className="task-management-button task-management-button-primary"
@@ -401,6 +475,8 @@ export const TaskManagement: React.FC = () => {
                       <button
                         className="task-management-button task-management-button-secondary task-management-button-sm"
                         title={t('common.edit')}
+                        onClick={() => handleEditTask(task)}
+                        disabled={isLoading}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -410,6 +486,8 @@ export const TaskManagement: React.FC = () => {
                       <button
                         className="task-management-button task-management-button-danger task-management-button-sm"
                         title={t('common.delete')}
+                        onClick={() => handleDeleteTask(task.id)}
+                        disabled={isLoading}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <polyline points="3,6 5,6 21,6"/>
