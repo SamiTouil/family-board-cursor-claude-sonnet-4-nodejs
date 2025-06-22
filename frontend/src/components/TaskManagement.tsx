@@ -376,7 +376,7 @@ export const TaskManagement: React.FC = () => {
                   </label>
                   <div className="task-management-icon-selector">
                     <div className="task-management-icon-preview">
-                      <span className="task-management-icon-preview-emoji">{taskData.icon}</span>
+                      <span className="task-management-icon-preview-emoji">{taskData.icon || '✅'}</span>
                       <span className="task-management-icon-preview-label">Selected</span>
                     </div>
                     
@@ -522,7 +522,7 @@ export const TaskManagement: React.FC = () => {
                   <div className="task-management-task-info">
                     <div className="task-management-task-header">
                       <div className="task-management-task-title">
-                        <span className="task-management-task-icon-emoji">{task.icon}</span>
+                        <span className="task-management-task-icon-emoji">{task.icon || '✅'}</span>
                         <h6 className="task-management-task-name">{task.name}</h6>
                       </div>
                       <div className="task-management-task-meta">
