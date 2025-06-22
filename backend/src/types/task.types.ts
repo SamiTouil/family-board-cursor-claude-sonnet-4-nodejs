@@ -15,12 +15,51 @@ export interface Task {
   familyId: string;
 }
 
+// TaskAssignment interface matching Prisma model
+export interface TaskAssignment {
+  id: string;
+  memberId: string | null; // null means unassigned task
+  taskId: string;
+  overrideTime: string | null; // HH:MM format in UTC, overrides task's defaultStartTime
+  overrideDuration: number | null; // Duration in minutes, overrides task's defaultDuration
+  assignedDate: Date; // The date this task is assigned for (stored as UTC date)
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// TaskAssignment with related data
+export interface TaskAssignmentWithRelations extends TaskAssignment {
+  member: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    avatarUrl: string | null;
+    isVirtual: boolean;
+  } | null; // null for unassigned tasks
+  task: {
+    id: string;
+    name: string;
+    description: string | null;
+    color: string;
+    icon: string;
+    defaultStartTime: string;
+    defaultDuration: number;
+    familyId: string;
+  };
+}
+
 // Task with family relation
 export interface TaskWithFamily extends Task {
   family: {
     id: string;
     name: string;
   };
+}
+
+// Task with assignments
+export interface TaskWithAssignments extends Task {
+  assignments: TaskAssignment[];
 }
 
 // Validation schemas using Zod
@@ -47,10 +86,27 @@ export const DuplicateTaskSchema = z.object({
   name: z.string().min(1, 'Task name is required').max(100, 'Task name is too long').optional(),
 });
 
+// TaskAssignment validation schemas
+export const CreateTaskAssignmentSchema = z.object({
+  memberId: z.string().min(1, 'Member ID is required').optional().nullable(), // Optional - null means unassigned
+  taskId: z.string().min(1, 'Task ID is required'),
+  overrideTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Override time must be in HH:MM format (e.g., 14:30)').optional().nullable(),
+  overrideDuration: z.number().int().min(1, 'Duration must be at least 1 minute').max(1440, 'Duration cannot exceed 24 hours').optional().nullable(),
+  assignedDate: z.string().datetime('Assigned date must be a valid ISO datetime string'),
+});
+
+export const UpdateTaskAssignmentSchema = z.object({
+  overrideTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Override time must be in HH:MM format (e.g., 14:30)').optional().nullable(),
+  overrideDuration: z.number().int().min(1, 'Duration must be at least 1 minute').max(1440, 'Duration cannot exceed 24 hours').optional().nullable(),
+  assignedDate: z.string().datetime('Assigned date must be a valid ISO datetime string').optional(),
+});
+
 // DTOs for API requests/responses
 export type CreateTaskDto = z.infer<typeof CreateTaskSchema>;
 export type UpdateTaskDto = z.infer<typeof UpdateTaskSchema>;
 export type DuplicateTaskDto = z.infer<typeof DuplicateTaskSchema>;
+export type CreateTaskAssignmentDto = z.infer<typeof CreateTaskAssignmentSchema>;
+export type UpdateTaskAssignmentDto = z.infer<typeof UpdateTaskAssignmentSchema>;
 
 export interface TaskResponseDto {
   id: string;
@@ -66,10 +122,50 @@ export interface TaskResponseDto {
   familyId: string;
 }
 
+export interface TaskAssignmentResponseDto {
+  id: string;
+  memberId: string | null; // null for unassigned tasks
+  taskId: string;
+  overrideTime: string | null;
+  overrideDuration: number | null;
+  assignedDate: string; // ISO string for API responses
+  createdAt: string; // ISO string for API responses
+  updatedAt: string; // ISO string for API responses
+  member?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    avatarUrl: string | null;
+    isVirtual: boolean;
+  } | null; // null for unassigned tasks
+  task?: {
+    id: string;
+    name: string;
+    description: string | null;
+    color: string;
+    icon: string;
+    defaultStartTime: string;
+    defaultDuration: number;
+    familyId: string;
+  };
+}
+
 // Query parameters for listing tasks
 export interface TaskQueryParams {
   isActive?: boolean;
   search?: string; // Search in name or description
+  page?: number;
+  limit?: number;
+}
+
+// Query parameters for listing task assignments
+export interface TaskAssignmentQueryParams {
+  memberId?: string | undefined;
+  taskId?: string | undefined;
+  assignedDate?: string | undefined; // ISO date string (YYYY-MM-DD)
+  startDate?: string | undefined; // ISO date string for date range filtering
+  endDate?: string | undefined; // ISO date string for date range filtering
   page?: number;
   limit?: number;
 }

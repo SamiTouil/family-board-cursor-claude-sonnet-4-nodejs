@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,44 +8,39 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  firstName String   @map("first_name")
-  lastName  String   @map("last_name")
-  email     String?  @unique
-  password  String?
-  avatarUrl String?  @map("avatar_url")
-  isVirtual Boolean  @default(false) @map("is_virtual")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Family relationships
-  familyMemberships FamilyMember[]
-  createdFamilies   Family[]       @relation("FamilyCreator")
-  sentInvites       FamilyInvite[] @relation("InviteSender")
-  receivedInvites   FamilyInvite[] @relation("InviteReceiver")
-  joinRequests      FamilyJoinRequest[]
+  id                   String              @id @default(cuid())
+  firstName            String              @map("first_name")
+  lastName             String              @map("last_name")
+  email                String?             @unique
+  password             String?
+  avatarUrl            String?             @map("avatar_url")
+  isVirtual            Boolean             @default(false) @map("is_virtual")
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
+  createdFamilies      Family[]            @relation("FamilyCreator")
+  receivedInvites      FamilyInvite[]      @relation("InviteReceiver")
+  sentInvites          FamilyInvite[]      @relation("InviteSender")
   reviewedJoinRequests FamilyJoinRequest[] @relation("JoinRequestReviewer")
+  joinRequests         FamilyJoinRequest[]
+  familyMemberships    FamilyMember[]
+  taskAssignments      TaskAssignment[]
 
   @@map("users")
 }
 
 model Family {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  avatarUrl   String?  @map("avatar_url")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Family creator (admin)
-  creatorId String @map("creator_id")
-  creator   User   @relation("FamilyCreator", fields: [creatorId], references: [id], onDelete: Cascade)
-
-  // Family members and related entities
-  members FamilyMember[]
-  invites FamilyInvite[]
+  id           String              @id @default(cuid())
+  name         String
+  description  String?
+  avatarUrl    String?             @map("avatar_url")
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+  creatorId    String              @map("creator_id")
+  creator      User                @relation("FamilyCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  invites      FamilyInvite[]
   joinRequests FamilyJoinRequest[]
-  tasks   Task[]
+  members      FamilyMember[]
+  tasks        Task[]
 
   @@map("families")
 }
@@ -57,60 +49,91 @@ model FamilyMember {
   id       String           @id @default(cuid())
   role     FamilyMemberRole @default(MEMBER)
   joinedAt DateTime         @default(now()) @map("joined_at")
-
-  // Relationships
-  userId   String @map("user_id")
-  familyId String @map("family_id")
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  userId   String           @map("user_id")
+  familyId String           @map("family_id")
+  family   Family           @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, familyId])
   @@map("family_members")
 }
 
 model FamilyInvite {
-  id          String            @id @default(cuid())
-  code        String            @unique
-  status      FamilyInviteStatus @default(PENDING)
-  expiresAt   DateTime          @map("expires_at")
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
-  respondedAt DateTime?         @map("responded_at")
-
-  // Relationships
-  familyId   String  @map("family_id")
-  senderId   String  @map("sender_id")
-  receiverId String? @map("receiver_id") // null for open invites
-  
-  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  sender   User   @relation("InviteSender", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver User?  @relation("InviteReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  id           String              @id @default(cuid())
+  code         String              @unique
+  status       FamilyInviteStatus  @default(PENDING)
+  expiresAt    DateTime            @map("expires_at")
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+  respondedAt  DateTime?           @map("responded_at")
+  familyId     String              @map("family_id")
+  senderId     String              @map("sender_id")
+  receiverId   String?             @map("receiver_id")
+  family       Family              @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  receiver     User?               @relation("InviteReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender       User                @relation("InviteSender", fields: [senderId], references: [id], onDelete: Cascade)
   joinRequests FamilyJoinRequest[]
 
   @@map("family_invites")
 }
 
 model FamilyJoinRequest {
-  id          String                 @id @default(cuid())
+  id          String                  @id @default(cuid())
   status      FamilyJoinRequestStatus @default(PENDING)
-  createdAt   DateTime               @default(now()) @map("created_at")
-  updatedAt   DateTime               @updatedAt @map("updated_at")
-  respondedAt DateTime?              @map("responded_at")
-  message     String?                // Optional message from the requester
+  createdAt   DateTime                @default(now()) @map("created_at")
+  updatedAt   DateTime                @updatedAt @map("updated_at")
+  respondedAt DateTime?               @map("responded_at")
+  message     String?
+  userId      String                  @map("user_id")
+  familyId    String                  @map("family_id")
+  inviteId    String                  @map("invite_id")
+  reviewerId  String?                 @map("reviewer_id")
+  family      Family                  @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  invite      FamilyInvite            @relation(fields: [inviteId], references: [id], onDelete: Cascade)
+  reviewer    User?                   @relation("JoinRequestReviewer", fields: [reviewerId], references: [id])
+  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Relationships
-  userId     String @map("user_id")
-  familyId   String @map("family_id")
-  inviteId   String @map("invite_id") // The invite code that was used
-  reviewerId String? @map("reviewer_id") // Admin who approved/rejected
-  
-  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  family   Family       @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  invite   FamilyInvite @relation(fields: [inviteId], references: [id], onDelete: Cascade)
-  reviewer User?        @relation("JoinRequestReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
-
-  @@unique([userId, familyId]) // One request per user per family
+  @@unique([userId, familyId])
   @@map("family_join_requests")
+}
+
+model Task {
+  id               String           @id @default(cuid())
+  name             String
+  description      String?
+  color            String
+  icon             String
+  defaultStartTime String
+  defaultDuration  Int
+  isActive         Boolean          @default(true)
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  familyId         String           @map("family_id")
+  assignments      TaskAssignment[]
+  family           Family           @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
+}
+
+// TaskAssignment represents a task scheduled for a specific date
+// Can be assigned to a family member (memberId) or left unassigned (memberId = null)
+// Unassigned tasks are available for any family member to claim or complete
+model TaskAssignment {
+  id               String   @id @default(cuid())
+  memberId         String?  @map("member_id")         // Optional - null means unassigned task
+  taskId           String   @map("task_id")
+  overrideTime     String?  @map("override_time")     // Optional time override in HH:MM format (UTC)
+  overrideDuration Int?     @map("override_duration") // Optional duration override in minutes
+  assignedDate     DateTime @map("assigned_date")     // The date this task is assigned for (stored as UTC date)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  member           User?    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  task             Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  // Ensure one assignment per member per task per date (allow multiple unassigned)
+  // Note: For unassigned tasks (memberId = null), we allow multiple entries per task per date
+  @@unique([memberId, taskId, assignedDate])
+  @@map("task_assignments")
 }
 
 enum FamilyMemberRole {
@@ -130,22 +153,3 @@ enum FamilyJoinRequestStatus {
   APPROVED
   REJECTED
 }
-
-model Task {
-  id               String   @id @default(cuid())
-  name             String
-  description      String?
-  color            String   // Hex color code (e.g., "#FF5733")
-  icon             String   // Icon identifier (e.g., "cleaning", "cooking", "shopping")
-  defaultStartTime String   // Time in HH:MM format (UTC) - e.g., "14:30"
-  defaultDuration  Int      // Duration in minutes
-  isActive         Boolean  @default(true) // Soft delete flag
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
-
-  // Relationships
-  familyId String @map("family_id")
-  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-
-  @@map("tasks")
-} 
