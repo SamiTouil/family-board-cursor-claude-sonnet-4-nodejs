@@ -296,7 +296,9 @@ describe('TaskManagement', () => {
 
     await waitFor(() => {
       const taskElements = screen.getAllByTitle('Click to edit task');
-      fireEvent.click(taskElements[0]);
+      // Click on the second task (Clean Kitchen at 09:00) since tasks are now sorted by time
+      // First task is now "Walk Dog" at 07:00, second is "Clean Kitchen" at 09:00
+      fireEvent.click(taskElements[1]);
     });
 
     // Check that form is pre-filled with task data
@@ -324,7 +326,8 @@ describe('TaskManagement', () => {
     // Open edit form by clicking on task
     await waitFor(() => {
       const taskElements = screen.getAllByTitle('Click to edit task');
-      fireEvent.click(taskElements[0]);
+      // Click on the second task (Clean Kitchen at 09:00) since tasks are now sorted by time
+      fireEvent.click(taskElements[1]);
     });
 
     // Update task name
@@ -363,7 +366,9 @@ describe('TaskManagement', () => {
 
     await waitFor(() => {
       const deleteButtons = screen.getAllByTitle('common.delete');
-      fireEvent.click(deleteButtons[0]);
+      // Click on the second delete button (Clean Kitchen at 09:00) since tasks are now sorted by time
+      // First task is now "Walk Dog" (task-2), second is "Clean Kitchen" (task-1)
+      fireEvent.click(deleteButtons[1]);
     });
 
     await waitFor(() => {
@@ -448,6 +453,67 @@ describe('TaskManagement', () => {
       expect(screen.getByText('1h')).toBeDefined();
       expect(screen.getByText('1h 30m')).toBeDefined();
       expect(screen.getByText('2h')).toBeDefined();
+    });
+  });
+
+  it('sorts tasks by default start time in chronological order', async () => {
+    const unsortedTasks = [
+      {
+        id: 'task-1',
+        name: 'Evening Task',
+        description: 'Task at 18:00',
+        color: '#FF5733',
+        icon: 'evening',
+        defaultStartTime: '18:00',
+        defaultDuration: 30,
+        isActive: true,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        familyId: 'family-1',
+      },
+      {
+        id: 'task-2',
+        name: 'Morning Task',
+        description: 'Task at 07:00',
+        color: '#33FF57',
+        icon: 'morning',
+        defaultStartTime: '07:00',
+        defaultDuration: 45,
+        isActive: true,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        familyId: 'family-1',
+      },
+      {
+        id: 'task-3',
+        name: 'Afternoon Task',
+        description: 'Task at 14:30',
+        color: '#3357FF',
+        icon: 'afternoon',
+        defaultStartTime: '14:30',
+        defaultDuration: 60,
+        isActive: true,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        familyId: 'family-1',
+      },
+    ];
+
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: unsortedTasks },
+    });
+
+    render(<TaskManagement />);
+
+    await waitFor(() => {
+      // Check that all tasks are displayed
+      expect(screen.getByText('Morning Task')).toBeDefined();
+      expect(screen.getByText('Afternoon Task')).toBeDefined();
+      expect(screen.getByText('Evening Task')).toBeDefined();
+      
+      // Verify chronological order by checking the DOM structure
+      const taskNames = screen.getAllByText(/(Morning|Afternoon|Evening) Task$/).map(el => el.textContent);
+      expect(taskNames).toEqual(['Morning Task', 'Afternoon Task', 'Evening Task']);
     });
   });
 
