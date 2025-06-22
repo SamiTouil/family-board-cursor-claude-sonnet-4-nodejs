@@ -1266,11 +1266,14 @@ export const TaskManagement: React.FC = () => {
                                 required
                               >
                                 <option value="">Select a task...</option>
-                                {tasks.filter(task => task.isActive).map(task => (
-                                  <option key={task.id} value={task.id}>
-                                    {task.icon} {task.name} ({task.defaultStartTime}, {formatDuration(task.defaultDuration)})
-                                  </option>
-                                ))}
+                                {tasks
+                                  .filter(task => task.isActive)
+                                  .sort((a, b) => a.defaultStartTime.localeCompare(b.defaultStartTime))
+                                  .map(task => (
+                                    <option key={task.id} value={task.id}>
+                                      {task.icon} {task.name} ({task.defaultStartTime}, {formatDuration(task.defaultDuration)})
+                                    </option>
+                                  ))}
                               </select>
                               {templateItemErrors['taskId'] && (
                                 <p className="task-management-error">{templateItemErrors['taskId']}</p>
