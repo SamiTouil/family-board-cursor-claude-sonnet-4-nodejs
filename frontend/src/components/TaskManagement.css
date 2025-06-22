@@ -256,7 +256,7 @@
 
 .task-management-task {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
   padding: 16px;
   background: #fafafa;
@@ -286,7 +286,7 @@
 
 .task-management-task-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 4px;
 }
