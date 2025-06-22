@@ -527,14 +527,18 @@ export const TaskManagement: React.FC = () => {
                         <span className="task-management-task-icon-emoji">{task.icon || '✅'}</span>
                         <h6 className="task-management-task-name">{task.name}</h6>
                       </div>
-                      <div className="task-management-task-meta">
+                      <div className="task-management-task-time-container">
                         <span className="task-management-task-time">{task.defaultStartTime}</span>
-                        <span className="task-management-task-duration">{formatDuration(task.defaultDuration)}</span>
                       </div>
                     </div>
-                    {task.description && (
-                      <p className="task-management-task-description">{task.description}</p>
-                    )}
+                    <div className="task-management-task-description-row">
+                      {task.description ? (
+                        <p className="task-management-task-description">{task.description}</p>
+                      ) : (
+                        <div className="task-management-task-description-spacer"></div>
+                      )}
+                      <span className="task-management-task-duration">{formatDuration(task.defaultDuration)}</span>
+                    </div>
                   </div>
                   {isAdmin && (
                     <div className="task-management-task-actions">
