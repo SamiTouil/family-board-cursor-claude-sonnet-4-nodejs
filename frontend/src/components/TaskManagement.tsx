@@ -468,7 +468,10 @@ export const TaskManagement: React.FC = () => {
                 >
                   <div className="task-management-task-info">
                     <div className="task-management-task-header">
-                      <h6 className="task-management-task-name">{task.name}</h6>
+                      <div className="task-management-task-title">
+                        <TasksIcon size={16} className="task-management-task-icon" />
+                        <h6 className="task-management-task-name">{task.name}</h6>
+                      </div>
                       <div className="task-management-task-meta">
                         <span className="task-management-task-time">{task.defaultStartTime}</span>
                         <span className="task-management-task-duration">{formatDuration(task.defaultDuration)}</span>

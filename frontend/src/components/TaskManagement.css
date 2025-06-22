@@ -297,6 +297,17 @@
   min-height: 24px;
 }
 
+.task-management-task-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-management-task-icon {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
 .task-management-task-name {
   font-size: 1rem;
   font-weight: 600;
