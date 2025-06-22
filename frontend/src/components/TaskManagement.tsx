@@ -539,28 +539,37 @@ export const TaskManagement: React.FC = () => {
       console.log('Loading template items for template ID:', templateId);
       const response = await dayTemplateApi.getItems(currentFamily.id, templateId);
       console.log('Template items API response:', response);
+      console.log('Template items data:', response.data);
       setTemplateItems(prev => {
         const newState = {
           ...prev,
-          [templateId]: response.data
+          [templateId]: response.data || [] // Ensure we always have an array
         };
         console.log('Updated templateItems state:', newState);
         return newState;
       });
     } catch (error) {
       console.error('Error loading template items:', error);
+      // Set empty array on error so we don't keep trying to load
+      setTemplateItems(prev => ({
+        ...prev,
+        [templateId]: []
+      }));
     }
   };
 
   // Load template items when templates are loaded
   useEffect(() => {
-    templates.forEach(template => {
-      console.log('Checking template:', template.id, 'has items:', !!templateItems[template.id]);
-      if (!templateItems[template.id]) {
-        console.log('Loading template items for template:', template.id, template.name);
-        loadTemplateItems(template.id);
-      }
-    });
+    if (templates.length > 0) {
+      console.log('Templates loaded, checking for items:', templates);
+      templates.forEach(template => {
+        console.log('Checking template:', template.id, 'has items:', !!templateItems[template.id]);
+        if (templateItems[template.id] === undefined) {
+          console.log('Loading template items for template:', template.id, template.name);
+          loadTemplateItems(template.id);
+        }
+      });
+    }
   }, [templates]); // Only depend on templates, not templateItems to avoid infinite loop
 
   const handleDeleteTemplateItem = async (templateId: string, itemId: string) => {

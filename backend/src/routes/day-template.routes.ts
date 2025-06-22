@@ -372,6 +372,54 @@ router.delete('/:familyId/day-templates/:id', async (req: AuthenticatedRequest, 
 // ==================== DAY TEMPLATE ITEM CRUD ====================
 
 /**
+ * GET /api/families/:familyId/day-templates/:templateId/items
+ * Get all items for a day template
+ */
+router.get('/:familyId/day-templates/:templateId/items', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { familyId, templateId } = req.params;
+    const userId = req.user!.userId;
+    
+    if (!familyId || !templateId) {
+      return res.status(400).json({ error: 'Family ID and Template ID are required' });
+    }
+
+    // Check if user is a member of the family
+    await checkFamilyMembership(userId, familyId);
+
+    const templateItems = await dayTemplateService.getTemplateItems(templateId, familyId);
+    
+    const response = templateItems.map((item): DayTemplateItemResponseDto => ({
+      id: item.id,
+      memberId: item.memberId,
+      taskId: item.taskId,
+      overrideTime: item.overrideTime,
+      overrideDuration: item.overrideDuration,
+      sortOrder: item.sortOrder,
+      createdAt: item.createdAt.toISOString(),
+      updatedAt: item.updatedAt.toISOString(),
+      dayTemplateId: item.dayTemplateId,
+      member: item.member,
+      task: item.task,
+    }));
+
+    return res.json(response);
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ error: error.message });
+      }
+      if (error.message.includes('Access denied')) {
+        return res.status(403).json({ error: error.message });
+      }
+    }
+
+    console.error('Error getting template items:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
  * POST /api/families/:familyId/day-templates/:templateId/items
  * Add a task to a day template
  */

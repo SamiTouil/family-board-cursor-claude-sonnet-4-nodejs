@@ -626,6 +626,69 @@ export class DayTemplateService {
     });
   }
 
+  /**
+   * Get all items for a day template
+   */
+  async getTemplateItems(
+    templateId: string,
+    familyId: string
+  ): Promise<DayTemplateItemWithRelations[]> {
+    // Verify template exists and belongs to the family
+    const template = await prisma.dayTemplate.findFirst({
+      where: {
+        id: templateId,
+        familyId: familyId,
+      },
+    });
+
+    if (!template) {
+      throw new Error('Day template not found');
+    }
+
+    // Get all template items
+    const items = await prisma.dayTemplateItem.findMany({
+      where: {
+        dayTemplateId: templateId,
+      },
+      include: {
+        member: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            avatarUrl: true,
+            isVirtual: true,
+          },
+        },
+        task: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            color: true,
+            icon: true,
+            defaultStartTime: true,
+            defaultDuration: true,
+            familyId: true,
+          },
+        },
+        dayTemplate: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
+      },
+      orderBy: {
+        sortOrder: 'asc',
+      },
+    });
+
+    return items;
+  }
+
   // ==================== TEMPLATE APPLICATION ====================
 
   /**
