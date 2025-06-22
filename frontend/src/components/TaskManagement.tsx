@@ -279,6 +279,28 @@ export const TaskManagement: React.FC = () => {
   }
 
   const activeTasks = tasks.filter(task => task.isActive);
+  
+  // Sort tasks by default start time (chronological order)
+  const sortedActiveTasks = [...activeTasks].sort((a, b) => {
+    // Convert time strings (HH:MM) to comparable numbers for sorting
+    const timeA = a.defaultStartTime.split(':').map(Number);
+    const timeB = b.defaultStartTime.split(':').map(Number);
+    
+    // Ensure we have valid time components
+    const hoursA = timeA[0] ?? 0;
+    const minutesA = timeA[1] ?? 0;
+    const hoursB = timeB[0] ?? 0;
+    const minutesB = timeB[1] ?? 0;
+    
+    // Compare hours first, then minutes
+    const hoursComparison = hoursA - hoursB;
+    if (hoursComparison !== 0) {
+      return hoursComparison;
+    }
+    
+    return minutesA - minutesB;
+  });
+  
   const isFormOpen = addingTask || editingTask;
 
   return (
@@ -300,8 +322,8 @@ export const TaskManagement: React.FC = () => {
           <div className="task-management-subsection-header">
             <h4 className="task-management-subsection-title">
               {t('tasks.currentTasks')}
-              {activeTasks.length > 0 && (
-                <span className="task-management-count-badge">{activeTasks.length}</span>
+              {sortedActiveTasks.length > 0 && (
+                <span className="task-management-count-badge">{sortedActiveTasks.length}</span>
               )}
             </h4>
             {isAdmin && (
@@ -482,7 +504,7 @@ export const TaskManagement: React.FC = () => {
 
           {/* Tasks List */}
           <div className="task-management-tasks-list">
-            {activeTasks.length === 0 ? (
+            {sortedActiveTasks.length === 0 ? (
               <div className="task-management-empty-state">
                 <div className="task-management-empty-icon">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -504,7 +526,7 @@ export const TaskManagement: React.FC = () => {
                 )}
               </div>
             ) : (
-              activeTasks.map((task) => (
+              sortedActiveTasks.map((task) => (
                 <div 
                   key={task.id} 
                   className={`task-management-task ${isAdmin ? 'task-management-task-clickable' : ''}`}
