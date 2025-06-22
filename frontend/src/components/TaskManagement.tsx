@@ -377,8 +377,17 @@ export const TaskManagement: React.FC = () => {
     e.preventDefault();
     
     if (!validateTemplateForm() || !currentFamily) {
+      console.log('Validation failed or no current family:', { 
+        validationPassed: validateTemplateForm(), 
+        currentFamily: currentFamily?.id 
+      });
       return;
     }
+
+    console.log('Creating template with data:', {
+      familyId: currentFamily.id,
+      templateData: templateData
+    });
 
     setIsLoading(true);
     try {
@@ -391,7 +400,9 @@ export const TaskManagement: React.FC = () => {
         createData.description = trimmedDescription;
       }
 
+      console.log('Sending API request with:', createData);
       const response = await dayTemplateApi.create(currentFamily.id, createData);
+      console.log('API response:', response);
 
       // Add the new template to the list
       setTemplates(prev => [...prev, response.data]);
@@ -402,6 +413,8 @@ export const TaskManagement: React.FC = () => {
       // Close the form but preserve the success message
       handleCancelTemplateForm(true);
     } catch (error: any) {
+      console.error('Template creation error:', error);
+      console.error('Error response:', error?.response);
       const errorMessage = error?.response?.data?.message || 'Failed to create template';
       setMessage({ type: 'error', text: errorMessage });
     } finally {

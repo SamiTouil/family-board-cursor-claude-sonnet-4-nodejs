@@ -7,11 +7,40 @@ import {
   DayTemplateItemResponseDto,
   ApplyDayTemplateDto,
 } from '../types/task.types';
+import { PrismaClient } from '@prisma/client';
 
 const router = Router();
+const prisma = new PrismaClient();
 
 // Apply auth middleware to all routes
 router.use(authenticateToken);
+
+// Helper method to check if user is a family member
+async function checkFamilyMembership(userId: string, familyId: string): Promise<{ role: string }> {
+  const membership = await prisma.familyMember.findUnique({
+    where: {
+      userId_familyId: {
+        userId,
+        familyId,
+      },
+    },
+  });
+
+  if (!membership) {
+    throw new Error('Access denied: You are not a member of this family');
+  }
+
+  return { role: membership.role };
+}
+
+// Helper method to check if user is family admin
+async function checkFamilyAdmin(userId: string, familyId: string): Promise<void> {
+  const membership = await checkFamilyMembership(userId, familyId);
+  
+  if (membership.role !== 'ADMIN') {
+    throw new Error('Access denied: Only family admins can perform this action');
+  }
+}
 
 // ==================== DAY TEMPLATE CRUD ====================
 
@@ -22,9 +51,14 @@ router.use(authenticateToken);
 router.post('/:familyId/day-templates', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { familyId } = req.params;
+    const userId = req.user!.userId;
+    
     if (!familyId) {
       return res.status(400).json({ error: 'Family ID is required' });
     }
+
+    // Check if user is admin of the family
+    await checkFamilyAdmin(userId, familyId);
 
     const template = await dayTemplateService.createDayTemplate(req.body, familyId);
     
@@ -61,6 +95,9 @@ router.post('/:familyId/day-templates', async (req: AuthenticatedRequest, res: R
     }
     
     if (error instanceof Error) {
+      if (error.message.includes('Access denied')) {
+        return res.status(403).json({ error: error.message });
+      }
       if (error.message.includes('already exists')) {
         return res.status(409).json({ error: error.message });
       }
@@ -78,9 +115,14 @@ router.post('/:familyId/day-templates', async (req: AuthenticatedRequest, res: R
 router.get('/:familyId/day-templates', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { familyId } = req.params;
+    const userId = req.user!.userId;
+    
     if (!familyId) {
       return res.status(400).json({ error: 'Family ID is required' });
     }
+
+    // Check if user is a member of the family
+    await checkFamilyMembership(userId, familyId);
 
     const {
       isActive,
@@ -139,6 +181,9 @@ router.get('/:familyId/day-templates', async (req: AuthenticatedRequest, res: Re
 
     return res.json(response);
   } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      return res.status(403).json({ error: error.message });
+    }
     console.error('Error fetching day templates:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
