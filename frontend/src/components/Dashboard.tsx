@@ -21,13 +21,6 @@ export const Dashboard: React.FC = () => {
     <div className="dashboard">
       <div className="dashboard-top-section">
         <UserSummaryCard />
-        
-        <div className="dashboard-content">
-          <div className="dashboard-placeholder">
-            <h3>Coming Soon</h3>
-            <p>Family board features will be implemented here.</p>
-          </div>
-        </div>
       </div>
     </div>
   );
