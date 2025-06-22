@@ -1,39 +1,39 @@
-/* Family Management Component */
+/* Family Management Component Styles */
 .family-management {
-  background: white;
-  border-radius: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: 1.5rem;
   width: 100%;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 /* Header */
 .family-management-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
+  gap: 12px;
+  padding: 24px;
   border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
 .family-management-icon {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
 }
 
 .family-management-title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 600;
-  color: #111827;
   margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .family-management-family-name {
@@ -48,88 +48,261 @@
 
 /* Messages */
 .family-management-message {
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
+  margin: 16px 24px;
+  padding: 12px 16px;
+  border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 500;
 }
 
 .family-management-message-success {
-  background-color: #d1fae5;
+  background: #d1fae5;
   color: #065f46;
   border: 1px solid #a7f3d0;
 }
 
 .family-management-message-error {
-  background-color: #fee2e2;
+  background: #fee2e2;
   color: #991b1b;
   border: 1px solid #fca5a5;
 }
 
+/* Form Styles */
+.family-management-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.family-management-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.family-management-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.family-management-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.family-management-input {
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.family-management-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.family-management-input-error {
+  border-color: #ef4444;
+}
+
+.family-management-input-error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.family-management-error {
+  font-size: 0.75rem;
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.family-management-help-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+/* Form Actions */
+.family-management-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* Buttons */
+.family-management-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.family-management-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.family-management-button-primary {
+  background: #6366f1;
+  color: white;
+}
+
+.family-management-button-primary:hover:not(:disabled) {
+  background: #5855eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.family-management-button-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.family-management-button-secondary:hover:not(:disabled) {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.family-management-button-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.family-management-button-danger:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.family-management-button-success {
+  background: #10b981;
+  color: white;
+}
+
+.family-management-button-success:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.family-management-button-sm {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+}
+
+/* Button Groups */
+.family-management-button-group {
+  display: flex;
+  gap: 8px;
+}
+
 /* Subsections */
 .family-management-subsection {
-  margin-bottom: 1.5rem;
+  padding: 24px;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .family-management-subsection:last-child {
-  margin-bottom: 0;
-}
-
-.family-management-subsection-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 1rem 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  border-bottom: none;
 }
 
 .family-management-subsection-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
+}
+
+.family-management-subsection-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .family-management-count-badge {
-  background-color: #ef4444;
+  background: #6366f1;
   color: white;
   font-size: 0.75rem;
   font-weight: 600;
-  padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
-  margin-left: 0.5rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Form Titles */
+.family-management-form-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+/* Inline Forms */
+.family-management-edit-inline,
+.family-management-virtual-member-add-inline,
+.family-management-virtual-member-edit-inline {
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.family-management-virtual-member-edit-inline {
+  margin: 16px 0;
+  background: #fef3c7;
+  border-color: #fbbf24;
 }
 
 /* Members List */
 .family-management-members-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .family-management-member {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
-  background-color: #f9fafb;
+  padding: 16px;
+  background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  border-radius: 12px;
   transition: all 0.2s ease;
 }
 
 .family-management-member:hover {
-  background-color: #f3f4f6;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #f3f4f6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .family-management-member-info {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 12px;
   flex: 1;
 }
 
@@ -138,6 +311,10 @@
   height: 48px;
   border-radius: 50%;
   overflow: hidden;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
@@ -148,403 +325,273 @@
 }
 
 .family-management-avatar-placeholder {
-  width: 100%;
-  height: 100%;
-  background: #7c3aed;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #6b7280;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
 }
 
 .family-management-member-details {
   flex: 1;
+  min-width: 0;
 }
 
 .family-management-member-name {
   font-weight: 600;
   color: #111827;
-  margin-bottom: 0.25rem;
+  margin-bottom: 4px;
   display: flex;
   align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
 .family-management-member-email {
   font-size: 0.875rem;
   color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .family-management-member-actions {
   display: flex;
-  gap: 0.5rem;
-}
-
-/* Form Styles */
-.family-management-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.family-management-form-row {
-  display: flex;
-  gap: 1rem;
-}
-
-@media (max-width: 640px) {
-  .family-management-form-row {
-    flex-direction: column;
-    gap: 1rem;
-  }
-}
-
-.family-management-form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  flex: 1;
-}
-
-.family-management-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.family-management-input {
-  padding: 0.625rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-  background-color: white;
-}
-
-.family-management-input:focus {
-  outline: none;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-}
-
-.family-management-input-error {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-.family-management-error {
-  font-size: 0.75rem;
-  color: #ef4444;
-  margin-top: 0.25rem;
-}
-
-.family-management-form-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-  margin-top: 0.5rem;
-}
-
-/* Buttons */
-.family-management-button {
-  padding: 0.625rem 1.25rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.family-management-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.family-management-button-group {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.family-management-button-sm {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.75rem;
-}
-
-.family-management-button-primary {
-  background-color: #7c3aed;
-  color: white;
-}
-
-.family-management-button-primary:hover:not(:disabled) {
-  background-color: #6d28d9;
-}
-
-.family-management-button-primary:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3);
-}
-
-.family-management-button-secondary {
-  background-color: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
-}
-
-.family-management-button-secondary:hover:not(:disabled) {
-  background-color: #e5e7eb;
-}
-
-.family-management-button-secondary:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.3);
-}
-
-.family-management-button-success {
-  background-color: #10b981;
-  color: white;
-}
-
-.family-management-button-success:hover:not(:disabled) {
-  background-color: #059669;
-}
-
-.family-management-button-danger {
-  background-color: #ef4444;
-  color: white;
-}
-
-.family-management-button-danger:hover:not(:disabled) {
-  background-color: #dc2626;
-}
-
-/* Inline Forms */
-.family-management-family-edit-inline,
-.family-management-virtual-member-add-inline,
-.family-management-virtual-member-edit-inline {
-  background-color: #f0f9ff;
-  border: 2px solid #0ea5e9;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  margin: 1rem 0;
-  animation: slideDown 0.3s ease-out;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.family-management-form-title {
-  color: #0369a1;
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 1rem 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.family-management-family-edit-inline .family-management-form-title::before {
-  content: '🏠';
-  font-size: 1.125rem;
-}
-
-.family-management-virtual-member-add-inline .family-management-form-title::before {
-  content: '👤';
-  font-size: 1.125rem;
-}
-
-.family-management-virtual-member-edit-inline .family-management-form-title::before {
-  content: '✏️';
-  font-size: 1.125rem;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-    max-height: 0;
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    max-height: 500px;
-  }
-}
-
-.family-management-help-text {
-  color: #6b7280;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-  line-height: 1.4;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 /* Join Requests */
 .family-management-requests-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 16px;
 }
 
 .family-management-request-card {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  padding: 1rem;
-  background-color: #fef9e7;
-  border: 1px solid #f59e0b;
-  border-radius: 0.5rem;
-  gap: 1rem;
+  gap: 16px;
+  padding: 20px;
+  background: #fef9e7;
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.family-management-request-card:hover {
+  background: #fef3c7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
 }
 
 .family-management-request-info {
   flex: 1;
+  min-width: 0;
 }
 
 .family-management-request-name {
-  font-size: 0.875rem;
   font-weight: 600;
   color: #111827;
-  margin-bottom: 0.25rem;
+  margin-bottom: 4px;
 }
 
 .family-management-request-email {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: #6b7280;
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .family-management-request-message {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: #374151;
   font-style: italic;
-  margin-bottom: 0.5rem;
-  padding: 0.5rem;
-  background-color: #ffffff;
-  border-radius: 0.25rem;
-  border-left: 3px solid #f59e0b;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
 }
 
 .family-management-request-date {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #9ca3af;
 }
 
 .family-management-request-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
   flex-shrink: 0;
 }
 
-/* Invite Form */
+/* Invites */
 .family-management-invite-form {
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 24px;
 }
 
-/* Invites List */
 .family-management-invites-list {
-  margin-top: 1rem;
+  margin-top: 24px;
 }
 
 .family-management-invites-title {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: #374151;
-  margin: 0 0 0.75rem 0;
+  color: #111827;
+  margin: 0 0 16px 0;
 }
 
 .family-management-invite-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem;
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 0.5rem;
-  margin-bottom: 0.5rem;
+  gap: 16px;
+  padding: 16px;
+  background: #f0f9ff;
+  border: 1px solid #7dd3fc;
+  border-radius: 8px;
+  margin-bottom: 12px;
 }
 
 .family-management-invite-info {
   flex: 1;
+  min-width: 0;
 }
 
 .family-management-invite-code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.875rem;
   font-weight: 600;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  color: #111827;
-  background-color: #ffffff;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  border: 1px solid #d1d5db;
+  color: #0369a1;
+  background: rgba(3, 105, 161, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
   display: inline-block;
-  margin-bottom: 0.25rem;
+  margin-bottom: 4px;
 }
 
 .family-management-invite-email {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: #6b7280;
-  margin-bottom: 0.25rem;
+  margin-bottom: 4px;
 }
 
 .family-management-invite-expiry {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #9ca3af;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .family-management {
-    padding: 1rem;
-    border-radius: 0.5rem;
+  .family-management-header {
+    padding: 16px;
   }
 
-  .family-management-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+  .family-management-title {
+    font-size: 1.25rem;
+  }
+
+  .family-management-subsection {
+    padding: 16px;
   }
 
   .family-management-subsection-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 12px;
+  }
+
+  .family-management-button-group {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .family-management-button-group .family-management-button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .family-management-form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .family-management-form-actions {
     flex-direction: column;
   }
 
-  .family-management-button {
-    width: 100%;
+  .family-management-member {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 
-  .family-management-member-card,
+  .family-management-member-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
   .family-management-request-card {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
   }
 
   .family-management-request-actions {
     width: 100%;
     justify-content: flex-end;
   }
+
+  .family-management-invite-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 }
 
-@media (max-width: 480px) {
-  .family-management-header {
-    text-align: center;
-  }
+/* Animation for form transitions */
+.family-management-edit-inline,
+.family-management-virtual-member-add-inline,
+.family-management-virtual-member-edit-inline {
+  animation: slideDown 0.3s ease-out;
+}
 
-  .family-management-title {
-    font-size: 1.125rem;
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus states for accessibility */
+.family-management-button:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.family-management-input:focus-visible {
+  outline: none;
+}
+
+/* Loading states */
+.family-management-button:disabled {
+  position: relative;
+}
+
+.family-management-button:disabled::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  margin: auto;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 } 
