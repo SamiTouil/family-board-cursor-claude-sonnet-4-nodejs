@@ -456,7 +456,10 @@ export const TaskManagement: React.FC = () => {
               </div>
             ) : (
               activeTasks.map((task) => (
-                <div key={task.id} className="task-management-task" style={{ borderColor: task.color }}>
+                <div key={task.id} className="task-management-task" style={{ 
+                  borderColor: task.color,
+                  backgroundColor: `${task.color}08`
+                }}>
                   <div className="task-management-task-info">
                     <div className="task-management-task-header">
                       <h6 className="task-management-task-name">{task.name}</h6>
