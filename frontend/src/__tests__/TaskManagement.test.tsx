@@ -1,0 +1,452 @@
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { TaskManagement } from '../components/TaskManagement';
+import { useFamily } from '../contexts/FamilyContext';
+import { taskApi, Family } from '../services/api';
+import '../test/setup';
+
+// Mock the contexts and API
+vi.mock('../contexts/FamilyContext');
+vi.mock('../services/api');
+
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
+const mockUseFamily = vi.mocked(useFamily);
+const mockTaskApi = vi.mocked(taskApi);
+
+const mockFamily: Family = {
+  id: 'family-1',
+  name: 'Test Family',
+  description: 'Test family description',
+  avatarUrl: undefined,
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
+  creator: {
+    id: 'user-1',
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john@example.com',
+  },
+  memberCount: 2,
+  userRole: 'ADMIN' as const,
+};
+
+const mockTasks = [
+  {
+    id: 'task-1',
+    name: 'Clean Kitchen',
+    description: 'Clean all surfaces and dishes',
+    color: '#FF5733',
+    icon: 'cleaning',
+    defaultStartTime: '09:00',
+    defaultDuration: 60,
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    familyId: 'family-1',
+  },
+  {
+    id: 'task-2',
+    name: 'Walk Dog',
+    description: null,
+    color: '#33FF57',
+    icon: 'petcare',
+    defaultStartTime: '07:00',
+    defaultDuration: 30,
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    familyId: 'family-1',
+  },
+];
+
+describe('TaskManagement', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseFamily.mockReturnValue({
+      currentFamily: mockFamily,
+      families: [mockFamily],
+      loading: false,
+      hasCompletedOnboarding: true,
+      pendingJoinRequests: [],
+      approvalNotification: null,
+      createFamily: vi.fn(),
+      joinFamily: vi.fn(),
+      setCurrentFamily: vi.fn(),
+      refreshFamilies: vi.fn(),
+      loadPendingJoinRequests: vi.fn(),
+      cancelJoinRequest: vi.fn(),
+      dismissApprovalNotification: vi.fn(),
+    });
+  });
+
+  it('renders task management header', () => {
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: [] },
+    });
+
+    render(<TaskManagement />);
+    
+    expect(screen.getByText('tasks.management')).toBeDefined();
+  });
+
+  it('loads and displays tasks on mount', async () => {
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: mockTasks },
+    });
+
+    render(<TaskManagement />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Clean Kitchen')).toBeDefined();
+      expect(screen.getByText('Walk Dog')).toBeDefined();
+    });
+
+    expect(mockTaskApi.getFamilyTasks).toHaveBeenCalledWith('family-1', { isActive: true });
+  });
+
+  it('shows empty state when no tasks exist', async () => {
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: [] },
+    });
+
+    render(<TaskManagement />);
+
+    await waitFor(() => {
+      expect(screen.getByText('tasks.noTasks')).toBeDefined();
+      expect(screen.getByText('tasks.noTasksDescription')).toBeDefined();
+    });
+  });
+
+  it('shows create task button for admins', async () => {
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: [] },
+    });
+
+    render(<TaskManagement />);
+
+    await waitFor(() => {
+      expect(screen.getByText('tasks.createFirstTask')).toBeDefined();
+    });
+  });
+
+  it('hides create task button for non-admins', async () => {
+    const memberFamily: Family = { ...mockFamily, userRole: 'MEMBER' };
+    mockUseFamily.mockReturnValue({
+      currentFamily: memberFamily,
+      families: [memberFamily],
+      loading: false,
+      hasCompletedOnboarding: true,
+      pendingJoinRequests: [],
+      approvalNotification: null,
+      createFamily: vi.fn(),
+      joinFamily: vi.fn(),
+      setCurrentFamily: vi.fn(),
+      refreshFamilies: vi.fn(),
+      loadPendingJoinRequests: vi.fn(),
+      cancelJoinRequest: vi.fn(),
+      dismissApprovalNotification: vi.fn(),
+    });
+
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: [] },
+    });
+
+    render(<TaskManagement />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('tasks.createFirstTask')).toBeNull();
+    });
+  });
+
+  it('opens create task form when create button is clicked', async () => {
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: [] },
+    });
+
+    render(<TaskManagement />);
+
+    await waitFor(() => {
+      const createButton = screen.getByText('tasks.createFirstTask');
+      fireEvent.click(createButton);
+    });
+
+    expect(screen.getByText('tasks.createTask')).toBeDefined();
+    expect(screen.getByLabelText('tasks.name')).toBeDefined();
+    expect(screen.getByLabelText('tasks.color')).toBeDefined();
+  });
+
+  it('creates a new task successfully', async () => {
+    const newTask = {
+      id: 'task-3',
+      name: 'New Task',
+      description: 'Test description',
+      color: '#6366f1',
+      icon: 'task',
+      defaultStartTime: '10:00',
+      defaultDuration: 45,
+      isActive: true,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z',
+      familyId: 'family-1',
+    };
+
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: [] },
+    });
+    mockTaskApi.createTask.mockResolvedValue({
+      data: { success: true, data: newTask },
+    });
+
+    render(<TaskManagement />);
+
+    // Open create form
+    await waitFor(() => {
+      const createButton = screen.getByText('tasks.createFirstTask');
+      fireEvent.click(createButton);
+    });
+
+    // Fill form
+    fireEvent.change(screen.getByLabelText('tasks.name'), {
+      target: { value: 'New Task' },
+    });
+    fireEvent.change(screen.getByLabelText('tasks.description (common.optional)'), {
+      target: { value: 'Test description' },
+    });
+    fireEvent.change(screen.getByLabelText('tasks.defaultDuration (tasks.minutes)'), {
+      target: { value: '45' },
+    });
+
+    // Submit form
+    fireEvent.click(screen.getByText('tasks.createTask'));
+
+    await waitFor(() => {
+      expect(mockTaskApi.createTask).toHaveBeenCalledWith('family-1', {
+        name: 'New Task',
+        description: 'Test description',
+        color: '#6366f1',
+        icon: 'task',
+        defaultStartTime: '09:00',
+        defaultDuration: 45,
+      });
+    });
+
+    // Check success message
+    await waitFor(() => {
+      expect(screen.getByText('tasks.created')).toBeDefined();
+    });
+  });
+
+  it('validates required fields when creating task', async () => {
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: [] },
+    });
+
+    render(<TaskManagement />);
+
+    // Open create form
+    await waitFor(() => {
+      const createButton = screen.getByText('tasks.createFirstTask');
+      fireEvent.click(createButton);
+    });
+
+    // Submit form without filling required fields
+    fireEvent.click(screen.getByText('tasks.createTask'));
+
+    await waitFor(() => {
+      expect(screen.getByText('tasks.validation.nameRequired')).toBeDefined();
+    });
+
+    expect(mockTaskApi.createTask).not.toHaveBeenCalled();
+  });
+
+  it('opens edit form when edit button is clicked', async () => {
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: mockTasks },
+    });
+
+    render(<TaskManagement />);
+
+    await waitFor(() => {
+      const editButtons = screen.getAllByTitle('common.edit');
+      fireEvent.click(editButtons[0]);
+    });
+
+    // Check that form is pre-filled with task data
+    expect(screen.getByDisplayValue('Clean Kitchen')).toBeDefined();
+    expect(screen.getByDisplayValue('Clean all surfaces and dishes')).toBeDefined();
+    expect(screen.getByDisplayValue('60')).toBeDefined();
+  });
+
+  it('updates a task successfully', async () => {
+    const updatedTask = {
+      ...mockTasks[0],
+      name: 'Updated Task Name',
+      description: 'Updated description',
+    };
+
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: mockTasks },
+    });
+    mockTaskApi.update.mockResolvedValue({
+      data: { success: true, data: updatedTask },
+    });
+
+    render(<TaskManagement />);
+
+    // Open edit form
+    await waitFor(() => {
+      const editButtons = screen.getAllByTitle('common.edit');
+      fireEvent.click(editButtons[0]);
+    });
+
+    // Update task name
+    fireEvent.change(screen.getByDisplayValue('Clean Kitchen'), {
+      target: { value: 'Updated Task Name' },
+    });
+
+    // Submit form
+    fireEvent.click(screen.getByText('Update Task'));
+
+    await waitFor(() => {
+      expect(mockTaskApi.update).toHaveBeenCalledWith('task-1', {
+        name: 'Updated Task Name',
+        description: 'Clean all surfaces and dishes',
+        color: '#FF5733',
+        defaultStartTime: '09:00',
+        defaultDuration: 60,
+      });
+    });
+  });
+
+  it('deletes a task successfully', async () => {
+    // Mock window.confirm
+    const originalConfirm = window.confirm;
+    window.confirm = vi.fn(() => true);
+
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: mockTasks },
+    });
+    mockTaskApi.delete.mockResolvedValue({
+      data: { success: true, data: { message: 'Task deleted' } },
+    });
+
+    render(<TaskManagement />);
+
+    await waitFor(() => {
+      const deleteButtons = screen.getAllByTitle('common.delete');
+      fireEvent.click(deleteButtons[0]);
+    });
+
+    await waitFor(() => {
+      expect(mockTaskApi.delete).toHaveBeenCalledWith('task-1');
+    });
+
+    // Restore original confirm
+    window.confirm = originalConfirm;
+  });
+
+  it('cancels delete when user clicks cancel in confirmation', async () => {
+    // Mock window.confirm to return false
+    const originalConfirm = window.confirm;
+    window.confirm = vi.fn(() => false);
+
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: mockTasks },
+    });
+
+    render(<TaskManagement />);
+
+    await waitFor(() => {
+      const deleteButtons = screen.getAllByTitle('common.delete');
+      fireEvent.click(deleteButtons[0]);
+    });
+
+    expect(mockTaskApi.delete).not.toHaveBeenCalled();
+
+    // Restore original confirm
+    window.confirm = originalConfirm;
+  });
+
+  it('handles API errors gracefully', async () => {
+    mockTaskApi.getFamilyTasks.mockRejectedValue(new Error('API Error'));
+
+    render(<TaskManagement />);
+
+    await waitFor(() => {
+      expect(screen.getByText('tasks.loadError')).toBeDefined();
+    });
+  });
+
+  it('displays task details correctly', async () => {
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: mockTasks },
+    });
+
+    render(<TaskManagement />);
+
+    await waitFor(() => {
+      // Check task names
+      expect(screen.getByText('Clean Kitchen')).toBeDefined();
+      expect(screen.getByText('Walk Dog')).toBeDefined();
+
+      // Check task descriptions
+      expect(screen.getByText('Clean all surfaces and dishes')).toBeDefined();
+
+      // Check task times and durations
+      expect(screen.getByText('09:00')).toBeDefined();
+      expect(screen.getByText('07:00')).toBeDefined();
+      expect(screen.getByText('1h')).toBeDefined(); // 60 minutes = 1h
+      expect(screen.getByText('30m')).toBeDefined();
+    });
+  });
+
+  it('formats duration correctly', async () => {
+    const tasksWithVariousDurations = [
+      { ...mockTasks[0], defaultDuration: 30 }, // 30m
+      { ...mockTasks[0], id: 'task-2', defaultDuration: 60 }, // 1h
+      { ...mockTasks[0], id: 'task-3', defaultDuration: 90 }, // 1h 30m
+      { ...mockTasks[0], id: 'task-4', defaultDuration: 120 }, // 2h
+    ];
+
+    mockTaskApi.getFamilyTasks.mockResolvedValue({
+      data: { success: true, data: tasksWithVariousDurations },
+    });
+
+    render(<TaskManagement />);
+
+    await waitFor(() => {
+      expect(screen.getByText('30m')).toBeDefined();
+      expect(screen.getByText('1h')).toBeDefined();
+      expect(screen.getByText('1h 30m')).toBeDefined();
+      expect(screen.getByText('2h')).toBeDefined();
+    });
+  });
+
+  it('returns null when no current family is selected', () => {
+    mockUseFamily.mockReturnValue({
+      currentFamily: null,
+      families: [],
+      loading: false,
+      hasCompletedOnboarding: false,
+      pendingJoinRequests: [],
+      approvalNotification: null,
+      createFamily: vi.fn(),
+      joinFamily: vi.fn(),
+      setCurrentFamily: vi.fn(),
+      refreshFamilies: vi.fn(),
+      loadPendingJoinRequests: vi.fn(),
+      cancelJoinRequest: vi.fn(),
+      dismissApprovalNotification: vi.fn(),
+    });
+
+    const { container } = render(<TaskManagement />);
+    expect(container.firstChild).toBeNull();
+  });
+}); 

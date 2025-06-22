@@ -190,6 +190,54 @@ export interface UpdateVirtualMemberData {
   avatarUrl?: string;
 }
 
+// Task interfaces
+export interface Task {
+  id: string;
+  name: string;
+  description: string | null;
+  color: string;
+  icon: string;
+  defaultStartTime: string;
+  defaultDuration: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  familyId: string;
+}
+
+export interface CreateTaskData {
+  name: string;
+  description?: string;
+  color: string;
+  icon: string;
+  defaultStartTime: string;
+  defaultDuration: number;
+}
+
+export interface UpdateTaskData {
+  name?: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  defaultStartTime?: string;
+  defaultDuration?: number;
+  isActive?: boolean;
+}
+
+export interface TaskQueryParams {
+  isActive?: boolean;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface TaskStats {
+  totalTasks: number;
+  activeTasks: number;
+  inactiveTasks: number;
+  averageDuration: number;
+}
+
 // Authentication API
 export const authApi = {
   signup: (data: SignupData): Promise<{ data: ApiResponse<AuthResponse> }> =>
@@ -284,6 +332,53 @@ export const familyApi = {
   // Cancel user's own join request
   cancelJoinRequest: (requestId: string): Promise<{ data: ApiResponse<{ message: string }> }> =>
     api.delete(`/families/join-requests/${requestId}`),
+};
+
+// Task API (protected routes)
+export const taskApi = {
+  // Get all tasks for a family
+  getFamilyTasks: (familyId: string, params?: TaskQueryParams): Promise<{ data: ApiResponse<Task[]> }> => {
+    const searchParams = new URLSearchParams();
+    if (params?.isActive !== undefined) searchParams.append('isActive', params.isActive.toString());
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    
+    const queryString = searchParams.toString();
+    return api.get(`/tasks/family/${familyId}${queryString ? `?${queryString}` : ''}`);
+  },
+  
+  // Get task statistics for a family
+  getFamilyTaskStats: (familyId: string): Promise<{ data: ApiResponse<TaskStats> }> =>
+    api.get(`/tasks/family/${familyId}/stats`),
+  
+  // Create a new task for a family (admin only)
+  createTask: (familyId: string, data: CreateTaskData): Promise<{ data: ApiResponse<Task> }> =>
+    api.post(`/tasks/family/${familyId}`, data),
+  
+  // Get a specific task
+  getById: (taskId: string): Promise<{ data: ApiResponse<Task> }> =>
+    api.get(`/tasks/${taskId}`),
+  
+  // Update a task (admin only)
+  update: (taskId: string, data: UpdateTaskData): Promise<{ data: ApiResponse<Task> }> =>
+    api.put(`/tasks/${taskId}`, data),
+  
+  // Soft delete a task (admin only)
+  delete: (taskId: string): Promise<{ data: ApiResponse<{ message: string }> }> =>
+    api.delete(`/tasks/${taskId}`),
+  
+  // Permanently delete a task (admin only)
+  permanentDelete: (taskId: string): Promise<{ data: ApiResponse<{ message: string }> }> =>
+    api.delete(`/tasks/${taskId}/permanent`),
+  
+  // Restore a soft-deleted task (admin only)
+  restore: (taskId: string): Promise<{ data: ApiResponse<Task> }> =>
+    api.post(`/tasks/${taskId}/restore`),
+  
+  // Duplicate a task (admin only)
+  duplicate: (taskId: string, name?: string): Promise<{ data: ApiResponse<Task> }> =>
+    api.post(`/tasks/${taskId}/duplicate`, { name }),
 };
 
 export default api; 
