@@ -59,7 +59,6 @@ export const TaskManagement: React.FC = () => {
       // Start with empty task list - tasks will be added when created by user
       setTasks([]);
     } catch (error) {
-      console.error('Error loading tasks:', error);
       setMessage({ type: 'error', text: t('tasks.loadError') });
     } finally {
       setIsLoading(false);
@@ -175,7 +174,6 @@ export const TaskManagement: React.FC = () => {
       // Close the form
       handleCancelAddTask();
     } catch (error) {
-      console.error('Error creating task:', error);
       setMessage({ type: 'error', text: t('tasks.createError') });
     } finally {
       setIsLoading(false);
