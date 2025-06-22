@@ -85,10 +85,9 @@ export const TaskManagement: React.FC = () => {
     
     try {
       const response = await dayTemplateApi.getFamilyTemplates(currentFamily.id);
-      console.log('Loaded templates:', response.data.templates);
       setTemplates(response.data.templates);
     } catch (error) {
-      console.error('Error loading templates:', error);
+      // Error loading templates
     }
   };
 
@@ -99,7 +98,7 @@ export const TaskManagement: React.FC = () => {
       const response = await familyApi.getMembers(currentFamily.id);
       setFamilyMembers(response.data.data);
     } catch (error) {
-      console.error('Error loading family members:', error);
+      // Error loading family members
     }
   };
 
@@ -416,18 +415,8 @@ export const TaskManagement: React.FC = () => {
     e.preventDefault();
     
     if (!validateTemplateForm() || !currentFamily) {
-      console.log('Validation failed or no current family:', { 
-        validationPassed: validateTemplateForm(), 
-        currentFamily: currentFamily?.id 
-      });
       return;
     }
-
-    console.log('Creating template with data:', {
-      familyId: currentFamily.id,
-      templateData: templateData,
-      userToken: localStorage.getItem('token') ? 'present' : 'missing'
-    });
 
     setIsLoading(true);
     try {
@@ -440,11 +429,7 @@ export const TaskManagement: React.FC = () => {
         createData.description = trimmedDescription;
       }
 
-      console.log('Sending API request with:', createData);
-      console.log('API URL will be:', `/api/families/${currentFamily.id}/day-templates`);
-      
       const response = await dayTemplateApi.create(currentFamily.id, createData);
-      console.log('API response:', response);
 
       // Add the new template to the list
       setTemplates(prev => [...prev, response.data]);
@@ -455,12 +440,6 @@ export const TaskManagement: React.FC = () => {
       // Close the form but preserve the success message
       handleCancelTemplateForm(true);
     } catch (error: any) {
-      console.error('Template creation error:', error);
-      console.error('Error response data:', error?.response?.data);
-      console.error('Error response status:', error?.response?.status);
-      console.error('Error response headers:', error?.response?.headers);
-      console.error('Error config:', error?.config);
-      
       let errorMessage = 'Failed to create template';
       if (error?.response?.data?.error) {
         errorMessage = error.response.data.error;
@@ -551,20 +530,13 @@ export const TaskManagement: React.FC = () => {
     if (!currentFamily) return;
     
     try {
-      console.log('Loading template items for template ID:', templateId);
       const response = await dayTemplateApi.getItems(currentFamily.id, templateId);
-      console.log('Template items API response:', response);
-      console.log('Template items data:', response.data);
-      setTemplateItems(prev => {
-        const newState = {
-          ...prev,
-          [templateId]: response.data || [] // Ensure we always have an array
-        };
-        console.log('Updated templateItems state:', newState);
-        return newState;
-      });
+      setTemplateItems(prev => ({
+        ...prev,
+        [templateId]: response.data || [] // Ensure we always have an array
+      }));
     } catch (error) {
-      console.error('Error loading template items:', error);
+      // Error loading template items
       // Set empty array on error so we don't keep trying to load
       setTemplateItems(prev => ({
         ...prev,
@@ -576,11 +548,8 @@ export const TaskManagement: React.FC = () => {
   // Load template items when templates are loaded
   useEffect(() => {
     if (templates.length > 0) {
-      console.log('Templates loaded, checking for items:', templates);
       templates.forEach(template => {
-        console.log('Checking template:', template.id, 'has items:', !!templateItems[template.id]);
         if (templateItems[template.id] === undefined) {
-          console.log('Loading template items for template:', template.id, template.name);
           loadTemplateItems(template.id);
         }
       });
@@ -1406,9 +1375,7 @@ export const TaskManagement: React.FC = () => {
                         </div>
                       ) : templateItems[template.id] ? (
                         <div className="task-management-template-items-grid">
-                          {sortTemplateItemsByTime(templateItems[template.id]?.filter(item => item.task) || []).map((item) => {
-                            console.log('Rendering template item:', item, 'effective time:', getEffectiveTime(item));
-                            return (
+                          {sortTemplateItemsByTime(templateItems[template.id]?.filter(item => item.task) || []).map((item) => (
                               <TaskAssignmentCard
                                 key={item.id}
                                 assignment={{
@@ -1433,8 +1400,8 @@ export const TaskManagement: React.FC = () => {
                                 isAdmin={isAdmin}
                                 isLoading={isLoading}
                               />
-                            );
-                          })}
+                            )
+                          )}
                         </div>
                       ) : (
                         <div className="task-management-template-empty">
