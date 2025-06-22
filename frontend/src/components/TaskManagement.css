@@ -144,16 +144,20 @@
 }
 
 .task-management-emoji-picker-button {
-  padding: 8px 16px;
+  padding: 8px 12px;
   background: #6366f1;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  align-self: flex-start;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: auto;
 }
 
 .task-management-emoji-picker-button:hover:not(:disabled) {
