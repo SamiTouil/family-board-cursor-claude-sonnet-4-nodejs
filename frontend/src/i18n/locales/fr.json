@@ -262,7 +262,7 @@
   },
   "tasks": {
     "management": "Gestion des Tâches",
-    "currentTasks": "Tâches Actuelles",
+    "currentTasks": "Tâches Disponibles",
     "createTask": "Créer une Tâche",
     "createTaskHelp": "Créer une nouvelle tâche pour votre famille",
     "createFirstTask": "Créer Votre Première Tâche",

@@ -261,7 +261,7 @@
   },
   "tasks": {
     "management": "Task Management",
-    "currentTasks": "Current Tasks",
+    "currentTasks": "Available Tasks",
     "createTask": "Create Task",
     "createTaskHelp": "Create a new task for your family",
     "createFirstTask": "Create Your First Task",
