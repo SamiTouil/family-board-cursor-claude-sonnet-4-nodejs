@@ -393,7 +393,7 @@ export const TaskManagement: React.FC = () => {
                       <div className="task-management-emoji-picker-container">
                         <EmojiPicker
                           onEmojiClick={handleEmojiSelect}
-                          width={350}
+                          width="100%"
                           height={400}
                           searchPlaceholder="Search emojis..."
                           previewConfig={{
