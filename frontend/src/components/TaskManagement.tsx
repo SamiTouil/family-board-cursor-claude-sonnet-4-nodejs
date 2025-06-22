@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useFamily } from '../contexts/FamilyContext';
 import { taskApi, Task, CreateTaskData } from '../services/api';
 import TasksIcon from './icons/TasksIcon';
@@ -20,10 +21,14 @@ export const TaskManagement: React.FC = () => {
     name: '',
     description: '',
     color: '#6366f1',
+    icon: '✅',
     defaultStartTime: '09:00',
     defaultDuration: 30,
   });
   const [taskErrors, setTaskErrors] = useState<Record<string, string>>({});
+
+  // Emoji picker state
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Check if user is admin (can create/manage tasks)
   const isAdmin = currentFamily?.userRole === 'ADMIN';
@@ -78,11 +83,13 @@ export const TaskManagement: React.FC = () => {
     setEditingTask(null);
     setMessage(null);
     setTaskErrors({});
+    setShowEmojiPicker(false);
     // Reset form data
     setTaskData({
       name: '',
       description: '',
       color: '#6366f1',
+      icon: '✅',
       defaultStartTime: '09:00',
       defaultDuration: 30,
     });
@@ -93,11 +100,13 @@ export const TaskManagement: React.FC = () => {
     setAddingTask(false);
     setMessage(null);
     setTaskErrors({});
+    setShowEmojiPicker(false);
     // Pre-fill form with task data
     setTaskData({
       name: task.name,
       description: task.description || '',
       color: task.color,
+      icon: task.icon || '✅',
       defaultStartTime: task.defaultStartTime,
       defaultDuration: task.defaultDuration,
     });
@@ -106,6 +115,7 @@ export const TaskManagement: React.FC = () => {
   const handleCancelForm = (preserveMessageOrEvent?: boolean | React.MouseEvent) => {
     setAddingTask(false);
     setEditingTask(null);
+    setShowEmojiPicker(false);
     
     // If it's a boolean or undefined, use it as preserveMessage flag
     // If it's a mouse event, don't preserve the message (default behavior)
@@ -120,6 +130,7 @@ export const TaskManagement: React.FC = () => {
       name: '',
       description: '',
       color: '#6366f1',
+      icon: '✅',
       defaultStartTime: '09:00',
       defaultDuration: 30,
     });
@@ -155,7 +166,7 @@ export const TaskManagement: React.FC = () => {
       const createData: CreateTaskData = {
         name: taskData.name.trim(),
         color: taskData.color,
-        icon: 'task', // Default icon for now
+        icon: taskData.icon,
         defaultStartTime: taskData.defaultStartTime,
         defaultDuration: taskData.defaultDuration,
       };
@@ -196,6 +207,7 @@ export const TaskManagement: React.FC = () => {
       const updateData: any = {
         name: taskData.name.trim(),
         color: taskData.color,
+        icon: taskData.icon,
         defaultStartTime: taskData.defaultStartTime,
         defaultDuration: taskData.defaultDuration,
       };
@@ -256,6 +268,11 @@ export const TaskManagement: React.FC = () => {
       return `${hours}h ${mins > 0 ? `${mins}m` : ''}`.trim();
     }
     return `${mins}m`;
+  };
+
+  const handleEmojiSelect = (emojiData: EmojiClickData) => {
+    setTaskData(prev => ({ ...prev, icon: emojiData.emoji }));
+    setShowEmojiPicker(false);
   };
 
   if (!currentFamily) {
@@ -350,6 +367,42 @@ export const TaskManagement: React.FC = () => {
                       disabled={isLoading}
                       onChange={handleTaskInputChange}
                     />
+                  </div>
+                </div>
+
+                <div className="task-management-form-group">
+                  <label className="task-management-label">
+                    Icon
+                  </label>
+                  <div className="task-management-icon-selector">
+                    <div className="task-management-icon-preview">
+                      <span className="task-management-icon-preview-emoji">{taskData.icon || '✅'}</span>
+                      <span className="task-management-icon-preview-label">Selected</span>
+                    </div>
+                    
+                    <button
+                      type="button"
+                      className="task-management-emoji-picker-button"
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      disabled={isLoading}
+                    >
+                      {showEmojiPicker ? 'Close Emoji Picker' : 'Choose Emoji'}
+                    </button>
+                    
+                    {showEmojiPicker && (
+                      <div className="task-management-emoji-picker-container">
+                        <EmojiPicker
+                          onEmojiClick={handleEmojiSelect}
+                          width="100%"
+                          height={400}
+                          searchPlaceholder="Search emojis..."
+                          previewConfig={{
+                            showPreview: false
+                          }}
+                          skinTonesDisabled={true}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -468,7 +521,10 @@ export const TaskManagement: React.FC = () => {
                 >
                   <div className="task-management-task-info">
                     <div className="task-management-task-header">
-                      <h6 className="task-management-task-name">{task.name}</h6>
+                      <div className="task-management-task-title">
+                        <span className="task-management-task-icon-emoji">{task.icon || '✅'}</span>
+                        <h6 className="task-management-task-name">{task.name}</h6>
+                      </div>
                       <div className="task-management-task-meta">
                         <span className="task-management-task-time">{task.defaultStartTime}</span>
                         <span className="task-management-task-duration">{formatDuration(task.defaultDuration)}</span>

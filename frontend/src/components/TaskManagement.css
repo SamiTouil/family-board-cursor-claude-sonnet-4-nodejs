@@ -108,6 +108,97 @@
   cursor: pointer;
 }
 
+/* Emoji Picker */
+.task-management-icon-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-management-icon-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.task-management-icon-preview-emoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.task-management-icon-preview-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.task-management-emoji-picker-button {
+  padding: 8px 16px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+
+.task-management-emoji-picker-button:hover:not(:disabled) {
+  background: #5048e5;
+  transform: translateY(-1px);
+}
+
+.task-management-emoji-picker-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.task-management-emoji-picker-container {
+  position: relative;
+  z-index: 10;
+  margin-top: 8px;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+/* Override emoji-picker-react styles to match our design */
+.task-management-emoji-picker-container .EmojiPickerReact {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  width: 100% !important;
+}
+
+/* Hide category navigation buttons */
+.task-management-emoji-picker-container .EmojiPickerReact .epr-category-nav {
+  display: none !important;
+}
+
+/* Hide skin tone picker button */
+.task-management-emoji-picker-container .EmojiPickerReact .epr-skin-tone-select {
+  display: none !important;
+}
+
+.task-management-emoji-picker-container .EmojiPickerReact .epr-search-container input {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.task-management-emoji-picker-container .EmojiPickerReact .epr-search-container input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
 .task-management-error {
   font-size: 0.75rem;
   color: #ef4444;
@@ -295,6 +386,23 @@
   justify-content: space-between;
   margin-bottom: 2px;
   min-height: 24px;
+}
+
+.task-management-task-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-management-task-icon {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.task-management-task-icon-emoji {
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .task-management-task-name {
