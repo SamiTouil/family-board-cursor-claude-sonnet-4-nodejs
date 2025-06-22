@@ -258,5 +258,26 @@
       "continue": "Create Family",
       "join": "Join Family"
     }
+  },
+  "tasks": {
+    "management": "Task Management",
+    "currentTasks": "Current Tasks",
+    "createTask": "Create Task",
+    "createTaskHelp": "Create a new task for your family",
+    "createFirstTask": "Create Your First Task",
+    "name": "Task Name",
+    "namePlaceholder": "Enter task name",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe what needs to be done",
+    "color": "Color",
+    "defaultStartTime": "Default Start Time",
+    "defaultDuration": "Default Duration",
+    "minutes": "minutes",
+    "creating": "Creating...",
+    "created": "Task created successfully",
+    "createError": "Failed to create task",
+    "loadError": "Failed to load tasks",
+    "noTasks": "No Tasks Yet",
+    "noTasksDescription": "Get started by creating your first task for the family"
   }
 } 

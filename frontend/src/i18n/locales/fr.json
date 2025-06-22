@@ -259,5 +259,26 @@
       "continue": "Créer la Famille",
       "join": "Rejoindre la Famille"
     }
+  },
+  "tasks": {
+    "management": "Gestion des Tâches",
+    "currentTasks": "Tâches Actuelles",
+    "createTask": "Créer une Tâche",
+    "createTaskHelp": "Créer une nouvelle tâche pour votre famille",
+    "createFirstTask": "Créer Votre Première Tâche",
+    "name": "Nom de la Tâche",
+    "namePlaceholder": "Entrez le nom de la tâche",
+    "description": "Description",
+    "descriptionPlaceholder": "Décrivez ce qui doit être fait",
+    "color": "Couleur",
+    "defaultStartTime": "Heure de Début par Défaut",
+    "defaultDuration": "Durée par Défaut",
+    "minutes": "minutes",
+    "creating": "Création...",
+    "created": "Tâche créée avec succès",
+    "createError": "Échec de la création de la tâche",
+    "loadError": "Échec du chargement des tâches",
+    "noTasks": "Aucune Tâche",
+    "noTasksDescription": "Commencez par créer votre première tâche pour la famille"
   }
 } 
