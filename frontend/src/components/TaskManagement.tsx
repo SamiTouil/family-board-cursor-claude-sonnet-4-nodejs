@@ -42,7 +42,7 @@ export const TaskManagement: React.FC = () => {
     description: '',
   });
   const [templateErrors, setTemplateErrors] = useState<Record<string, string>>({});
-  const [showTemplateItems, setShowTemplateItems] = useState<Record<string, boolean>>({});
+
 
   // Template item form state
   const [addingTemplateItem, setAddingTemplateItem] = useState<string | null>(null); // templateId when adding
@@ -545,19 +545,14 @@ export const TaskManagement: React.FC = () => {
     }
   };
 
-  const toggleTemplateItems = async (templateId: string) => {
-    const isCurrentlyShown = showTemplateItems[templateId];
-    
-    setShowTemplateItems(prev => ({
-      ...prev,
-      [templateId]: !isCurrentlyShown
-    }));
-    
-    // Load items if we're showing them and haven't loaded them yet
-    if (!isCurrentlyShown && !templateItems[templateId]) {
-      await loadTemplateItems(templateId);
-    }
-  };
+  // Load template items when templates are loaded
+  useEffect(() => {
+    templates.forEach(template => {
+      if (!templateItems[template.id]) {
+        loadTemplateItems(template.id);
+      }
+    });
+  }, [templates]);
 
   const handleDeleteTemplateItem = async (templateId: string, itemId: string) => {
     if (!confirm('Are you sure you want to remove this task from the template?')) {
@@ -1136,15 +1131,15 @@ export const TaskManagement: React.FC = () => {
                       )}
                     </div>
                     <div className="task-management-template-actions">
-                      <button
-                        className="task-management-button task-management-button-sm task-management-button-secondary"
-                        onClick={() => toggleTemplateItems(template.id)}
-                        disabled={isLoading}
-                      >
-                        {showTemplateItems[template.id] ? 'Hide Items' : 'Show Items'}
-                      </button>
                       {isAdmin && (
                         <>
+                          <button
+                            className="task-management-button task-management-button-primary task-management-button-sm"
+                            onClick={() => handleAddTemplateItem(template.id)}
+                            disabled={isLoading || addingTemplateItem === template.id}
+                          >
+                            Add Task to Template
+                          </button>
                           <button
                             className="task-management-button task-management-button-sm task-management-button-secondary"
                             onClick={() => handleEditTemplate(template)}
@@ -1166,20 +1161,7 @@ export const TaskManagement: React.FC = () => {
                   </div>
 
                   {/* Template Items */}
-                  {showTemplateItems[template.id] && (
-                    <div className="task-management-template-items">
-                      {/* Add Task to Template Button */}
-                      {isAdmin && addingTemplateItem !== template.id && (
-                        <div className="task-management-template-add-item">
-                          <button
-                            className="task-management-button task-management-button-primary task-management-button-sm"
-                            onClick={() => handleAddTemplateItem(template.id)}
-                            disabled={isLoading}
-                          >
-                            Add Task to Template
-                          </button>
-                        </div>
-                      )}
+                  <div className="task-management-template-items">
 
                       {/* Add Template Item Form */}
                       {isAdmin && addingTemplateItem === template.id && (
@@ -1336,7 +1318,6 @@ export const TaskManagement: React.FC = () => {
                         </div>
                       )}
                     </div>
-                  )}
                 </div>
               ))
             )}
