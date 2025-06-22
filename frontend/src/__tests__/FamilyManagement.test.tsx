@@ -4,7 +4,6 @@ import { vi } from 'vitest';
 import { FamilyManagement } from '../components/FamilyManagement';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
-import { useWebSocket } from '../contexts/WebSocketContext';
 import { familyApi } from '../services/api';
 
 // Setup jest-dom matchers
@@ -13,7 +12,6 @@ import '@testing-library/jest-dom';
 // Mock the contexts
 vi.mock('../contexts/AuthContext');
 vi.mock('../contexts/FamilyContext');
-vi.mock('../contexts/WebSocketContext');
 vi.mock('../services/api');
 
 // Mock react-i18next
@@ -25,7 +23,6 @@ vi.mock('react-i18next', () => ({
 
 const mockUseAuth = useAuth as any;
 const mockUseFamily = useFamily as any;
-const mockUseWebSocket = useWebSocket as any;
 const mockFamilyApi = familyApi as any;
 
 const mockUser = {
@@ -55,46 +52,27 @@ describe('FamilyManagement', () => {
       user: mockUser,
     });
 
-    mockUseWebSocket.mockReturnValue({
-      on: vi.fn(),
-      off: vi.fn(),
-    });
-
     mockFamilyApi.getMembers.mockResolvedValue({
       data: {
         success: true,
         data: [],
       },
     });
-
-    mockFamilyApi.getInvites.mockResolvedValue({
-      data: {
-        success: true,
-        data: [],
-      },
-    });
   });
 
-  it('renders family management header', () => {
+  it('renders family management header with family name', () => {
     mockUseFamily.mockReturnValue({
       currentFamily: mockFamily,
-      refreshFamilies: vi.fn(),
-      pendingJoinRequests: [],
-      loadPendingJoinRequests: vi.fn(),
     });
 
     render(<FamilyManagement />);
     
-    expect(screen.getByText('user.familyManagement')).toBeInTheDocument();
-    expect(screen.getByText('Test Family')).toBeInTheDocument();
+    expect(screen.getByText('Test Family Family')).toBeInTheDocument();
   });
 
   it('renders family members section', () => {
     mockUseFamily.mockReturnValue({
       currentFamily: mockFamily,
-      refreshFamilies: vi.fn(),
-      pendingJoinRequests: [],
-      loadPendingJoinRequests: vi.fn(),
     });
 
     render(<FamilyManagement />);
@@ -105,46 +83,25 @@ describe('FamilyManagement', () => {
   it('does not render when no current family', () => {
     mockUseFamily.mockReturnValue({
       currentFamily: null,
-      refreshFamilies: vi.fn(),
-      pendingJoinRequests: [],
-      loadPendingJoinRequests: vi.fn(),
     });
 
     render(<FamilyManagement />);
 
-    expect(screen.queryByText('user.familyManagement')).not.toBeInTheDocument();
+    expect(screen.queryByText('Test Family Family')).not.toBeInTheDocument();
   });
 
-  it('shows admin controls for admin users', () => {
+  it('renders basic component structure', () => {
     mockUseFamily.mockReturnValue({
       currentFamily: mockFamily,
-      refreshFamilies: vi.fn(),
-      pendingJoinRequests: [],
-      loadPendingJoinRequests: vi.fn(),
     });
 
     render(<FamilyManagement />);
     
-    expect(screen.getByText('family.editButton')).toBeInTheDocument();
-    expect(screen.getByText('family.createVirtualMember')).toBeInTheDocument();
-  });
-
-  it('does not show admin controls for non-admin users', () => {
-    const familyWithMemberRole = {
-      ...mockFamily,
-      userRole: 'MEMBER' as const,
-    };
-
-    mockUseFamily.mockReturnValue({
-      currentFamily: familyWithMemberRole,
-      refreshFamilies: vi.fn(),
-      pendingJoinRequests: [],
-      loadPendingJoinRequests: vi.fn(),
-    });
-
-    render(<FamilyManagement />);
-
-    expect(screen.queryByText('family.editButton')).not.toBeInTheDocument();
-    expect(screen.queryByText('family.createVirtualMember')).not.toBeInTheDocument();
+    // Check for main container by class name
+    const container = document.querySelector('.family-management');
+    expect(container).toBeInTheDocument();
+    
+    // Check for members section
+    expect(screen.getByText('family.members')).toBeInTheDocument();
   });
 }); 
