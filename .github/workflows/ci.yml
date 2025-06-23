@@ -186,6 +186,9 @@ jobs:
     - name: Install Playwright browsers
       run: cd e2e-tests && npx playwright install chromium
 
+    - name: Install Playwright system dependencies  
+      run: cd e2e-tests && npx playwright install-deps chromium
+
     - name: Start application stack
       run: |
         # Create a minimal .env file for E2E tests
@@ -218,7 +221,7 @@ jobs:
         echo "Services are ready!"
 
     - name: Run E2E tests
-      run: cd e2e-tests && ./node_modules/.bin/playwright test
+      run: cd e2e-tests && npx --yes playwright test
 
     - name: Upload Playwright report
       uses: actions/upload-artifact@v4
