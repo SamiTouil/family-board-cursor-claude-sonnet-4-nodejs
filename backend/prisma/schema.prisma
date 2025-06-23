@@ -30,19 +30,20 @@ model User {
 }
 
 model Family {
-  id           String              @id @default(cuid())
-  name         String
-  description  String?
-  avatarUrl    String?             @map("avatar_url")
-  createdAt    DateTime            @default(now()) @map("created_at")
-  updatedAt    DateTime            @updatedAt @map("updated_at")
-  creatorId    String              @map("creator_id")
-  creator      User                @relation("FamilyCreator", fields: [creatorId], references: [id], onDelete: Cascade)
-  invites      FamilyInvite[]
-  joinRequests FamilyJoinRequest[]
-  members      FamilyMember[]
-  tasks        Task[]
-  dayTemplates DayTemplate[]
+  id            String              @id @default(cuid())
+  name          String
+  description   String?
+  avatarUrl     String?             @map("avatar_url")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+  creatorId     String              @map("creator_id")
+  creator       User                @relation("FamilyCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  invites       FamilyInvite[]
+  joinRequests  FamilyJoinRequest[]
+  members       FamilyMember[]
+  tasks         Task[]
+  dayTemplates  DayTemplate[]
+  weekTemplates WeekTemplate[]
 
   @@map("families")
 }
@@ -142,15 +143,16 @@ model TaskAssignment {
 // DayTemplate represents a reusable template for scheduling tasks
 // Examples: "Weekday", "Weekend", "School Day", "Holiday"
 model DayTemplate {
-  id          String            @id @default(cuid())
-  name        String            // Template name (e.g., "Weekday", "Weekend")
-  description String?           // Optional description
-  isActive    Boolean           @default(true) // Whether this template can be used
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
-  familyId    String            @map("family_id")
-  family      Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  items       DayTemplateItem[] // Tasks included in this template
+  id              String             @id @default(cuid())
+  name            String             // Template name (e.g., "Weekday", "Weekend")
+  description     String?            // Optional description
+  isActive        Boolean            @default(true) // Whether this template can be used
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+  familyId        String             @map("family_id")
+  family          Family             @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  items           DayTemplateItem[]  // Tasks included in this template
+  weekTemplateDays WeekTemplateDay[] // Week templates that use this day template
 
   @@unique([familyId, name]) // Unique template names per family
   @@map("day_templates")
@@ -175,6 +177,41 @@ model DayTemplateItem {
   // Ensure one template item per member per task per template (allow multiple unassigned)
   @@unique([dayTemplateId, memberId, taskId])
   @@map("day_template_items")
+}
+
+// WeekTemplate represents a reusable template for scheduling a full week
+// Contains 7 DayTemplates, one for each day of the week (Monday through Sunday)
+// Examples: "Standard Work Week", "School Week", "Vacation Week"
+model WeekTemplate {
+  id          String             @id @default(cuid())
+  name        String             // Template name (e.g., "Standard Work Week", "School Week")
+  description String?            // Optional description
+  isActive    Boolean            @default(true) // Whether this template can be used
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+  familyId    String             @map("family_id")
+  family      Family             @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  days        WeekTemplateDay[]  // Day templates for each day of the week
+
+  @@unique([familyId, name]) // Unique template names per family
+  @@map("week_templates")
+}
+
+// WeekTemplateDay represents a day template assignment within a week template
+// Links a specific day of the week to a DayTemplate
+model WeekTemplateDay {
+  id             String       @id @default(cuid())
+  dayOfWeek      Int          // 0 = Sunday, 1 = Monday, ..., 6 = Saturday (ISO 8601 standard)
+  dayTemplateId  String       @map("day_template_id")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  weekTemplateId String       @map("week_template_id")
+  weekTemplate   WeekTemplate @relation(fields: [weekTemplateId], references: [id], onDelete: Cascade)
+  dayTemplate    DayTemplate  @relation(fields: [dayTemplateId], references: [id], onDelete: Cascade)
+
+  // Ensure one day template per day of week per week template
+  @@unique([weekTemplateId, dayOfWeek])
+  @@map("week_template_days")
 }
 
 enum FamilyMemberRole {
