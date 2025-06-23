@@ -1,8 +1,8 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { UserMenu } from '../components/UserMenu'
-import type { User } from '../services/api'
+import { UserMenu } from '../features/auth/components/UserMenu'
+import type { User } from '../types'
 
 // Mock the auth context
 const mockAuthContext = {

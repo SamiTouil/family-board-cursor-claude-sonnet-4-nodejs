@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, authApi, SignupData, LoginData } from '../services/api';
+import { authApi } from '../services/api';
+import type { User, SignupData, LoginData } from '../types';
 import { useTranslation } from 'react-i18next';
 
 interface AuthContextType {

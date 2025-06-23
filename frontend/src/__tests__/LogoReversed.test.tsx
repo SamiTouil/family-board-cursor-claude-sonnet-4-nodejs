@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import LogoReversed from '../components/LogoReversed';
+import LogoReversed from '../components/layout/LogoReversed';
 
 describe('LogoReversed Component', () => {
   it('renders without crashing', () => {

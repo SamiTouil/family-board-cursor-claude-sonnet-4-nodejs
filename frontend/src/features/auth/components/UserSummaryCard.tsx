@@ -1,8 +1,8 @@
 import React from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useFamily } from '../contexts/FamilyContext';
-import { UserAvatar } from './UserAvatar';
-import { RoleTag } from './RoleTag';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useFamily } from '../../../contexts/FamilyContext';
+import { UserAvatar } from '../../../components/ui/UserAvatar';
+import { RoleTag } from '../../../components/ui/RoleTag';
 import './UserSummaryCard.css';
 
 export const UserSummaryCard: React.FC = () => {

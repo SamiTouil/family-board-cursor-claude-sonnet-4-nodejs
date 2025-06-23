@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
-import { FamilyManagement } from '../components/FamilyManagement';
+import { FamilyManagement } from '../features/family/components/FamilyManagement';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { useWebSocket } from '../contexts/WebSocketContext';

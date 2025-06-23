@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFamily } from '../../contexts/FamilyContext';
-import { LoadingSpinner } from '../LoadingSpinner';
+import { useFamily } from '../../../contexts/FamilyContext';
+import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 
 interface JoinFamilyFormProps {
   onBack: () => void;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../contexts/AuthContext';
-import { useFamily } from '../../contexts/FamilyContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useFamily } from '../../../contexts/FamilyContext';
 import { CreateFamilyForm } from './CreateFamilyForm';
 import { JoinFamilyForm } from './JoinFamilyForm';
 import './FamilyOnboarding.css';

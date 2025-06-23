@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
-import { RoleTag } from "../components/RoleTag";
+import { RoleTag } from "../components/ui/RoleTag";
 
 // Mock react-i18next
 vi.mock("react-i18next", () => ({

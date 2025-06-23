@@ -1,9 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { TaskManagement } from '../components/TaskManagement';
+import { TaskManagement } from '../features/tasks/components/TaskManagement';
 import { useFamily } from '../contexts/FamilyContext';
-import { taskApi, Family } from '../services/api';
+import { taskApi } from '../services/api';
+import type { Family } from '../types';
 import '../test/setup';
 
 // Mock the contexts and API
@@ -19,6 +20,15 @@ vi.mock('react-i18next', () => ({
 
 const mockUseFamily = vi.mocked(useFamily);
 const mockTaskApi = vi.mocked(taskApi);
+
+// Helper to create mock axios response
+const createMockAxiosResponse = (data: any) => ({
+  data,
+  status: 200,
+  statusText: 'OK',
+  headers: {},
+  config: {} as any,
+});
 
 const mockFamily: Family = {
   id: 'family-1',
@@ -87,9 +97,9 @@ describe('TaskManagement', () => {
   });
 
   it('renders task management header', () => {
-    mockTaskApi.getFamilyTasks.mockResolvedValue({
-      data: { success: true, data: [] },
-    });
+    mockTaskApi.getFamilyTasks.mockResolvedValue(
+      createMockAxiosResponse({ success: true, data: [] })
+    );
 
     render(<TaskManagement />);
     
@@ -317,7 +327,7 @@ describe('TaskManagement', () => {
     mockTaskApi.getFamilyTasks.mockResolvedValue({
       data: { success: true, data: mockTasks },
     });
-    mockTaskApi.update.mockResolvedValue({
+    mockTaskApi.updateTask.mockResolvedValue({
       data: { success: true, data: updatedTask },
     });
 
@@ -339,7 +349,7 @@ describe('TaskManagement', () => {
     fireEvent.click(screen.getByText('Update Task'));
 
     await waitFor(() => {
-      expect(mockTaskApi.update).toHaveBeenCalledWith('task-1', {
+      expect(mockTaskApi.updateTask).toHaveBeenCalledWith('task-1', {
         name: 'Updated Task Name',
         description: 'Clean all surfaces and dishes',
         color: '#FF5733',

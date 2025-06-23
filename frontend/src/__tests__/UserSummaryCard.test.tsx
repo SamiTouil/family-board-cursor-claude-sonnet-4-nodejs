@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { UserSummaryCard } from '../components/UserSummaryCard';
+import { UserSummaryCard } from '../features/auth/components/UserSummaryCard';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 
@@ -10,7 +10,7 @@ vi.mock('../contexts/AuthContext');
 vi.mock('../contexts/FamilyContext');
 
 // Mock the UserAvatar component
-vi.mock('../components/UserAvatar', () => ({
+vi.mock('../components/ui/UserAvatar', () => ({
   UserAvatar: ({ firstName, lastName, size }: any) => (
     <div data-testid="user-avatar" data-size={size}>
       Avatar: {firstName} {lastName}

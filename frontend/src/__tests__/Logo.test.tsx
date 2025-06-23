@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import Logo from '../components/Logo';
+import Logo from '../components/layout/Logo';
 
 describe('Logo Component', () => {
   it('renders without crashing', () => {

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-import { useFamily } from '../contexts/FamilyContext';
-import { taskApi, Task, CreateTaskData, dayTemplateApi, DayTemplate, DayTemplateItem, CreateDayTemplateData, FamilyMember, familyApi } from '../services/api';
+import { useFamily } from '../../../contexts/FamilyContext';
+import { taskApi, familyApi, dayTemplateApi } from '../../../services/api';
+import type { Task, CreateTaskData, DayTemplate, DayTemplateItem, CreateDayTemplateData, FamilyMember } from '../../../types';
 import { TaskAssignmentCard } from './TaskAssignmentCard';
 import './TaskManagement.css';
 
@@ -84,10 +85,12 @@ export const TaskManagement: React.FC = () => {
     if (!currentFamily) return;
     
     try {
-      const response = await dayTemplateApi.getFamilyTemplates(currentFamily.id);
+      const response = await dayTemplateApi.getTemplates(currentFamily.id);
       setTemplates(response.data.templates);
     } catch (error) {
-      // Error loading templates
+      console.error('Error loading templates:', error);
+      // Set empty array on error to prevent UI issues
+      setTemplates([]);
     }
   };
 
@@ -268,7 +271,7 @@ export const TaskManagement: React.FC = () => {
         updateData.description = undefined;
       }
 
-      const response = await taskApi.update(editingTask.id, updateData);
+      const response = await taskApi.updateTask(editingTask.id, updateData);
       
       // Update the task in the list
       setTasks(prev => prev.map(task => 
@@ -429,7 +432,7 @@ export const TaskManagement: React.FC = () => {
         createData.description = trimmedDescription;
       }
 
-      const response = await dayTemplateApi.create(currentFamily.id, createData);
+      const response = await dayTemplateApi.createTemplate(currentFamily.id, createData);
 
       // Add the new template to the list
       setTemplates(prev => [...prev, response.data]);
@@ -475,7 +478,7 @@ export const TaskManagement: React.FC = () => {
         updateData.description = undefined;
       }
 
-      const response = await dayTemplateApi.update(currentFamily.id, editingTemplate.id, updateData);
+      const response = await dayTemplateApi.updateTemplate(currentFamily.id, editingTemplate.id, updateData);
       
       // Update the template in the list
       setTemplates(prev => prev.map(template => 
@@ -504,7 +507,7 @@ export const TaskManagement: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await dayTemplateApi.delete(currentFamily.id, templateId);
+      await dayTemplateApi.deleteTemplate(currentFamily.id, templateId);
       
       // Remove the template from the list
       setTemplates(prev => prev.filter(template => template.id !== templateId));
@@ -533,10 +536,10 @@ export const TaskManagement: React.FC = () => {
       const response = await dayTemplateApi.getItems(currentFamily.id, templateId);
       setTemplateItems(prev => ({
         ...prev,
-        [templateId]: response.data || [] // Ensure we always have an array
+        [templateId]: response.data
       }));
     } catch (error) {
-      // Error loading template items
+      console.error('Error loading template items:', error);
       // Set empty array on error so we don't keep trying to load
       setTemplateItems(prev => ({
         ...prev,

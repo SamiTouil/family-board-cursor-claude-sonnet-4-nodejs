@@ -1,16 +1,16 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { UserProfile } from '../components/UserProfile';
+import { UserProfile } from '../features/auth/components/UserProfile';
 import { useAuth } from '../contexts/AuthContext';
-import { userApi } from '../services/api';
+import { authApi } from '../services/api';
 
 // Mock the contexts and services
 vi.mock('../contexts/AuthContext');
 vi.mock('../services/api');
 
 const mockUseAuth = vi.mocked(useAuth);
-const mockUserApi = vi.mocked(userApi);
+const mockAuthApi = vi.mocked(authApi);
 
 const mockUser = {
   id: 'user-1',
@@ -34,19 +34,14 @@ describe('UserProfile', () => {
       user: mockUser,
       refreshUser: mockRefreshUser,
       login: vi.fn(),
+      signup: vi.fn(),
       logout: vi.fn(),
-      register: vi.fn(),
-      isLoading: false,
-      error: null,
+      loading: false,
+      isAuthenticated: true,
     });
 
-    mockUserApi.update.mockResolvedValue({
-      data: { success: true, data: mockUser }
-    });
-
-    mockUserApi.changePassword.mockResolvedValue({
-      data: { success: true }
-    });
+    mockAuthApi.update.mockResolvedValue(undefined);
+    mockAuthApi.changePassword.mockResolvedValue(undefined);
   });
 
   it('renders the user profile modal', () => {
@@ -86,7 +81,7 @@ describe('UserProfile', () => {
     fireEvent.click(updateButton);
     
     await waitFor(() => {
-      expect(mockUserApi.update).toHaveBeenCalledWith('user-1', {
+      expect(mockAuthApi.update).toHaveBeenCalledWith('user-1', {
         firstName: 'Updated',
         lastName: 'Name',
         avatarUrl: '',
@@ -108,7 +103,7 @@ describe('UserProfile', () => {
       expect(screen.getByText('auth.validation.firstNameRequired')).toBeInTheDocument();
     });
     
-    expect(mockUserApi.update).not.toHaveBeenCalled();
+    expect(mockAuthApi.update).not.toHaveBeenCalled();
   });
 
   it.skip('validates avatar URL format', async () => {
@@ -124,7 +119,7 @@ describe('UserProfile', () => {
       expect(screen.getByText('user.validation.invalidAvatarUrl')).toBeInTheDocument();
     });
     
-    expect(mockUserApi.update).not.toHaveBeenCalled();
+    expect(mockAuthApi.update).not.toHaveBeenCalled();
   });
 
   it('changes password when password form is submitted', async () => {
@@ -141,7 +136,7 @@ describe('UserProfile', () => {
     fireEvent.click(changePasswordButton);
     
     await waitFor(() => {
-      expect(mockUserApi.changePassword).toHaveBeenCalledWith('user-1', {
+      expect(mockAuthApi.changePassword).toHaveBeenCalledWith({
         currentPassword: 'oldpassword',
         newPassword: 'newpassword123',
         confirmPassword: 'newpassword123',
@@ -165,7 +160,7 @@ describe('UserProfile', () => {
       expect(screen.getByText('auth.validation.passwordsDoNotMatch')).toBeInTheDocument();
     });
     
-    expect(mockUserApi.changePassword).not.toHaveBeenCalled();
+    expect(mockAuthApi.changePassword).not.toHaveBeenCalled();
   });
 
   it('clears form errors when user starts typing', async () => {
@@ -220,7 +215,7 @@ describe('UserProfile', () => {
   });
 
   it('handles API errors gracefully', async () => {
-    mockUserApi.update.mockRejectedValue({
+    mockAuthApi.update.mockRejectedValue({
       response: { data: { message: 'Update failed' } }
     });
     
@@ -239,10 +234,10 @@ describe('UserProfile', () => {
       user: null,
       refreshUser: mockRefreshUser,
       login: vi.fn(),
+      signup: vi.fn(),
       logout: vi.fn(),
-      register: vi.fn(),
-      isLoading: false,
-      error: null,
+      loading: false,
+      isAuthenticated: false,
     });
     
     const { container } = render(<UserProfile onClose={mockOnClose} />);
