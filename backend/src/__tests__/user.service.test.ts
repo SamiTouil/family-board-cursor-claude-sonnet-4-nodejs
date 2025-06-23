@@ -1,4 +1,5 @@
 import { UserService } from '../services/user.service';
+import { UpdateUserSchema } from '../types/user.types';
 import { getMockUser } from './setup';
 
 describe('UserService', () => {
@@ -106,6 +107,59 @@ describe('UserService', () => {
         newPassword: 'newPassword123',
         confirmPassword: 'newPassword123',
       })).rejects.toThrow('User not found');
+    });
+  });
+
+  describe('updateUser', () => {
+    it('should update user with empty avatar URL', async () => {
+      const mockUser = getMockUser();
+      const user = await UserService.createUser(mockUser);
+      
+      const rawUpdateData = {
+        firstName: 'Updated',
+        lastName: 'Name',
+        avatarUrl: '', // Empty string should be handled properly
+      };
+      
+      // Validate through schema like the route does
+      const validatedData = UpdateUserSchema.parse(rawUpdateData);
+      const updatedUser = await UserService.updateUser(user.id, validatedData);
+      
+      expect(updatedUser.firstName).toBe('Updated');
+      expect(updatedUser.lastName).toBe('Name');
+      // Since empty string gets transformed to undefined, and undefined fields aren't updated,
+      // the avatarUrl should remain as it was (null for new users)
+      expect(updatedUser.avatarUrl).toBeNull();
+    });
+
+    it('should update user with valid avatar URL', async () => {
+      const mockUser = getMockUser();
+      const user = await UserService.createUser(mockUser);
+      
+      const rawUpdateData = {
+        firstName: 'Updated',
+        lastName: 'Name',
+        avatarUrl: 'https://example.com/avatar.jpg',
+      };
+      
+      // Validate through schema like the route does
+      const validatedData = UpdateUserSchema.parse(rawUpdateData);
+      const updatedUser = await UserService.updateUser(user.id, validatedData);
+      
+      expect(updatedUser.firstName).toBe('Updated');
+      expect(updatedUser.lastName).toBe('Name');
+      expect(updatedUser.avatarUrl).toBe('https://example.com/avatar.jpg');
+    });
+
+    it('should reject invalid avatar URL', async () => {
+      const rawUpdateData = {
+        firstName: 'Updated',
+        lastName: 'Name',
+        avatarUrl: 'invalid-url',
+      };
+      
+      // Schema validation should reject invalid URL
+      expect(() => UpdateUserSchema.parse(rawUpdateData)).toThrow();
     });
   });
 }); 

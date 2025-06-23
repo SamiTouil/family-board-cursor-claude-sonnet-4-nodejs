@@ -132,6 +132,8 @@
     "respondedOn": "Responded on",
     "joinRequestApproved": "Join request approved successfully",
     "joinRequestRejected": "Join request rejected",
+    "joinRequestProcessed": "Join request {{action}} successfully",
+    "joinRequestError": "Failed to process join request",
     "failedToRespondToRequest": "Failed to respond to join request",
     "updateProfile": "Update Profile"
   },

@@ -194,6 +194,7 @@
     "requestError": "Échec du traitement de la demande",
     "joinRequestApproved": "Demande d'adhésion approuvée avec succès",
     "joinRequestRejected": "Demande d'adhésion rejetée avec succès",
+    "joinRequestProcessed": "Demande d'adhésion {{action}} avec succès",
     "joinRequestError": "Échec du traitement de la demande d'adhésion",
     "role": {
       "admin": "Administrateur",

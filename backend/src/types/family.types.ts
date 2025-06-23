@@ -1,17 +1,29 @@
 import { z } from 'zod';
 import { FamilyMemberRole, FamilyInviteStatus, FamilyJoinRequestStatus } from '@prisma/client';
 
+// Helper function to handle avatar URL validation
+const avatarUrlSchema = z
+  .union([z.string(), z.undefined(), z.null()])
+  .optional()
+  .transform((val) => {
+    if (!val || val === '' || val === null) {
+      return undefined;
+    }
+    return val;
+  })
+  .pipe(z.string().url('Invalid avatar URL').optional());
+
 // Family DTOs
 export const createFamilySchema = z.object({
   name: z.string().min(1, 'Family name is required').max(100, 'Family name too long'),
   description: z.string().max(500, 'Description too long').optional(),
-  avatarUrl: z.string().url('Invalid avatar URL').optional(),
+  avatarUrl: avatarUrlSchema,
 });
 
 export const updateFamilySchema = z.object({
   name: z.string().min(1, 'Family name is required').max(100, 'Family name too long').optional(),
   description: z.string().max(500, 'Description too long').optional(),
-  avatarUrl: z.string().url('Invalid avatar URL').optional(),
+  avatarUrl: avatarUrlSchema,
 });
 
 export const joinFamilySchema = z.object({
