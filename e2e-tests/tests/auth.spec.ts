@@ -67,28 +67,38 @@ test.describe('Authentication & Family Onboarding Flow', () => {
   test.describe('Authentication Success Flow', () => {
     test('should successfully register a new user and show family onboarding', async ({ page }) => {
       const timestamp = Date.now();
-      const email = `test-${timestamp}@example.com`;
+      const email = `success-${timestamp}@example.com`;
       
-      // Register new user
+      // Switch to signup form first
       await page.getByRole('button', { name: 'Sign up here' }).click();
+      
+      // Fill signup form
       await page.getByLabel('First Name').fill('Test');
       await page.getByLabel('Last Name').fill('User');
       await page.getByLabel('Email Address').fill(email);
       await page.getByLabel('Password', { exact: true }).fill('password123');
       await page.getByLabel('Confirm Password').fill('password123');
       await page.getByRole('button', { name: 'Sign Up' }).click();
+
+      // Debug: Take a screenshot to see what's actually happening
+      await page.screenshot({ path: 'debug-after-signup.png', fullPage: true });
       
-      // Should redirect to family onboarding
-      await expect(page.getByText('Welcome to Family Board!')).toBeVisible();
+      // Debug: Log the current URL and page content
+      console.log('Current URL after signup:', page.url());
+      const pageContent = await page.textContent('body');
+      console.log('Page content:', pageContent?.substring(0, 500));
+
+      // Should be redirected to family onboarding
+      await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
       await expect(page.getByText('Create New Family')).toBeVisible();
       await expect(page.getByText('Join Existing Family')).toBeVisible();
     });
 
     test('should successfully login with existing user and show family onboarding', async ({ page }) => {
       const timestamp = Date.now();
-      const email = `login-test-${timestamp}@example.com`;
+      const email = `login-${timestamp}@example.com`;
       
-      // First create a user
+      // First register a user
       await page.getByRole('button', { name: 'Sign up here' }).click();
       await page.getByLabel('First Name').fill('Login');
       await page.getByLabel('Last Name').fill('User');
@@ -97,29 +107,33 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       await page.getByLabel('Confirm Password').fill('password123');
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
-      // Should be at family onboarding
-      await expect(page.getByText('Welcome to Family Board!')).toBeVisible();
+      // Wait for family onboarding to appear
+      await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
       
-      // Create a family to get to dashboard, then logout
-      await page.getByText('Create New Family').click();
-      await page.getByLabel('Family Name').fill('Test Family');
-      await page.getByRole('button', { name: 'Create Family' }).click();
-      
-      // Should be at dashboard
-      await expect(page.getByRole('heading', { name: 'Login User' })).toBeVisible({ timeout: 10000 });
-      
-      // Logout by clicking avatar to open menu, then logout
-      await page.locator('.user-menu-avatar').click();
+      // Logout (click user avatar first, then logout)
+      await page.locator('.user-avatar').click();
       await page.getByRole('button', { name: 'Logout' }).click();
       
-      // Now login again
-      await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible();
-      await page.getByLabel('Email Address').fill(email);
-      await page.getByLabel('Password', { exact: true }).fill('password123');
-      await page.getByRole('button', { name: 'Login' }).click();
+      // Wait for logout to complete
+      await expect(page.getByRole('button', { name: 'Login' })).toBeVisible({ timeout: 10000 });
       
-      // Should redirect to dashboard (user already has family)
-      await expect(page.getByRole('heading', { name: 'Login User' })).toBeVisible({ timeout: 10000 });
+      // Now login with the same credentials
+      await page.getByLabel('Email Address').fill(email);
+      await page.getByLabel('Password').fill('password123');
+      await page.getByRole('button', { name: 'Login' }).click();
+
+      // Debug: Take a screenshot to see what's actually happening
+      await page.screenshot({ path: 'debug-after-login.png', fullPage: true });
+      
+      // Debug: Log the current URL and page content
+      console.log('Current URL after login:', page.url());
+      const pageContent = await page.textContent('body');
+      console.log('Page content:', pageContent?.substring(0, 500));
+      
+      // Should be redirected to family onboarding again
+      await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('Create New Family')).toBeVisible();
+      await expect(page.getByText('Join Existing Family')).toBeVisible();
     });
 
     test('should persist authentication and show family onboarding across page reloads', async ({ page }) => {

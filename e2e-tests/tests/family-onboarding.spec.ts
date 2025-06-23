@@ -7,22 +7,36 @@ test.describe('Mandatory Family Access Control', () => {
   });
 
   test('should prevent dashboard access without family membership', async ({ page }) => {
-    // Create a new user
+    const timestamp = Date.now();
+    const email = `nofamily-${timestamp}@example.com`;
+    
+    // Register new user
     await page.getByRole('button', { name: 'Sign up here' }).click();
-    await page.getByLabel('First Name').fill('Test');
-    await page.getByLabel('Last Name').fill('User');
-    await page.getByLabel('Email Address').fill(`test-${Date.now()}@example.com`);
+    await page.getByLabel('First Name').fill('No');
+    await page.getByLabel('Last Name').fill('Family');
+    await page.getByLabel('Email Address').fill(email);
     await page.getByLabel('Password', { exact: true }).fill('password123');
     await page.getByLabel('Confirm Password').fill('password123');
     await page.getByRole('button', { name: 'Sign Up' }).click();
     
+    // Debug: Take a screenshot to see what's actually happening
+    await page.screenshot({ path: 'debug-family-onboarding.png', fullPage: true });
+    
+    // Debug: Log the current URL and page content
+    console.log('Current URL after signup:', page.url());
+    const pageContent = await page.textContent('body');
+    console.log('Page content:', pageContent?.substring(0, 500));
+
     // Should be redirected to family onboarding, NOT dashboard
     await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('Create New Family')).toBeVisible();
     await expect(page.getByText('Join Existing Family')).toBeVisible();
     
-    // Should NOT see UserSummaryCard (dashboard elements)
-    await expect(page.locator('.user-summary-card')).not.toBeVisible();
+    // Try to navigate directly to dashboard (should redirect back to family onboarding)
+    await page.goto('/dashboard');
+    
+    // Should still be at family onboarding
+    await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
   });
 
   test('should allow dashboard access only after creating a family', async ({ page }) => {
