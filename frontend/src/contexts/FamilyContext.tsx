@@ -72,13 +72,22 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     try {
       const response = await familyApi.getUserFamilies();
       if (response.data.success) {
-        setFamilies(response.data.data);
+        const updatedFamilies = response.data.data;
+        setFamilies(updatedFamilies);
+        
+        // Update currentFamily if it exists and its data has changed
+        if (currentFamily) {
+          const updatedCurrentFamily = updatedFamilies.find((f: any) => f.id === currentFamily.id);
+          if (updatedCurrentFamily) {
+            setCurrentFamilyState(updatedCurrentFamily);
+          }
+        }
       }
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Failed to refresh families:', error);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, currentFamily]);
 
   // Set up WebSocket event listeners for real-time updates
   useEffect(() => {
