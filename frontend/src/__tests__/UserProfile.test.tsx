@@ -106,7 +106,7 @@ describe('UserProfile', () => {
     expect(mockAuthApi.update).not.toHaveBeenCalled();
   });
 
-  it.skip('validates avatar URL format', async () => {
+  it('validates avatar URL format', async () => {
     render(<UserProfile onClose={mockOnClose} />);
     
     const avatarInput = screen.getByLabelText(/avatar/i);
@@ -125,9 +125,9 @@ describe('UserProfile', () => {
   it('changes password when password form is submitted', async () => {
     render(<UserProfile onClose={mockOnClose} />);
     
-    const currentPasswordInput = screen.getByLabelText(/currentPassword/i);
-    const newPasswordInput = screen.getByLabelText(/newPassword/i);
-    const confirmPasswordInput = screen.getByLabelText(/confirmPassword/i);
+    const currentPasswordInput = screen.getByLabelText('user.currentPassword');
+    const newPasswordInput = screen.getByLabelText('user.newPassword');
+    const confirmPasswordInput = screen.getByLabelText('user.confirmNewPassword');
     const changePasswordButton = screen.getByRole('button', { name: 'user.changePassword' });
     
     fireEvent.change(currentPasswordInput, { target: { value: 'oldpassword' } });
@@ -147,8 +147,8 @@ describe('UserProfile', () => {
   it('validates password change form', async () => {
     render(<UserProfile onClose={mockOnClose} />);
     
-    const newPasswordInput = screen.getByLabelText(/newPassword/i);
-    const confirmPasswordInput = screen.getByLabelText(/confirmPassword/i);
+    const newPasswordInput = screen.getByLabelText('user.newPassword');
+    const confirmPasswordInput = screen.getByLabelText('user.confirmNewPassword');
     const changePasswordButton = screen.getByRole('button', { name: 'user.changePassword' });
     
     fireEvent.change(newPasswordInput, { target: { value: 'short' } });
@@ -199,9 +199,9 @@ describe('UserProfile', () => {
   it('shows success message after successful password change', async () => {
     render(<UserProfile onClose={mockOnClose} />);
     
-    const currentPasswordInput = screen.getByLabelText(/currentPassword/i);
-    const newPasswordInput = screen.getByLabelText(/newPassword/i);
-    const confirmPasswordInput = screen.getByLabelText(/confirmPassword/i);
+    const currentPasswordInput = screen.getByLabelText('user.currentPassword');
+    const newPasswordInput = screen.getByLabelText('user.newPassword');
+    const confirmPasswordInput = screen.getByLabelText('user.confirmNewPassword');
     const changePasswordButton = screen.getByRole('button', { name: 'user.changePassword' });
     
     fireEvent.change(currentPasswordInput, { target: { value: 'oldpassword' } });
@@ -242,5 +242,71 @@ describe('UserProfile', () => {
     
     const { container } = render(<UserProfile onClose={mockOnClose} />);
     expect(container.firstChild).toBeNull();
+  });
+
+  it('handles generic validation errors with proper translation', async () => {
+    mockAuthApi.update.mockRejectedValue({
+      response: { data: { message: 'Validation error' } }
+    });
+    
+    render(<UserProfile onClose={mockOnClose} />);
+    
+    const updateButton = screen.getByRole('button', { name: /updateProfile/i });
+    fireEvent.click(updateButton);
+    
+    await waitFor(() => {
+      expect(screen.getByText('errors.validationError')).toBeInTheDocument();
+    });
+  });
+
+  it('handles Zod validation errors properly', async () => {
+    mockAuthApi.update.mockRejectedValue({
+      response: { 
+        data: { 
+          message: 'Validation error',
+          errors: [
+            { message: 'First name is required' },
+            { message: 'Invalid avatar URL' }
+          ]
+        } 
+      }
+    });
+    
+    render(<UserProfile onClose={mockOnClose} />);
+    
+    const updateButton = screen.getByRole('button', { name: /updateProfile/i });
+    fireEvent.click(updateButton);
+    
+    await waitFor(() => {
+      expect(screen.getByText('First name is required, Invalid avatar URL')).toBeInTheDocument();
+    });
+  });
+
+  it('handles password change validation errors with proper translation', async () => {
+    mockAuthApi.changePassword.mockRejectedValue({
+      response: { data: { message: 'Validation error' } }
+    });
+    
+    render(<UserProfile onClose={mockOnClose} />);
+    
+    const currentPasswordInput = screen.getByLabelText('user.currentPassword');
+    const newPasswordInput = screen.getByLabelText('user.newPassword');
+    const confirmPasswordInput = screen.getByLabelText('user.confirmNewPassword');
+    const changePasswordButton = screen.getByRole('button', { name: 'user.changePassword' });
+    
+    fireEvent.change(currentPasswordInput, { target: { value: 'oldpassword' } });
+    fireEvent.change(newPasswordInput, { target: { value: 'newpassword123' } });
+    fireEvent.change(confirmPasswordInput, { target: { value: 'newpassword123' } });
+    fireEvent.click(changePasswordButton);
+    
+    await waitFor(() => {
+      expect(screen.getByText('errors.validationError')).toBeInTheDocument();
+    });
+  });
+
+  it('uses correct translation key for confirm password label', () => {
+    render(<UserProfile onClose={mockOnClose} />);
+    
+    expect(screen.getByText('user.confirmNewPassword')).toBeInTheDocument();
   });
 }); 

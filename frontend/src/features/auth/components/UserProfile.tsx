@@ -116,9 +116,24 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
       await refreshUser();
       setMessage({ type: 'success', text: t('user.profileUpdated') });
     } catch (error: any) {
+      let errorMessage = t('user.updateError');
+      
+      if (error.response?.data?.message) {
+        // Check if it's a generic validation error and translate it
+        if (error.response.data.message === 'Validation error') {
+          errorMessage = t('errors.validationError');
+        } else {
+          errorMessage = error.response.data.message;
+        }
+      } else if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        // Handle Zod validation errors
+        const validationErrors = error.response.data.errors;
+        errorMessage = validationErrors.map((err: any) => err.message).join(', ');
+      }
+      
       setMessage({ 
         type: 'error', 
-        text: error.response?.data?.message || t('user.updateError') 
+        text: errorMessage
       });
     } finally {
       setIsLoading(false);
@@ -151,9 +166,24 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
       });
       setPasswordErrors({});
     } catch (error: any) {
+      let errorMessage = t('user.passwordChangeError');
+      
+      if (error.response?.data?.message) {
+        // Check if it's a generic validation error and translate it
+        if (error.response.data.message === 'Validation error') {
+          errorMessage = t('errors.validationError');
+        } else {
+          errorMessage = error.response.data.message;
+        }
+      } else if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        // Handle Zod validation errors
+        const validationErrors = error.response.data.errors;
+        errorMessage = validationErrors.map((err: any) => err.message).join(', ');
+      }
+      
       setMessage({ 
         type: 'error', 
-        text: error.response?.data?.message || t('user.passwordChangeError') 
+        text: errorMessage
       });
     } finally {
       setIsLoading(false);
@@ -360,7 +390,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
 
                 <div className="user-profile-form-group">
                   <label htmlFor="confirmPassword" className="user-profile-label">
-                    {t('user.confirmPassword')}
+                    {t('user.confirmNewPassword')}
                   </label>
                   <input
                     type="password"
