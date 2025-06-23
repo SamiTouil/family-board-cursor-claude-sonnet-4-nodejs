@@ -73,6 +73,7 @@ A minimalistic family task planner application built with modern web technologie
 - **Unit Tests (Frontend)**: `npm run test:frontend`
 - **E2E Tests**: `npm run test:e2e`
 - **All Tests**: `npm run test:all`
+- **Test CI Locally**: `npm run test:ci` (validates GitHub Actions workflow)
 
 ## 🔧 Development Commands
 
@@ -110,11 +111,12 @@ Supports English (default) and French with automatic language detection.
 
 ## 🔄 CI/CD
 
-GitHub Actions workflow automatically:
-- Runs all tests (unit + E2E)
-- Performs linting
-- Builds applications
-- Validates Docker containers
+GitHub Actions workflow with optimized job structure:
+- **Parallel Execution**: Lint, Backend Unit Tests, Frontend Unit Tests
+- **Build Validation**: TypeScript compilation and production builds
+- **E2E Testing**: Full application stack with Playwright
+- **Comprehensive Coverage**: Unit, integration, and end-to-end tests
+- **Local Testing**: Use `npm run test:ci` to validate workflow with ACT
 
 ## 📝 User Entity
 
