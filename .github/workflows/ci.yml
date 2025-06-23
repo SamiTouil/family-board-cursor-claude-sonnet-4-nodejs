@@ -207,7 +207,7 @@ jobs:
         EOF
         
         # Start the full application stack in detached mode
-        docker-compose up --build -d
+        docker compose up --build -d
         
         # Wait for services to be ready
         echo "Waiting for services to be ready..."
@@ -236,7 +236,8 @@ jobs:
         retention-days: 30
 
     - name: Cleanup
+    - name: Cleanup
       if: always()
       run: |
-        docker-compose down -v || true
-        docker system prune -f || true 
+        docker compose down -v || true
+        docker system prune -f || true
