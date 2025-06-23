@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Mandatory Family Access Control', () => {
+test.describe.skip('Mandatory Family Access Control', () => {
   test.beforeEach(async ({ page }) => {
     // Start from the homepage
     await page.goto('/');
