@@ -360,4 +360,110 @@ export interface ApplyDayTemplateDto {
   templateId: string;
   dates: string[]; // Array of ISO date strings (YYYY-MM-DD)
   overrideMemberAssignments?: boolean; // Whether to override existing member assignments
+}
+
+// ==================== WEEK TEMPLATE TYPES ====================
+
+// WeekTemplate interface matching Prisma model
+export interface WeekTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  familyId: string;
+}
+
+// WeekTemplateDay interface matching Prisma model
+export interface WeekTemplateDay {
+  id: string;
+  dayOfWeek: number; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  dayTemplateId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  weekTemplateId: string;
+}
+
+// WeekTemplate with related data
+export interface WeekTemplateWithRelations extends WeekTemplate {
+  days: WeekTemplateDayWithRelations[];
+  family: {
+    id: string;
+    name: string;
+  };
+}
+
+// WeekTemplateDay with related data
+export interface WeekTemplateDayWithRelations extends WeekTemplateDay {
+  dayTemplate: DayTemplateWithRelations;
+  weekTemplate: {
+    id: string;
+    name: string;
+    description: string | null;
+  };
+}
+
+// WeekTemplate validation schemas
+export const CreateWeekTemplateSchema = z.object({
+  name: z.string().min(1, 'Template name is required').max(100, 'Template name is too long'),
+  description: z.string().max(500, 'Description is too long').optional().nullable(),
+});
+
+export const UpdateWeekTemplateSchema = z.object({
+  name: z.string().min(1, 'Template name is required').max(100, 'Template name is too long').optional(),
+  description: z.string().max(500, 'Description is too long').optional().nullable(),
+  isActive: z.boolean().optional(),
+});
+
+// WeekTemplateDay validation schemas
+export const CreateWeekTemplateDaySchema = z.object({
+  dayOfWeek: z.number().int().min(0).max(6), // 0 = Sunday, 6 = Saturday
+  dayTemplateId: z.string().min(1, 'Day template ID is required'),
+});
+
+export const UpdateWeekTemplateDaySchema = z.object({
+  dayTemplateId: z.string().min(1, 'Day template ID is required').optional(),
+});
+
+// DTOs for API requests/responses
+export type CreateWeekTemplateDto = z.infer<typeof CreateWeekTemplateSchema>;
+export type UpdateWeekTemplateDto = z.infer<typeof UpdateWeekTemplateSchema>;
+export type CreateWeekTemplateDayDto = z.infer<typeof CreateWeekTemplateDaySchema>;
+export type UpdateWeekTemplateDayDto = z.infer<typeof UpdateWeekTemplateDaySchema>;
+
+export interface WeekTemplateResponseDto {
+  id: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  createdAt: string; // ISO string for API responses
+  updatedAt: string; // ISO string for API responses
+  familyId: string;
+  days?: WeekTemplateDayResponseDto[];
+}
+
+export interface WeekTemplateDayResponseDto {
+  id: string;
+  dayOfWeek: number;
+  dayTemplateId: string;
+  createdAt: string; // ISO string for API responses
+  updatedAt: string; // ISO string for API responses
+  weekTemplateId: string;
+  dayTemplate?: DayTemplateResponseDto;
+}
+
+// Query parameters for listing week templates
+export interface WeekTemplateQueryParams {
+  isActive?: boolean;
+  search?: string; // Search in name or description
+  page?: number;
+  limit?: number;
+}
+
+// DTO for applying a week template to specific dates
+export interface ApplyWeekTemplateDto {
+  templateId: string;
+  startDate: string; // ISO date string (YYYY-MM-DD) for the Monday of the week
+  overrideMemberAssignments?: boolean; // Whether to override existing member assignments
 } 
