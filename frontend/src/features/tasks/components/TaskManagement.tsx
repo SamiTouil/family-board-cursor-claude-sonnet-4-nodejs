@@ -88,7 +88,6 @@ export const TaskManagement: React.FC = () => {
       const response = await dayTemplateApi.getTemplates(currentFamily.id);
       setTemplates(response.data.templates);
     } catch (error) {
-      console.error('Error loading templates:', error);
       // Set empty array on error to prevent UI issues
       setTemplates([]);
     }
@@ -539,7 +538,6 @@ export const TaskManagement: React.FC = () => {
         [templateId]: response.data
       }));
     } catch (error) {
-      console.error('Error loading template items:', error);
       // Set empty array on error so we don't keep trying to load
       setTemplateItems(prev => ({
         ...prev,
