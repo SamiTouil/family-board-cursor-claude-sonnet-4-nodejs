@@ -11,6 +11,7 @@ import {
 } from '../types/family.types';
 import { z } from 'zod';
 import { CreateVirtualMemberSchema, UpdateVirtualMemberSchema } from '../types/user.types';
+import { getWebSocketService } from '../services/websocket.service';
 
 const router = Router();
 
@@ -138,6 +139,12 @@ router.put('/:familyId', validateBody(updateFamilySchema), async (req: Authentic
     }
     
     const family = await FamilyService.updateFamily(familyId, userId, req.body);
+    
+    // Notify family members about the update via WebSocket
+    const webSocketService = getWebSocketService();
+    if (webSocketService) {
+      webSocketService.notifyFamilyUpdated(familyId, 'details', family);
+    }
     
     res.json({
       success: true,
