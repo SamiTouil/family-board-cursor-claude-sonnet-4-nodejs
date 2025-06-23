@@ -56,7 +56,9 @@ export const familyApi = {
   },
   
   async respondToJoinRequest(requestId: string, approve: boolean) {
-    return await apiClient.post(`/families/join-requests/${requestId}/respond`, { approve });
+    return await apiClient.post(`/families/join-requests/${requestId}/respond`, { 
+      response: approve ? 'APPROVED' : 'REJECTED' 
+    });
   },
   
   async getInvites(familyId: string) {

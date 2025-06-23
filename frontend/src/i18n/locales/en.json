@@ -132,8 +132,6 @@
     "respondedOn": "Responded on",
     "joinRequestApproved": "Join request approved successfully",
     "joinRequestRejected": "Join request rejected",
-    "joinRequestProcessed": "Join request {{action}} successfully",
-    "joinRequestError": "Failed to process join request",
     "failedToRespondToRequest": "Failed to respond to join request",
     "updateProfile": "Update Profile"
   },
@@ -167,6 +165,8 @@
     "rejected": "Rejected",
     "requestApproved": "Join request approved",
     "requestRejected": "Join request rejected",
+    "joinRequestProcessed": "Join request {{action}} successfully",
+    "joinRequestError": "Failed to process join request",
     "virtualMembers": "Virtual Members",
     "createVirtualMember": "Add Virtual Member",
     "virtualMemberCreated": "Virtual member added successfully",
