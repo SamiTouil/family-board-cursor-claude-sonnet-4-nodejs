@@ -111,7 +111,7 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
       
       // Logout (click user avatar first, then logout)
-      await page.locator('.user-avatar').click();
+      await page.locator('.user-menu-avatar').click();
       await page.getByRole('button', { name: 'Logout' }).click();
       
       // Wait for logout to complete
