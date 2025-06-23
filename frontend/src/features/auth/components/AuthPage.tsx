@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { LoginForm } from './LoginForm';
 import { SignupForm } from './SignupForm';
 import { useTranslation } from 'react-i18next';
-import LogoReversed from '../LogoReversed';
+import LogoReversed from '../../../components/layout/LogoReversed';
 import './AuthPage.css';
 
 type AuthMode = 'login' | 'signup';

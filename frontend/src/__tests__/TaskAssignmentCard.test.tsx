@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
-import { TaskAssignmentCard } from '../components/TaskAssignmentCard';
-import { TaskAssignment } from '../services/api';
+import { TaskAssignmentCard } from '../features/tasks/components/TaskAssignmentCard';
+import type { TaskAssignment } from '../types';
 
 // Mock the UserAvatar component
-vi.mock('../components/UserAvatar', () => ({
+vi.mock('../components/ui/UserAvatar', () => ({
   UserAvatar: ({ firstName, lastName }: { firstName: string; lastName: string }) => (
     <div data-testid="user-avatar">{firstName} {lastName}</div>
   ),

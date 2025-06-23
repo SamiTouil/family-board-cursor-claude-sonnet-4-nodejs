@@ -1,7 +1,7 @@
 import React from 'react';
-import { FamilyManagement } from '../components/FamilyManagement';
-import { UserSummaryCard } from '../components/UserSummaryCard';
-import './pages.css';
+import { FamilyManagement } from '../features/family/components/FamilyManagement';
+import { UserSummaryCard } from '../features/auth/components/UserSummaryCard';
+import '../styles/pages.css';
 
 const FamilyPage: React.FC = () => {
   return (

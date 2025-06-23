@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFamily } from '../contexts/FamilyContext';
-import { UserSummaryCard } from './UserSummaryCard';
+import { useFamily } from '../../contexts/FamilyContext';
+import { UserSummaryCard } from '../../features/auth/components/UserSummaryCard';
 import './Dashboard.css';
 
 export const Dashboard: React.FC = () => {

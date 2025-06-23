@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFamily } from '../contexts/FamilyContext';
-import { useAuth } from '../contexts/AuthContext';
-import { useWebSocket } from '../contexts/WebSocketContext';
-import { UserAvatar } from './UserAvatar';
-import { RoleTag } from './RoleTag';
-import { CustomSelect } from './CustomSelect';
-import { familyApi, FamilyMember, FamilyJoinRequest, FamilyInvite, UpdateFamilyData, UpdateVirtualMemberData, CreateVirtualMemberData } from '../services/api';
+import { useFamily } from '../../../contexts/FamilyContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useWebSocket } from '../../../contexts/WebSocketContext';
+import { UserAvatar } from '../../../components/ui/UserAvatar';
+import { RoleTag } from '../../../components/ui/RoleTag';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
+import { familyApi } from '../../../services/api';
+import type { FamilyMember, FamilyJoinRequest, FamilyInvite, UpdateFamilyData, UpdateVirtualMemberData, CreateVirtualMemberData } from '../../../types';
 import './FamilyManagement.css';
 
 // Helper function to validate URL
@@ -439,7 +440,7 @@ export const FamilyManagement: React.FC = () => {
   const handleJoinRequestResponse = async (requestId: string, response: 'APPROVED' | 'REJECTED') => {
     setIsLoading(true);
     try {
-      const apiResponse = await familyApi.respondToJoinRequest(requestId, response);
+      const apiResponse = await familyApi.respondToJoinRequest(requestId, response === 'APPROVED');
       if (apiResponse.data.success) {
         const action = response === 'APPROVED' ? t('family.approved') : t('family.rejected');
         setMessage({ type: 'success', text: t('family.joinRequestProcessed', { action }) });

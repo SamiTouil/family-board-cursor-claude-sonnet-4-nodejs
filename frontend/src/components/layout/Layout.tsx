@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { UserMenu } from './UserMenu';
-import { UserProfile } from './UserProfile';
+import { useAuth } from '../../contexts/AuthContext';
+import { UserMenu } from '../../features/auth/components/UserMenu';
+import { UserProfile } from '../../features/auth/components/UserProfile';
 import Navigation from './Navigation';
 import Logo from './Logo';
 import './Layout.css';

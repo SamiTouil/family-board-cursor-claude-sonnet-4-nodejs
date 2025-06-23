@@ -1,6 +1,6 @@
 import React from 'react';
-import { TaskAssignment } from '../services/api';
-import { UserAvatar } from './UserAvatar';
+import type { TaskAssignment } from '../../../types';
+import { UserAvatar } from '../../../components/ui/UserAvatar';
 import './TaskAssignmentCard.css';
 
 interface TaskAssignmentCardProps {

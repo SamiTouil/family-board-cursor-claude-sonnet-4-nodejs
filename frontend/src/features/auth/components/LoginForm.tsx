@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../contexts/AuthContext';
-import { LoginData } from '../../services/api';
+import { useAuth } from '../../../contexts/AuthContext';
+import type { LoginData } from '../../../types';
 import './AuthForm.css';
 
 interface LoginFormProps {

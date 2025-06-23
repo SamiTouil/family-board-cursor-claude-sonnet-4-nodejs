@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../contexts/AuthContext';
-import { userApi, ChangePasswordData } from '../services/api';
+import { useAuth } from '../../../contexts/AuthContext';
+import { authApi } from '../../../services/api';
+import type { ChangePasswordData } from '../../../types';
 import './UserProfile.css';
 
 interface UserProfileProps {
@@ -111,13 +112,28 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     setMessage(null);
 
     try {
-      await userApi.update(user.id, profileData);
+      await authApi.update(user.id, profileData);
       await refreshUser();
       setMessage({ type: 'success', text: t('user.profileUpdated') });
     } catch (error: any) {
+      let errorMessage = t('user.updateError');
+      
+      if (error.response?.data?.message) {
+        // Check if it's a generic validation error and translate it
+        if (error.response.data.message === 'Validation error') {
+          errorMessage = t('errors.validationError');
+        } else {
+          errorMessage = error.response.data.message;
+        }
+      } else if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        // Handle Zod validation errors
+        const validationErrors = error.response.data.errors;
+        errorMessage = validationErrors.map((err: any) => err.message).join(', ');
+      }
+      
       setMessage({ 
         type: 'error', 
-        text: error.response?.data?.message || t('user.updateError') 
+        text: errorMessage
       });
     } finally {
       setIsLoading(false);
@@ -141,7 +157,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
         confirmPassword: passwordData.confirmPassword,
       };
 
-      await userApi.changePassword(user.id, changePasswordData);
+      await authApi.changePassword(changePasswordData);
       setMessage({ type: 'success', text: t('user.passwordChanged') });
       setPasswordData({
         currentPassword: '',
@@ -150,9 +166,24 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
       });
       setPasswordErrors({});
     } catch (error: any) {
+      let errorMessage = t('user.passwordChangeError');
+      
+      if (error.response?.data?.message) {
+        // Check if it's a generic validation error and translate it
+        if (error.response.data.message === 'Validation error') {
+          errorMessage = t('errors.validationError');
+        } else {
+          errorMessage = error.response.data.message;
+        }
+      } else if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        // Handle Zod validation errors
+        const validationErrors = error.response.data.errors;
+        errorMessage = validationErrors.map((err: any) => err.message).join(', ');
+      }
+      
       setMessage({ 
         type: 'error', 
-        text: error.response?.data?.message || t('user.passwordChangeError') 
+        text: errorMessage
       });
     } finally {
       setIsLoading(false);
@@ -359,7 +390,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
 
                 <div className="user-profile-form-group">
                   <label htmlFor="confirmPassword" className="user-profile-label">
-                    {t('user.confirmPassword')}
+                    {t('user.confirmNewPassword')}
                   </label>
                   <input
                     type="password"

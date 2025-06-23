@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
-import { Family, familyApi, CreateFamilyData, JoinFamilyData, FamilyJoinRequest } from '../services/api';
+import { familyApi } from '../services/api';
+import type { Family, CreateFamilyData, JoinFamilyData, FamilyJoinRequest } from '../types';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './AuthContext';
 import { useWebSocket } from './WebSocketContext';
@@ -177,7 +178,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       // Set current family from localStorage or first family
       const savedFamilyId = localStorage.getItem('currentFamilyId');
       if (savedFamilyId) {
-        const savedFamily = userFamilies.find(f => f.id === savedFamilyId);
+        const savedFamily = userFamilies.find((f: any) => f.id === savedFamilyId);
         if (savedFamily) {
           setCurrentFamilyState(savedFamily);
         } else {

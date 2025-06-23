@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { CustomSelect } from '../components/CustomSelect';
+import { CustomSelect } from '../components/ui/CustomSelect';
 
 const mockOptions = [
   { value: 1, label: '1 Day' },

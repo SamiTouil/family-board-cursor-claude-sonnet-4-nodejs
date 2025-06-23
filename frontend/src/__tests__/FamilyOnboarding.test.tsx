@@ -1,8 +1,8 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { FamilyOnboarding } from '../components/family/FamilyOnboarding'
-import type { Family, User } from '../services/api'
+import { FamilyOnboarding } from '../features/family/components/FamilyOnboarding'
+import type { Family, User } from '../types'
 
 // Mock the family context
 const mockFamilyContext = {

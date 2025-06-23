@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { HomeIcon, FamilyIcon, TasksIcon } from './icons';
+import { HomeIcon, FamilyIcon, TasksIcon } from '../ui/icons';
 import './Navigation.css';
 
 const Navigation: React.FC = () => {

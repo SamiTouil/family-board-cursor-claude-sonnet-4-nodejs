@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import App from '../App'
-import type { User, Family } from '../services/api'
+import type { User, Family } from '../types'
 
 // Mock the auth context
 const mockAuthContext = {
@@ -58,19 +58,19 @@ vi.mock('react-i18next', () => ({
 }))
 
 // Mock components
-vi.mock('../components/auth/AuthPage', () => ({
+vi.mock('../features/auth/components/AuthPage', () => ({
   AuthPage: () => <div data-testid="auth-page">Auth Page</div>,
 }))
 
-vi.mock('../components/family/FamilyOnboarding', () => ({
+vi.mock('../features/family/components/FamilyOnboarding', () => ({
   FamilyOnboarding: () => <div data-testid="family-onboarding">Family Onboarding</div>,
 }))
 
-vi.mock('../components/Dashboard', () => ({
+vi.mock('../components/layout/Dashboard', () => ({
   Dashboard: () => <div data-testid="dashboard">Dashboard</div>,
 }))
 
-vi.mock('../components/LoadingSpinner', () => ({
+vi.mock('../components/ui/LoadingSpinner', () => ({
   LoadingSpinner: () => <div data-testid="loading-spinner">Loading...</div>,
 }))
 
