@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
 
@@ -189,39 +188,7 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   console.log(`🎉 Successfully seeded database from export (${exportData.exportedAt})`);
 }
 
-async function seedDefaultData(): Promise<void> {
-  console.log('🌱 Seeding default demo data...');
 
-  // Create demo users
-  const hashedPassword = await bcrypt.hash('password123', 12);
-  const hashedSamiPassword = await bcrypt.hash('123456', 12);
-  
-  const demoUser = await prisma.user.upsert({
-    where: { email: 'demo@familyboard.com' },
-    update: {},
-    create: {
-      firstName: 'Demo',
-      lastName: 'User',
-      email: 'demo@familyboard.com',
-      password: hashedPassword,
-      avatarUrl: 'https://via.placeholder.com/150',
-    },
-  });
-
-  const samiUser = await prisma.user.upsert({
-    where: { email: 'sami@sami.com' },
-    update: {},
-    create: {
-      firstName: 'Sami',
-      lastName: 'Touil',
-      email: 'sami@sami.com',
-      password: hashedSamiPassword,
-      avatarUrl: 'https://media.licdn.com/dms/image/v2/D4E03AQE4IJVovK-HKw/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1713184099424?e=1755734400&v=beta&t=4O-si3Ynb3QBu2RIwpXo98WcKd0OPvL83t54aNAiojY',
-    },
-  });
-
-  console.log('✅ Created demo users:', demoUser.email, samiUser.email);
-}
 
 async function main(): Promise<void> {
   console.log('🌱 Starting database seeding...');
@@ -235,12 +202,12 @@ async function main(): Promise<void> {
       const exportData: DbExport = JSON.parse(fs.readFileSync(exportPath, 'utf-8'));
       await seedFromExport(exportData);
     } catch (error) {
-      console.error('❌ Failed to seed from export, falling back to default data:', error);
-      await seedDefaultData();
+      console.error('❌ Failed to seed from export:', error);
+      throw error;
     }
   } else {
-    console.log('📝 No exported data found, using default demo data...');
-    await seedDefaultData();
+    console.error('❌ No exported data found. Please run database export first.');
+    throw new Error('No exported data available for seeding');
   }
 }
 
