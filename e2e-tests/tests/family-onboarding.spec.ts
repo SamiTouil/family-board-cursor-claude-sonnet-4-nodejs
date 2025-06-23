@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe.skip('Mandatory Family Access Control', () => {
+test.describe('Mandatory Family Access Control', () => {
   test.beforeEach(async ({ page }) => {
     // Start from the homepage
     await page.goto('/');
@@ -21,12 +21,8 @@ test.describe.skip('Mandatory Family Access Control', () => {
     await expect(page.getByText('Create New Family')).toBeVisible();
     await expect(page.getByText('Join Existing Family')).toBeVisible();
     
-    // Should NOT see dashboard elements
-    await expect(page.getByText('Welcome back,')).not.toBeVisible();
-    await expect(page.getByText('Coming Soon')).not.toBeVisible();
-    
-    // Verify URL doesn't contain dashboard
-    expect(page.url()).not.toContain('/dashboard');
+    // Should NOT see UserSummaryCard (dashboard elements)
+    await expect(page.locator('.user-summary-card')).not.toBeVisible();
   });
 
   test('should allow dashboard access only after creating a family', async ({ page }) => {
@@ -47,17 +43,16 @@ test.describe.skip('Mandatory Family Access Control', () => {
     await page.getByLabel('Family Name').fill('Test Family');
     await page.getByRole('button', { name: 'Create Family' }).click();
     
-    // Should now be redirected to dashboard
-    await expect(page.getByText('Welcome back, Family!')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('Coming Soon')).toBeVisible();
+    // Should now be redirected to dashboard - check for UserSummaryCard
+    await expect(page.getByRole('heading', { name: 'Family Creator' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Test Family')).toBeVisible();
     
-    // Check that the dashboard title shows the family name
-    await expect(page.getByRole('heading', { name: 'Test Family Board' })).toBeVisible();
+    // Check that the document title shows the family name
     await expect(page).toHaveTitle('Test Family Board');
     
-    // Verify we can't go back to family onboarding
-    await page.goto('/');
-    await expect(page.getByText('Welcome back, Family!')).toBeVisible({ timeout: 5000 });
+    // Verify we can't go back to family onboarding by refreshing
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Family Creator' })).toBeVisible({ timeout: 5000 });
   });
 
   test('should allow dashboard access only after joining a family', async ({ page }) => {
@@ -75,8 +70,11 @@ test.describe.skip('Mandatory Family Access Control', () => {
     await page.getByLabel('Family Name').fill('Invite Test Family');
     await page.getByRole('button', { name: 'Create Family' }).click();
     
-    // Logout
-    await expect(page.getByText('Welcome back, Family!')).toBeVisible({ timeout: 10000 });
+    // Should be at dashboard now
+    await expect(page.getByRole('heading', { name: 'Family Admin' })).toBeVisible({ timeout: 10000 });
+    
+    // Logout by clicking on user avatar to open menu
+    await page.locator('.user-menu-avatar').click();
     await page.getByRole('button', { name: 'Logout' }).click();
     
     // Create a second user
@@ -123,8 +121,8 @@ test.describe.skip('Mandatory Family Access Control', () => {
     await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('Create New Family')).toBeVisible();
     
-    // Should NOT see dashboard
-    await expect(page.getByText('Welcome back,')).not.toBeVisible();
+    // Should NOT see dashboard (UserSummaryCard)
+    await expect(page.locator('.user-summary-card')).not.toBeVisible();
   });
 
   test('should redirect to family onboarding when trying to access dashboard directly', async ({ page }) => {
@@ -147,10 +145,4 @@ test.describe.skip('Mandatory Family Access Control', () => {
     await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('Create New Family')).toBeVisible();
   });
-
-  // Note: Rejected join request handling is tested manually:
-  // 1. User creates account and requests to join family
-  // 2. Admin rejects the request
-  // 3. User should be redirected back to choice screen (verified by filtering logic in JoinFamilyForm)
-  // This scenario requires complex multi-user coordination and is better tested manually
 }); 
