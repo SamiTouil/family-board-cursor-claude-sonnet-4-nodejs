@@ -16,7 +16,7 @@
   line-height: 1.5;
 }
 
-.tasks-page {
+.page-container {
   background-color: #f9fafb;
   padding: 0.5rem 2rem 0.5rem 0;
   max-width: 1200px;
@@ -24,7 +24,7 @@
   width: 100%;
 }
 
-.tasks-content {
+.page-content {
   background: white;
   border-radius: 12px;
   padding: 2rem;
@@ -32,8 +32,8 @@
   flex: 1;
 }
 
-/* Family Layout */
-.family-layout {
+/* Page Layout */
+.page-layout {
   display: grid;
   grid-template-columns: 200px 1fr;
   gap: 1.5rem;
@@ -60,26 +60,26 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .tasks-page {
+  .page-container {
     padding: 0.5rem 1rem 0.5rem 0;
   }
   
-  .tasks-content {
+  .page-content {
     padding: 1.5rem;
   }
 
-  .family-layout {
+  .page-layout {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
 }
 
 @media (max-width: 480px) {
-  .tasks-page {
+  .page-container {
     padding: 0.5rem 0.75rem 0.5rem 0;
   }
   
-  .tasks-content {
+  .page-content {
     padding: 1rem;
   }
 }

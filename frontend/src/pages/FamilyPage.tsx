@@ -5,8 +5,8 @@ import './pages.css';
 
 const FamilyPage: React.FC = () => {
   return (
-    <div className="tasks-page">
-      <div className="family-layout">
+    <div className="page-container">
+      <div className="page-layout">
         <UserSummaryCard />
         <FamilyManagement />
       </div>
