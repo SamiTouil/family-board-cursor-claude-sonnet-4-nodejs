@@ -371,7 +371,7 @@ export class WeekScheduleService {
           resolvedTasks = resolvedTasks.filter(t => t.taskId !== override.taskId);
           break;
           
-        case TaskOverrideAction.REASSIGN:
+        case TaskOverrideAction.REASSIGN: {
           const taskToReassign = resolvedTasks.find(t => t.taskId === override.taskId);
           if (taskToReassign) {
             taskToReassign.memberId = override.newMemberId;
@@ -379,8 +379,9 @@ export class WeekScheduleService {
             taskToReassign.source = 'override';
           }
           break;
+        }
           
-        case TaskOverrideAction.MODIFY_TIME:
+        case TaskOverrideAction.MODIFY_TIME: {
           const taskToModify = resolvedTasks.find(t => t.taskId === override.taskId);
           if (taskToModify) {
             taskToModify.overrideTime = override.overrideTime;
@@ -388,6 +389,7 @@ export class WeekScheduleService {
             taskToModify.source = 'override';
           }
           break;
+        }
       }
     }
 
