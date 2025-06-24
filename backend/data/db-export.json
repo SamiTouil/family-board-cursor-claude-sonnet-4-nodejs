@@ -54,16 +54,27 @@
       "isVirtual": true,
       "createdAt": "2025-06-21T14:25:47.845Z",
       "updatedAt": "2025-06-21T14:25:47.845Z"
+    },
+    {
+      "id": "cmcatrpcb0017jn1dae6v1nr8",
+      "firstName": "tete",
+      "lastName": "tete",
+      "email": null,
+      "password": null,
+      "avatarUrl": null,
+      "isVirtual": true,
+      "createdAt": "2025-06-24T17:54:21.324Z",
+      "updatedAt": "2025-06-24T17:54:21.324Z"
     }
   ],
   "families": [
     {
       "id": "cmc66ox86000bap3ezyaalsu7",
       "name": "Bianchi Touil",
-      "description": "Best family in the universe",
+      "description": "Lydia, Mila, et Sami",
       "avatarUrl": null,
       "createdAt": "2025-06-21T11:57:15.703Z",
-      "updatedAt": "2025-06-21T11:57:15.703Z",
+      "updatedAt": "2025-06-24T17:53:31.809Z",
       "creatorId": "cmc66osup0009ap3euxjtgzu5"
     }
   ],
@@ -108,10 +119,58 @@
     {
       "id": "cmc6bn1ue0006jni3shodfrfq",
       "code": "63F43780",
-      "status": "PENDING",
+      "status": "EXPIRED",
       "expiresAt": "2025-06-28T14:15:46.454Z",
       "createdAt": "2025-06-21T14:15:46.455Z",
-      "updatedAt": "2025-06-21T14:15:46.455Z",
+      "updatedAt": "2025-06-24T18:05:01.275Z",
+      "respondedAt": "2025-06-24T18:05:01.275Z",
+      "familyId": "cmc66ox86000bap3ezyaalsu7",
+      "senderId": "cmc66osup0009ap3euxjtgzu5",
+      "receiverId": null
+    },
+    {
+      "id": "cmcau5f4t001djn1dne5nysbd",
+      "code": "E603E730",
+      "status": "EXPIRED",
+      "expiresAt": "2025-07-01T18:05:01.277Z",
+      "createdAt": "2025-06-24T18:05:01.277Z",
+      "updatedAt": "2025-06-24T18:05:02.602Z",
+      "respondedAt": "2025-06-24T18:05:02.601Z",
+      "familyId": "cmc66ox86000bap3ezyaalsu7",
+      "senderId": "cmc66osup0009ap3euxjtgzu5",
+      "receiverId": null
+    },
+    {
+      "id": "cmcau5g5o001fjn1dzg91kpnr",
+      "code": "C28F7EC0",
+      "status": "EXPIRED",
+      "expiresAt": "2025-07-01T18:05:02.603Z",
+      "createdAt": "2025-06-24T18:05:02.604Z",
+      "updatedAt": "2025-06-24T18:05:03.120Z",
+      "respondedAt": "2025-06-24T18:05:03.120Z",
+      "familyId": "cmc66ox86000bap3ezyaalsu7",
+      "senderId": "cmc66osup0009ap3euxjtgzu5",
+      "receiverId": null
+    },
+    {
+      "id": "cmcau5gk3001hjn1dzxynlz31",
+      "code": "29CDDC70",
+      "status": "EXPIRED",
+      "expiresAt": "2025-07-01T18:05:03.123Z",
+      "createdAt": "2025-06-24T18:05:03.123Z",
+      "updatedAt": "2025-06-24T18:05:03.520Z",
+      "respondedAt": "2025-06-24T18:05:03.519Z",
+      "familyId": "cmc66ox86000bap3ezyaalsu7",
+      "senderId": "cmc66osup0009ap3euxjtgzu5",
+      "receiverId": null
+    },
+    {
+      "id": "cmcau5gv6001jjn1dh4joq5ly",
+      "code": "C6CCFB8A",
+      "status": "PENDING",
+      "expiresAt": "2025-07-01T18:05:03.521Z",
+      "createdAt": "2025-06-24T18:05:03.522Z",
+      "updatedAt": "2025-06-24T18:05:03.522Z",
       "respondedAt": null,
       "familyId": "cmc66ox86000bap3ezyaalsu7",
       "senderId": "cmc66osup0009ap3euxjtgzu5",
@@ -293,20 +352,38 @@
   "dayTemplates": [
     {
       "id": "cmc83r5sb0001fasmrf3tdvfu",
-      "name": "Week day - Sami le matin",
-      "description": "Weekday classique, Sami le matin",
+      "name": "Sami matin",
+      "description": "Journée classique en semaine",
       "isActive": true,
       "createdAt": "2025-06-22T20:10:33.609Z",
-      "updatedAt": "2025-06-22T21:29:00.184Z",
+      "updatedAt": "2025-06-24T18:13:00.618Z",
       "familyId": "cmc66ox86000bap3ezyaalsu7"
     },
     {
-      "id": "cmc86lz5e00016364jefvbodg",
-      "name": "Week day - Unassigned",
-      "description": "Week day empty",
+      "id": "cmcaqf6l00001jn1dq67ylkm1",
+      "name": "Lydia matin",
+      "description": "Journée classique en semaine",
       "isActive": true,
-      "createdAt": "2025-06-22T21:30:30.578Z",
-      "updatedAt": "2025-06-22T21:30:30.578Z",
+      "createdAt": "2025-06-24T16:20:38.292Z",
+      "updatedAt": "2025-06-24T18:12:56.885Z",
+      "familyId": "cmc66ox86000bap3ezyaalsu7"
+    },
+    {
+      "id": "cmcaub1gp001zjn1d26kgbb7e",
+      "name": "Lydia matin WE",
+      "description": "Journée classique de weekend",
+      "isActive": true,
+      "createdAt": "2025-06-24T18:09:23.497Z",
+      "updatedAt": "2025-06-24T18:13:11.411Z",
+      "familyId": "cmc66ox86000bap3ezyaalsu7"
+    },
+    {
+      "id": "cmcauec0e002jjn1d5uj0sbs1",
+      "name": "Sami matin WE",
+      "description": "Journée classique de weekend",
+      "isActive": true,
+      "createdAt": "2025-06-24T18:11:57.135Z",
+      "updatedAt": "2025-06-24T18:13:20.820Z",
       "familyId": "cmc66ox86000bap3ezyaalsu7"
     }
   ],
@@ -433,98 +510,324 @@
       "dayTemplateId": "cmc83r5sb0001fasmrf3tdvfu"
     },
     {
-      "id": "cmc86m3yq00036364v69wzr4n",
-      "memberId": null,
+      "id": "cmcaqfeem0003jn1demznpsgs",
+      "memberId": "cmc6bmytj0004jni3edhfwhuw",
       "taskId": "cmc7ofgps000f8biovh4tq1fg",
       "overrideTime": null,
       "overrideDuration": null,
       "sortOrder": 0,
-      "createdAt": "2025-06-22T21:30:36.818Z",
-      "updatedAt": "2025-06-22T21:30:36.818Z",
-      "dayTemplateId": "cmc86lz5e00016364jefvbodg"
+      "createdAt": "2025-06-24T16:20:48.430Z",
+      "updatedAt": "2025-06-24T16:20:48.430Z",
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1"
     },
     {
-      "id": "cmcamy09w000hnyxiw0zkgo7t",
-      "memberId": null,
+      "id": "cmcaqfici0005jn1dzdvgp3jb",
+      "memberId": "cmc6bmytj0004jni3edhfwhuw",
+      "taskId": "cmc7okmyh000l8bio6hnowvpi",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T16:20:53.538Z",
+      "updatedAt": "2025-06-24T16:20:53.538Z",
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1"
+    },
+    {
+      "id": "cmcaqfots0007jn1dqylqqgpe",
+      "memberId": "cmc6bmytj0004jni3edhfwhuw",
       "taskId": "cmc7ohgwo000h8biou3wksmzi",
       "overrideTime": null,
       "overrideDuration": null,
       "sortOrder": 0,
-      "createdAt": "2025-06-24T14:43:18.116Z",
-      "updatedAt": "2025-06-24T14:43:18.116Z",
-      "dayTemplateId": "cmc83r5sb0001fasmrf3tdvfu"
+      "createdAt": "2025-06-24T16:21:01.937Z",
+      "updatedAt": "2025-06-24T16:21:01.937Z",
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1"
+    },
+    {
+      "id": "cmcaqfx2x0009jn1do6m7rwpc",
+      "memberId": "cmc6bzxvp000cjni3hze2x6zf",
+      "taskId": "cmc7ojaeo000j8biok03dkpbu",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T16:21:12.633Z",
+      "updatedAt": "2025-06-24T16:21:12.633Z",
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1"
+    },
+    {
+      "id": "cmcaqg1w5000bjn1dtanqwp98",
+      "memberId": "cmc6bzxvp000cjni3hze2x6zf",
+      "taskId": "cmc7omdoz000n8biomvpwo992",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T16:21:18.869Z",
+      "updatedAt": "2025-06-24T16:21:18.869Z",
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1"
+    },
+    {
+      "id": "cmcaqg699000djn1dc7ytfsr2",
+      "memberId": "cmc6bzxvp000cjni3hze2x6zf",
+      "taskId": "cmc7oo1w8000p8biowsc4oy8k",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T16:21:24.525Z",
+      "updatedAt": "2025-06-24T16:21:24.525Z",
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1"
+    },
+    {
+      "id": "cmcaqgg0c000fjn1d94mmvklh",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7opp2c000r8bio7tb40pzf",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T16:21:37.164Z",
+      "updatedAt": "2025-06-24T16:21:37.164Z",
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1"
+    },
+    {
+      "id": "cmcaqgm5a000hjn1dtsixc46w",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7osqge000v8bio4dlxhew8",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T16:21:45.118Z",
+      "updatedAt": "2025-06-24T16:21:45.118Z",
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1"
+    },
+    {
+      "id": "cmcaqgs2z000jjn1d3ycplgk4",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7ouck5000x8biosj8qywc1",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T16:21:52.812Z",
+      "updatedAt": "2025-06-24T16:21:52.812Z",
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1"
+    },
+    {
+      "id": "cmcaqh07o000ljn1dolvn90m3",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7ovolp000z8bioo2akd6jo",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T16:22:03.348Z",
+      "updatedAt": "2025-06-24T16:22:03.348Z",
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1"
+    },
+    {
+      "id": "cmcaqhav9000njn1dtvqsncuf",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7oecpe000d8bion262u315",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T16:22:17.157Z",
+      "updatedAt": "2025-06-24T16:22:17.157Z",
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1"
+    },
+    {
+      "id": "cmcaub8y70021jn1dj4a8tirz",
+      "memberId": "cmc6bmytj0004jni3edhfwhuw",
+      "taskId": "cmc7ofgps000f8biovh4tq1fg",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:09:33.200Z",
+      "updatedAt": "2025-06-24T18:09:45.506Z",
+      "dayTemplateId": "cmcaub1gp001zjn1d26kgbb7e"
+    },
+    {
+      "id": "cmcaubfdn0023jn1dmz6ua1ik",
+      "memberId": "cmc6bmytj0004jni3edhfwhuw",
+      "taskId": "cmc7okmyh000l8bio6hnowvpi",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:09:41.531Z",
+      "updatedAt": "2025-06-24T18:09:41.531Z",
+      "dayTemplateId": "cmcaub1gp001zjn1d26kgbb7e"
+    },
+    {
+      "id": "cmcauc0bn0025jn1dl4e7uh62",
+      "memberId": "cmc6bmytj0004jni3edhfwhuw",
+      "taskId": "cmc7ojaeo000j8biok03dkpbu",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:10:08.675Z",
+      "updatedAt": "2025-06-24T18:10:08.675Z",
+      "dayTemplateId": "cmcaub1gp001zjn1d26kgbb7e"
+    },
+    {
+      "id": "cmcauc8cz0027jn1d71txmpmw",
+      "memberId": "cmc6bmytj0004jni3edhfwhuw",
+      "taskId": "cmc7omdoz000n8biomvpwo992",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:10:19.091Z",
+      "updatedAt": "2025-06-24T18:10:19.091Z",
+      "dayTemplateId": "cmcaub1gp001zjn1d26kgbb7e"
+    },
+    {
+      "id": "cmcaucmov0029jn1dhfm4e0bl",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7osqge000v8bio4dlxhew8",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:10:37.663Z",
+      "updatedAt": "2025-06-24T18:10:37.663Z",
+      "dayTemplateId": "cmcaub1gp001zjn1d26kgbb7e"
+    },
+    {
+      "id": "cmcaucrz9002bjn1djvmuhul5",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7oo1w8000p8biowsc4oy8k",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:10:44.517Z",
+      "updatedAt": "2025-06-24T18:10:44.517Z",
+      "dayTemplateId": "cmcaub1gp001zjn1d26kgbb7e"
+    },
+    {
+      "id": "cmcaud2l8002djn1dck5igtha",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7ouck5000x8biosj8qywc1",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:10:58.269Z",
+      "updatedAt": "2025-06-24T18:10:58.269Z",
+      "dayTemplateId": "cmcaub1gp001zjn1d26kgbb7e"
+    },
+    {
+      "id": "cmcaudakf002fjn1dlhifhguo",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7ovolp000z8bioo2akd6jo",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:11:08.608Z",
+      "updatedAt": "2025-06-24T18:11:08.608Z",
+      "dayTemplateId": "cmcaub1gp001zjn1d26kgbb7e"
+    },
+    {
+      "id": "cmcaudhvl002hjn1d4jkodkxq",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7oecpe000d8bion262u315",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:11:18.081Z",
+      "updatedAt": "2025-06-24T18:11:18.081Z",
+      "dayTemplateId": "cmcaub1gp001zjn1d26kgbb7e"
+    },
+    {
+      "id": "cmcauejwq002ljn1d4bxtypni",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7ofgps000f8biovh4tq1fg",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:12:07.370Z",
+      "updatedAt": "2025-06-24T18:12:07.370Z",
+      "dayTemplateId": "cmcauec0e002jjn1d5uj0sbs1"
+    },
+    {
+      "id": "cmcaugag5002njn1d15w5ua05",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7okmyh000l8bio6hnowvpi",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:13:28.422Z",
+      "updatedAt": "2025-06-24T18:13:28.422Z",
+      "dayTemplateId": "cmcauec0e002jjn1d5uj0sbs1"
+    },
+    {
+      "id": "cmcaugjx7002pjn1d2z1t0t8t",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7ojaeo000j8biok03dkpbu",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:13:40.699Z",
+      "updatedAt": "2025-06-24T18:13:40.699Z",
+      "dayTemplateId": "cmcauec0e002jjn1d5uj0sbs1"
+    },
+    {
+      "id": "cmcaugyo6002rjn1dxko8l09p",
+      "memberId": "cmc66osup0009ap3euxjtgzu5",
+      "taskId": "cmc7omdoz000n8biomvpwo992",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:13:59.814Z",
+      "updatedAt": "2025-06-24T18:13:59.814Z",
+      "dayTemplateId": "cmcauec0e002jjn1d5uj0sbs1"
+    },
+    {
+      "id": "cmcauh4yi002tjn1du1estolv",
+      "memberId": "cmc6bmytj0004jni3edhfwhuw",
+      "taskId": "cmc7oo1w8000p8biowsc4oy8k",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:14:07.962Z",
+      "updatedAt": "2025-06-24T18:14:07.962Z",
+      "dayTemplateId": "cmcauec0e002jjn1d5uj0sbs1"
+    },
+    {
+      "id": "cmcauhf11002vjn1d5rzds9k0",
+      "memberId": "cmc6bmytj0004jni3edhfwhuw",
+      "taskId": "cmc7osqge000v8bio4dlxhew8",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:14:21.014Z",
+      "updatedAt": "2025-06-24T18:14:21.014Z",
+      "dayTemplateId": "cmcauec0e002jjn1d5uj0sbs1"
+    },
+    {
+      "id": "cmcauhk7v002xjn1dh77seppd",
+      "memberId": "cmc6bmytj0004jni3edhfwhuw",
+      "taskId": "cmc7ouck5000x8biosj8qywc1",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:14:27.739Z",
+      "updatedAt": "2025-06-24T18:14:27.739Z",
+      "dayTemplateId": "cmcauec0e002jjn1d5uj0sbs1"
+    },
+    {
+      "id": "cmcauhr6s002zjn1dc0son1mz",
+      "memberId": "cmc6bmytj0004jni3edhfwhuw",
+      "taskId": "cmc7ovolp000z8bioo2akd6jo",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:14:36.773Z",
+      "updatedAt": "2025-06-24T18:14:41.265Z",
+      "dayTemplateId": "cmcauec0e002jjn1d5uj0sbs1"
+    },
+    {
+      "id": "cmcaui3lv0031jn1dhh40cqr9",
+      "memberId": "cmc6bmytj0004jni3edhfwhuw",
+      "taskId": "cmc7oecpe000d8bion262u315",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "sortOrder": 0,
+      "createdAt": "2025-06-24T18:14:52.868Z",
+      "updatedAt": "2025-06-24T18:14:52.868Z",
+      "dayTemplateId": "cmcauec0e002jjn1d5uj0sbs1"
     }
   ],
-  "weekTemplates": [
-    {
-      "id": "wt_standard_week_001",
-      "name": "Standard Work Week",
-      "description": "Standard weekly schedule for work days",
-      "isActive": true,
-      "createdAt": "2025-06-24T14:00:00.000Z",
-      "updatedAt": "2025-06-24T14:00:00.000Z",
-      "familyId": "cmc66ox86000bap3ezyaalsu7"
-    }
-  ],
-  "weekTemplateDays": [
-    {
-      "id": "wtd_monday_001",
-      "weekTemplateId": "wt_standard_week_001",
-      "dayOfWeek": 1,
-      "dayTemplateId": "cmc83r5sb0001fasmrf3tdvfu",
-      "createdAt": "2025-06-24T14:00:00.000Z",
-      "updatedAt": "2025-06-24T14:00:00.000Z"
-    },
-    {
-      "id": "wtd_tuesday_001",
-      "weekTemplateId": "wt_standard_week_001",
-      "dayOfWeek": 2,
-      "dayTemplateId": "cmc86lz5e00016364jefvbodg",
-      "createdAt": "2025-06-24T14:00:00.000Z",
-      "updatedAt": "2025-06-24T14:00:00.000Z"
-    },
-    {
-      "id": "wtd_wednesday_001",
-      "weekTemplateId": "wt_standard_week_001",
-      "dayOfWeek": 3,
-      "dayTemplateId": "cmc83r5sb0001fasmrf3tdvfu",
-      "createdAt": "2025-06-24T14:00:00.000Z",
-      "updatedAt": "2025-06-24T14:00:00.000Z"
-    },
-    {
-      "id": "wtd_thursday_001",
-      "weekTemplateId": "wt_standard_week_001",
-      "dayOfWeek": 4,
-      "dayTemplateId": "cmc86lz5e00016364jefvbodg",
-      "createdAt": "2025-06-24T14:00:00.000Z",
-      "updatedAt": "2025-06-24T14:00:00.000Z"
-    },
-    {
-      "id": "wtd_friday_001",
-      "weekTemplateId": "wt_standard_week_001",
-      "dayOfWeek": 5,
-      "dayTemplateId": "cmc83r5sb0001fasmrf3tdvfu",
-      "createdAt": "2025-06-24T14:00:00.000Z",
-      "updatedAt": "2025-06-24T14:00:00.000Z"
-    },
-    {
-      "id": "wtd_saturday_001",
-      "weekTemplateId": "wt_standard_week_001",
-      "dayOfWeek": 6,
-      "dayTemplateId": "cmc86lz5e00016364jefvbodg",
-      "createdAt": "2025-06-24T14:00:00.000Z",
-      "updatedAt": "2025-06-24T14:00:00.000Z"
-    },
-    {
-      "id": "wtd_sunday_001",
-      "weekTemplateId": "wt_standard_week_001",
-      "dayOfWeek": 0,
-      "dayTemplateId": "cmc86lz5e00016364jefvbodg",
-      "createdAt": "2025-06-24T14:00:00.000Z",
-      "updatedAt": "2025-06-24T14:00:00.000Z"
-    }
-  ],
-  "weekOverrides": [],
-  "taskOverrides": [],
-  "exportedAt": "2025-06-24T14:47:13.247Z"
+  "exportedAt": "2025-06-24T19:43:49.456Z"
 }

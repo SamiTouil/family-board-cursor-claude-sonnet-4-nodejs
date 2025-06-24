@@ -258,8 +258,19 @@ export const WeekTemplateManagement: React.FC = () => {
 
   const handleAssignDays = (templateId: string) => {
     setAssigningDays(templateId);
-    setSelectedDayTemplates({});
     setMessage(null);
+    
+    // Pre-populate with existing day assignments
+    const template = weekTemplates.find(t => t.id === templateId);
+    const existingAssignments: Record<number, string> = {};
+    
+    if (template?.days) {
+      template.days.forEach(day => {
+        existingAssignments[day.dayOfWeek] = day.dayTemplateId;
+      });
+    }
+    
+    setSelectedDayTemplates(existingAssignments);
   };
 
   const handleCancelAssignDays = () => {
@@ -278,13 +289,57 @@ export const WeekTemplateManagement: React.FC = () => {
     if (!currentFamily || !assigningDays) return;
 
     try {
-      // Save each day assignment
-      for (const [dayOfWeek, dayTemplateId] of Object.entries(selectedDayTemplates)) {
-        if (dayTemplateId) {
-          await weekTemplateApi.addTemplateDay(currentFamily.id, assigningDays, {
-            dayOfWeek: parseInt(dayOfWeek),
-            dayTemplateId,
-          });
+      // Get the current template to compare existing assignments
+      const template = weekTemplates.find(t => t.id === assigningDays);
+      const existingDays = template?.days || [];
+      
+      // Build a map of existing assignments
+      const existingAssignments = new Map<number, string>();
+      const existingDayIds = new Map<number, string>();
+      existingDays.forEach(day => {
+        existingAssignments.set(day.dayOfWeek, day.dayTemplateId);
+        existingDayIds.set(day.dayOfWeek, day.id);
+      });
+
+      // Process each day of week
+      for (const [dayOfWeekStr, newDayTemplateId] of Object.entries(selectedDayTemplates)) {
+        const dayOfWeek = parseInt(dayOfWeekStr);
+        const existingDayTemplateId = existingAssignments.get(dayOfWeek);
+        const existingDayId = existingDayIds.get(dayOfWeek);
+
+        if (newDayTemplateId) {
+          // User selected a day template for this day
+          if (existingDayTemplateId) {
+            // Day already has an assignment - update it if different
+            if (existingDayTemplateId !== newDayTemplateId) {
+              await weekTemplateApi.updateTemplateDay(currentFamily.id, assigningDays, existingDayId!, {
+                dayTemplateId: newDayTemplateId,
+              });
+            }
+            // If same template, no action needed
+          } else {
+            // Day doesn't have an assignment - create new one
+            await weekTemplateApi.addTemplateDay(currentFamily.id, assigningDays, {
+              dayOfWeek,
+              dayTemplateId: newDayTemplateId,
+            });
+          }
+        } else {
+          // User cleared the selection for this day
+          if (existingDayTemplateId && existingDayId) {
+            // Remove existing assignment
+            await weekTemplateApi.removeTemplateDay(currentFamily.id, assigningDays, existingDayId);
+          }
+          // If no existing assignment, no action needed
+        }
+      }
+
+      // Handle days that were not in selectedDayTemplates but exist in the template
+      // (This handles the case where a day had an assignment but user didn't touch it in the dialog)
+      for (const existingDay of existingDays) {
+        if (!selectedDayTemplates.hasOwnProperty(existingDay.dayOfWeek)) {
+          // This day exists in template but wasn't in the dialog selection - remove it
+          await weekTemplateApi.removeTemplateDay(currentFamily.id, assigningDays, existingDay.id);
         }
       }
       
