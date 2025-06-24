@@ -225,7 +225,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Add Routine' }).click();
       await page.getByLabel('Routine Name').fill('Weekday Morning');
       await page.getByLabel('Description').fill('Standard weekday morning routine');
-      await page.getByRole('button', { name: 'Add Routine' }).click();
+      await page.getByRole('button', { name: 'Create' }).click();
 
       // Verify routine appears
       await expect(page.getByText('Weekday Morning')).toBeVisible();
@@ -234,8 +234,8 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       // Test routine editing
       await page.getByRole('button', { name: 'Edit' }).click();
       await page.getByLabel('Routine Name').fill('Updated Weekday Morning');
-      await page.getByLabel('Description (Optional)').fill('Updated morning routine description');
-      await page.getByRole('button', { name: 'Update Routine' }).click();
+      await page.getByLabel('Description').fill('Updated morning routine description');
+      await page.getByRole('button', { name: 'Update' }).click();
 
       // Verify updates
       await expect(page.getByText('Updated Weekday Morning')).toBeVisible();
@@ -293,7 +293,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Add Routine' }).click();
       await page.getByLabel('Routine Name').fill('Morning Routine');
       await page.getByLabel('Description').fill('Complete morning routine template');
-      await page.getByRole('button', { name: 'Add Routine' }).click();
+      await page.getByRole('button', { name: 'Create' }).click();
       await page.waitForTimeout(2000);
 
       // Add task to routine with default settings
