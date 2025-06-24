@@ -371,14 +371,7 @@ export const WeekTemplateManagement: React.FC = () => {
     return dayKey ? t(`weeklyRoutines.days.${dayKey}` as any) : `Day ${dayOfWeek}`;
   };
 
-  const getNextMonday = (): string => {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek; // 0 = Sunday
-    const nextMonday = new Date(today);
-    nextMonday.setDate(today.getDate() + daysUntilMonday);
-    return nextMonday.toISOString().split('T')[0]!;
-  };
+
 
   const formatDuration = (minutes: number): string => {
     if (minutes < 60) {
