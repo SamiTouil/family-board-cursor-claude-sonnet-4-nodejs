@@ -288,11 +288,11 @@ export const WeekTemplateManagement: React.FC = () => {
         }
       }
       
-      setMessage({ type: 'success', text: t('weekTemplates.daysAssignedSuccess') });
+      setMessage({ type: 'success', text: t('weeklyRoutines.daysAssignedSuccess') });
       handleCancelAssignDays();
       loadWeekTemplates(); // Reload to show updated assignments
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.response?.data?.message || t('weekTemplates.daysAssignError') });
+      setMessage({ type: 'error', text: error.response?.data?.message || t('weeklyRoutines.daysAssignError') });
     }
   };
 
@@ -302,7 +302,7 @@ export const WeekTemplateManagement: React.FC = () => {
     const template = weekTemplates.find(t => t.id === templateId);
     if (!template) return;
 
-    const newName = prompt(t('weekTemplates.duplicatePrompt'), `${template.name} (Copy)`);
+    const newName = prompt(t('weeklyRoutines.duplicatePrompt'), `${template.name} (Copy)`);
     if (!newName || !newName.trim()) return;
 
     try {
@@ -311,9 +311,9 @@ export const WeekTemplateManagement: React.FC = () => {
       });
       // Backend returns the template data directly, not wrapped in success object
       setWeekTemplates(prev => [...prev, response.data]);
-      setMessage({ type: 'success', text: t('weekTemplates.duplicateSuccess') });
+      setMessage({ type: 'success', text: t('weeklyRoutines.duplicateSuccess') });
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.response?.data?.message || t('weekTemplates.duplicateError') });
+      setMessage({ type: 'error', text: error.response?.data?.message || t('weeklyRoutines.duplicateError') });
     }
   };
 
@@ -344,17 +344,17 @@ export const WeekTemplateManagement: React.FC = () => {
         overrideMemberAssignments: applyData.overrideMemberAssignments,
       });
       // Backend returns success directly, no need to check response.data.success
-      setMessage({ type: 'success', text: t('weekTemplates.applySuccess') });
+      setMessage({ type: 'success', text: t('weeklyRoutines.applySuccess') });
       handleCancelApplyTemplate();
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.response?.data?.message || t('weekTemplates.applyError') });
+      setMessage({ type: 'error', text: error.response?.data?.message || t('weeklyRoutines.applyError') });
     }
   };
 
   const getDayName = (dayOfWeek: number): string => {
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const dayKey = days[dayOfWeek];
-    return dayKey ? t(`weekTemplates.days.${dayKey}` as any) : `Day ${dayOfWeek}`;
+    return dayKey ? t(`weeklyRoutines.days.${dayKey}` as any) : `Day ${dayOfWeek}`;
   };
 
   const getNextMonday = (): string => {
@@ -394,7 +394,7 @@ export const WeekTemplateManagement: React.FC = () => {
   return (
     <div className="week-template-management">
       <div className="week-template-management-header">
-        <h2 className="week-template-management-title">Week Templates</h2>
+        <h2 className="week-template-management-title">{t('weeklyRoutines.title')}</h2>
       </div>
       
       <div className="week-template-management-content">
@@ -409,7 +409,7 @@ export const WeekTemplateManagement: React.FC = () => {
         <div className="week-template-management-subsection">
           <div className="week-template-management-subsection-header">
             <h3 className="week-template-management-subsection-title">
-              {t('weekTemplates.templates.title')}
+              {t('weeklyRoutines.routines.title')}
               <span className="week-template-management-count-badge">
                 {weekTemplates.length}
               </span>
@@ -421,7 +421,7 @@ export const WeekTemplateManagement: React.FC = () => {
                   className="week-template-management-button week-template-management-button-primary"
                   disabled={isLoading}
                 >
-                  + {t('weekTemplates.templates.add')}
+                  + {t('weeklyRoutines.routines.add')}
                 </button>
               </div>
             )}
@@ -431,12 +431,12 @@ export const WeekTemplateManagement: React.FC = () => {
           {(addingTemplate || editingTemplate) && (
             <div className="week-template-management-form-container">
               <h4 className="week-template-management-form-title">
-                {editingTemplate ? t('weekTemplates.templates.edit') : t('weekTemplates.templates.add')}
+                {editingTemplate ? t('weeklyRoutines.routines.edit') : t('weeklyRoutines.routines.add')}
               </h4>
               <form onSubmit={editingTemplate ? handleUpdateTemplate : handleCreateTemplate} className="week-template-management-form">
                 <div className="week-template-management-form-group">
                   <label className="week-template-management-label">
-                    {t('weekTemplates.fields.name')} *
+                    {t('weeklyRoutines.fields.name')} *
                   </label>
                   <input
                     type="text"
@@ -444,7 +444,7 @@ export const WeekTemplateManagement: React.FC = () => {
                     value={templateData.name}
                     onChange={handleTemplateInputChange}
                     className={`week-template-management-input ${templateErrors['name'] ? 'week-template-management-input-error' : ''}`}
-                    placeholder={t('weekTemplates.placeholders.name')}
+                    placeholder={t('weeklyRoutines.placeholders.name')}
                     maxLength={100}
                   />
                   {templateErrors['name'] && (
@@ -454,14 +454,14 @@ export const WeekTemplateManagement: React.FC = () => {
 
                 <div className="week-template-management-form-group">
                   <label className="week-template-management-label">
-                    {t('weekTemplates.fields.description')}
+                    {t('weeklyRoutines.fields.description')}
                   </label>
                   <textarea
                     name="description"
                     value={templateData.description}
                     onChange={handleTemplateInputChange}
                     className={`week-template-management-input ${templateErrors['description'] ? 'week-template-management-input-error' : ''}`}
-                    placeholder={t('weekTemplates.placeholders.description')}
+                    placeholder={t('weeklyRoutines.placeholders.description')}
                     rows={3}
                     maxLength={500}
                   />
@@ -538,7 +538,7 @@ export const WeekTemplateManagement: React.FC = () => {
                       )}
                       <div className="week-template-management-template-meta">
                         <span className="week-template-management-template-days-count">
-                          {template.days?.length || 0} {t('weekTemplates.daysAssigned')}
+                          {template.days?.length || 0} {t('weeklyRoutines.daysAssigned')}
                         </span>
                       </div>
                     </div>
@@ -546,37 +546,37 @@ export const WeekTemplateManagement: React.FC = () => {
                       <button
                         onClick={() => handleApplyTemplate(template.id)}
                         className="week-template-management-template-action week-template-management-button week-template-management-button-primary week-template-management-button-sm"
-                        title={t('weekTemplates.actions.apply')}
+                        title={t('weeklyRoutines.actions.apply')}
                       >
-                        ▶️ {t('weekTemplates.actions.apply')}
+                        ▶️ {t('weeklyRoutines.actions.apply')}
                       </button>
                       {isAdmin && (
                         <>
                           <button
                             onClick={() => handleAssignDays(template.id)}
                             className="week-template-management-template-action"
-                            title={t('weekTemplates.actions.assignDays')}
+                            title={t('weeklyRoutines.actions.assignDays')}
                           >
                             📋
                           </button>
                           <button
                             onClick={() => handleDuplicateTemplate(template.id)}
                             className="week-template-management-template-action"
-                            title={t('weekTemplates.actions.duplicate')}
+                            title={t('weeklyRoutines.actions.duplicate')}
                           >
                             📄
                           </button>
                           <button
                             onClick={() => handleEditTemplate(template)}
                             className="week-template-management-template-action"
-                            title={t('weekTemplates.actions.edit')}
+                            title={t('weeklyRoutines.actions.edit')}
                           >
                             ✏️
                           </button>
                           <button
                             onClick={() => handleDeleteTemplate(template.id)}
                             className="week-template-management-template-action delete"
-                            title={t('weekTemplates.actions.delete')}
+                            title={t('weeklyRoutines.actions.delete')}
                           >
                             🗑️
                           </button>
@@ -589,7 +589,7 @@ export const WeekTemplateManagement: React.FC = () => {
                   {template.days && template.days.length > 0 && (
                     <div className="week-template-management-template-days">
                       <div className="week-template-management-days-header">
-                        <h5>{t('weekTemplates.assignedDays')}:</h5>
+                        <h5>{t('weeklyRoutines.assignedDays')}:</h5>
                         <button
                           onClick={() => toggleTemplateExpansion(template.id)}
                           className="week-template-management-expand-button"
@@ -609,7 +609,7 @@ export const WeekTemplateManagement: React.FC = () => {
                                 {getDayName(day.dayOfWeek)}
                               </span>
                               <span className="week-template-management-day-template">
-                                {day.dayTemplate?.name || t('weekTemplates.unknownTemplate')}
+                                {day.dayTemplate?.name || t('weeklyRoutines.unknownRoutine')}
                               </span>
                             </div>
                             
@@ -618,13 +618,13 @@ export const WeekTemplateManagement: React.FC = () => {
                               <div className="week-template-management-day-content">
                                 {loadingItems[day.dayTemplate.id] ? (
                                   <div className="week-template-management-day-loading">
-                                    Loading tasks...
+                                    {t('dailyRoutines.loadingTasks')}
                                   </div>
                                 ) : dayTemplateItems[day.dayTemplate.id] ? (
                                   <div className="week-template-management-day-tasks">
                                     {dayTemplateItems[day.dayTemplate.id]!.length === 0 ? (
                                       <div className="week-template-management-day-empty">
-                                        No tasks assigned
+                                        {t('dailyRoutines.noTasks')}
                                       </div>
                                     ) : (
                                       sortTemplateItemsByTime(dayTemplateItems[day.dayTemplate.id]!).map(item => (
@@ -690,7 +690,7 @@ export const WeekTemplateManagement: React.FC = () => {
           <div className="week-template-management-modal-overlay">
             <div className="week-template-management-modal">
               <div className="week-template-management-modal-header">
-                <h3>{t('weekTemplates.assignDays.title')}</h3>
+                <h3>{t('weeklyRoutines.assignDays.title')}</h3>
                 <button
                   onClick={handleCancelAssignDays}
                   className="week-template-management-modal-close"
@@ -699,7 +699,7 @@ export const WeekTemplateManagement: React.FC = () => {
                 </button>
               </div>
               <div className="week-template-management-modal-content">
-                <p>{t('weekTemplates.assignDays.description')}</p>
+                <p>{t('weeklyRoutines.assignDays.description')}</p>
                 <div className="week-template-management-days-assignment">
                   {[1, 2, 3, 4, 5, 6, 0].map(dayOfWeek => ( // Monday to Sunday
                     <div key={dayOfWeek} className="week-template-management-day-row">
@@ -711,7 +711,7 @@ export const WeekTemplateManagement: React.FC = () => {
                         onChange={(e) => handleDayTemplateChange(dayOfWeek, e.target.value)}
                         className="week-template-management-input"
                       >
-                        <option value="">{t('weekTemplates.assignDays.selectTemplate')}</option>
+                        <option value="">{t('weeklyRoutines.assignDays.selectRoutine')}</option>
                         {dayTemplates.map(template => (
                           <option key={template.id} value={template.id}>
                             {template.name}
@@ -734,7 +734,7 @@ export const WeekTemplateManagement: React.FC = () => {
                   className="week-template-management-button week-template-management-button-primary"
                   disabled={Object.keys(selectedDayTemplates).length === 0}
                 >
-                  {t('weekTemplates.assignDays.save')}
+                  {t('weeklyRoutines.assignDays.save')}
                 </button>
               </div>
             </div>
@@ -746,7 +746,7 @@ export const WeekTemplateManagement: React.FC = () => {
           <div className="week-template-management-modal-overlay">
             <div className="week-template-management-modal">
               <div className="week-template-management-modal-header">
-                <h3>{t('weekTemplates.apply.title')}</h3>
+                <h3>{t('weeklyRoutines.apply.title')}</h3>
                 <button
                   onClick={handleCancelApplyTemplate}
                   className="week-template-management-modal-close"
@@ -755,11 +755,11 @@ export const WeekTemplateManagement: React.FC = () => {
                 </button>
               </div>
               <form onSubmit={handleApplyTemplateSubmit} className="week-template-management-modal-content">
-                <p>{t('weekTemplates.apply.description')}</p>
+                <p>{t('weeklyRoutines.apply.description')}</p>
                 
                 <div className="week-template-management-form-group">
                   <label className="week-template-management-label">
-                    {t('weekTemplates.apply.startDate')} *
+                    {t('weeklyRoutines.apply.startDate')} *
                   </label>
                   <input
                     type="date"
@@ -770,7 +770,7 @@ export const WeekTemplateManagement: React.FC = () => {
                     required
                   />
                   <div className="week-template-management-help-text">
-                    {t('weekTemplates.apply.startDateHelp')}
+                    {t('weeklyRoutines.apply.startDateHelp')}
                   </div>
                 </div>
 
@@ -781,10 +781,10 @@ export const WeekTemplateManagement: React.FC = () => {
                       checked={applyData.overrideMemberAssignments}
                       onChange={(e) => setApplyData(prev => ({ ...prev, overrideMemberAssignments: e.target.checked }))}
                     />
-                    {t('weekTemplates.apply.overrideAssignments')}
+                    {t('weeklyRoutines.apply.overrideAssignments')}
                   </label>
                   <div className="week-template-management-help-text">
-                    {t('weekTemplates.apply.overrideAssignmentsHelp')}
+                    {t('weeklyRoutines.apply.overrideAssignmentsHelp')}
                   </div>
                 </div>
 
@@ -801,7 +801,7 @@ export const WeekTemplateManagement: React.FC = () => {
                     className="week-template-management-button week-template-management-button-primary"
                     disabled={!applyData.startDate}
                   >
-                    {t('weekTemplates.apply.confirm')}
+                    {t('weeklyRoutines.apply.confirm')}
                   </button>
                 </div>
               </form>

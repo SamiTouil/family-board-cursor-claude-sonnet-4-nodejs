@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { HomeIcon, FamilyIcon, TasksIcon, WeekIcon } from '../ui/icons';
+import { HomeIcon, FamilyIcon, TasksIcon, RoutinesIcon } from '../ui/icons';
 import './Navigation.css';
 
 const Navigation: React.FC = () => {
@@ -25,8 +25,8 @@ const Navigation: React.FC = () => {
     },
     {
       path: '/week',
-      icon: WeekIcon,
-      label: 'Templates'
+      icon: RoutinesIcon,
+      label: 'Routines'
     }
   ];
 

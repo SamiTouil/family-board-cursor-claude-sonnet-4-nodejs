@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../../contexts/FamilyContext';
 import { taskApi, familyApi, dayTemplateApi } from '../../../services/api';
 import type { Task, DayTemplate, DayTemplateItem, CreateDayTemplateData, FamilyMember } from '../../../types';
@@ -6,6 +7,7 @@ import { TaskAssignmentCard } from '../../tasks/components/TaskAssignmentCard';
 import './DayTemplateManagement.css';
 
 export const DayTemplateManagement: React.FC = () => {
+  const { t } = useTranslation();
   const { currentFamily } = useFamily();
   
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -561,7 +563,7 @@ export const DayTemplateManagement: React.FC = () => {
   return (
     <div className="day-template-management">
       <div className="day-template-management-header">
-        <h2 className="day-template-management-title">Day Templates</h2>
+        <h2 className="day-template-management-title">{t('dailyRoutines.title')}</h2>
       </div>
       
       <div className="day-template-management-content">
@@ -576,7 +578,7 @@ export const DayTemplateManagement: React.FC = () => {
         <div className="day-template-management-subsection">
           <div className="day-template-management-subsection-header">
             <h3 className="day-template-management-subsection-title">
-              Templates
+              {t('dailyRoutines.routines.title')}
               <span className="day-template-management-count-badge">
                 {templates.length}
               </span>
@@ -588,7 +590,7 @@ export const DayTemplateManagement: React.FC = () => {
                   className="day-template-management-button day-template-management-button-primary day-template-management-button-sm"
                   disabled={isLoading}
                 >
-                  {addingTemplate || editingTemplate ? 'Cancel' : 'Create Template'}
+                  {addingTemplate || editingTemplate ? t('common.cancel') : t('dailyRoutines.routines.add')}
                 </button>
               </div>
             )}
@@ -598,70 +600,70 @@ export const DayTemplateManagement: React.FC = () => {
           {isAdmin && (addingTemplate || editingTemplate) && (
             <div className="day-template-management-template-add-inline">
               <h5 className="day-template-management-form-title">
-                {editingTemplate ? 'Edit Template' : 'Create Template'}
+                {editingTemplate ? t('dailyRoutines.routines.edit') : t('dailyRoutines.routines.add')}
               </h5>
               <p className="day-template-management-help-text">
-                {editingTemplate ? 'Update template details' : 'Create a reusable template for scheduling tasks'}
+                {editingTemplate ? t('dailyRoutines.routines.edit') : t('dailyRoutines.routines.empty.description')}
               </p>
               <form className="day-template-management-form" onSubmit={editingTemplate ? handleUpdateTemplate : handleCreateTemplate}>
-                <div className="day-template-management-form-group">
-                  <label htmlFor="templateName" className="day-template-management-label">
-                    Template Name
-                  </label>
-                  <input
-                    type="text"
-                    id="templateName"
-                    name="name"
-                    className="day-template-management-input"
-                    placeholder="e.g., Weekday, Weekend, School Day"
-                    disabled={isLoading}
-                    autoFocus
-                    value={templateData.name}
-                    onChange={handleTemplateInputChange}
-                  />
-                  {templateErrors['name'] && (
-                    <p className="day-template-management-error">{templateErrors['name']}</p>
-                  )}
-                </div>
+                                  <div className="day-template-management-form-group">
+                    <label htmlFor="templateName" className="day-template-management-label">
+                      {t('dailyRoutines.fields.name')}
+                    </label>
+                    <input
+                      type="text"
+                      id="templateName"
+                      name="name"
+                      className="day-template-management-input"
+                      placeholder={t('dailyRoutines.placeholders.name')}
+                      disabled={isLoading}
+                      autoFocus
+                      value={templateData.name}
+                      onChange={handleTemplateInputChange}
+                    />
+                    {templateErrors['name'] && (
+                      <p className="day-template-management-error">{templateErrors['name']}</p>
+                    )}
+                  </div>
 
-                <div className="day-template-management-form-group">
-                  <label htmlFor="templateDescription" className="day-template-management-label">
-                    Description (Optional)
-                  </label>
-                  <textarea
-                    id="templateDescription"
-                    name="description"
-                    className="day-template-management-input"
-                    placeholder="Describe when this template should be used"
-                    rows={3}
-                    disabled={isLoading}
-                    value={templateData.description}
-                    onChange={handleTemplateInputChange}
-                  />
-                  {templateErrors['description'] && (
-                    <p className="day-template-management-error">{templateErrors['description']}</p>
-                  )}
-                </div>
+                  <div className="day-template-management-form-group">
+                    <label htmlFor="templateDescription" className="day-template-management-label">
+                      {t('dailyRoutines.fields.description')}
+                    </label>
+                    <textarea
+                      id="templateDescription"
+                      name="description"
+                      className="day-template-management-input"
+                      placeholder={t('dailyRoutines.placeholders.description')}
+                      rows={3}
+                      disabled={isLoading}
+                      value={templateData.description}
+                      onChange={handleTemplateInputChange}
+                    />
+                    {templateErrors['description'] && (
+                      <p className="day-template-management-error">{templateErrors['description']}</p>
+                    )}
+                  </div>
 
                 <div className="day-template-management-form-actions">
-                  <button
-                    type="submit"
-                    className="day-template-management-button day-template-management-button-primary"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Saving...' : (editingTemplate ? 'Update Template' : 'Create Template')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleCancelTemplateForm();
-                    }}
-                    className="day-template-management-button day-template-management-button-secondary"
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </button>
+                                      <button
+                      type="submit"
+                      className="day-template-management-button day-template-management-button-primary"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? t('common.saving') : (editingTemplate ? t('common.update') : t('common.create'))}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleCancelTemplateForm();
+                      }}
+                      className="day-template-management-button day-template-management-button-secondary"
+                      disabled={isLoading}
+                    >
+                      {t('common.cancel')}
+                    </button>
                 </div>
               </form>
             </div>
@@ -706,18 +708,18 @@ export const DayTemplateManagement: React.FC = () => {
                             onClick={() => handleAddTemplateItem(template.id)}
                             disabled={isLoading || addingTemplateItem === template.id || (editingTemplateItem?.templateId === template.id)}
                           >
-                            Add Task to Template
+                            {t('dailyRoutines.addTask')}
                           </button>
                           <button
                             className="day-template-management-button day-template-management-button-sm day-template-management-button-secondary"
                             onClick={() => handleEditTemplate(template)}
                             disabled={isLoading}
                           >
-                            Edit
+                            {t('dailyRoutines.actions.edit')}
                           </button>
                           <button
                             className="day-template-management-template-action delete"
-                            title="Delete template"
+                            title={t('dailyRoutines.actions.delete')}
                             onClick={() => handleDeleteTemplate(template.id)}
                             disabled={isLoading}
                           >
@@ -895,7 +897,7 @@ export const DayTemplateManagement: React.FC = () => {
                       </div>
                     ) : (
                       <div className="day-template-management-template-empty">
-                        <p>Loading template items...</p>
+                        <p>{t('dailyRoutines.loadingTasks')}</p>
                       </div>
                     )}
                   </div>

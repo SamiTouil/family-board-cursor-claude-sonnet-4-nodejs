@@ -4,7 +4,7 @@ import { WeekTemplateManagement } from '../features/week/components/WeekTemplate
 import { DayTemplateManagement } from '../features/templates/components/DayTemplateManagement';
 import '../styles/pages.css';
 
-const TemplatesPage: React.FC = () => {
+const RoutinesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'day-templates' | 'week-templates'>('day-templates');
 
   return (
@@ -20,13 +20,13 @@ const TemplatesPage: React.FC = () => {
               className={`templates-page-tab ${activeTab === 'day-templates' ? 'active' : ''}`}
               onClick={() => setActiveTab('day-templates')}
             >
-              📅 Day Templates
+              Daily Routines
             </button>
             <button
               className={`templates-page-tab ${activeTab === 'week-templates' ? 'active' : ''}`}
               onClick={() => setActiveTab('week-templates')}
             >
-              📆 Week Templates
+              Weekly Routines
             </button>
           </div>
         </div>
@@ -42,4 +42,4 @@ const TemplatesPage: React.FC = () => {
   );
 };
 
-export default TemplatesPage; 
+export default RoutinesPage; 

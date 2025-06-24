@@ -291,49 +291,96 @@
       "durationTooLong": "Duration cannot exceed 24 hours (1440 minutes)"
     }
   },
-  "weekTemplates": {
-    "title": "Week Templates",
-    "loadError": "Failed to load week templates",
-    "createSuccess": "Week template created successfully",
-    "createError": "Failed to create week template",
-    "updateSuccess": "Week template updated successfully",
-    "updateError": "Failed to update week template",
-    "deleteSuccess": "Week template deleted successfully",
-    "deleteError": "Failed to delete week template",
+  "dailyRoutines": {
+    "title": "Daily Routines",
+    "loadError": "Failed to load daily routines",
+    "createSuccess": "Daily routine created successfully",
+    "createError": "Failed to create daily routine",
+    "updateSuccess": "Daily routine updated successfully",
+    "updateError": "Failed to update daily routine",
+    "deleteSuccess": "Daily routine deleted successfully",
+    "deleteError": "Failed to delete daily routine",
     "deleteConfirm": "Are you sure you want to delete '{{name}}'?",
-    "duplicateSuccess": "Week template duplicated successfully",
-    "duplicateError": "Failed to duplicate week template",
-    "duplicatePrompt": "Enter a name for the duplicated template:",
-    "applySuccess": "Week template applied successfully",
-    "applyError": "Failed to apply week template",
+    "duplicateSuccess": "Daily routine duplicated successfully",
+    "duplicateError": "Failed to duplicate daily routine",
+    "duplicatePrompt": "Enter a name for the duplicated routine:",
+    "routines": {
+      "title": "Routines",
+      "add": "Add Routine",
+      "edit": "Edit Routine",
+      "empty": {
+        "title": "No Daily Routines Yet",
+        "description": "Create your first daily routine to organize recurring daily schedules."
+      }
+    },
+    "fields": {
+      "name": "Routine Name",
+      "description": "Description"
+    },
+    "placeholders": {
+      "name": "Enter routine name (e.g., School Day, Weekend)",
+      "description": "Describe this daily routine"
+    },
+    "validation": {
+      "nameRequired": "Routine name is required",
+      "nameTooShort": "Routine name must be at least 2 characters",
+      "nameTooLong": "Routine name must be less than 100 characters",
+      "descriptionTooLong": "Description must be less than 500 characters",
+      "nameExists": "A routine with this name already exists"
+    },
+    "actions": {
+      "apply": "Apply",
+      "duplicate": "Duplicate",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "addTask": "Add Task to Routine",
+    "noTasks": "No tasks assigned",
+    "loadingTasks": "Loading tasks..."
+  },
+  "weeklyRoutines": {
+    "title": "Weekly Routines",
+    "loadError": "Failed to load weekly routines",
+    "createSuccess": "Weekly routine created successfully",
+    "createError": "Failed to create weekly routine",
+    "updateSuccess": "Weekly routine updated successfully",
+    "updateError": "Failed to update weekly routine",
+    "deleteSuccess": "Weekly routine deleted successfully",
+    "deleteError": "Failed to delete weekly routine",
+    "deleteConfirm": "Are you sure you want to delete '{{name}}'?",
+    "duplicateSuccess": "Weekly routine duplicated successfully",
+    "duplicateError": "Failed to duplicate weekly routine",
+    "duplicatePrompt": "Enter a name for the duplicated routine:",
+    "applySuccess": "Weekly routine applied successfully",
+    "applyError": "Failed to apply weekly routine",
     "daysAssignedSuccess": "Day assignments saved successfully",
     "daysAssignError": "Failed to save day assignments",
     "daysAssigned": "days assigned",
     "assignedDays": "Assigned Days",
-    "unknownTemplate": "Unknown Template",
-    "templates": {
-      "title": "Templates",
-      "add": "Add Template",
-      "edit": "Edit Template",
+    "unknownRoutine": "Unknown Routine",
+    "routines": {
+      "title": "Routines",
+      "add": "Add Routine",
+      "edit": "Edit Routine",
       "empty": {
-        "title": "No Week Templates Yet",
-        "description": "Create your first week template to organize recurring weekly schedules."
+        "title": "No Weekly Routines Yet",
+        "description": "Create your first weekly routine to organize recurring weekly schedules."
       }
     },
     "fields": {
-      "name": "Template Name",
+      "name": "Routine Name",
       "description": "Description"
     },
     "placeholders": {
-      "name": "Enter template name",
+      "name": "Enter routine name",
       "description": "Describe this weekly schedule"
     },
     "validation": {
-      "nameRequired": "Template name is required",
-      "nameTooShort": "Template name must be at least 2 characters",
-      "nameTooLong": "Template name must be less than 100 characters",
+      "nameRequired": "Routine name is required",
+      "nameTooShort": "Routine name must be at least 2 characters",
+      "nameTooLong": "Routine name must be less than 100 characters",
       "descriptionTooLong": "Description must be less than 500 characters",
-      "nameExists": "A template with this name already exists"
+      "nameExists": "A routine with this name already exists"
     },
     "actions": {
       "apply": "Apply",
@@ -343,19 +390,19 @@
       "delete": "Delete"
     },
     "assignDays": {
-      "title": "Assign Day Templates",
-      "description": "Select a day template for each day of the week.",
-      "selectTemplate": "Select a day template...",
+      "title": "Assign Daily Routines",
+      "description": "Select a daily routine for each day of the week.",
+      "selectRoutine": "Select a daily routine...",
       "save": "Save Assignments"
     },
     "apply": {
-      "title": "Apply Week Template",
-      "description": "Apply this template to create task assignments for a full week.",
+      "title": "Apply Weekly Routine",
+      "description": "Apply this routine to create task assignments for a full week.",
       "startDate": "Start Date (Monday)",
       "startDateHelp": "Select the Monday when this week should start",
       "overrideAssignments": "Override existing assignments",
       "overrideAssignmentsHelp": "Replace any existing task assignments for this week",
-      "confirm": "Apply Template"
+      "confirm": "Apply Routine"
     },
     "days": {
       "sunday": "Sunday",
