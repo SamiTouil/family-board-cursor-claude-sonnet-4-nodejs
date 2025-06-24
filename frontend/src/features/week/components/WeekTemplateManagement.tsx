@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../../contexts/FamilyContext';
 import { weekTemplateApi, dayTemplateApi } from '../../../services/api';
-import type { WeekTemplate, DayTemplate, CreateWeekTemplateData, UpdateWeekTemplateData } from '../../../types';
+import type { WeekTemplate, DayTemplate, DayTemplateItem, CreateWeekTemplateData, UpdateWeekTemplateData } from '../../../types';
 import './WeekTemplateManagement.css';
 
 export const WeekTemplateManagement: React.FC = () => {
@@ -11,6 +11,9 @@ export const WeekTemplateManagement: React.FC = () => {
   
   const [weekTemplates, setWeekTemplates] = useState<WeekTemplate[]>([]);
   const [dayTemplates, setDayTemplates] = useState<DayTemplate[]>([]);
+  const [dayTemplateItems, setDayTemplateItems] = useState<Record<string, DayTemplateItem[]>>({});
+  const [expandedTemplates, setExpandedTemplates] = useState<Record<string, boolean>>({});
+  const [loadingItems, setLoadingItems] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -66,6 +69,51 @@ export const WeekTemplateManagement: React.FC = () => {
     } catch (error) {
       // Set empty array on error to prevent UI issues
       setDayTemplates([]);
+    }
+  };
+
+  const loadDayTemplateItems = async (dayTemplateId: string) => {
+    if (!currentFamily || loadingItems[dayTemplateId] || dayTemplateItems[dayTemplateId]) {
+      return; // Already loading or loaded
+    }
+
+    setLoadingItems(prev => ({ ...prev, [dayTemplateId]: true }));
+    
+    try {
+      const response = await dayTemplateApi.getItems(currentFamily.id, dayTemplateId);
+      setDayTemplateItems(prev => ({
+        ...prev,
+        [dayTemplateId]: response.data.items || []
+      }));
+    } catch (error) {
+      // Set empty array on error
+      setDayTemplateItems(prev => ({
+        ...prev,
+        [dayTemplateId]: []
+      }));
+    } finally {
+      setLoadingItems(prev => ({ ...prev, [dayTemplateId]: false }));
+    }
+  };
+
+  const toggleTemplateExpansion = (templateId: string) => {
+    const isExpanding = !expandedTemplates[templateId];
+    
+    setExpandedTemplates(prev => ({
+      ...prev,
+      [templateId]: isExpanding
+    }));
+
+    // Load items for all day templates in this week template when expanding
+    if (isExpanding) {
+      const template = weekTemplates.find(t => t.id === templateId);
+      if (template?.days) {
+        template.days.forEach(day => {
+          if (day.dayTemplate?.id) {
+            loadDayTemplateItems(day.dayTemplate.id);
+          }
+        });
+      }
     }
   };
 
@@ -318,6 +366,31 @@ export const WeekTemplateManagement: React.FC = () => {
     return nextMonday.toISOString().split('T')[0]!;
   };
 
+  const formatDuration = (minutes: number): string => {
+    if (minutes < 60) {
+      return `${minutes}m`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes === 0 ? `${hours}h` : `${hours}h ${remainingMinutes}m`;
+  };
+
+  const getEffectiveTime = (item: DayTemplateItem): string => {
+    return item.overrideTime || item.task?.defaultStartTime || '00:00';
+  };
+
+  const getEffectiveDuration = (item: DayTemplateItem): number => {
+    return item.overrideDuration || item.task?.defaultDuration || 0;
+  };
+
+  const sortTemplateItemsByTime = (items: DayTemplateItem[]): DayTemplateItem[] => {
+    return [...items].sort((a, b) => {
+      const timeA = getEffectiveTime(a);
+      const timeB = getEffectiveTime(b);
+      return timeA.localeCompare(timeB);
+    });
+  };
+
   return (
     <div className="week-template-management">
       <div className="week-template-management-header">
@@ -515,16 +588,92 @@ export const WeekTemplateManagement: React.FC = () => {
                   {/* Show assigned days */}
                   {template.days && template.days.length > 0 && (
                     <div className="week-template-management-template-days">
-                      <h5>{t('weekTemplates.assignedDays')}:</h5>
+                      <div className="week-template-management-days-header">
+                        <h5>{t('weekTemplates.assignedDays')}:</h5>
+                        <button
+                          onClick={() => toggleTemplateExpansion(template.id)}
+                          className="week-template-management-expand-button"
+                          title={expandedTemplates[template.id] ? 'Collapse details' : 'Expand details'}
+                        >
+                          {expandedTemplates[template.id] ? '▼' : '▶'}
+                        </button>
+                      </div>
+                      
                       <div className="week-template-management-days-grid">
-                        {template.days.map(day => (
+                        {template.days
+                          .sort((a, b) => a.dayOfWeek - b.dayOfWeek) // Sort by day of week
+                          .map(day => (
                           <div key={day.id} className="week-template-management-day-assignment">
-                            <span className="week-template-management-day-name">
-                              {getDayName(day.dayOfWeek)}
-                            </span>
-                            <span className="week-template-management-day-template">
-                              {day.dayTemplate?.name || t('weekTemplates.unknownTemplate')}
-                            </span>
+                            <div className="week-template-management-day-header">
+                              <span className="week-template-management-day-name">
+                                {getDayName(day.dayOfWeek)}
+                              </span>
+                              <span className="week-template-management-day-template">
+                                {day.dayTemplate?.name || t('weekTemplates.unknownTemplate')}
+                              </span>
+                            </div>
+                            
+                            {/* Show day template content when expanded */}
+                            {expandedTemplates[template.id] && day.dayTemplate?.id && (
+                              <div className="week-template-management-day-content">
+                                {loadingItems[day.dayTemplate.id] ? (
+                                  <div className="week-template-management-day-loading">
+                                    Loading tasks...
+                                  </div>
+                                ) : dayTemplateItems[day.dayTemplate.id] ? (
+                                  <div className="week-template-management-day-tasks">
+                                    {dayTemplateItems[day.dayTemplate.id]!.length === 0 ? (
+                                      <div className="week-template-management-day-empty">
+                                        No tasks assigned
+                                      </div>
+                                    ) : (
+                                      sortTemplateItemsByTime(dayTemplateItems[day.dayTemplate.id]!).map(item => (
+                                        <div key={item.id} className="week-template-management-task-item">
+                                          <div className="week-template-management-task-item-content">
+                                            {/* Member Avatar */}
+                                            <div className="week-template-management-task-avatar">
+                                              {item.member?.avatarUrl ? (
+                                                <img 
+                                                  src={item.member.avatarUrl} 
+                                                  alt={`${item.member.firstName} ${item.member.lastName}`}
+                                                />
+                                              ) : item.member ? (
+                                                `${item.member.firstName.charAt(0)}${item.member.lastName.charAt(0)}`
+                                              ) : (
+                                                '?'
+                                              )}
+                                            </div>
+                                            
+                                            {/* Task Info */}
+                                            <div className="week-template-management-task-info">
+                                              <div className="week-template-management-task-header">
+                                                <span 
+                                                  className="week-template-management-task-icon"
+                                                  style={{ backgroundColor: item.task?.color || '#6366f1' }}
+                                                >
+                                                  {item.task?.icon || '📝'}
+                                                </span>
+                                                <span className="week-template-management-task-name">
+                                                  {item.task?.name || 'Unknown Task'}
+                                                </span>
+                                              </div>
+                                              <div className="week-template-management-task-details">
+                                                <span className="week-template-management-task-time">
+                                                  {getEffectiveTime(item)}
+                                                </span>
+                                                <span className="week-template-management-task-duration">
+                                                  {formatDuration(getEffectiveDuration(item))}
+                                                </span>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))
+                                    )}
+                                  </div>
+                                ) : null}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

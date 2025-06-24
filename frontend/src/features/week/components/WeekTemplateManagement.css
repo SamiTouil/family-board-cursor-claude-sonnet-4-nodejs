@@ -329,39 +329,200 @@
   border-top: 1px solid #e5e7eb;
 }
 
+.week-template-management-days-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 .week-template-management-template-days h5 {
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
-  margin: 0 0 8px 0;
+  margin: 0;
+}
+
+.week-template-management-expand-button {
+  background: none;
+  border: none;
+  color: #6366f1;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.week-template-management-expand-button:hover {
+  background: #f0f4ff;
+  color: #4f46e5;
 }
 
 .week-template-management-days-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .week-template-management-day-assignment {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 8px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  font-size: 0.75rem;
+  width: fit-content;
+  min-width: 100px;
+  max-width: 140px;
+}
+
+.week-template-management-day-header {
+  margin-bottom: 4px;
 }
 
 .week-template-management-day-name {
+  display: block;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #374151;
-  text-transform: capitalize;
+  color: #6366f1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 3px;
 }
 
 .week-template-management-day-template {
-  color: #6b7280;
+  display: block;
+  font-size: 0.650rem;
+  color: #374151;
+  font-weight: 500;
 }
+
+/* Day Template Content */
+.week-template-management-day-content {
+  margin-top: 4px;
+}
+
+.week-template-management-day-loading {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.75rem;
+  padding: 6px;
+  font-style: italic;
+}
+
+.week-template-management-day-empty {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.75rem;
+  padding: 6px;
+  font-style: italic;
+}
+
+.week-template-management-day-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.week-template-management-task-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 3px;
+  padding: 4px 6px;
+  transition: all 0.2s ease;
+  min-width: 150px;
+  max-width: 200px;
+}
+
+.week-template-management-task-item:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.week-template-management-task-item-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.week-template-management-task-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 600;
+  color: #6b7280;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.week-template-management-task-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.week-template-management-task-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.week-template-management-task-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.week-template-management-task-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  font-size: 8px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.week-template-management-task-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #111827;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.week-template-management-task-details {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.625rem;
+  color: #6b7280;
+  flex-wrap: wrap;
+}
+
+.week-template-management-task-time {
+  background: #f3f4f6;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+.week-template-management-task-duration {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+
 
 /* Modals */
 .week-template-management-modal-overlay {
@@ -540,7 +701,30 @@
   }
 
   .week-template-management-days-grid {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .week-template-management-day-assignment {
+    width: 100%;
+    min-width: auto;
+    max-width: none;
+  }
+
+  .week-template-management-days-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .week-template-management-task-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .week-template-management-task-item {
+    width: 100%;
+    min-width: auto;
   }
 
   .week-template-management-day-row {
