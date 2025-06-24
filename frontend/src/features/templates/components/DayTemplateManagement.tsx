@@ -38,8 +38,6 @@ export const DayTemplateManagement: React.FC = () => {
 
   // Check if user is admin (can create/manage templates)
   const isAdmin = currentFamily?.userRole === 'ADMIN';
-  console.log('DayTemplateManagement render - isAdmin:', isAdmin);
-  console.log('DayTemplateManagement render - templates:', templates);
 
   useEffect(() => {
     if (currentFamily) {
