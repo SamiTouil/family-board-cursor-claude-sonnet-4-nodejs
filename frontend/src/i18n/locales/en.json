@@ -351,8 +351,7 @@
     "duplicateSuccess": "Weekly routine duplicated successfully",
     "duplicateError": "Failed to duplicate weekly routine",
     "duplicatePrompt": "Enter a name for the duplicated routine:",
-    "applySuccess": "Weekly routine applied successfully",
-    "applyError": "Failed to apply weekly routine",
+
     "daysAssignedSuccess": "Day assignments saved successfully",
     "daysAssignError": "Failed to save day assignments",
     "daysAssigned": "days assigned",
@@ -383,7 +382,6 @@
       "nameExists": "A routine with this name already exists"
     },
     "actions": {
-      "apply": "Apply",
       "assignDays": "Assign Days",
       "duplicate": "Duplicate",
       "edit": "Edit",
@@ -395,15 +393,7 @@
       "selectRoutine": "Select a daily routine...",
       "save": "Save Assignments"
     },
-    "apply": {
-      "title": "Apply Weekly Routine",
-      "description": "Apply this routine to create task assignments for a full week.",
-      "startDate": "Start Date (Monday)",
-      "startDateHelp": "Select the Monday when this week should start",
-      "overrideAssignments": "Override existing assignments",
-      "overrideAssignmentsHelp": "Replace any existing task assignments for this week",
-      "confirm": "Apply Routine"
-    },
+
     "days": {
       "sunday": "Sunday",
       "monday": "Monday",

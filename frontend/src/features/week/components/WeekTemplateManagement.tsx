@@ -30,13 +30,6 @@ export const WeekTemplateManagement: React.FC = () => {
   const [assigningDays, setAssigningDays] = useState<string | null>(null); // templateId when assigning days
   const [selectedDayTemplates, setSelectedDayTemplates] = useState<Record<number, string>>({});
 
-  // Week application state
-  const [applyingTemplate, setApplyingTemplate] = useState<string | null>(null);
-  const [applyData, setApplyData] = useState({
-    startDate: '',
-    overrideMemberAssignments: false,
-  });
-
   const isAdmin = currentFamily?.userRole === 'ADMIN';
 
   useEffect(() => {
@@ -372,54 +365,13 @@ export const WeekTemplateManagement: React.FC = () => {
     }
   };
 
-  const handleApplyTemplate = (templateId: string) => {
-    setApplyingTemplate(templateId);
-    setApplyData({
-      startDate: getNextMonday(),
-      overrideMemberAssignments: false,
-    });
-    setMessage(null);
-  };
-
-  const handleCancelApplyTemplate = () => {
-    setApplyingTemplate(null);
-    setApplyData({
-      startDate: '',
-      overrideMemberAssignments: false,
-    });
-  };
-
-  const handleApplyTemplateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentFamily || !applyingTemplate || !applyData.startDate) return;
-
-    try {
-      await weekTemplateApi.applyTemplate(currentFamily.id, applyingTemplate, {
-        startDate: applyData.startDate,
-        overrideMemberAssignments: applyData.overrideMemberAssignments,
-      });
-      // Backend returns success directly, no need to check response.data.success
-      setMessage({ type: 'success', text: t('weeklyRoutines.applySuccess') });
-      handleCancelApplyTemplate();
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.response?.data?.message || t('weeklyRoutines.applyError') });
-    }
-  };
-
   const getDayName = (dayOfWeek: number): string => {
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const dayKey = days[dayOfWeek];
     return dayKey ? t(`weeklyRoutines.days.${dayKey}` as any) : `Day ${dayOfWeek}`;
   };
 
-  const getNextMonday = (): string => {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek; // 0 = Sunday
-    const nextMonday = new Date(today);
-    nextMonday.setDate(today.getDate() + daysUntilMonday);
-    return nextMonday.toISOString().split('T')[0]!;
-  };
+
 
   const formatDuration = (minutes: number): string => {
     if (minutes < 60) {
@@ -598,13 +550,6 @@ export const WeekTemplateManagement: React.FC = () => {
                       </div>
                     </div>
                     <div className="week-template-management-template-actions">
-                      <button
-                        onClick={() => handleApplyTemplate(template.id)}
-                        className="week-template-management-template-action week-template-management-button week-template-management-button-primary week-template-management-button-sm"
-                        title={t('weeklyRoutines.actions.apply')}
-                      >
-                        ▶️ {t('weeklyRoutines.actions.apply')}
-                      </button>
                       {isAdmin && (
                         <>
                           <button
@@ -792,74 +737,6 @@ export const WeekTemplateManagement: React.FC = () => {
                   {t('weeklyRoutines.assignDays.save')}
                 </button>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Apply Template Modal */}
-        {applyingTemplate && (
-          <div className="week-template-management-modal-overlay">
-            <div className="week-template-management-modal">
-              <div className="week-template-management-modal-header">
-                <h3>{t('weeklyRoutines.apply.title')}</h3>
-                <button
-                  onClick={handleCancelApplyTemplate}
-                  className="week-template-management-modal-close"
-                >
-                  ✕
-                </button>
-              </div>
-              <form onSubmit={handleApplyTemplateSubmit} className="week-template-management-modal-content">
-                <p>{t('weeklyRoutines.apply.description')}</p>
-                
-                <div className="week-template-management-form-group">
-                  <label className="week-template-management-label">
-                    {t('weeklyRoutines.apply.startDate')} *
-                  </label>
-                  <input
-                    type="date"
-                    value={applyData.startDate}
-                    onChange={(e) => setApplyData(prev => ({ ...prev, startDate: e.target.value }))}
-                    className="week-template-management-input"
-                    min={getNextMonday()}
-                    required
-                  />
-                  <div className="week-template-management-help-text">
-                    {t('weeklyRoutines.apply.startDateHelp')}
-                  </div>
-                </div>
-
-                <div className="week-template-management-form-group">
-                  <label className="week-template-management-checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={applyData.overrideMemberAssignments}
-                      onChange={(e) => setApplyData(prev => ({ ...prev, overrideMemberAssignments: e.target.checked }))}
-                    />
-                    {t('weeklyRoutines.apply.overrideAssignments')}
-                  </label>
-                  <div className="week-template-management-help-text">
-                    {t('weeklyRoutines.apply.overrideAssignmentsHelp')}
-                  </div>
-                </div>
-
-                <div className="week-template-management-modal-actions">
-                  <button
-                    type="button"
-                    onClick={handleCancelApplyTemplate}
-                    className="week-template-management-button week-template-management-button-secondary"
-                  >
-                    {t('common.cancel')}
-                  </button>
-                  <button
-                    type="submit"
-                    className="week-template-management-button week-template-management-button-primary"
-                    disabled={!applyData.startDate}
-                  >
-                    {t('weeklyRoutines.apply.confirm')}
-                  </button>
-                </div>
-              </form>
             </div>
           </div>
         )}

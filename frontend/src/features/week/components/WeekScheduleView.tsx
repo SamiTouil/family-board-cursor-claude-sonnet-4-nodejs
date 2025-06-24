@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFamily } from '../../../contexts/FamilyContext';
-import { weekScheduleApi, weekTemplateApi } from '../../../services/api';
-import type { ResolvedWeekSchedule, WeekTemplate, ResolvedTask } from '../../../types';
+import { weekScheduleApi } from '../../../services/api';
+import type { ResolvedWeekSchedule, ResolvedTask } from '../../../types';
 import { ResolvedTaskCard } from '../../tasks/components/TaskAssignmentCard';
 import './WeekScheduleView.css';
 
@@ -9,7 +9,7 @@ export const WeekScheduleView: React.FC = () => {
   const { currentFamily } = useFamily();
   
   const [weekSchedule, setWeekSchedule] = useState<ResolvedWeekSchedule | null>(null);
-  const [weekTemplates, setWeekTemplates] = useState<WeekTemplate[]>([]);
+
   const [currentWeekStart, setCurrentWeekStart] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -27,7 +27,6 @@ export const WeekScheduleView: React.FC = () => {
       const monday = getMonday(today);
       setCurrentWeekStart(monday);
       loadWeekSchedule(monday);
-      loadWeekTemplates();
     }
   }, [currentFamily]);
 
@@ -53,16 +52,7 @@ export const WeekScheduleView: React.FC = () => {
     }
   };
 
-  const loadWeekTemplates = async () => {
-    if (!currentFamily) return;
-    
-    try {
-      const response = await weekTemplateApi.getTemplates(currentFamily.id);
-      setWeekTemplates(response.data.templates || []);
-    } catch (error) {
-      // Silently fail for templates
-    }
-  };
+
 
   const handlePreviousWeek = () => {
     const prevWeek = new Date(currentWeekStart);
@@ -86,28 +76,7 @@ export const WeekScheduleView: React.FC = () => {
     setShowOverrideModal(true);
   };
 
-  const handleApplyTemplate = async (templateId: string) => {
-    if (!currentFamily) return;
 
-    const confirmed = window.confirm(
-      'Apply this template to the current week? This will override any existing customizations.'
-    );
-    if (!confirmed) return;
-
-    try {
-      setIsLoading(true);
-      await weekTemplateApi.applyTemplate(currentFamily.id, templateId, {
-        startDate: currentWeekStart,
-        overrideMemberAssignments: true,
-      });
-      setMessage({ type: 'success', text: 'Template applied successfully' });
-      loadWeekSchedule(currentWeekStart);
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to apply template' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleRemoveOverrides = async () => {
     if (!currentFamily || !weekSchedule?.hasOverrides) return;
@@ -220,24 +189,7 @@ export const WeekScheduleView: React.FC = () => {
           </div>
         )}
 
-        {/* Quick Template Actions */}
-        {isAdmin && weekTemplates.length > 0 && (
-          <div className="week-schedule-view-template-actions">
-            <span className="week-schedule-view-template-actions-label">Quick apply:</span>
-            <div className="week-schedule-view-template-buttons">
-              {weekTemplates.slice(0, 3).map(template => (
-                <button
-                  key={template.id}
-                  onClick={() => handleApplyTemplate(template.id)}
-                  className="week-schedule-view-template-button"
-                  disabled={isLoading}
-                >
-                  {template.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+
 
         {/* Week Schedule */}
         {isLoading ? (

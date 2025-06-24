@@ -190,9 +190,7 @@ export const weekTemplateApi = {
     return await apiClient.post(`/families/${familyId}/week-templates/${templateId}/duplicate`, data);
   },
   
-  async applyTemplate(familyId: string, templateId: string, data: any) {
-    return await apiClient.post(`/families/${familyId}/week-templates/${templateId}/apply`, data);
-  },
+
   
   // Template days
   async getTemplateDays(familyId: string, templateId: string) {
