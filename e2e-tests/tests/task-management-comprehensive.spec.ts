@@ -180,14 +180,14 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
     });
   });
 
-  test.describe('Day Template CRUD Operations & Management', () => {
-    test('should create, edit, and delete day templates with validation', async ({ page }) => {
-      const adminEmail = `admin-template-crud-${Date.now()}@example.com`;
+  test.describe('Day Routine CRUD Operations & Management', () => {
+    test('should create, edit, and delete day routines with validation', async ({ page }) => {
+      const adminEmail = `admin-routine-crud-${Date.now()}@example.com`;
       
       // Setup admin, family, and some tasks
       await page.getByRole('button', { name: 'Sign up here' }).click();
       await page.getByLabel('First Name').fill('Admin');
-      await page.getByLabel('Last Name').fill('TemplateCRUD');
+      await page.getByLabel('Last Name').fill('RoutineCRUD');
       await page.getByLabel('Email Address').fill(adminEmail);
       await page.getByLabel('Password', { exact: true }).fill('password123');
       await page.getByLabel('Confirm Password').fill('password123');
@@ -195,12 +195,12 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
       await page.getByText('Create New Family').click();
-      await page.getByLabel('Family Name').fill('Template Family');
+      await page.getByLabel('Family Name').fill('Routine Family');
       await page.getByRole('button', { name: 'Create Family' }).click();
 
-      await expect(page.getByRole('heading', { name: 'Admin TemplateCRUD' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Admin RoutineCRUD' })).toBeVisible({ timeout: 10000 });
       
-      // First create some tasks to use in templates
+      // First create some tasks to use in routines
       await page.getByRole('button', { name: 'Tasks' }).click();
       await page.waitForTimeout(2000);
       await page.getByRole('button', { name: 'Create Your First Task' }).click();
@@ -217,45 +217,45 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Create Task' }).click();
       await page.waitForTimeout(1000);
 
-      // Navigate to Templates page for template management
-      await page.getByRole('button', { name: 'Templates' }).click();
+      // Navigate to Routines page for routine management
+      await page.getByRole('button', { name: 'Routines' }).click();
       await page.waitForTimeout(2000);
 
-      // Test template creation
-      await page.getByRole('button', { name: 'Create Template' }).click();
-      await page.getByLabel('Template Name').fill('Weekday Morning');
+      // Test routine creation
+      await page.getByRole('button', { name: 'Add Routine' }).click();
+      await page.getByLabel('Routine Name').fill('Weekday Morning');
       await page.getByLabel('Description (Optional)').fill('Standard weekday morning routine');
-      await page.getByRole('button', { name: 'Create Template' }).click();
+      await page.getByRole('button', { name: 'Add Routine' }).click();
 
-      // Verify template appears
+      // Verify routine appears
       await expect(page.getByText('Weekday Morning')).toBeVisible();
       await expect(page.getByText('Standard weekday morning routine')).toBeVisible();
 
-      // Test template editing
+      // Test routine editing
       await page.getByRole('button', { name: 'Edit' }).click();
-      await page.getByLabel('Template Name').fill('Updated Weekday Morning');
+      await page.getByLabel('Routine Name').fill('Updated Weekday Morning');
       await page.getByLabel('Description (Optional)').fill('Updated morning routine description');
-      await page.getByRole('button', { name: 'Update Template' }).click();
+      await page.getByRole('button', { name: 'Update Routine' }).click();
 
       // Verify updates
       await expect(page.getByText('Updated Weekday Morning')).toBeVisible();
       await expect(page.getByText('Updated morning routine description')).toBeVisible();
 
-      // Test template deletion
+      // Test routine deletion
       page.on('dialog', dialog => dialog.accept());
       await page.locator('.day-template-management-template-action.delete').click();
       
-      // Verify template is removed
+      // Verify routine is removed
       await expect(page.getByText('Updated Weekday Morning')).not.toBeVisible();
     });
 
-    test('should manage template items with task assignments and overrides', async ({ page }) => {
-      const adminEmail = `admin-template-items-${Date.now()}@example.com`;
+    test('should manage routine items with task assignments and overrides', async ({ page }) => {
+      const adminEmail = `admin-routine-items-${Date.now()}@example.com`;
       
       // Setup admin, family, and tasks
       await page.getByRole('button', { name: 'Sign up here' }).click();
       await page.getByLabel('First Name').fill('Admin');
-      await page.getByLabel('Last Name').fill('TemplateItems');
+      await page.getByLabel('Last Name').fill('RoutineItems');
       await page.getByLabel('Email Address').fill(adminEmail);
       await page.getByLabel('Password', { exact: true }).fill('password123');
       await page.getByLabel('Confirm Password').fill('password123');
@@ -263,10 +263,10 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
       await page.getByText('Create New Family').click();
-      await page.getByLabel('Family Name').fill('Template Items Family');
+      await page.getByLabel('Family Name').fill('Routine Items Family');
       await page.getByRole('button', { name: 'Create Family' }).click();
 
-      await expect(page.getByRole('heading', { name: 'Admin TemplateItems' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Admin RoutineItems' })).toBeVisible({ timeout: 10000 });
       
       // Create some tasks first
       await page.getByRole('button', { name: 'Tasks' }).click();
@@ -285,30 +285,30 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Create Task' }).click();
       await page.waitForTimeout(1000);
 
-      // Navigate to Templates page for template management
-      await page.getByRole('button', { name: 'Templates' }).click();
+      // Navigate to Routines page for routine management
+      await page.getByRole('button', { name: 'Routines' }).click();
       await page.waitForTimeout(2000);
 
-      // Create a template
-      await page.getByRole('button', { name: 'Create Template' }).click();
-      await page.getByLabel('Template Name').fill('Morning Routine');
+      // Create a routine
+      await page.getByRole('button', { name: 'Add Routine' }).click();
+      await page.getByLabel('Routine Name').fill('Morning Routine');
       await page.getByLabel('Description (Optional)').fill('Complete morning routine template');
-      await page.getByRole('button', { name: 'Create Template' }).click();
+      await page.getByRole('button', { name: 'Add Routine' }).click();
       await page.waitForTimeout(2000);
 
-      // Add task to template with default settings
-      await page.getByRole('button', { name: 'Add Task to Template' }).click();
+      // Add task to routine with default settings
+      await page.getByRole('button', { name: 'Add Task to Routine' }).click();
       await page.waitForTimeout(1000); // Wait for dropdown to populate
       await page.getByLabel('Task *').selectOption({ index: 1 }); // Select first available task
       await page.getByRole('button', { name: 'Add Task', exact: true }).click();
       
-      // Verify task appears in template
+      // Verify task appears in routine
       await expect(page.locator('.task-assignment-card')).toBeVisible();
       await expect(page.locator('.task-assignment-card .task-assignment-card-time')).toContainText('06:00');
       await expect(page.locator('.task-assignment-card .task-assignment-card-duration')).toContainText('30m');
 
       // Add task with time override
-      await page.getByRole('button', { name: 'Add Task to Template' }).click();
+      await page.getByRole('button', { name: 'Add Task to Routine' }).click();
       await page.waitForTimeout(1000); // Wait for dropdown to populate
       await page.getByLabel('Task *').selectOption({ index: 2 }); // Select second available task
       await page.getByLabel('Override Time (Optional)').fill('07:00');
@@ -352,19 +352,19 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       // Verify form is closed and data is cleared
       await expect(page.getByLabel('Task Name')).not.toBeVisible();
 
-      // Navigate to Templates page for template management
-      await page.getByRole('button', { name: 'Templates' }).click();
+      // Navigate to Routines page for routine management
+      await page.getByRole('button', { name: 'Routines' }).click();
       await page.waitForTimeout(2000);
 
-      // Start creating a template while task form was cancelled
-      await page.getByRole('button', { name: 'Create Template' }).click();
-      await page.getByLabel('Template Name').fill('Concurrent Template');
+      // Start creating a routine while task form was cancelled
+      await page.getByRole('button', { name: 'Add Routine' }).click();
+      await page.getByLabel('Routine Name').fill('Concurrent Routine');
       
-      // Cancel template creation - use more specific selector
+      // Cancel routine creation - use more specific selector
       await page.locator('.day-template-management-form').getByRole('button', { name: 'Cancel' }).click();
       
-      // Verify template form is closed
-      await expect(page.getByLabel('Template Name')).not.toBeVisible();
+      // Verify routine form is closed
+      await expect(page.getByLabel('Routine Name')).not.toBeVisible();
 
       // Navigate back to Tasks page for task creation
       await page.getByRole('button', { name: 'Tasks' }).click();
