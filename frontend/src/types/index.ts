@@ -204,15 +204,14 @@ export interface TaskStats {
   averageDuration: number;
 }
 
-export interface TaskAssignment {
-  id: string;
-  memberId: string | null;
+// Week Schedule types (replacing TaskAssignment)
+export interface ResolvedTask {
   taskId: string;
+  memberId: string | null;
   overrideTime: string | null;
   overrideDuration: number | null;
-  assignedDate: string;
-  createdAt: string;
-  updatedAt: string;
+  source: 'template' | 'override';
+  task: Task;
   member?: {
     id: string;
     firstName: string;
@@ -221,30 +220,64 @@ export interface TaskAssignment {
     avatarUrl: string | null;
     isVirtual: boolean;
   } | null;
-  task?: {
-    id: string;
-    name: string;
-    description: string | null;
-    color: string;
-    icon: string;
-    defaultStartTime: string;
-    defaultDuration: number;
-    familyId: string;
-  };
 }
 
-export interface CreateTaskAssignmentData {
-  memberId?: string | null;
-  taskId: string;
-  overrideTime?: string | null;
-  overrideDuration?: number | null;
+export interface ResolvedDaySchedule {
+  date: string;
+  dayOfWeek: number;
+  tasks: ResolvedTask[];
+}
+
+export interface ResolvedWeekSchedule {
+  weekStartDate: string;
+  familyId: string;
+  baseTemplate?: WeekTemplate | null;
+  hasOverrides: boolean;
+  days: ResolvedDaySchedule[];
+}
+
+// Override types
+export interface WeekOverride {
+  id: string;
+  weekStartDate: string;
+  weekTemplateId: string | null;
+  familyId: string;
+  createdAt: string;
+  updatedAt: string;
+  taskOverrides?: TaskOverride[];
+}
+
+export interface TaskOverride {
+  id: string;
   assignedDate: string;
+  taskId: string;
+  action: 'ADD' | 'REMOVE' | 'REASSIGN' | 'MODIFY_TIME';
+  originalMemberId: string | null;
+  newMemberId: string | null;
+  overrideTime: string | null;
+  overrideDuration: number | null;
+  createdAt: string;
+  updatedAt: string;
+  weekOverrideId: string;
+  task?: Task;
+  originalMember?: User | null;
+  newMember?: User | null;
 }
 
-export interface UpdateTaskAssignmentData {
+export interface CreateTaskOverrideData {
+  assignedDate: string;
+  taskId: string;
+  action: 'ADD' | 'REMOVE' | 'REASSIGN' | 'MODIFY_TIME';
+  originalMemberId?: string | null;
+  newMemberId?: string | null;
   overrideTime?: string | null;
   overrideDuration?: number | null;
-  assignedDate?: string;
+}
+
+export interface ApplyWeekOverrideData {
+  weekStartDate: string;
+  weekTemplateId?: string | null;
+  taskOverrides: CreateTaskOverrideData[];
 }
 
 // Day Template types
@@ -316,4 +349,55 @@ export interface ApplyDayTemplateData {
   templateId: string;
   dates: string[];
   overrideMemberAssignments?: boolean;
+}
+
+// Week Template types
+export interface WeekTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  familyId: string;
+  days?: WeekTemplateDay[];
+}
+
+export interface WeekTemplateDay {
+  id: string;
+  dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
+  weekTemplateId: string;
+  dayTemplateId: string;
+  createdAt: string;
+  updatedAt: string;
+  dayTemplate?: DayTemplate;
+}
+
+export interface CreateWeekTemplateData {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateWeekTemplateData {
+  name?: string;
+  description?: string;
+  isActive?: boolean;
+}
+
+export interface CreateWeekTemplateDayData {
+  dayOfWeek: number;
+  dayTemplateId: string;
+}
+
+export interface UpdateWeekTemplateDayData {
+  dayTemplateId?: string;
+}
+
+export interface ApplyWeekTemplateData {
+  startDate: string;
+  overrideMemberAssignments?: boolean;
+}
+
+export interface DuplicateWeekTemplateData {
+  name: string;
 } 

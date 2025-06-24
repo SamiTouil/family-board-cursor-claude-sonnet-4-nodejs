@@ -23,8 +23,9 @@ model User {
   reviewedJoinRequests FamilyJoinRequest[] @relation("JoinRequestReviewer")
   joinRequests         FamilyJoinRequest[]
   familyMemberships    FamilyMember[]
-  taskAssignments      TaskAssignment[]
   dayTemplateItems     DayTemplateItem[]
+  originalTaskOverrides TaskOverride[]     @relation("TaskOverrideOriginalMember")
+  newTaskOverrides     TaskOverride[]      @relation("TaskOverrideNewMember")
 
   @@map("users")
 }
@@ -44,6 +45,7 @@ model Family {
   tasks         Task[]
   dayTemplates  DayTemplate[]
   weekTemplates WeekTemplate[]
+  weekOverrides WeekOverride[]
 
   @@map("families")
 }
@@ -112,32 +114,11 @@ model Task {
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")
   familyId           String              @map("family_id")
-  assignments        TaskAssignment[]
   dayTemplateItems   DayTemplateItem[]
+  taskOverrides      TaskOverride[]
   family             Family              @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   @@map("tasks")
-}
-
-// TaskAssignment represents a task scheduled for a specific date
-// Can be assigned to a family member (memberId) or left unassigned (memberId = null)
-// Unassigned tasks are available for any family member to claim or complete
-model TaskAssignment {
-  id               String   @id @default(cuid())
-  memberId         String?  @map("member_id")         // Optional - null means unassigned task
-  taskId           String   @map("task_id")
-  overrideTime     String?  @map("override_time")     // Optional time override in HH:MM format (UTC)
-  overrideDuration Int?     @map("override_duration") // Optional duration override in minutes
-  assignedDate     DateTime @map("assigned_date")     // The date this task is assigned for (stored as UTC date)
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
-  member           User?    @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  task             Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  // Ensure one assignment per member per task per date (allow multiple unassigned)
-  // Note: For unassigned tasks (memberId = null), we allow multiple entries per task per date
-  @@unique([memberId, taskId, assignedDate])
-  @@map("task_assignments")
 }
 
 // DayTemplate represents a reusable template for scheduling tasks
@@ -192,6 +173,7 @@ model WeekTemplate {
   familyId    String             @map("family_id")
   family      Family             @relation(fields: [familyId], references: [id], onDelete: Cascade)
   days        WeekTemplateDay[]  // Day templates for each day of the week
+  weekOverrides WeekOverride[]   // Week overrides that use this template
 
   @@unique([familyId, name]) // Unique template names per family
   @@map("week_templates")
@@ -230,4 +212,58 @@ enum FamilyJoinRequestStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+// WeekOverride stores week-specific overrides and customizations
+// Only created when a week deviates from the standard template
+model WeekOverride {
+  id             String   @id @default(cuid())
+  weekStartDate  DateTime @map("week_start_date") // Monday of the week (YYYY-MM-DD)
+  weekTemplateId String?  @map("week_template_id") // Base template (nullable for custom weeks)
+  familyId       String   @map("family_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  
+  family         Family       @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  weekTemplate   WeekTemplate? @relation(fields: [weekTemplateId], references: [id], onDelete: SetNull)
+  taskOverrides  TaskOverride[]
+  
+  @@unique([familyId, weekStartDate])
+  @@map("week_overrides")
+}
+
+// TaskOverride stores specific task assignment overrides for a week
+// Only created when tasks differ from the week template
+model TaskOverride {
+  id               String             @id @default(cuid())
+  assignedDate     DateTime           @map("assigned_date") // Specific date
+  taskId           String             @map("task_id")
+  
+  // Override types
+  action           TaskOverrideAction // ADD, REMOVE, REASSIGN, MODIFY_TIME
+  
+  // Override values (only set when relevant)
+  originalMemberId String?  @map("original_member_id") // For REASSIGN: who it was assigned to
+  newMemberId      String?  @map("new_member_id")      // For ADD/REASSIGN: who it's now assigned to
+  overrideTime     String?  @map("override_time")      // For MODIFY_TIME: new time
+  overrideDuration Int?     @map("override_duration")  // For MODIFY_TIME: new duration
+  
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  weekOverrideId   String   @map("week_override_id")
+  
+  weekOverride     WeekOverride @relation(fields: [weekOverrideId], references: [id], onDelete: Cascade)
+  task             Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  originalMember   User?        @relation("TaskOverrideOriginalMember", fields: [originalMemberId], references: [id])
+  newMember        User?        @relation("TaskOverrideNewMember", fields: [newMemberId], references: [id])
+  
+  @@unique([weekOverrideId, assignedDate, taskId])
+  @@map("task_overrides")
+}
+
+enum TaskOverrideAction {
+  ADD        // Add a task not in template
+  REMOVE     // Remove a task from template
+  REASSIGN   // Change who's assigned to a task
+  MODIFY_TIME // Change time/duration of a task
 }

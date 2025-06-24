@@ -7,12 +7,12 @@ import {
   CreateDayTemplateItemDto,
   UpdateDayTemplateItemDto,
   DayTemplateQueryParams,
-  ApplyDayTemplateDto,
+
   CreateDayTemplateSchema,
   UpdateDayTemplateSchema,
   CreateDayTemplateItemSchema,
   UpdateDayTemplateItemSchema,
-  TaskAssignmentWithRelations,
+
 } from '../types/task.types';
 
 const prisma = new PrismaClient();
@@ -692,14 +692,13 @@ export class DayTemplateService {
   // ==================== TEMPLATE APPLICATION ====================
 
   /**
-   * Apply a day template to specific dates, creating task assignments
+   * Get template preview - shows what tasks would be scheduled
+   * Note: Actual application now happens via WeekTemplate system
    */
-  async applyTemplate(
-    data: ApplyDayTemplateDto,
+  async getTemplatePreview(
+    templateId: string,
     familyId: string
-  ): Promise<TaskAssignmentWithRelations[]> {
-    const { templateId, dates, overrideMemberAssignments = false } = data;
-
+  ): Promise<DayTemplateItemWithRelations[]> {
     // Verify template exists and belongs to the family
     const template = await this.getDayTemplateById(templateId, familyId);
     if (!template) {
@@ -707,91 +706,10 @@ export class DayTemplateService {
     }
 
     if (!template.isActive) {
-      throw new Error('Cannot apply inactive template');
+      throw new Error('Cannot preview inactive template');
     }
 
-    if (template.items.length === 0) {
-      throw new Error('Template has no items to apply');
-    }
-
-    // Validate dates
-    const validDates = dates.map(dateStr => {
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) {
-        throw new Error(`Invalid date: ${dateStr}`);
-      }
-      // Normalize to UTC midnight
-      date.setUTCHours(0, 0, 0, 0);
-      return date;
-    });
-
-    const createdAssignments: TaskAssignmentWithRelations[] = [];
-
-    // Process each date
-    for (const assignedDate of validDates) {
-      // Process each template item
-      for (const item of template.items) {
-        // Check if assignment already exists
-        const existingAssignment = await prisma.taskAssignment.findFirst({
-          where: {
-            memberId: item.memberId,
-            taskId: item.taskId,
-            assignedDate: assignedDate,
-          },
-        });
-
-        // Skip if assignment exists and we're not overriding
-        if (existingAssignment && !overrideMemberAssignments) {
-          continue;
-        }
-
-        // Delete existing assignment if overriding
-        if (existingAssignment && overrideMemberAssignments) {
-          await prisma.taskAssignment.delete({
-            where: { id: existingAssignment.id },
-          });
-        }
-
-        // Create new assignment from template item
-        const newAssignment = await prisma.taskAssignment.create({
-          data: {
-            memberId: item.memberId,
-            taskId: item.taskId,
-            overrideTime: item.overrideTime,
-            overrideDuration: item.overrideDuration,
-            assignedDate: assignedDate,
-          },
-          include: {
-            member: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-                avatarUrl: true,
-                isVirtual: true,
-              },
-            },
-            task: {
-              select: {
-                id: true,
-                name: true,
-                description: true,
-                color: true,
-                icon: true,
-                defaultStartTime: true,
-                defaultDuration: true,
-                familyId: true,
-              },
-            },
-          },
-        });
-
-        createdAssignments.push(newAssignment);
-      }
-    }
-
-    return createdAssignments;
+    return template.items;
   }
 
   /**

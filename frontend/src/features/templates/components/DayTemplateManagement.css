@@ -1,0 +1,405 @@
+/* Day Template Management Component Styles */
+.day-template-management {
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Header */
+.day-template-management-header {
+  height: 57px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  gap: 12px;
+}
+
+.day-template-management-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.day-template-management-content {
+  /* No padding needed - subsections handle their own spacing */
+}
+
+/* Messages */
+.day-template-management-message {
+  margin: 16px 24px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.day-template-management-message-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.day-template-management-message-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* Subsections */
+.day-template-management-subsection {
+  padding: 24px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.day-template-management-subsection:last-child {
+  border-bottom: none;
+}
+
+.day-template-management-subsection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.day-template-management-subsection-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-template-management-count-badge {
+  background: #e5e7eb;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 12px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.day-template-management-button-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* Buttons */
+.day-template-management-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.day-template-management-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.day-template-management-button-primary {
+  background: #6366f1;
+  color: white;
+}
+
+.day-template-management-button-primary:hover:not(:disabled) {
+  background: #5856eb;
+}
+
+.day-template-management-button-secondary {
+  background: #f9fafb;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+
+.day-template-management-button-secondary:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.day-template-management-button-sm {
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+}
+
+/* Form Styles */
+.day-template-management-template-add-inline,
+.day-template-management-template-item-add-inline {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.day-template-management-form-title {
+  margin: 0 0 8px 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.day-template-management-help-text {
+  margin: 0 0 16px 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.day-template-management-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.day-template-management-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.day-template-management-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.day-template-management-label {
+  font-weight: 500;
+  color: #111827;
+  font-size: 0.875rem;
+}
+
+.day-template-management-input {
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.day-template-management-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.day-template-management-input:disabled {
+  background-color: #f9fafb;
+  opacity: 0.6;
+}
+
+.day-template-management-error {
+  color: #dc2626;
+  font-size: 0.8125rem;
+  margin: 0;
+}
+
+.day-template-management-form-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+/* Empty States */
+.day-template-management-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  border: 2px dashed #d1d5db;
+}
+
+.day-template-management-empty-icon {
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.day-template-management-empty-icon svg {
+  color: #6b7280;
+}
+
+.day-template-management-empty-title {
+  margin: 0 0 8px 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.day-template-management-empty-description {
+  margin: 0 0 24px 0;
+  color: #6b7280;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+/* Templates List */
+.day-template-management-templates-list {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.day-template-management-template {
+  background-color: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+  width: fit-content;
+  min-width: 300px;
+  max-width: 400px;
+  flex-shrink: 0;
+}
+
+.day-template-management-template-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #d1d5db;
+  background-color: #ffffff;
+}
+
+.day-template-management-template-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.day-template-management-template-name {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.day-template-management-template-description {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.day-template-management-template-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.day-template-management-template-action {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 1.125rem;
+  transition: all 0.2s ease;
+}
+
+.day-template-management-template-action:hover:not(:disabled) {
+  background-color: #e5e7eb;
+}
+
+.day-template-management-template-action.delete {
+  color: #dc2626;
+}
+
+.day-template-management-template-action.delete:hover:not(:disabled) {
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
+/* Template Items */
+.day-template-management-template-items {
+  padding: 20px;
+}
+
+.day-template-management-template-empty {
+  text-align: center;
+  padding: 24px;
+  color: #6b7280;
+}
+
+.day-template-management-template-empty p {
+  margin: 0 0 8px 0;
+}
+
+.day-template-management-template-items-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .day-template-management-subsection-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .day-template-management-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .day-template-management-template-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .day-template-management-template-items-grid {
+    gap: 2px;
+  }
+
+  .day-template-management-templates-list {
+    flex-direction: column;
+  }
+
+  .day-template-management-template {
+    width: 100%;
+    min-width: unset;
+    max-width: unset;
+  }
+}
+
+@media (max-width: 480px) {
+  .day-template-management-template-add-inline,
+  .day-template-management-template-item-add-inline {
+    padding: 16px;
+  }
+
+  .day-template-management-form-actions {
+    flex-direction: column;
+  }
+
+  .day-template-management-button-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .day-template-management-button {
+    width: 100%;
+    justify-content: center;
+  }
+} 

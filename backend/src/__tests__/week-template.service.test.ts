@@ -306,20 +306,5 @@ describe('WeekTemplateService', () => {
     });
   });
 
-  describe('applyWeekTemplate', () => {
-    const mockTemplateId = 'template-1';
-    const mockFamilyId = 'family-1';
-    const mockData = {
-      templateId: mockTemplateId,
-      startDate: '2024-01-01', // Monday
-    };
 
-    it('should throw error if template not found', async () => {
-      (mockPrisma.weekTemplate.findFirst as jest.Mock).mockResolvedValue(null);
-
-      await expect(
-        weekTemplateService.applyWeekTemplate(mockData, mockFamilyId)
-      ).rejects.toThrow('Week template not found');
-    });
-  });
 }); 

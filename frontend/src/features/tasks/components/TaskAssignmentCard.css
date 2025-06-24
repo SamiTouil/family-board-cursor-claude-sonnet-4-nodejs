@@ -102,6 +102,26 @@
   min-width: 0;
 }
 
+.task-assignment-card-source {
+  font-size: 0.75rem;
+  padding: 1px 4px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.task-assignment-card-source.template {
+  background: #e0e7ff;
+  color: #3730a3;
+  title: "From template";
+}
+
+.task-assignment-card-source.override {
+  background: #fef3c7;
+  color: #92400e;
+  title: "Custom override";
+}
+
 .task-assignment-card-time-container {
   display: flex;
   align-items: center;
@@ -200,6 +220,12 @@
   background: #fee2e2;
   border-color: #fca5a5;
   color: #dc2626;
+}
+
+.task-assignment-card-action.override:hover {
+  background: #fef3c7;
+  border-color: #fbbf24;
+  color: #92400e;
 }
 
 .task-assignment-card-action:disabled {

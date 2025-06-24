@@ -291,6 +291,82 @@
       "durationTooLong": "La durée ne peut pas dépasser 24 heures (1440 minutes)"
     }
   },
+  "weekTemplates": {
+    "title": "Modèles de Semaine",
+    "loadError": "Échec du chargement des modèles de semaine",
+    "createSuccess": "Modèle de semaine créé avec succès",
+    "createError": "Échec de la création du modèle de semaine",
+    "updateSuccess": "Modèle de semaine mis à jour avec succès",
+    "updateError": "Échec de la mise à jour du modèle de semaine",
+    "deleteSuccess": "Modèle de semaine supprimé avec succès",
+    "deleteError": "Échec de la suppression du modèle de semaine",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer '{{name}}' ?",
+    "duplicateSuccess": "Modèle de semaine dupliqué avec succès",
+    "duplicateError": "Échec de la duplication du modèle de semaine",
+    "duplicatePrompt": "Entrez un nom pour le modèle dupliqué :",
+    "applySuccess": "Modèle de semaine appliqué avec succès",
+    "applyError": "Échec de l'application du modèle de semaine",
+    "daysAssignedSuccess": "Affectations de jours sauvegardées avec succès",
+    "daysAssignError": "Échec de la sauvegarde des affectations de jours",
+    "daysAssigned": "jours affectés",
+    "assignedDays": "Jours Affectés",
+    "unknownTemplate": "Modèle Inconnu",
+    "templates": {
+      "title": "Modèles de Semaine",
+      "add": "Ajouter un Modèle",
+      "edit": "Modifier le Modèle",
+      "empty": {
+        "title": "Aucun Modèle de Semaine",
+        "description": "Créez votre premier modèle de semaine pour organiser les horaires hebdomadaires récurrents."
+      }
+    },
+    "fields": {
+      "name": "Nom du Modèle",
+      "description": "Description"
+    },
+    "placeholders": {
+      "name": "Entrez le nom du modèle",
+      "description": "Décrivez cet horaire hebdomadaire"
+    },
+    "validation": {
+      "nameRequired": "Le nom du modèle est requis",
+      "nameTooShort": "Le nom du modèle doit contenir au moins 2 caractères",
+      "nameTooLong": "Le nom du modèle doit contenir moins de 100 caractères",
+      "descriptionTooLong": "La description doit contenir moins de 500 caractères",
+      "nameExists": "Un modèle avec ce nom existe déjà"
+    },
+    "actions": {
+      "apply": "Appliquer",
+      "assignDays": "Affecter les Jours",
+      "duplicate": "Dupliquer",
+      "edit": "Modifier",
+      "delete": "Supprimer"
+    },
+    "assignDays": {
+      "title": "Affecter les Modèles de Jour",
+      "description": "Sélectionnez un modèle de jour pour chaque jour de la semaine.",
+      "selectTemplate": "Sélectionnez un modèle de jour...",
+      "save": "Sauvegarder les Affectations"
+    },
+    "apply": {
+      "title": "Appliquer le Modèle de Semaine",
+      "description": "Appliquez ce modèle pour créer des affectations de tâches pour une semaine complète.",
+      "startDate": "Date de Début (Lundi)",
+      "startDateHelp": "Sélectionnez le lundi où cette semaine devrait commencer",
+      "overrideAssignments": "Remplacer les affectations existantes",
+      "overrideAssignmentsHelp": "Remplacer toutes les affectations de tâches existantes pour cette semaine",
+      "confirm": "Appliquer le Modèle"
+    },
+    "days": {
+      "sunday": "Dimanche",
+      "monday": "Lundi",
+      "tuesday": "Mardi",
+      "wednesday": "Mercredi",
+      "thursday": "Jeudi",
+      "friday": "Vendredi",
+      "saturday": "Samedi"
+    }
+  },
   "errors": {
     "validationError": "Veuillez vérifier votre saisie et réessayer",
     "invalidCredentials": "Email ou mot de passe invalide",
