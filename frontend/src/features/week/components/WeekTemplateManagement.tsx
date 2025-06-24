@@ -291,7 +291,7 @@ export const WeekTemplateManagement: React.FC = () => {
     if (!currentFamily || !applyingTemplate || !applyData.startDate) return;
 
     try {
-      const response = await weekTemplateApi.applyTemplate(currentFamily.id, applyingTemplate, {
+      await weekTemplateApi.applyTemplate(currentFamily.id, applyingTemplate, {
         startDate: applyData.startDate,
         overrideMemberAssignments: applyData.overrideMemberAssignments,
       });
