@@ -337,7 +337,7 @@ export const WeekTemplateManagement: React.FC = () => {
       // Handle days that were not in selectedDayTemplates but exist in the template
       // (This handles the case where a day had an assignment but user didn't touch it in the dialog)
       for (const existingDay of existingDays) {
-        if (!selectedDayTemplates.hasOwnProperty(existingDay.dayOfWeek)) {
+        if (!Object.prototype.hasOwnProperty.call(selectedDayTemplates, existingDay.dayOfWeek)) {
           // This day exists in template but wasn't in the dialog selection - remove it
           await weekTemplateApi.removeTemplateDay(currentFamily.id, assigningDays, existingDay.id);
         }
