@@ -224,7 +224,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       // Test routine creation
       await page.getByRole('button', { name: 'Add Routine' }).click();
       await page.getByLabel('Routine Name').fill('Weekday Morning');
-      await page.getByLabel('Description (Optional)').fill('Standard weekday morning routine');
+      await page.getByLabel('Description').fill('Standard weekday morning routine');
       await page.getByRole('button', { name: 'Add Routine' }).click();
 
       // Verify routine appears
@@ -292,7 +292,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       // Create a routine
       await page.getByRole('button', { name: 'Add Routine' }).click();
       await page.getByLabel('Routine Name').fill('Morning Routine');
-      await page.getByLabel('Description (Optional)').fill('Complete morning routine template');
+      await page.getByLabel('Description').fill('Complete morning routine template');
       await page.getByRole('button', { name: 'Add Routine' }).click();
       await page.waitForTimeout(2000);
 
