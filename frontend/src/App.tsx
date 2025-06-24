@@ -9,7 +9,7 @@ import { FamilyOnboarding } from './features/family/components/FamilyOnboarding'
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
-import TemplatesPage from './pages/WeekPage';
+import RoutinesPage from './pages/WeekPage';
 import TasksPage from './pages/TasksPage';
 import FamilyPage from './pages/FamilyPage';
 import './App.css';
@@ -39,7 +39,7 @@ const AppContent: React.FC = () => {
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<HomePage />} />
-        <Route path="week" element={<TemplatesPage />} />
+        <Route path="week" element={<RoutinesPage />} />
         <Route path="family" element={<FamilyPage />} />
         <Route path="tasks" element={<TasksPage />} />
       </Route>
