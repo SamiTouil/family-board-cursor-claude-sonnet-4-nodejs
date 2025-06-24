@@ -5,7 +5,6 @@ import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.midd
 import {
   WeekTemplateResponseDto,
   WeekTemplateDayResponseDto,
-  ApplyWeekTemplateDto,
 } from '../types/task.types';
 import { PrismaClient } from '@prisma/client';
 
@@ -952,89 +951,7 @@ router.post('/:familyId/week-templates/:templateId/duplicate', async (req: Authe
   }
 });
 
-/**
- * POST /api/families/:familyId/week-templates/:templateId/apply
- * Apply a week template to a specific week
- */
-router.post('/:familyId/week-templates/:templateId/apply', async (req: AuthenticatedRequest, res: Response) => {
-  console.log('=== WEEK TEMPLATE APPLY REQUEST ===');
-  console.log('URL params:', req.params);
-  console.log('Request body:', req.body);
-  console.log('User from token:', req.user);
-  
-  try {
-    const { familyId, templateId } = req.params;
-    const userId = req.user!.userId;
-    
-    console.log('Extracted familyId:', familyId);
-    console.log('Extracted templateId:', templateId);
-    console.log('Extracted userId:', userId);
-    
-    if (!familyId || !templateId) {
-      console.log('ERROR: Missing familyId or templateId');
-      return res.status(400).json({ error: 'Family ID and Template ID are required' });
-    }
-
-    console.log('Checking family admin permissions...');
-    // Check if user is admin of the family
-    await checkFamilyAdmin(userId, familyId);
-    console.log('Admin check passed!');
-
-    const applyData: ApplyWeekTemplateDto = {
-      templateId,
-      startDate: req.body.startDate,
-      overrideMemberAssignments: req.body.overrideMemberAssignments || false,
-    };
-
-    console.log('Applying week template with service...');
-    const assignments = await weekTemplateService.applyWeekTemplate(applyData, familyId);
-    console.log('Week template applied successfully, created assignments:', assignments.length);
-    
-    const response = {
-      message: 'Week template applied successfully',
-      assignmentsCreated: assignments.length,
-      assignments: assignments.map((assignment) => ({
-        id: assignment.id,
-        memberId: assignment.memberId,
-        taskId: assignment.taskId,
-        overrideTime: assignment.overrideTime,
-        overrideDuration: assignment.overrideDuration,
-        assignedDate: assignment.assignedDate.toISOString().split('T')[0], // YYYY-MM-DD format
-        createdAt: assignment.createdAt.toISOString(),
-        updatedAt: assignment.updatedAt.toISOString(),
-        member: assignment.member,
-        task: assignment.task,
-      })),
-    };
-
-    return res.status(201).json(response);
-  } catch (error) {
-    console.log('=== WEEK TEMPLATE APPLY ERROR ===');
-    console.log('Error type:', error?.constructor?.name);
-    console.log('Error message:', (error as any)?.message);
-    
-    if (error instanceof Error) {
-      if (error.message.includes('Access denied')) {
-        console.log('Access denied error');
-        return res.status(403).json({ error: error.message });
-      }
-      if (error.message.includes('not found')) {
-        console.log('Not found error');
-        return res.status(404).json({ error: error.message });
-      }
-      if (error.message.includes('Invalid start date')) {
-        console.log('Invalid date error');
-        return res.status(400).json({ error: error.message });
-      }
-      if (error.message.includes('must be a Monday')) {
-        console.log('Invalid start day error');
-        return res.status(400).json({ error: error.message });
-      }
-    }
-
-    console.error('Unexpected error applying week template:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-});
+// Note: Week template application is now handled by the WeekScheduleService
+// Templates are applied when creating week schedules, not directly through this endpoint
 
 export default router; 

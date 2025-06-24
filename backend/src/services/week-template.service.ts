@@ -7,12 +7,12 @@ import {
   CreateWeekTemplateDayDto,
   UpdateWeekTemplateDayDto,
   WeekTemplateQueryParams,
-  ApplyWeekTemplateDto,
+
   CreateWeekTemplateSchema,
   UpdateWeekTemplateSchema,
   CreateWeekTemplateDaySchema,
   UpdateWeekTemplateDaySchema,
-  TaskAssignmentWithRelations,
+
 } from '../types/task.types';
 
 const prisma = new PrismaClient();
@@ -932,68 +932,20 @@ export class WeekTemplateService {
   }
 
   /**
-   * Apply a week template to a specific week
-   * Creates task assignments for all days in the week based on the template
+   * Get week template preview - shows what tasks would be scheduled for the week
+   * Note: Actual application now happens via WeekSchedule system
    */
-  async applyWeekTemplate(
-    data: ApplyWeekTemplateDto,
+  async getWeekTemplatePreview(
+    templateId: string,
     familyId: string
-  ): Promise<TaskAssignmentWithRelations[]> {
-    const { templateId, startDate, overrideMemberAssignments = false } = data;
-
+  ): Promise<WeekTemplateWithRelations> {
     // Verify week template exists and belongs to the family
     const weekTemplate = await this.getWeekTemplateById(templateId, familyId);
     if (!weekTemplate) {
       throw new Error('Week template not found');
     }
 
-    // Parse start date and calculate all dates for the week
-    const startDateObj = new Date(startDate);
-    if (isNaN(startDateObj.getTime())) {
-      throw new Error('Invalid start date format');
-    }
-
-    // Ensure start date is a Monday (day 1)
-    const dayOfWeek = startDateObj.getDay();
-    if (dayOfWeek !== 1) {
-      throw new Error('Start date must be a Monday');
-    }
-
-    const weekDates: Date[] = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startDateObj);
-      date.setDate(startDateObj.getDate() + i);
-      weekDates.push(date);
-    }
-
-    const createdAssignments: TaskAssignmentWithRelations[] = [];
-
-    // Apply each day template to its corresponding date
-    for (const weekTemplateDay of weekTemplate.days) {
-      // Convert ISO day of week (0=Sunday, 1=Monday, ..., 6=Saturday) to array index (0=Monday, ..., 6=Sunday)
-      const dateIndex = weekTemplateDay.dayOfWeek === 0 ? 6 : weekTemplateDay.dayOfWeek - 1;
-      const targetDate = weekDates[dateIndex];
-      
-      if (!targetDate) {
-        throw new Error(`Invalid day of week: ${weekTemplateDay.dayOfWeek}`);
-      }
-      
-      // Apply the day template to this specific date
-      const dayTemplateService = new (await import('./day-template.service')).DayTemplateService();
-      const dateString = targetDate.toISOString().split('T')[0]!; // Convert to YYYY-MM-DD
-      const assignments = await dayTemplateService.applyTemplate(
-        {
-          templateId: weekTemplateDay.dayTemplateId,
-          dates: [dateString],
-          overrideMemberAssignments,
-        },
-        familyId
-      );
-
-      createdAssignments.push(...assignments);
-    }
-
-    return createdAssignments;
+    return weekTemplate;
   }
 }
 

@@ -151,28 +151,63 @@ export const dayTemplateApi = {
   }
 };
 
-export const taskAssignmentApi = {
-  async getAssignments(familyId: string, params?: any) {
-    return await apiClient.get(`/families/${familyId}/task-assignments`, { params });
+export const weekScheduleApi = {
+  async getWeekSchedule(familyId: string, weekStartDate: string) {
+    return await apiClient.get(`/families/${familyId}/week-schedule`, { 
+      params: { weekStartDate } 
+    });
   },
   
-  async createAssignment(familyId: string, data: any) {
-    return await apiClient.post(`/families/${familyId}/task-assignments`, data);
+  async applyWeekOverride(familyId: string, data: any) {
+    return await apiClient.post(`/families/${familyId}/week-schedule/override`, data);
   },
   
-  async updateAssignment(familyId: string, assignmentId: string, data: any) {
-    return await apiClient.put(`/families/${familyId}/task-assignments/${assignmentId}`, data);
+  async removeWeekOverride(familyId: string, weekStartDate: string) {
+    return await apiClient.delete(`/families/${familyId}/week-schedule/override`, {
+      params: { weekStartDate }
+    });
+  }
+};
+
+export const weekTemplateApi = {
+  async getTemplates(familyId: string, params?: any) {
+    return await apiClient.get(`/families/${familyId}/week-templates`, { params });
   },
   
-  async deleteAssignment(familyId: string, assignmentId: string) {
-    return await apiClient.delete(`/families/${familyId}/task-assignments/${assignmentId}`);
+  async createTemplate(familyId: string, data: any) {
+    return await apiClient.post(`/families/${familyId}/week-templates`, data);
   },
   
-  async getMemberAssignments(familyId: string, memberId: string, params?: any) {
-    return await apiClient.get(`/families/${familyId}/members/${memberId}/assignments`, { params });
+  async updateTemplate(familyId: string, templateId: string, data: any) {
+    return await apiClient.put(`/families/${familyId}/week-templates/${templateId}`, data);
   },
   
-  async getTaskAssignments(familyId: string, taskId: string, params?: any) {
-    return await apiClient.get(`/families/${familyId}/tasks/${taskId}/assignments`, { params });
+  async deleteTemplate(familyId: string, templateId: string) {
+    return await apiClient.delete(`/families/${familyId}/week-templates/${templateId}`);
+  },
+  
+  async duplicateTemplate(familyId: string, templateId: string, data: any) {
+    return await apiClient.post(`/families/${familyId}/week-templates/${templateId}/duplicate`, data);
+  },
+  
+  async applyTemplate(familyId: string, templateId: string, data: any) {
+    return await apiClient.post(`/families/${familyId}/week-templates/${templateId}/apply`, data);
+  },
+  
+  // Template days
+  async getTemplateDays(familyId: string, templateId: string) {
+    return await apiClient.get(`/families/${familyId}/week-templates/${templateId}/days`);
+  },
+  
+  async addTemplateDay(familyId: string, templateId: string, data: any) {
+    return await apiClient.post(`/families/${familyId}/week-templates/${templateId}/days`, data);
+  },
+  
+  async updateTemplateDay(familyId: string, templateId: string, dayId: string, data: any) {
+    return await apiClient.put(`/families/${familyId}/week-templates/${templateId}/days/${dayId}`, data);
+  },
+  
+  async removeTemplateDay(familyId: string, templateId: string, dayId: string) {
+    return await apiClient.delete(`/families/${familyId}/week-templates/${templateId}/days/${dayId}`);
   }
 }; 

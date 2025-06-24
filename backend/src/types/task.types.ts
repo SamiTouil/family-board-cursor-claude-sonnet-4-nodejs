@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// Base Task interface matching Prisma model
+// Task interface matching Prisma model
 export interface Task {
   id: string;
   name: string;
@@ -15,40 +15,6 @@ export interface Task {
   familyId: string;
 }
 
-// TaskAssignment interface matching Prisma model
-export interface TaskAssignment {
-  id: string;
-  memberId: string | null; // null means unassigned task
-  taskId: string;
-  overrideTime: string | null; // HH:MM format in UTC, overrides task's defaultStartTime
-  overrideDuration: number | null; // Duration in minutes, overrides task's defaultDuration
-  assignedDate: Date; // The date this task is assigned for (stored as UTC date)
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// TaskAssignment with related data
-export interface TaskAssignmentWithRelations extends TaskAssignment {
-  member: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string | null;
-    avatarUrl: string | null;
-    isVirtual: boolean;
-  } | null; // null for unassigned tasks
-  task: {
-    id: string;
-    name: string;
-    description: string | null;
-    color: string;
-    icon: string;
-    defaultStartTime: string;
-    defaultDuration: number;
-    familyId: string;
-  };
-}
-
 // Task with family relation
 export interface TaskWithFamily extends Task {
   family: {
@@ -57,9 +23,9 @@ export interface TaskWithFamily extends Task {
   };
 }
 
-// Task with assignments
-export interface TaskWithAssignments extends Task {
-  assignments: TaskAssignment[];
+// Task with template items for display
+export interface TaskWithTemplateItems extends Task {
+  dayTemplateItems: DayTemplateItem[];
 }
 
 // Validation schemas using Zod
@@ -86,27 +52,12 @@ export const DuplicateTaskSchema = z.object({
   name: z.string().min(1, 'Task name is required').max(100, 'Task name is too long').optional(),
 });
 
-// TaskAssignment validation schemas
-export const CreateTaskAssignmentSchema = z.object({
-  memberId: z.string().min(1, 'Member ID is required').optional().nullable(), // Optional - null means unassigned
-  taskId: z.string().min(1, 'Task ID is required'),
-  overrideTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Override time must be in HH:MM format (e.g., 14:30)').optional().nullable(),
-  overrideDuration: z.number().int().min(1, 'Duration must be at least 1 minute').max(1440, 'Duration cannot exceed 24 hours').optional().nullable(),
-  assignedDate: z.string().datetime('Assigned date must be a valid ISO datetime string'),
-});
 
-export const UpdateTaskAssignmentSchema = z.object({
-  overrideTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Override time must be in HH:MM format (e.g., 14:30)').optional().nullable(),
-  overrideDuration: z.number().int().min(1, 'Duration must be at least 1 minute').max(1440, 'Duration cannot exceed 24 hours').optional().nullable(),
-  assignedDate: z.string().datetime('Assigned date must be a valid ISO datetime string').optional(),
-});
 
 // DTOs for API requests/responses
 export type CreateTaskDto = z.infer<typeof CreateTaskSchema>;
 export type UpdateTaskDto = z.infer<typeof UpdateTaskSchema>;
 export type DuplicateTaskDto = z.infer<typeof DuplicateTaskSchema>;
-export type CreateTaskAssignmentDto = z.infer<typeof CreateTaskAssignmentSchema>;
-export type UpdateTaskAssignmentDto = z.infer<typeof UpdateTaskAssignmentSchema>;
 
 export interface TaskResponseDto {
   id: string;
@@ -122,34 +73,7 @@ export interface TaskResponseDto {
   familyId: string;
 }
 
-export interface TaskAssignmentResponseDto {
-  id: string;
-  memberId: string | null; // null for unassigned tasks
-  taskId: string;
-  overrideTime: string | null;
-  overrideDuration: number | null;
-  assignedDate: string; // ISO string for API responses
-  createdAt: string; // ISO string for API responses
-  updatedAt: string; // ISO string for API responses
-  member?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string | null;
-    avatarUrl: string | null;
-    isVirtual: boolean;
-  } | null; // null for unassigned tasks
-  task?: {
-    id: string;
-    name: string;
-    description: string | null;
-    color: string;
-    icon: string;
-    defaultStartTime: string;
-    defaultDuration: number;
-    familyId: string;
-  };
-}
+
 
 // Query parameters for listing tasks
 export interface TaskQueryParams {
@@ -159,16 +83,7 @@ export interface TaskQueryParams {
   limit?: number;
 }
 
-// Query parameters for listing task assignments
-export interface TaskAssignmentQueryParams {
-  memberId?: string | undefined;
-  taskId?: string | undefined;
-  assignedDate?: string | undefined; // ISO date string (YYYY-MM-DD)
-  startDate?: string | undefined; // ISO date string for date range filtering
-  endDate?: string | undefined; // ISO date string for date range filtering
-  page?: number;
-  limit?: number;
-}
+
 
 // Predefined common task icons (can be extended)
 export const TASK_ICONS = [
@@ -466,4 +381,220 @@ export interface ApplyWeekTemplateDto {
   templateId: string;
   startDate: string; // ISO date string (YYYY-MM-DD) for the Monday of the week
   overrideMemberAssignments?: boolean; // Whether to override existing member assignments
+}
+
+// ==================== WEEK OVERRIDE TYPES ====================
+
+// WeekOverride interface matching Prisma model
+export interface WeekOverride {
+  id: string;
+  weekStartDate: Date; // Monday of the week
+  weekTemplateId: string | null; // Base template (nullable for custom weeks)
+  familyId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// TaskOverride interface matching Prisma model
+export interface TaskOverride {
+  id: string;
+  assignedDate: Date; // Specific date
+  taskId: string;
+  action: TaskOverrideAction; // ADD, REMOVE, REASSIGN, MODIFY_TIME
+  originalMemberId: string | null; // For REASSIGN: who it was assigned to
+  newMemberId: string | null; // For ADD/REASSIGN: who it's now assigned to
+  overrideTime: string | null; // For MODIFY_TIME: new time
+  overrideDuration: number | null; // For MODIFY_TIME: new duration
+  createdAt: Date;
+  updatedAt: Date;
+  weekOverrideId: string;
+}
+
+// Enum for task override actions
+export enum TaskOverrideAction {
+  ADD = 'ADD',
+  REMOVE = 'REMOVE',
+  REASSIGN = 'REASSIGN',
+  MODIFY_TIME = 'MODIFY_TIME',
+}
+
+// WeekOverride with related data
+export interface WeekOverrideWithRelations extends WeekOverride {
+  family: {
+    id: string;
+    name: string;
+  };
+  weekTemplate?: {
+    id: string;
+    name: string;
+    description: string | null;
+  } | null;
+  taskOverrides: TaskOverrideWithRelations[];
+}
+
+// TaskOverride with related data
+export interface TaskOverrideWithRelations extends TaskOverride {
+  weekOverride: {
+    id: string;
+    weekStartDate: Date;
+    weekTemplateId: string | null;
+    familyId: string;
+  };
+  task: {
+    id: string;
+    name: string;
+    description: string | null;
+    color: string;
+    icon: string;
+    defaultStartTime: string;
+    defaultDuration: number;
+    familyId: string;
+  };
+  originalMember?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    avatarUrl: string | null;
+    isVirtual: boolean;
+  } | null;
+  newMember?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    avatarUrl: string | null;
+    isVirtual: boolean;
+  } | null;
+}
+
+// Validation schemas for week overrides
+export const CreateWeekOverrideSchema = z.object({
+  weekStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Week start date must be in YYYY-MM-DD format'),
+  weekTemplateId: z.string().min(1, 'Week template ID is required').optional().nullable(),
+});
+
+export const CreateTaskOverrideSchema = z.object({
+  assignedDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Assigned date must be in YYYY-MM-DD format'),
+  taskId: z.string().min(1, 'Task ID is required'),
+  action: z.nativeEnum(TaskOverrideAction),
+  originalMemberId: z.string().min(1).optional().nullable(),
+  newMemberId: z.string().min(1).optional().nullable(),
+  overrideTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Override time must be in HH:MM format').optional().nullable(),
+  overrideDuration: z.number().int().min(1).max(1440).optional().nullable(),
+});
+
+// DTOs for API requests/responses
+export type CreateWeekOverrideDto = z.infer<typeof CreateWeekOverrideSchema>;
+export type CreateTaskOverrideDto = z.infer<typeof CreateTaskOverrideSchema>;
+
+export interface WeekOverrideResponseDto {
+  id: string;
+  weekStartDate: string; // ISO string for API responses
+  weekTemplateId: string | null;
+  familyId: string;
+  createdAt: string; // ISO string for API responses
+  updatedAt: string; // ISO string for API responses
+  taskOverrides?: TaskOverrideResponseDto[];
+}
+
+export interface TaskOverrideResponseDto {
+  id: string;
+  assignedDate: string; // ISO string for API responses
+  taskId: string;
+  action: TaskOverrideAction;
+  originalMemberId: string | null;
+  newMemberId: string | null;
+  overrideTime: string | null;
+  overrideDuration: number | null;
+  createdAt: string; // ISO string for API responses
+  updatedAt: string; // ISO string for API responses
+  weekOverrideId: string;
+  task?: {
+    id: string;
+    name: string;
+    description: string | null;
+    color: string;
+    icon: string;
+    defaultStartTime: string;
+    defaultDuration: number;
+    familyId: string;
+  };
+  originalMember?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    avatarUrl: string | null;
+    isVirtual: boolean;
+  } | null;
+  newMember?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    avatarUrl: string | null;
+    isVirtual: boolean;
+  } | null;
+}
+
+// ==================== WEEK SCHEDULE TYPES ====================
+
+// Resolved task for a specific date (combines template + overrides)
+export interface ResolvedTask {
+  taskId: string;
+  memberId: string | null;
+  overrideTime: string | null;
+  overrideDuration: number | null;
+  source: 'template' | 'override'; // Whether this comes from template or override
+  task: {
+    id: string;
+    name: string;
+    description: string | null;
+    color: string;
+    icon: string;
+    defaultStartTime: string;
+    defaultDuration: number;
+    familyId: string;
+  };
+  member?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    avatarUrl: string | null;
+    isVirtual: boolean;
+  } | null;
+}
+
+// Resolved schedule for a specific day
+export interface ResolvedDaySchedule {
+  date: Date;
+  dayOfWeek: number; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  tasks: ResolvedTask[];
+}
+
+// Resolved schedule for a full week
+export interface ResolvedWeekSchedule {
+  weekStartDate: Date; // Monday of the week
+  familyId: string;
+  baseTemplate?: {
+    id: string;
+    name: string;
+    description: string | null;
+  } | null;
+  hasOverrides: boolean;
+  days: ResolvedDaySchedule[];
+}
+
+// Query parameters for getting week schedules
+export interface WeekScheduleQueryParams {
+  weekStartDate: string; // ISO date string (YYYY-MM-DD) for the Monday of the week
+}
+
+// DTO for applying week overrides
+export interface ApplyWeekOverrideDto {
+  weekStartDate: string; // ISO date string (YYYY-MM-DD) for the Monday of the week
+  weekTemplateId?: string | null; // Optional: change the base template for this week
+  taskOverrides: CreateTaskOverrideDto[]; // Array of task overrides to apply
 } 

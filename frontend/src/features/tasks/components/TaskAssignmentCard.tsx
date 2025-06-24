@@ -1,24 +1,29 @@
 import React from 'react';
-import type { TaskAssignment } from '../../../types';
+import type { ResolvedTask } from '../../../types';
 import { UserAvatar } from '../../../components/ui/UserAvatar';
 import './TaskAssignmentCard.css';
 
-interface TaskAssignmentCardProps {
-  assignment: TaskAssignment;
-  onClick?: (assignment: TaskAssignment) => void;
-  onDelete?: (assignmentId: string) => void;
+interface ResolvedTaskCardProps {
+  resolvedTask: ResolvedTask;
+  date?: string; // Optional date for context
+  onClick?: (resolvedTask: ResolvedTask) => void;
+  onOverride?: (resolvedTask: ResolvedTask) => void;
+  onDelete?: (resolvedTask: ResolvedTask) => void; // For backward compatibility with template management
   isClickable?: boolean;
   isAdmin?: boolean;
   isLoading?: boolean;
+  showSource?: boolean; // Whether to show if task comes from template or override
 }
 
-export const TaskAssignmentCard: React.FC<TaskAssignmentCardProps> = ({
-  assignment,
+export const ResolvedTaskCard: React.FC<ResolvedTaskCardProps> = ({
+  resolvedTask,
   onClick,
+  onOverride,
   onDelete,
   isClickable = false,
   isAdmin = false,
-  isLoading = false
+  isLoading = false,
+  showSource = false
 }) => {
   const formatDuration = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
@@ -30,23 +35,30 @@ export const TaskAssignmentCard: React.FC<TaskAssignmentCardProps> = ({
   };
 
   const getDisplayTime = (): string => {
-    return assignment.overrideTime || assignment.task?.defaultStartTime || '00:00';
+    return resolvedTask.overrideTime || resolvedTask.task.defaultStartTime || '00:00';
   };
 
   const getDisplayDuration = (): number => {
-    return assignment.overrideDuration || assignment.task?.defaultDuration || 30;
+    return resolvedTask.overrideDuration || resolvedTask.task.defaultDuration || 30;
   };
 
   const handleCardClick = () => {
     if (isClickable && onClick) {
-      onClick(assignment);
+      onClick(resolvedTask);
+    }
+  };
+
+  const handleOverrideClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onOverride) {
+      onOverride(resolvedTask);
     }
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onDelete && window.confirm('Are you sure you want to delete this task assignment?')) {
-      onDelete(assignment.id);
+    if (onDelete) {
+      onDelete(resolvedTask);
     }
   };
 
@@ -54,20 +66,20 @@ export const TaskAssignmentCard: React.FC<TaskAssignmentCardProps> = ({
     <div 
       className={`task-assignment-card ${isClickable ? 'task-assignment-card-clickable' : ''}`}
       style={{ 
-        borderColor: assignment.task?.color || '#6366f1',
-        backgroundColor: `${assignment.task?.color || '#6366f1'}18`
+        borderColor: resolvedTask.task.color || '#6366f1',
+        backgroundColor: `${resolvedTask.task.color || '#6366f1'}18`
       }}
       onClick={handleCardClick}
-      title={isClickable ? 'Click to edit assignment' : undefined}
+      title={isClickable ? 'Click to view task details' : undefined}
     >
       <div className="task-assignment-card-content">
         {/* Member Avatar - spans two lines on the left */}
         <div className="task-assignment-card-avatar">
-          {assignment.member ? (
+          {resolvedTask.member ? (
             <UserAvatar
-              firstName={assignment.member.firstName}
-              lastName={assignment.member.lastName}
-              avatarUrl={assignment.member.avatarUrl}
+              firstName={resolvedTask.member.firstName}
+              lastName={resolvedTask.member.lastName}
+              avatarUrl={resolvedTask.member.avatarUrl}
               size="medium"
             />
           ) : (
@@ -86,8 +98,13 @@ export const TaskAssignmentCard: React.FC<TaskAssignmentCardProps> = ({
         <div className="task-assignment-card-info">
           <div className="task-assignment-card-header">
             <div className="task-assignment-card-title">
-              <span className="task-assignment-card-icon-emoji">{assignment.task?.icon || '✅'}</span>
-              <h6 className="task-assignment-card-name">{assignment.task?.name || 'Unknown Task'}</h6>
+              <span className="task-assignment-card-icon-emoji">{resolvedTask.task.icon || '✅'}</span>
+              <h6 className="task-assignment-card-name">{resolvedTask.task.name || 'Unknown Task'}</h6>
+              {showSource && (
+                <span className={`task-assignment-card-source ${resolvedTask.source}`}>
+                  {resolvedTask.source === 'template' ? '📋' : '✏️'}
+                </span>
+              )}
             </div>
             <div className="task-assignment-card-time-container">
               <span className="task-assignment-card-time">{getDisplayTime()}</span>
@@ -95,8 +112,8 @@ export const TaskAssignmentCard: React.FC<TaskAssignmentCardProps> = ({
           </div>
           
           <div className="task-assignment-card-description-row">
-            {assignment.task?.description ? (
-              <p className="task-assignment-card-description">{assignment.task.description}</p>
+            {resolvedTask.task.description ? (
+              <p className="task-assignment-card-description">{resolvedTask.task.description}</p>
             ) : (
               <div className="task-assignment-card-description-spacer"></div>
             )}
@@ -106,18 +123,33 @@ export const TaskAssignmentCard: React.FC<TaskAssignmentCardProps> = ({
       </div>
 
       {/* Actions */}
-      {isAdmin && (
+      {isAdmin && (onOverride || onDelete) && (
         <div className="task-assignment-card-actions">
-          <button
-            className="task-assignment-card-action delete"
-            title="Delete assignment"
-            onClick={handleDeleteClick}
-            disabled={isLoading}
-          >
-            ×
-          </button>
+          {onOverride && (
+            <button
+              className="task-assignment-card-action override"
+              title="Override this task"
+              onClick={handleOverrideClick}
+              disabled={isLoading}
+            >
+              ✏️
+            </button>
+          )}
+          {onDelete && (
+            <button
+              className="task-assignment-card-action delete"
+              title="Delete this item"
+              onClick={handleDeleteClick}
+              disabled={isLoading}
+            >
+              ×
+            </button>
+          )}
         </div>
       )}
     </div>
   );
-}; 
+};
+
+// Keep the old component name for backward compatibility during migration
+export const TaskAssignmentCard = ResolvedTaskCard; 

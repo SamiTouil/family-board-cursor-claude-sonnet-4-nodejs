@@ -199,10 +199,10 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       await expect(page.getByRole('heading', { name: 'Admin TemplateCRUD' })).toBeVisible({ timeout: 10000 });
+      
+      // First create some tasks to use in templates
       await page.getByRole('button', { name: 'Tasks' }).click();
       await page.waitForTimeout(2000);
-
-      // First create some tasks to use in templates
       await page.getByRole('button', { name: 'Create Your First Task' }).click();
       await page.getByLabel('Task Name').fill('Wake Up');
       await page.getByLabel('Default Start Time').fill('07:00');
@@ -216,6 +216,10 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Default Duration (minutes)').fill('3');
       await page.getByRole('button', { name: 'Create Task' }).click();
       await page.waitForTimeout(1000);
+
+      // Navigate to Templates page for template management
+      await page.getByRole('button', { name: 'Templates' }).click();
+      await page.waitForTimeout(2000);
 
       // Test template creation
       await page.getByRole('button', { name: 'Create Template' }).click();
@@ -239,7 +243,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       // Test template deletion
       page.on('dialog', dialog => dialog.accept());
-      await page.locator('.task-management-template-action.delete').click();
+      await page.locator('.day-template-management-template-action.delete').click();
       
       // Verify template is removed
       await expect(page.getByText('Updated Weekday Morning')).not.toBeVisible();
@@ -263,10 +267,10 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       await expect(page.getByRole('heading', { name: 'Admin TemplateItems' })).toBeVisible({ timeout: 10000 });
+      
+      // Create some tasks first
       await page.getByRole('button', { name: 'Tasks' }).click();
       await page.waitForTimeout(2000);
-
-      // Create some tasks first
       await page.getByRole('button', { name: 'Create Your First Task' }).click();
       await page.getByLabel('Task Name').fill('Morning Jog');
       await page.getByLabel('Default Start Time').fill('06:00');
@@ -280,6 +284,10 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Default Duration (minutes)').fill('15');
       await page.getByRole('button', { name: 'Create Task' }).click();
       await page.waitForTimeout(1000);
+
+      // Navigate to Templates page for template management
+      await page.getByRole('button', { name: 'Templates' }).click();
+      await page.waitForTimeout(2000);
 
       // Create a template
       await page.getByRole('button', { name: 'Create Template' }).click();
@@ -344,15 +352,23 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       // Verify form is closed and data is cleared
       await expect(page.getByLabel('Task Name')).not.toBeVisible();
 
+      // Navigate to Templates page for template management
+      await page.getByRole('button', { name: 'Templates' }).click();
+      await page.waitForTimeout(2000);
+
       // Start creating a template while task form was cancelled
       await page.getByRole('button', { name: 'Create Template' }).click();
       await page.getByLabel('Template Name').fill('Concurrent Template');
       
       // Cancel template creation - use more specific selector
-      await page.locator('.task-management-form').getByRole('button', { name: 'Cancel' }).click();
+      await page.locator('.day-template-management-form').getByRole('button', { name: 'Cancel' }).click();
       
       // Verify template form is closed
       await expect(page.getByLabel('Template Name')).not.toBeVisible();
+
+      // Navigate back to Tasks page for task creation
+      await page.getByRole('button', { name: 'Tasks' }).click();
+      await page.waitForTimeout(2000);
 
       // Test successful creation after cancellations
       await page.getByRole('button', { name: 'Create Your First Task' }).click();

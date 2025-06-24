@@ -5,7 +5,7 @@ import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.midd
 import {
   DayTemplateResponseDto,
   DayTemplateItemResponseDto,
-  ApplyDayTemplateDto,
+
 } from '../types/task.types';
 import { PrismaClient } from '@prisma/client';
 
@@ -403,7 +403,7 @@ router.get('/:familyId/day-templates/:templateId/items', async (req: Authenticat
       task: item.task,
     }));
 
-    return res.json(response);
+    return res.json({ items: response });
   } catch (error) {
     if (error instanceof Error) {
       if (error.message.includes('not found')) {
@@ -543,80 +543,6 @@ router.delete('/:familyId/day-templates/:templateId/items/:itemId', async (req: 
     }
 
     console.error('Error removing template item:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// ==================== TEMPLATE APPLICATION ====================
-
-/**
- * POST /api/families/:familyId/day-templates/:templateId/apply
- * Apply a day template to specific dates, creating task assignments
- */
-router.post('/:familyId/day-templates/:templateId/apply', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { familyId, templateId } = req.params;
-    if (!familyId || !templateId) {
-      return res.status(400).json({ error: 'Family ID and Template ID are required' });
-    }
-
-    // Validate request body
-    const applySchema = z.object({
-      dates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')),
-      overrideMemberAssignments: z.boolean().optional().default(false),
-    });
-
-    const validatedData = applySchema.parse(req.body);
-
-    const applyData: ApplyDayTemplateDto = {
-      templateId: templateId,
-      dates: validatedData.dates,
-      overrideMemberAssignments: validatedData.overrideMemberAssignments,
-    };
-
-    const assignments = await dayTemplateService.applyTemplate(applyData, familyId);
-    
-    const response = {
-      message: `Successfully applied template to ${validatedData.dates.length} date(s)`,
-      createdAssignments: assignments.length,
-      assignments: assignments.map(assignment => ({
-        id: assignment.id,
-        memberId: assignment.memberId,
-        taskId: assignment.taskId,
-        overrideTime: assignment.overrideTime,
-        overrideDuration: assignment.overrideDuration,
-        assignedDate: assignment.assignedDate.toISOString(),
-        createdAt: assignment.createdAt.toISOString(),
-        updatedAt: assignment.updatedAt.toISOString(),
-        member: assignment.member,
-        task: assignment.task,
-      })),
-    };
-
-    return res.status(201).json(response);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validation failed',
-        details: error.errors,
-      });
-    }
-    
-    if (error instanceof Error) {
-      if (error.message.includes('not found')) {
-        return res.status(404).json({ error: error.message });
-      }
-      
-      if (error.message.includes('inactive') || error.message.includes('no items')) {
-        return res.status(400).json({ error: error.message });
-      }
-      
-      if (error.message.includes('Invalid date')) {
-        return res.status(400).json({ error: error.message });
-      }
-    }
-
-    console.error('Error applying day template:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });

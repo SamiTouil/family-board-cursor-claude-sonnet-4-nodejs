@@ -26,7 +26,7 @@ const Navigation: React.FC = () => {
     {
       path: '/week',
       icon: WeekIcon,
-      label: 'Week'
+      label: 'Templates'
     }
   ];
 

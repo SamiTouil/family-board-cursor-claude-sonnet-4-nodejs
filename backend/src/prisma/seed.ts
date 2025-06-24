@@ -13,6 +13,10 @@ interface DbExport {
   tasks: any[];
   dayTemplates: any[];
   dayTemplateItems: any[];
+  weekTemplates?: any[];
+  weekTemplateDays?: any[];
+  weekOverrides?: any[];
+  taskOverrides?: any[];
   exportedAt: string;
 }
 
@@ -175,6 +179,7 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
           memberId: itemData.memberId,
           overrideTime: itemData.overrideTime,
           overrideDuration: itemData.overrideDuration,
+          sortOrder: itemData.sortOrder || 0,
           createdAt: itemData.createdAt,
           updatedAt: itemData.updatedAt,
         },
@@ -183,6 +188,96 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
     console.log(`✅ Seeded ${exportData.dayTemplateItems.length} day template items`);
   } else {
     console.log(`ℹ️ No day template items to seed`);
+  }
+
+  // Seed week templates (depend on families)
+  if (exportData.weekTemplates && exportData.weekTemplates.length > 0) {
+    for (const templateData of exportData.weekTemplates) {
+      await prisma.weekTemplate.upsert({
+        where: { id: templateData.id },
+        update: {},
+        create: {
+          id: templateData.id,
+          name: templateData.name,
+          description: templateData.description,
+          isActive: templateData.isActive,
+          familyId: templateData.familyId,
+          createdAt: templateData.createdAt,
+          updatedAt: templateData.updatedAt,
+        },
+      });
+    }
+    console.log(`✅ Seeded ${exportData.weekTemplates.length} week templates`);
+  } else {
+    console.log(`ℹ️ No week templates to seed`);
+  }
+
+  // Seed week template days (depend on week templates and day templates)
+  if (exportData.weekTemplateDays && exportData.weekTemplateDays.length > 0) {
+    for (const dayData of exportData.weekTemplateDays) {
+      await prisma.weekTemplateDay.upsert({
+        where: { id: dayData.id },
+        update: {},
+        create: {
+          id: dayData.id,
+          weekTemplateId: dayData.weekTemplateId,
+          dayOfWeek: dayData.dayOfWeek,
+          dayTemplateId: dayData.dayTemplateId,
+          createdAt: dayData.createdAt,
+          updatedAt: dayData.updatedAt,
+        },
+      });
+    }
+    console.log(`✅ Seeded ${exportData.weekTemplateDays.length} week template days`);
+  } else {
+    console.log(`ℹ️ No week template days to seed`);
+  }
+
+  // Seed week overrides (depend on families and week templates)
+  if (exportData.weekOverrides && exportData.weekOverrides.length > 0) {
+    for (const overrideData of exportData.weekOverrides) {
+      await prisma.weekOverride.upsert({
+        where: { id: overrideData.id },
+        update: {},
+        create: {
+          id: overrideData.id,
+          weekStartDate: overrideData.weekStartDate,
+          weekTemplateId: overrideData.weekTemplateId,
+          familyId: overrideData.familyId,
+          createdAt: overrideData.createdAt,
+          updatedAt: overrideData.updatedAt,
+        },
+      });
+    }
+    console.log(`✅ Seeded ${exportData.weekOverrides.length} week overrides`);
+  } else {
+    console.log(`ℹ️ No week overrides to seed`);
+  }
+
+  // Seed task overrides (depend on week overrides, tasks, and users)
+  if (exportData.taskOverrides && exportData.taskOverrides.length > 0) {
+    for (const overrideData of exportData.taskOverrides) {
+      await prisma.taskOverride.upsert({
+        where: { id: overrideData.id },
+        update: {},
+        create: {
+          id: overrideData.id,
+          weekOverrideId: overrideData.weekOverrideId,
+          assignedDate: overrideData.assignedDate,
+          taskId: overrideData.taskId,
+          action: overrideData.action,
+          originalMemberId: overrideData.originalMemberId,
+          newMemberId: overrideData.newMemberId,
+          overrideTime: overrideData.overrideTime,
+          overrideDuration: overrideData.overrideDuration,
+          createdAt: overrideData.createdAt,
+          updatedAt: overrideData.updatedAt,
+        },
+      });
+    }
+    console.log(`✅ Seeded ${exportData.taskOverrides.length} task overrides`);
+  } else {
+    console.log(`ℹ️ No task overrides to seed`);
   }
 
   console.log(`🎉 Successfully seeded database from export (${exportData.exportedAt})`);

@@ -107,9 +107,9 @@ describe('TaskManagement', () => {
   });
 
   it('loads and displays tasks on mount', async () => {
-    mockTaskApi.getFamilyTasks.mockResolvedValue({
-      data: { success: true, data: mockTasks },
-    });
+    mockTaskApi.getFamilyTasks.mockResolvedValue(
+      createMockAxiosResponse({ success: true, data: mockTasks })
+    );
 
     render(<TaskManagement />);
 
@@ -368,7 +368,7 @@ describe('TaskManagement', () => {
     mockTaskApi.getFamilyTasks.mockResolvedValue({
       data: { success: true, data: mockTasks },
     });
-    mockTaskApi.delete.mockResolvedValue({
+    mockTaskApi.deleteTask.mockResolvedValue({
       data: { success: true, data: { message: 'Task deleted' } },
     });
 
@@ -382,7 +382,7 @@ describe('TaskManagement', () => {
     });
 
     await waitFor(() => {
-      expect(mockTaskApi.delete).toHaveBeenCalledWith('task-1');
+      expect(mockTaskApi.deleteTask).toHaveBeenCalledWith('task-1');
     });
 
     // Restore original confirm
@@ -405,7 +405,7 @@ describe('TaskManagement', () => {
       fireEvent.click(deleteButtons[0]);
     });
 
-    expect(mockTaskApi.delete).not.toHaveBeenCalled();
+    expect(mockTaskApi.deleteTask).not.toHaveBeenCalled();
 
     // Restore original confirm
     window.confirm = originalConfirm;

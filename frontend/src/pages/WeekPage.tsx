@@ -1,16 +1,45 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UserSummaryCard } from '../features/auth/components/UserSummaryCard';
+import { WeekTemplateManagement } from '../features/week/components/WeekTemplateManagement';
+import { DayTemplateManagement } from '../features/templates/components/DayTemplateManagement';
 import '../styles/pages.css';
 
-const WeekPage: React.FC = () => {
+const TemplatesPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'day-templates' | 'week-templates'>('day-templates');
+
   return (
     <div className="page-container">
-      <div className="page-layout">
-        <UserSummaryCard />
-        
+      <div className="templates-page-layout">
+        {/* Left Column */}
+        <div className="templates-page-left-column">
+          <UserSummaryCard />
+          
+          {/* Tab Navigation */}
+          <div className="templates-page-tabs">
+            <button
+              className={`templates-page-tab ${activeTab === 'day-templates' ? 'active' : ''}`}
+              onClick={() => setActiveTab('day-templates')}
+            >
+              📅 Day Templates
+            </button>
+            <button
+              className={`templates-page-tab ${activeTab === 'week-templates' ? 'active' : ''}`}
+              onClick={() => setActiveTab('week-templates')}
+            >
+              📆 Week Templates
+            </button>
+          </div>
+        </div>
+
+        {/* Right Column - Tab Content */}
+          {activeTab === 'day-templates' ? (
+            <DayTemplateManagement />
+          ) : (
+            <WeekTemplateManagement />
+          )}
       </div>
     </div>
   );
 };
 
-export default WeekPage; 
+export default TemplatesPage; 

@@ -291,6 +291,82 @@
       "durationTooLong": "Duration cannot exceed 24 hours (1440 minutes)"
     }
   },
+  "weekTemplates": {
+    "title": "Week Templates",
+    "loadError": "Failed to load week templates",
+    "createSuccess": "Week template created successfully",
+    "createError": "Failed to create week template",
+    "updateSuccess": "Week template updated successfully",
+    "updateError": "Failed to update week template",
+    "deleteSuccess": "Week template deleted successfully",
+    "deleteError": "Failed to delete week template",
+    "deleteConfirm": "Are you sure you want to delete '{{name}}'?",
+    "duplicateSuccess": "Week template duplicated successfully",
+    "duplicateError": "Failed to duplicate week template",
+    "duplicatePrompt": "Enter a name for the duplicated template:",
+    "applySuccess": "Week template applied successfully",
+    "applyError": "Failed to apply week template",
+    "daysAssignedSuccess": "Day assignments saved successfully",
+    "daysAssignError": "Failed to save day assignments",
+    "daysAssigned": "days assigned",
+    "assignedDays": "Assigned Days",
+    "unknownTemplate": "Unknown Template",
+    "templates": {
+      "title": "Templates",
+      "add": "Add Template",
+      "edit": "Edit Template",
+      "empty": {
+        "title": "No Week Templates Yet",
+        "description": "Create your first week template to organize recurring weekly schedules."
+      }
+    },
+    "fields": {
+      "name": "Template Name",
+      "description": "Description"
+    },
+    "placeholders": {
+      "name": "Enter template name",
+      "description": "Describe this weekly schedule"
+    },
+    "validation": {
+      "nameRequired": "Template name is required",
+      "nameTooShort": "Template name must be at least 2 characters",
+      "nameTooLong": "Template name must be less than 100 characters",
+      "descriptionTooLong": "Description must be less than 500 characters",
+      "nameExists": "A template with this name already exists"
+    },
+    "actions": {
+      "apply": "Apply",
+      "assignDays": "Assign Days",
+      "duplicate": "Duplicate",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "assignDays": {
+      "title": "Assign Day Templates",
+      "description": "Select a day template for each day of the week.",
+      "selectTemplate": "Select a day template...",
+      "save": "Save Assignments"
+    },
+    "apply": {
+      "title": "Apply Week Template",
+      "description": "Apply this template to create task assignments for a full week.",
+      "startDate": "Start Date (Monday)",
+      "startDateHelp": "Select the Monday when this week should start",
+      "overrideAssignments": "Override existing assignments",
+      "overrideAssignmentsHelp": "Replace any existing task assignments for this week",
+      "confirm": "Apply Template"
+    },
+    "days": {
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
+    }
+  },
   "errors": {
     "validationError": "Please check your input and try again",
     "invalidCredentials": "Invalid email or password",

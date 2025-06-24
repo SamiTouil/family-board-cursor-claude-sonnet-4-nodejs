@@ -1,0 +1,564 @@
+/* Week Template Management Component Styles */
+.week-template-management {
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Header */
+.week-template-management-header {
+  height: 57px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  gap: 12px;
+}
+
+.week-template-management-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.week-template-management-content {
+  /* No padding needed - subsections handle their own spacing */
+}
+
+/* Messages */
+.week-template-management-message {
+  margin: 16px 24px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.week-template-management-message-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.week-template-management-message-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* Subsections */
+.week-template-management-subsection {
+  padding: 24px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.week-template-management-subsection:last-child {
+  border-bottom: none;
+}
+
+.week-template-management-subsection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.week-template-management-subsection-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.week-template-management-count-badge {
+  background: #e5e7eb;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 12px;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Form Styles */
+.week-template-management-form-container {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.week-template-management-form-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+}
+
+.week-template-management-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.week-template-management-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.week-template-management-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.week-template-management-input {
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.week-template-management-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.week-template-management-input-error {
+  border-color: #ef4444;
+}
+
+.week-template-management-input-error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.week-template-management-error {
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.week-template-management-help-text {
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.week-template-management-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+}
+
+.week-template-management-checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+/* Buttons */
+.week-template-management-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.week-template-management-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.week-template-management-button-primary {
+  background: #6366f1;
+  color: white;
+}
+
+.week-template-management-button-primary:hover:not(:disabled) {
+  background: #5048e5;
+  transform: translateY(-1px);
+}
+
+.week-template-management-button-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.week-template-management-button-secondary:hover:not(:disabled) {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+.week-template-management-button-sm {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+}
+
+.week-template-management-button-group {
+  display: flex;
+  gap: 8px;
+}
+
+.week-template-management-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* Templates List */
+.week-template-management-templates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.week-template-management-template {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.week-template-management-template:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.week-template-management-template-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.week-template-management-template-info {
+  flex: 1;
+}
+
+.week-template-management-template-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.week-template-management-template-description {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+
+.week-template-management-template-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.week-template-management-template-days-count {
+  font-weight: 500;
+}
+
+.week-template-management-template-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.week-template-management-template-action {
+  padding: 6px 8px;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+}
+
+.week-template-management-template-action:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.week-template-management-template-action.delete:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+/* Template Days */
+.week-template-management-template-days {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.week-template-management-template-days h5 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.week-template-management-days-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.week-template-management-day-assignment {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+
+.week-template-management-day-name {
+  font-weight: 600;
+  color: #374151;
+  text-transform: capitalize;
+}
+
+.week-template-management-day-template {
+  color: #6b7280;
+}
+
+/* Modals */
+.week-template-management-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.week-template-management-modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.week-template-management-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.week-template-management-modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.week-template-management-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.week-template-management-modal-close:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.week-template-management-modal-content {
+  padding: 24px;
+}
+
+.week-template-management-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+/* Day Assignment Modal */
+.week-template-management-days-assignment {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.week-template-management-day-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.week-template-management-day-label {
+  min-width: 80px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  text-transform: capitalize;
+}
+
+.week-template-management-day-row select {
+  flex: 1;
+}
+
+/* Loading and Empty States */
+.week-template-management-loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.week-template-management-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  border: 2px dashed #d1d5db;
+}
+
+.week-template-management-empty-icon {
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.week-template-management-empty-icon svg {
+  color: #6b7280;
+}
+
+.week-template-management-empty-title {
+  margin: 0 0 8px 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.week-template-management-empty-description {
+  margin: 0 0 24px 0;
+  color: #6b7280;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .week-template-management-header {
+    padding: 0 1rem;
+  }
+
+  .week-template-management-title {
+    font-size: 1.25rem;
+  }
+
+  .week-template-management-subsection {
+    padding: 16px;
+  }
+
+  .week-template-management-subsection-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .week-template-management-button-group {
+    width: 100%;
+  }
+
+  .week-template-management-button-group .week-template-management-button {
+    flex: 1;
+  }
+
+  .week-template-management-template-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .week-template-management-template-actions {
+    align-self: stretch;
+    justify-content: space-between;
+  }
+
+  .week-template-management-days-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .week-template-management-day-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .week-template-management-day-label {
+    min-width: auto;
+  }
+
+  .week-template-management-modal {
+    margin: 10px;
+    max-width: none;
+  }
+
+  .week-template-management-modal-actions {
+    flex-direction: column;
+  }
+} 
