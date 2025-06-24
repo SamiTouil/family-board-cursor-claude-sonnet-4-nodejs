@@ -351,8 +351,7 @@
     "duplicateSuccess": "Routine hebdomadaire dupliquée avec succès",
     "duplicateError": "Échec de la duplication de la routine hebdomadaire",
     "duplicatePrompt": "Entrez un nom pour la routine dupliquée :",
-    "applySuccess": "Routine hebdomadaire appliquée avec succès",
-    "applyError": "Échec de l'application de la routine hebdomadaire",
+
     "daysAssignedSuccess": "Affectations de jours sauvegardées avec succès",
     "daysAssignError": "Échec de la sauvegarde des affectations de jours",
     "daysAssigned": "jours affectés",
@@ -383,7 +382,6 @@
       "nameExists": "Une routine avec ce nom existe déjà"
     },
     "actions": {
-      "apply": "Appliquer",
       "assignDays": "Affecter les Jours",
       "duplicate": "Dupliquer",
       "edit": "Modifier",
@@ -395,15 +393,7 @@
       "selectRoutine": "Sélectionnez une routine quotidienne...",
       "save": "Sauvegarder les Affectations"
     },
-    "apply": {
-      "title": "Appliquer la Routine Hebdomadaire",
-      "description": "Appliquez cette routine pour créer des affectations de tâches pour une semaine complète.",
-      "startDate": "Date de Début (Lundi)",
-      "startDateHelp": "Sélectionnez le lundi où cette semaine devrait commencer",
-      "overrideAssignments": "Remplacer les affectations existantes",
-      "overrideAssignmentsHelp": "Remplacer toutes les affectations de tâches existantes pour cette semaine",
-      "confirm": "Appliquer la Routine"
-    },
+
     "days": {
       "sunday": "Dimanche",
       "monday": "Lundi",
