@@ -210,7 +210,6 @@ export const WeekTemplateManagement: React.FC = () => {
       setMessage({ type: 'success', text: t('weekTemplates.createSuccess') });
       handleCancelForm();
     } catch (error: any) {
-      console.error('Week template creation error:', error);
       if (error.response?.status === 409) {
         setTemplateErrors({ name: t('weekTemplates.validation.nameExists') });
       } else if (error.response?.status === 401) {
@@ -243,7 +242,6 @@ export const WeekTemplateManagement: React.FC = () => {
       setMessage({ type: 'success', text: t('weekTemplates.updateSuccess') });
       handleCancelForm();
     } catch (error: any) {
-      console.error('Week template update error:', error);
       if (error.response?.status === 409) {
         setTemplateErrors({ name: t('weekTemplates.validation.nameExists') });
       } else if (error.response?.status === 401) {
