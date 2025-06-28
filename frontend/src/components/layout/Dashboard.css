@@ -2,9 +2,12 @@
 .dashboard {
   background-color: #f9fafb;
   padding: 0.5rem 2rem 0.5rem 0;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .dashboard-top-section {
@@ -12,6 +15,10 @@
   grid-template-columns: 200px 1fr;
   gap: 2rem;
   align-items: start;
+}
+
+.dashboard-main-content {
+  width: 100%;
 }
 
 .dashboard-content {
