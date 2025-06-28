@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../contexts/FamilyContext';
-import { UserSummaryCard } from '../../features/auth/components/UserSummaryCard';
 import { WeeklyCalendar } from '../calendar/WeeklyCalendar';
 import './Dashboard.css';
 
@@ -20,10 +19,6 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard">
-      <div className="dashboard-top-section">
-        <UserSummaryCard />
-      </div>
-      
       <div className="dashboard-main-content">
         <WeeklyCalendar />
       </div>
