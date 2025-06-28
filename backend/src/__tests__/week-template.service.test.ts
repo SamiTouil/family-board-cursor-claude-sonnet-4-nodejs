@@ -8,6 +8,7 @@ jest.mock('@prisma/client', () => {
       findFirst: jest.fn(),
       findMany: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
       delete: jest.fn(),
       count: jest.fn(),
     },
@@ -49,6 +50,8 @@ describe('WeekTemplateService', () => {
     const mockCreateData = {
       name: 'Test Week Template',
       description: 'Test description',
+      isDefault: false,
+      priority: 0,
     };
 
     it('should create a week template successfully', async () => {
@@ -56,6 +59,10 @@ describe('WeekTemplateService', () => {
         id: 'template-1',
         name: mockCreateData.name,
         description: mockCreateData.description,
+        isDefault: mockCreateData.isDefault,
+        applyRule: null,
+        priority: mockCreateData.priority,
+        isActive: true,
         familyId: mockFamilyId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -96,6 +103,10 @@ describe('WeekTemplateService', () => {
         id: mockTemplateId,
         name: 'Test Template',
         description: 'Test description',
+        isDefault: false,
+        applyRule: null,
+        priority: 0,
+        isActive: true,
         familyId: mockFamilyId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -128,6 +139,10 @@ describe('WeekTemplateService', () => {
           id: 'template-1',
           name: 'Template 1',
           description: 'Description 1',
+          isDefault: false,
+          applyRule: null,
+          priority: 0,
+          isActive: true,
           familyId: mockFamilyId,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -160,6 +175,8 @@ describe('WeekTemplateService', () => {
     const mockUpdateData = {
       name: 'Updated Template',
       description: 'Updated description',
+      isDefault: true,
+      priority: 10,
     };
 
     it('should update week template successfully', async () => {
@@ -167,6 +184,10 @@ describe('WeekTemplateService', () => {
         id: mockTemplateId,
         name: mockUpdateData.name,
         description: mockUpdateData.description,
+        isDefault: mockUpdateData.isDefault,
+        applyRule: null,
+        priority: mockUpdateData.priority,
+        isActive: true,
         familyId: mockFamilyId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -177,6 +198,7 @@ describe('WeekTemplateService', () => {
       (mockPrisma.weekTemplate.findFirst as jest.Mock)
         .mockResolvedValueOnce({ id: mockTemplateId, familyId: mockFamilyId })
         .mockResolvedValueOnce(null);
+      (mockPrisma.weekTemplate.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
       (mockPrisma.weekTemplate.update as jest.Mock).mockResolvedValue(mockUpdatedTemplate);
 
       const result = await weekTemplateService.updateWeekTemplate(

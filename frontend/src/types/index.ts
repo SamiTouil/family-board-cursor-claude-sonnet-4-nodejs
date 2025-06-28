@@ -357,6 +357,9 @@ export interface WeekTemplate {
   name: string;
   description: string | null;
   isActive: boolean;
+  isDefault: boolean;
+  applyRule: 'EVEN_WEEKS' | 'ODD_WEEKS' | null;
+  priority: number;
   createdAt: string;
   updatedAt: string;
   familyId: string;
@@ -376,12 +379,18 @@ export interface WeekTemplateDay {
 export interface CreateWeekTemplateData {
   name: string;
   description?: string;
+  isDefault?: boolean;
+  applyRule?: 'EVEN_WEEKS' | 'ODD_WEEKS' | null;
+  priority?: number;
 }
 
 export interface UpdateWeekTemplateData {
   name?: string;
   description?: string;
   isActive?: boolean;
+  isDefault?: boolean;
+  applyRule?: 'EVEN_WEEKS' | 'ODD_WEEKS' | null;
+  priority?: number;
 }
 
 export interface CreateWeekTemplateDayData {
