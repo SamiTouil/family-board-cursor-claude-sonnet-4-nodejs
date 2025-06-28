@@ -125,10 +125,10 @@ describe('Dashboard', () => {
     expect(document.title).toBe('Smith Family Board')
   })
 
-  it('displays family information in UserSummaryCard', () => {
+  it('renders the WeeklyCalendar component', () => {
     const mockFamily: Family = {
       id: 'family-1',
-      name: 'Johnson Family',
+      name: 'Test Family',
       description: 'A test family',
       avatarUrl: undefined,
       createdAt: '2023-01-01T00:00:00Z',
@@ -147,18 +147,16 @@ describe('Dashboard', () => {
     
     render(<Dashboard />)
     
-    // Check for family name in UserSummaryCard
-    expect(screen.getByText('Johnson Family')).toBeDefined()
-    // Check for family description in UserSummaryCard
-    expect(screen.getByText('A test family')).toBeDefined()
+    // Check that the WeeklyCalendar component is rendered
+    expect(screen.getByText('Weekly Schedule')).toBeDefined()
   })
 
-  it('displays user information in UserSummaryCard', () => {
+  it('shows family selection message when no family is selected', () => {
+    mockFamilyContext.currentFamily = null
+    
     render(<Dashboard />)
     
-    // Check for user name in UserSummaryCard
-    expect(screen.getByText('John Doe')).toBeDefined()
-    // Check for email in UserSummaryCard
-    expect(screen.getByText('john@example.com')).toBeDefined()
+    // Check that the family selection message is shown
+    expect(screen.getByText('Please select a family to view the calendar.')).toBeDefined()
   })
 }) 
