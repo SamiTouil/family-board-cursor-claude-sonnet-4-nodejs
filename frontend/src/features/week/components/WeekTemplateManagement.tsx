@@ -23,6 +23,9 @@ export const WeekTemplateManagement: React.FC = () => {
   const [templateData, setTemplateData] = useState({
     name: '',
     description: '',
+    isDefault: false,
+    applyRule: null as 'EVEN_WEEKS' | 'ODD_WEEKS' | null,
+    priority: 0,
   });
   const [templateErrors, setTemplateErrors] = useState<Record<string, string>>({});
 
@@ -137,6 +140,9 @@ export const WeekTemplateManagement: React.FC = () => {
     setTemplateData({
       name: '',
       description: '',
+      isDefault: false,
+      applyRule: null,
+      priority: 0,
     });
   };
 
@@ -148,6 +154,9 @@ export const WeekTemplateManagement: React.FC = () => {
     setTemplateData({
       name: template.name,
       description: template.description || '',
+      isDefault: template.isDefault,
+      applyRule: template.applyRule,
+      priority: template.priority,
     });
   };
 
@@ -159,6 +168,9 @@ export const WeekTemplateManagement: React.FC = () => {
     setTemplateData({
       name: '',
       description: '',
+      isDefault: false,
+      applyRule: null,
+      priority: 0,
     });
   };
 
@@ -187,6 +199,9 @@ export const WeekTemplateManagement: React.FC = () => {
       const createData: CreateWeekTemplateData = {
         name: templateData.name.trim(),
         ...(templateData.description.trim() && { description: templateData.description.trim() }),
+        isDefault: templateData.isDefault,
+        applyRule: templateData.applyRule,
+        priority: templateData.priority,
       };
 
       const response = await weekTemplateApi.createTemplate(currentFamily.id, createData);
@@ -195,10 +210,14 @@ export const WeekTemplateManagement: React.FC = () => {
       setMessage({ type: 'success', text: t('weekTemplates.createSuccess') });
       handleCancelForm();
     } catch (error: any) {
+      console.error('Week template creation error:', error);
       if (error.response?.status === 409) {
         setTemplateErrors({ name: t('weekTemplates.validation.nameExists') });
+      } else if (error.response?.status === 401) {
+        setMessage({ type: 'error', text: t('auth.sessionExpired') });
       } else {
-        setMessage({ type: 'error', text: error.response?.data?.message || t('weekTemplates.createError') });
+        const errorMessage = error.response?.data?.message || error.message || t('weekTemplates.createError');
+        setMessage({ type: 'error', text: errorMessage });
       }
     }
   };
@@ -211,6 +230,9 @@ export const WeekTemplateManagement: React.FC = () => {
       const updateData: UpdateWeekTemplateData = {
         name: templateData.name.trim(),
         ...(templateData.description.trim() && { description: templateData.description.trim() }),
+        isDefault: templateData.isDefault,
+        applyRule: templateData.applyRule,
+        priority: templateData.priority,
       };
 
       const response = await weekTemplateApi.updateTemplate(currentFamily.id, editingTemplate.id, updateData);
@@ -221,10 +243,14 @@ export const WeekTemplateManagement: React.FC = () => {
       setMessage({ type: 'success', text: t('weekTemplates.updateSuccess') });
       handleCancelForm();
     } catch (error: any) {
+      console.error('Week template update error:', error);
       if (error.response?.status === 409) {
         setTemplateErrors({ name: t('weekTemplates.validation.nameExists') });
+      } else if (error.response?.status === 401) {
+        setMessage({ type: 'error', text: t('auth.sessionExpired') });
       } else {
-        setMessage({ type: 'error', text: error.response?.data?.message || t('weekTemplates.updateError') });
+        const errorMessage = error.response?.data?.message || error.message || t('weekTemplates.updateError');
+        setMessage({ type: 'error', text: errorMessage });
       }
     }
   };
@@ -477,6 +503,60 @@ export const WeekTemplateManagement: React.FC = () => {
                   )}
                 </div>
 
+                <div className="week-template-management-form-group">
+                  <label className="week-template-management-label">
+                    <input
+                      type="checkbox"
+                      name="isDefault"
+                      checked={templateData.isDefault}
+                      onChange={(e) => setTemplateData(prev => ({ ...prev, isDefault: e.target.checked }))}
+                      className="week-template-management-checkbox"
+                    />
+                    Default Template
+                  </label>
+                  <p className="week-template-management-help-text">
+                    If checked, this template will be used when no other rules apply
+                  </p>
+                </div>
+
+                <div className="week-template-management-form-group">
+                  <label className="week-template-management-label">
+                    Application Rule
+                  </label>
+                  <select
+                    name="applyRule"
+                    value={templateData.applyRule || ''}
+                    onChange={(e) => setTemplateData(prev => ({ ...prev, applyRule: e.target.value as 'EVEN_WEEKS' | 'ODD_WEEKS' | null || null }))}
+                    className="week-template-management-input"
+                  >
+                    <option value="">No specific rule</option>
+                    <option value="EVEN_WEEKS">Even weeks only</option>
+                    <option value="ODD_WEEKS">Odd weeks only</option>
+                  </select>
+                  <p className="week-template-management-help-text">
+                    Choose when this template should automatically apply
+                  </p>
+                </div>
+
+                <div className="week-template-management-form-group">
+                  <label className="week-template-management-label">
+                    Priority
+                  </label>
+                  <input
+                    type="number"
+                    name="priority"
+                    value={templateData.priority}
+                    onChange={(e) => setTemplateData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
+                    className="week-template-management-input"
+                    min="0"
+                    max="1000"
+                    placeholder="0"
+                  />
+                  <p className="week-template-management-help-text">
+                    Higher priority templates are chosen when multiple rules match (0-1000)
+                  </p>
+                </div>
+
                 <div className="week-template-management-form-actions">
                   <button
                     type="button"
@@ -547,6 +627,21 @@ export const WeekTemplateManagement: React.FC = () => {
                         <span className="week-template-management-template-days-count">
                           {template.days?.length || 0} {t('weeklyRoutines.daysAssigned')}
                         </span>
+                        {template.isDefault && (
+                          <span className="week-template-management-template-badge default">
+                            Default
+                          </span>
+                        )}
+                        {template.applyRule && (
+                          <span className="week-template-management-template-badge rule">
+                            {template.applyRule === 'EVEN_WEEKS' ? 'Even Weeks' : 'Odd Weeks'}
+                          </span>
+                        )}
+                        {template.priority > 0 && (
+                          <span className="week-template-management-template-badge priority">
+                            Priority: {template.priority}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="week-template-management-template-actions">

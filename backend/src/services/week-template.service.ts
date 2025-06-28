@@ -43,11 +43,27 @@ export class WeekTemplateService {
       throw new Error('A week template with this name already exists in this family');
     }
 
+    // If setting as default, clear any existing default template
+    if (validatedData.isDefault) {
+      await prisma.weekTemplate.updateMany({
+        where: {
+          familyId: familyId,
+          isDefault: true,
+        },
+        data: {
+          isDefault: false,
+        },
+      });
+    }
+
     // Create the week template
     const template = await prisma.weekTemplate.create({
       data: {
         name: validatedData.name,
         description: validatedData.description || null,
+        isDefault: validatedData.isDefault || false,
+        applyRule: validatedData.applyRule || null,
+        priority: validatedData.priority || 0,
         familyId: familyId,
       },
       include: {
@@ -370,6 +386,20 @@ export class WeekTemplateService {
       }
     }
 
+    // If setting as default, clear any existing default template
+    if (validatedData.isDefault === true) {
+      await prisma.weekTemplate.updateMany({
+        where: {
+          familyId: familyId,
+          isDefault: true,
+          id: { not: id }, // Don't update the current template
+        },
+        data: {
+          isDefault: false,
+        },
+      });
+    }
+
     // Build update data object with only defined values
     const updateData: any = {};
     if (validatedData.name !== undefined) {
@@ -380,6 +410,15 @@ export class WeekTemplateService {
     }
     if (validatedData.isActive !== undefined) {
       updateData.isActive = validatedData.isActive;
+    }
+    if (validatedData.isDefault !== undefined) {
+      updateData.isDefault = validatedData.isDefault;
+    }
+    if (validatedData.applyRule !== undefined) {
+      updateData.applyRule = validatedData.applyRule;
+    }
+    if (validatedData.priority !== undefined) {
+      updateData.priority = validatedData.priority;
     }
 
     // Update the template

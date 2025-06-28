@@ -16,9 +16,12 @@ import {
   TaskOverrideAction,
 } from '../types/task.types';
 
-const prisma = new PrismaClient();
-
 export class WeekScheduleService {
+  private prisma: PrismaClient;
+
+  constructor(prismaClient?: PrismaClient) {
+    this.prisma = prismaClient || new PrismaClient();
+  }
   
   // ==================== WEEK SCHEDULE RESOLUTION ====================
 
@@ -36,7 +39,7 @@ export class WeekScheduleService {
     const weekStartDateObj = this.parseAndValidateWeekStartDate(weekStartDate);
     
     // 1. Find week override record
-    const weekOverride = await prisma.weekOverride.findUnique({
+    const weekOverride = await this.prisma.weekOverride.findUnique({
       where: { 
         familyId_weekStartDate: { 
           familyId, 
@@ -127,9 +130,9 @@ export class WeekScheduleService {
       },
     });
 
-    // 2. Get base template (either from override or family's default)
+    // 2. Get base template (either from override or rule-based selection)
     const baseTemplate = weekOverride?.weekTemplate || 
-                        await this.getFamilyDefaultWeekTemplate(familyId);
+                        await this.getApplicableWeekTemplate(familyId, weekStartDateObj);
 
     // 3. Resolve each day by merging template + overrides
     const resolvedDays: ResolvedDaySchedule[] = [];
@@ -180,7 +183,7 @@ export class WeekScheduleService {
     );
 
     // Create or update week override record
-    const weekOverride = await prisma.weekOverride.upsert({
+    const weekOverride = await this.prisma.weekOverride.upsert({
       where: { 
         familyId_weekStartDate: { 
           familyId, 
@@ -190,7 +193,7 @@ export class WeekScheduleService {
       create: {
         familyId,
         weekStartDate: weekStartDateObj,
-        weekTemplateId: data.weekTemplateId || await this.getFamilyDefaultWeekTemplateId(familyId),
+        weekTemplateId: data.weekTemplateId || await this.getApplicableWeekTemplateId(familyId, weekStartDateObj),
       },
       update: {
         weekTemplateId: data.weekTemplateId !== undefined ? data.weekTemplateId : undefined,
@@ -198,7 +201,7 @@ export class WeekScheduleService {
     });
 
     // Remove existing task overrides for this week
-    await prisma.taskOverride.deleteMany({
+    await this.prisma.taskOverride.deleteMany({
       where: {
         weekOverrideId: weekOverride.id,
       },
@@ -222,7 +225,7 @@ export class WeekScheduleService {
   ): Promise<void> {
     const weekStartDateObj = this.parseAndValidateWeekStartDate(weekStartDate);
 
-    await prisma.weekOverride.deleteMany({
+    await this.prisma.weekOverride.deleteMany({
       where: {
         familyId,
         weekStartDate: weekStartDateObj,
@@ -246,10 +249,12 @@ export class WeekScheduleService {
     return date;
   }
 
-  private async getFamilyDefaultWeekTemplate(familyId: string): Promise<WeekTemplateWithRelations | null> {
-    // Get the first active week template for the family
-    // In the future, you might want to add a "isDefault" flag to WeekTemplate
-    const result = await prisma.weekTemplate.findFirst({
+  /**
+   * Get the applicable week template for a specific week based on rules
+   */
+  private async getApplicableWeekTemplate(familyId: string, weekStartDate: Date): Promise<WeekTemplateWithRelations | null> {
+    // Get all active week templates for the family
+    const templates = await this.prisma.weekTemplate.findMany({
       where: {
         familyId,
         isActive: true,
@@ -309,17 +314,72 @@ export class WeekScheduleService {
           },
         },
       },
-      orderBy: {
-        createdAt: 'asc', // Get the oldest (presumably default) template
-      },
+      orderBy: [
+        { priority: 'desc' }, // Higher priority first
+        { createdAt: 'asc' }, // Older templates first for tie-breaking
+      ],
     });
 
-    return result as WeekTemplateWithRelations | null;
+    if (templates.length === 0) {
+      return null;
+    }
+
+    // Calculate ISO week number for rule matching
+    const weekNumber = this.getISOWeekNumber(weekStartDate);
+    
+    // Find applicable templates based on rules
+    const applicableTemplates = templates.filter(template => {
+      // Check if default template
+      if (template.isDefault) {
+        return true;
+      }
+      
+      // Check rule-based matching
+      if (template.applyRule === 'EVEN_WEEKS' && weekNumber % 2 === 0) {
+        return true;
+      }
+      
+      if (template.applyRule === 'ODD_WEEKS' && weekNumber % 2 === 1) {
+        return true;
+      }
+      
+      return false;
+    });
+
+    // Return the highest priority applicable template, or fallback to any default
+    if (applicableTemplates.length > 0) {
+      return applicableTemplates[0] as WeekTemplateWithRelations;
+    }
+
+    // If no rule-based matches, return the first default template
+    const defaultTemplate = templates.find(t => t.isDefault);
+    if (defaultTemplate) {
+      return defaultTemplate as WeekTemplateWithRelations;
+    }
+
+    // Last resort: return the first available template
+    return templates[0] as WeekTemplateWithRelations;
   }
 
-  private async getFamilyDefaultWeekTemplateId(familyId: string): Promise<string | null> {
-    const template = await this.getFamilyDefaultWeekTemplate(familyId);
+  private async getApplicableWeekTemplateId(familyId: string, weekStartDate: Date): Promise<string | null> {
+    const template = await this.getApplicableWeekTemplate(familyId, weekStartDate);
     return template?.id || null;
+  }
+
+  /**
+   * Calculate ISO week number for a given date
+   * ISO week 1 is the first week with at least 4 days in the new year
+   */
+  private getISOWeekNumber(date: Date): number {
+    const target = new Date(date.valueOf());
+    const dayNumber = (date.getDay() + 6) % 7; // Make Monday = 0
+    target.setDate(target.getDate() - dayNumber + 3); // Thursday of the same week
+    const firstThursday = target.valueOf();
+    target.setMonth(0, 1); // January 1st
+    if (target.getDay() !== 4) {
+      target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+    }
+    return 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000); // 604800000 = 7 * 24 * 3600 * 1000
   }
 
   private async resolveDaySchedule(
@@ -404,7 +464,7 @@ export class WeekScheduleService {
     weekOverrideId: string,
     override: CreateTaskOverrideDto
   ): Promise<TaskOverride> {
-    return await prisma.taskOverride.create({
+    return await this.prisma.taskOverride.create({
       data: {
         weekOverrideId,
         assignedDate: new Date(override.assignedDate + 'T00:00:00.000Z'),
@@ -422,7 +482,7 @@ export class WeekScheduleService {
     id: string,
     familyId: string
   ): Promise<WeekOverrideWithRelations> {
-    const weekOverride = await prisma.weekOverride.findFirst({
+    const weekOverride = await this.prisma.weekOverride.findFirst({
       where: {
         id,
         familyId,

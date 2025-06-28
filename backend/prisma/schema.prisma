@@ -168,6 +168,12 @@ model WeekTemplate {
   name        String             // Template name (e.g., "Standard Work Week", "School Week")
   description String?            // Optional description
   isActive    Boolean            @default(true) // Whether this template can be used
+  
+  // Rule-based application system
+  isDefault   Boolean            @default(false) @map("is_default") // Whether this is the default template
+  applyRule   WeekTemplateRule?  @map("apply_rule") // Rule for automatic application
+  priority    Int                @default(0) // Priority when multiple rules match (higher = higher priority)
+  
   createdAt   DateTime           @default(now()) @map("created_at")
   updatedAt   DateTime           @updatedAt @map("updated_at")
   familyId    String             @map("family_id")
@@ -266,4 +272,9 @@ enum TaskOverrideAction {
   REMOVE     // Remove a task from template
   REASSIGN   // Change who's assigned to a task
   MODIFY_TIME // Change time/duration of a task
+}
+
+enum WeekTemplateRule {
+  EVEN_WEEKS  // Apply to even-numbered weeks (ISO week numbers)
+  ODD_WEEKS   // Apply to odd-numbered weeks (ISO week numbers)
 }

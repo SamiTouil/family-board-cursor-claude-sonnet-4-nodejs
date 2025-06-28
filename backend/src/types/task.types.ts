@@ -285,6 +285,9 @@ export interface WeekTemplate {
   name: string;
   description: string | null;
   isActive: boolean;
+  isDefault: boolean;
+  applyRule: 'EVEN_WEEKS' | 'ODD_WEEKS' | null;
+  priority: number;
   createdAt: Date;
   updatedAt: Date;
   familyId: string;
@@ -323,12 +326,18 @@ export interface WeekTemplateDayWithRelations extends WeekTemplateDay {
 export const CreateWeekTemplateSchema = z.object({
   name: z.string().min(1, 'Template name is required').max(100, 'Template name is too long'),
   description: z.string().max(500, 'Description is too long').optional().nullable(),
+  isDefault: z.boolean().optional().default(false),
+  applyRule: z.enum(['EVEN_WEEKS', 'ODD_WEEKS']).optional().nullable(),
+  priority: z.number().int().min(0).max(1000).optional().default(0),
 });
 
 export const UpdateWeekTemplateSchema = z.object({
   name: z.string().min(1, 'Template name is required').max(100, 'Template name is too long').optional(),
   description: z.string().max(500, 'Description is too long').optional().nullable(),
   isActive: z.boolean().optional(),
+  isDefault: z.boolean().optional(),
+  applyRule: z.enum(['EVEN_WEEKS', 'ODD_WEEKS']).optional().nullable(),
+  priority: z.number().int().min(0).max(1000).optional(),
 });
 
 // WeekTemplateDay validation schemas
@@ -352,6 +361,9 @@ export interface WeekTemplateResponseDto {
   name: string;
   description: string | null;
   isActive: boolean;
+  isDefault: boolean;
+  applyRule: 'EVEN_WEEKS' | 'ODD_WEEKS' | null;
+  priority: number;
   createdAt: string; // ISO string for API responses
   updatedAt: string; // ISO string for API responses
   familyId: string;

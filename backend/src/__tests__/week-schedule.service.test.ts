@@ -1,9 +1,9 @@
 import { WeekScheduleService } from '../services/week-schedule.service';
 import { TaskOverrideAction } from '../types/task.types';
 
-// Mock Prisma
+// Mock the PrismaClient with proper structure
 jest.mock('@prisma/client', () => ({
-  PrismaClient: jest.fn(() => ({
+  PrismaClient: jest.fn().mockImplementation(() => ({
     weekOverride: {
       findUnique: jest.fn(),
       upsert: jest.fn(),
@@ -12,6 +12,7 @@ jest.mock('@prisma/client', () => ({
     },
     weekTemplate: {
       findFirst: jest.fn(),
+      findMany: jest.fn(),
     },
     taskOverride: {
       deleteMany: jest.fn(),
@@ -20,37 +21,225 @@ jest.mock('@prisma/client', () => ({
   })),
 }));
 
-const mockPrisma = {
-  weekOverride: {
-    findUnique: jest.fn(),
-    upsert: jest.fn(),
-    deleteMany: jest.fn(),
-    findFirst: jest.fn(),
-  },
-  weekTemplate: {
-    findFirst: jest.fn(),
-  },
-  taskOverride: {
-    deleteMany: jest.fn(),
-    create: jest.fn(),
-  },
-} as any;
+// Import after mocking
+import { PrismaClient } from '@prisma/client';
 
-describe.skip('WeekScheduleService', () => {
+describe('WeekScheduleService', () => {
   let weekScheduleService: WeekScheduleService;
+  let mockPrisma: any;
   
   beforeEach(() => {
-    weekScheduleService = new WeekScheduleService();
+    // Get the mock instance
+    mockPrisma = new PrismaClient();
+    
+    // Create new instance for each test with injected mock
+    weekScheduleService = new WeekScheduleService(mockPrisma);
+    
+    // Clear all mocks
     jest.clearAllMocks();
   });
 
-  describe('getWeekSchedule', () => {
+  describe('Rule-based Template Selection', () => {
+    const familyId = 'family-1';
+    
+    const mockDefaultTemplate = {
+      id: 'default-template',
+      name: 'Default Week',
+      description: 'Default weekly schedule',
+      isDefault: true,
+      applyRule: null,
+      priority: 0,
+      familyId: familyId,
+      days: [],
+      family: { id: familyId, name: 'Test Family' },
+    };
+
+    const mockEvenWeekTemplate = {
+      id: 'even-template',
+      name: 'Even Week Schedule',
+      description: 'Schedule for even weeks',
+      isDefault: false,
+      applyRule: 'EVEN_WEEKS' as const,
+      priority: 10,
+      familyId: familyId,
+      days: [],
+      family: { id: familyId, name: 'Test Family' },
+    };
+
+    const mockOddWeekTemplate = {
+      id: 'odd-template',
+      name: 'Odd Week Schedule',
+      description: 'Schedule for odd weeks',
+      isDefault: false,
+      applyRule: 'ODD_WEEKS' as const,
+      priority: 5,
+      familyId: familyId,
+      days: [],
+      family: { id: familyId, name: 'Test Family' },
+    };
+
+    it('should select default template when no rules match', async () => {
+      const weekStartDate = '2024-01-01'; // Week 1 (odd week)
+      
+      // Mock no week override found
+      mockPrisma.weekOverride.findUnique.mockResolvedValue(null);
+      
+      // Mock templates available (no odd week template, only default)
+      mockPrisma.weekTemplate.findMany.mockResolvedValue([
+        mockDefaultTemplate,
+        mockEvenWeekTemplate,
+      ]);
+
+      const result = await weekScheduleService.getWeekSchedule(familyId, { weekStartDate });
+
+      expect(result.baseTemplate).toEqual({
+        id: 'default-template',
+        name: 'Default Week',
+        description: 'Default weekly schedule',
+      });
+    });
+
+    it('should select even week template for even weeks', async () => {
+      const weekStartDate = '2024-01-08'; // Week 2 (even week)
+      
+      // Mock no week override found
+      mockPrisma.weekOverride.findUnique.mockResolvedValue(null);
+      
+      // Mock templates available
+      mockPrisma.weekTemplate.findMany.mockResolvedValue([
+        mockEvenWeekTemplate,
+        mockDefaultTemplate,
+        mockOddWeekTemplate,
+      ]);
+
+      const result = await weekScheduleService.getWeekSchedule(familyId, { weekStartDate });
+
+      expect(result.baseTemplate).toEqual({
+        id: 'even-template',
+        name: 'Even Week Schedule',
+        description: 'Schedule for even weeks',
+      });
+    });
+
+    it('should select odd week template for odd weeks', async () => {
+      const weekStartDate = '2024-01-15'; // Week 3 (odd week)
+      
+      // Mock no week override found
+      mockPrisma.weekOverride.findUnique.mockResolvedValue(null);
+      
+      // Mock templates available
+      mockPrisma.weekTemplate.findMany.mockResolvedValue([
+        mockOddWeekTemplate,
+        mockDefaultTemplate,
+        mockEvenWeekTemplate,
+      ]);
+
+      const result = await weekScheduleService.getWeekSchedule(familyId, { weekStartDate });
+
+      expect(result.baseTemplate).toEqual({
+        id: 'odd-template',
+        name: 'Odd Week Schedule',
+        description: 'Schedule for odd weeks',
+      });
+    });
+
+    it('should select highest priority template when multiple rules match', async () => {
+      const weekStartDate = '2024-01-01'; // Week 1 (odd week)
+      
+      // Mock no week override found
+      mockPrisma.weekOverride.findUnique.mockResolvedValue(null);
+      
+      // Mock multiple templates that could match (default + odd week)
+      const highPriorityOddTemplate = {
+        ...mockOddWeekTemplate,
+        id: 'high-priority-odd',
+        name: 'High Priority Odd Week',
+        priority: 20,
+      };
+      
+      mockPrisma.weekTemplate.findMany.mockResolvedValue([
+        highPriorityOddTemplate,
+        mockOddWeekTemplate,
+        mockDefaultTemplate,
+      ]);
+
+      const result = await weekScheduleService.getWeekSchedule(familyId, { weekStartDate });
+
+      expect(result.baseTemplate).toEqual({
+        id: 'high-priority-odd',
+        name: 'High Priority Odd Week',
+        description: 'Schedule for odd weeks',
+      });
+    });
+
+    it('should fall back to first available template when no default exists', async () => {
+      const weekStartDate = '2024-01-01'; // Week 1 (odd week)
+      
+      // Mock no week override found
+      mockPrisma.weekOverride.findUnique.mockResolvedValue(null);
+      
+      // Mock templates without default or matching rules
+      mockPrisma.weekTemplate.findMany.mockResolvedValue([
+        mockEvenWeekTemplate, // Only even week template available
+      ]);
+
+      const result = await weekScheduleService.getWeekSchedule(familyId, { weekStartDate });
+
+      expect(result.baseTemplate).toEqual({
+        id: 'even-template',
+        name: 'Even Week Schedule',
+        description: 'Schedule for even weeks',
+      });
+    });
+
+    it('should return null when no templates are available', async () => {
+      const weekStartDate = '2024-01-01';
+      
+      // Mock no week override found
+      mockPrisma.weekOverride.findUnique.mockResolvedValue(null);
+      
+      // Mock no templates available
+      mockPrisma.weekTemplate.findMany.mockResolvedValue([]);
+
+      const result = await weekScheduleService.getWeekSchedule(familyId, { weekStartDate });
+
+      expect(result.baseTemplate).toBeNull();
+    });
+
+    it('should correctly calculate ISO week numbers for rule matching', async () => {
+      // Test various dates to ensure ISO week calculation is correct
+      const testCases = [
+        { date: '2024-01-01', expectedWeek: 1 }, // Week 1 (odd)
+        { date: '2024-01-08', expectedWeek: 2 }, // Week 2 (even)
+        { date: '2024-12-30', expectedWeek: 1 }, // Week 1 of next year (odd)
+      ];
+
+      for (const testCase of testCases) {
+        // Mock no week override found
+        mockPrisma.weekOverride.findUnique.mockResolvedValue(null);
+        
+        const expectedTemplate = testCase.expectedWeek % 2 === 0 ? mockEvenWeekTemplate : mockOddWeekTemplate;
+        
+        mockPrisma.weekTemplate.findMany.mockResolvedValue([
+          mockEvenWeekTemplate,
+          mockOddWeekTemplate,
+          mockDefaultTemplate,
+        ]);
+
+        const result = await weekScheduleService.getWeekSchedule(familyId, { weekStartDate: testCase.date });
+
+        expect(result.baseTemplate?.id).toBe(expectedTemplate.id);
+      }
+    });
+  });
+
+  describe.skip('getWeekSchedule', () => {
     it('should get week schedule with template only (no overrides)', async () => {
       const familyId = 'family-1';
       const weekStartDate = '2024-01-01'; // Monday
 
       // Mock no week override found
-      (mockPrisma.weekOverride.findUnique as jest.Mock).mockResolvedValue(null);
+      mockPrisma.weekOverride.findUnique.mockResolvedValue(null);
 
       // Mock default week template
       const mockWeekTemplate = {
@@ -95,7 +284,7 @@ describe.skip('WeekScheduleService', () => {
         ],
       };
 
-      (mockPrisma.weekTemplate.findFirst as jest.Mock).mockResolvedValue(mockWeekTemplate);
+      mockPrisma.weekTemplate.findFirst.mockResolvedValue(mockWeekTemplate);
 
       const result = await weekScheduleService.getWeekSchedule(familyId, { weekStartDate });
 
