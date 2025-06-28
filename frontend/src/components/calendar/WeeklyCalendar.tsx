@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../contexts/FamilyContext';
 import { weekScheduleApi } from '../../services/api';
-import type { ResolvedWeekSchedule, ResolvedTask } from '../../types';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { UserAvatar } from '../ui/UserAvatar';
+import type { ResolvedWeekSchedule, ResolvedTask } from '../../types';
 import './WeeklyCalendar.css';
 
 interface WeeklyCalendarProps {
@@ -12,7 +11,6 @@ interface WeeklyCalendarProps {
 }
 
 export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => {
-  const { t } = useTranslation();
   const { currentFamily } = useFamily();
   
   const [weekSchedule, setWeekSchedule] = useState<ResolvedWeekSchedule | null>(null);
@@ -76,7 +74,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     
     const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
     const dayNumber = date.getDate();
-    const month = date.toLocaleDateString('en-US', { month: 'short' });
     
     return isToday ? `${dayName} ${dayNumber} (Today)` : `${dayName} ${dayNumber}`;
   };
@@ -204,7 +201,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
         </div>
       ) : weekSchedule ? (
         <div className="weekly-calendar-grid">
-          {weekSchedule.days.map((day, index) => {
+          {weekSchedule.days.map((day) => {
             const dayTasks = getDayTasks(day);
             const isToday = new Date(day.date + 'T00:00:00.000Z').toDateString() === new Date().toDateString();
             
