@@ -26,7 +26,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       // Go to family management - verify admin can see admin controls
-      await expect(page.getByRole('heading', { name: 'Admin User' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
       await page.waitForTimeout(2000);
 
@@ -58,7 +58,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       // Go to family management
-      await expect(page.getByRole('heading', { name: 'Regular Member' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
       await page.waitForTimeout(2000);
 
@@ -91,7 +91,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       // Create invite and verify workflow exists
-      await expect(page.getByRole('heading', { name: 'Admin Notify' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
       await page.waitForTimeout(2000);
       await page.getByRole('button', { name: 'Generate Invite' }).click();
@@ -124,7 +124,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       // Verify family management functionality
-      await expect(page.getByRole('heading', { name: 'Admin Reject' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
       await page.waitForTimeout(2000);
       
@@ -153,7 +153,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       // Go to family management and add virtual member
-      await expect(page.getByRole('heading', { name: 'Admin Virtual' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
       await page.waitForTimeout(2000);
       
@@ -226,7 +226,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       // Go to family management and add virtual member
-      await expect(page.getByRole('heading', { name: 'Admin RemoveVirtual' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
       await page.waitForTimeout(2000);
       

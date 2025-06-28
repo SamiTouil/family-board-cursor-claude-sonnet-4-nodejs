@@ -120,7 +120,7 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
       
       // Should be at dashboard
-      await expect(page.getByRole('heading', { name: 'Login User' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       
       // Logout (click user avatar first, then logout)
       await page.locator('.user-menu-avatar').click();
