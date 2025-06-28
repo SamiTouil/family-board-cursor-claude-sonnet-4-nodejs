@@ -139,8 +139,8 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       await page.waitForTimeout(3000);
       
       // Should be redirected to dashboard since user already has a family
-      await expect(page.getByRole('heading', { name: 'Login User' })).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('.user-summary-card-family-name')).toContainText('Test Family');
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('.weekly-calendar')).toBeVisible();
     });
 
     test('should persist authentication and show family onboarding across page reloads', async ({ page }) => {
@@ -199,7 +199,7 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
       
       // Should be at dashboard
-      await expect(page.getByRole('heading', { name: 'First User' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       
       // Logout
       await page.locator('.user-menu-avatar').click();
@@ -271,10 +271,10 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       await page.getByLabel('Description (Optional)').fill('A test family for E2E testing');
       await page.getByRole('button', { name: 'Create Family' }).click();
       
-      // Should now access dashboard - check for UserSummaryCard elements
+      // Should now access dashboard - check for WeeklyCalendar elements
       await page.waitForTimeout(2000);
-      await expect(page.getByRole('heading', { name: 'Family User' })).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('.user-summary-card-family-name')).toContainText('Test Family');
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('.weekly-calendar')).toBeVisible();
     });
 
     test('should not access dashboard without completing family onboarding', async ({ page }) => {
@@ -323,10 +323,10 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       await page.waitForTimeout(2000);
     });
 
-    test('should display user information in dashboard', async ({ page }) => {
-      await expect(page.getByRole('heading', { name: 'Dashboard User' })).toBeVisible();
-      await expect(page.locator('.user-summary-card-email')).toBeVisible();
-      await expect(page.locator('.user-summary-card-family-name')).toContainText('Dashboard Family');
+    test('should display weekly calendar in dashboard', async ({ page }) => {
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible();
+      await expect(page.locator('.weekly-calendar')).toBeVisible();
+      await expect(page.locator('.weekly-calendar-header')).toBeVisible();
     });
 
     test('should display family name in dashboard title', async ({ page }) => {

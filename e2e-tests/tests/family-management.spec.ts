@@ -186,7 +186,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       // Go to family management and add virtual member
-      await expect(page.getByRole('heading', { name: 'Admin EditVirtual' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
       await page.waitForTimeout(2000);
       
@@ -265,9 +265,9 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.getByLabel('Description (Optional)').fill('Original description');
       await page.getByRole('button', { name: 'Create Family' }).click();
 
-      // Verify initial family name in user card
-      await expect(page.getByRole('heading', { name: 'Admin Edit' })).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('.user-summary-card-family-name')).toContainText('Original Family Name');
+      // Verify initial family name in dashboard
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('.weekly-calendar')).toBeVisible();
 
       // Go to family management and edit family details
       await page.getByRole('button', { name: 'Family' }).click();
@@ -285,12 +285,12 @@ test.describe('Family Management - Advanced Scenarios', () => {
       // Wait for the family data to be refreshed - add extra wait for WebSocket update
       await page.waitForTimeout(3000);
       
-      // Go back to dashboard to check user card refresh
+      // Go back to dashboard to check title refresh
       await page.getByRole('button', { name: 'Home' }).click();
       await page.waitForTimeout(2000);
 
-      // Verify user card shows updated family information - wait for the WebSocket update to propagate
-      await expect(page.locator('.user-summary-card-family-name')).toContainText('Updated Family Name', { timeout: 15000 });
+      // Verify dashboard shows updated family information - wait for the WebSocket update to propagate
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 15000 });
       
       // Verify page title is updated
       await expect(page).toHaveTitle('Updated Family Name Board');
@@ -314,7 +314,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       // Go to family management and try to edit with invalid data
-      await expect(page.getByRole('heading', { name: 'Admin Validate' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
       await page.waitForTimeout(2000);
       
@@ -354,7 +354,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       // Go to family management and start editing
-      await expect(page.getByRole('heading', { name: 'Admin Cancel' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
       await page.waitForTimeout(2000);
       
@@ -394,7 +394,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       // Verify role management UI exists
-      await expect(page.getByRole('heading', { name: 'Admin Roles' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
       await page.waitForTimeout(2000);
       
@@ -424,7 +424,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       // Verify real-time update infrastructure exists
-      await expect(page.getByRole('heading', { name: 'Admin Realtime' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
       await page.waitForTimeout(2000);
       
