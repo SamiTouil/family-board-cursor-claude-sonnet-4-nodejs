@@ -87,7 +87,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       const response = await dayTemplateApi.getTemplates(currentFamily.id);
       setDayTemplates(response.data?.templates || []);
     } catch (error) {
-      console.error('Error loading day templates:', error);
       // Silently handle template loading errors - templates will be empty array
     }
   };
@@ -213,7 +212,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       } else if (dayTemplateResponse?.data && Array.isArray(dayTemplateResponse.data)) {
         dayTemplateItems = dayTemplateResponse.data;
       } else {
-        console.warn('Unexpected day template response structure:', dayTemplateResponse);
+        // Unexpected day template response structure - handle gracefully
       }
 
       if (!dayTemplateItems || dayTemplateItems.length === 0) {
@@ -273,8 +272,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       setShowApplyDayTemplateModal(false);
       loadWeekSchedule(currentWeekStart); // Reload to show changes
     } catch (error: any) {
-      console.error('Day template application error:', error);
-      
       let errorMessage = 'Failed to apply day routine';
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
