@@ -169,10 +169,6 @@ export class WeekScheduleService {
     familyId: string,
     data: ApplyWeekOverrideDto
   ): Promise<WeekOverrideWithRelations> {
-    console.log('=== APPLY WEEK OVERRIDE START ===');
-    console.log('FamilyId:', familyId);
-    console.log('Data:', JSON.stringify(data, null, 2));
-    
     // Validate input data
     CreateWeekOverrideSchema.parse({
       weekStartDate: data.weekStartDate,
@@ -180,26 +176,13 @@ export class WeekScheduleService {
     });
 
     const weekStartDateObj = this.parseAndValidateWeekStartDate(data.weekStartDate);
-    console.log('Week Start Date Object:', weekStartDateObj);
 
     // Validate task overrides
     const validatedOverrides = data.taskOverrides.map(override => 
       CreateTaskOverrideSchema.parse(override)
     );
-    console.log('Validated overrides count:', validatedOverrides.length);
-    console.log('Validated overrides:', validatedOverrides.map(o => ({ date: o.assignedDate, taskId: o.taskId, action: o.action })));
-
-    // Check if this is a day-level override (all overrides for the same date)
-    const isDayLevelOverride = validatedOverrides.length > 0 && 
-      validatedOverrides.every(override => override.assignedDate === validatedOverrides[0].assignedDate);
-    
-    console.log('Is Day Level Override:', isDayLevelOverride);
-    if (isDayLevelOverride) {
-      console.log('Target date for day-level override:', validatedOverrides[0].assignedDate);
-    }
 
     // Create or update week override record
-    console.log('=== UPSERTING WEEK OVERRIDE ===');
     const weekOverride = await this.prisma.weekOverride.upsert({
       where: { 
         familyId_weekStartDate: { 
@@ -216,82 +199,30 @@ export class WeekScheduleService {
         weekTemplateId: data.weekTemplateId !== undefined ? data.weekTemplateId : undefined,
       },
     });
-    console.log('Week Override Upsert Result:', {
-      id: weekOverride.id,
-      familyId: weekOverride.familyId,
-      weekStartDate: weekOverride.weekStartDate,
-      weekTemplateId: weekOverride.weekTemplateId,
-    });
+
+    // Check if this is a day-level override (all overrides for the same date)
+    const isDayLevelOverride = validatedOverrides.length > 0 && 
+      validatedOverrides.every(override => override.assignedDate === validatedOverrides[0].assignedDate);
 
     if (isDayLevelOverride && validatedOverrides.length > 0) {
       // For day-level overrides, delete all existing overrides for the target date
       const targetDateString = validatedOverrides[0].assignedDate;
       const targetDate = new Date(targetDateString + 'T00:00:00.000Z');
       
-      console.log('=== DAY TEMPLATE APPLY DEBUG ===');
-      console.log('Week Override ID:', weekOverride.id);
-      console.log('Target Date String:', targetDateString);
-      console.log('Target Date Object:', targetDate);
-      console.log('Validatedoverrides count:', validatedOverrides.length);
-      
-      // Check existing overrides before deletion
-      const existingOverrides = await this.prisma.taskOverride.findMany({
-        where: {
-          weekOverrideId: weekOverride.id,
-          assignedDate: targetDate,
-        },
-      });
-      console.log('Existing overrides found for deletion:', existingOverrides.length);
-      existingOverrides.forEach((override, index) => {
-        console.log(`  Existing Override ${index + 1}: TaskId=${override.taskId}, Action=${override.action}, Date=${override.assignedDate}`);
-      });
-      
       // Delete all existing overrides for this date in one operation
-      const deleteResult = await this.prisma.taskOverride.deleteMany({
-        where: {
-          weekOverrideId: weekOverride.id,
-          assignedDate: targetDate,
-        },
-      });
-      console.log('Deleted overrides count:', deleteResult.count);
-      
-      // Check ALL task overrides for this family and week to understand the full picture
-      const allWeekOverrides = await this.prisma.weekOverride.findMany({
-        where: {
-          familyId,
-          weekStartDate: weekStartDateObj,
-        },
-        include: {
-          taskOverrides: true,
-        },
-      });
-      console.log('All WeekOverride records for this week:', allWeekOverrides.length);
-      allWeekOverrides.forEach((wo, index) => {
-        console.log(`  WeekOverride ${index + 1}: ID=${wo.id}, TaskOverrides=${wo.taskOverrides.length}`);
-      });
-      
-      // Check remaining overrides after deletion
-      const remainingOverrides = await this.prisma.taskOverride.findMany({
-        where: {
-          weekOverrideId: weekOverride.id,
-        },
-      });
-      console.log('Remaining overrides after deletion:', remainingOverrides.length);
-    } else {
-      // For week-level overrides, remove all existing task overrides for this week
       await this.prisma.taskOverride.deleteMany({
         where: {
           weekOverrideId: weekOverride.id,
+          assignedDate: targetDate,
         },
+      });
+    } else {
+      // For week-level overrides, remove all existing task overrides for this week
+      await this.prisma.taskOverride.deleteMany({
+        where: { weekOverrideId: weekOverride.id },
       });
     }
 
-    // Apply each override
-    console.log('=== ABOUT TO CREATE TASK OVERRIDES ===');
-    validatedOverrides.forEach((override, index) => {
-      console.log(`Override ${index + 1}: Date=${override.assignedDate}, TaskId=${override.taskId}, Action=${override.action}`);
-    });
-    
     // Deduplicate overrides: for each task on each date, keep only the last action
     const deduplicatedOverrides = new Map<string, CreateTaskOverrideDto>();
     validatedOverrides.forEach(override => {
@@ -299,12 +230,6 @@ export class WeekScheduleService {
       deduplicatedOverrides.set(key, override);
     });
     const finalOverrides = Array.from(deduplicatedOverrides.values());
-    
-    console.log('=== AFTER DEDUPLICATION ===');
-    console.log(`Original count: ${validatedOverrides.length}, Deduplicated count: ${finalOverrides.length}`);
-    finalOverrides.forEach((override, index) => {
-      console.log(`Final Override ${index + 1}: Date=${override.assignedDate}, TaskId=${override.taskId}, Action=${override.action}`);
-    });
     
     // Apply each override
     for (const override of finalOverrides) {
@@ -566,13 +491,6 @@ export class WeekScheduleService {
     override: CreateTaskOverrideDto
   ): Promise<TaskOverride> {
     const assignedDate = new Date(override.assignedDate + 'T00:00:00.000Z');
-    
-    console.log('Creating task override:', {
-      weekOverrideId,
-      assignedDate,
-      taskId: override.taskId,
-      action: override.action,
-    });
     
     // Since we delete all existing overrides for the date before calling this method,
     // we can directly create the new override without checking for duplicates
