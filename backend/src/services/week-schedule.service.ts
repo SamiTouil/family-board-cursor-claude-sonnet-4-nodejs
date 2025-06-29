@@ -292,7 +292,22 @@ export class WeekScheduleService {
       console.log(`Override ${index + 1}: Date=${override.assignedDate}, TaskId=${override.taskId}, Action=${override.action}`);
     });
     
-    for (const override of validatedOverrides) {
+    // Deduplicate overrides: for each task on each date, keep only the last action
+    const deduplicatedOverrides = new Map<string, CreateTaskOverrideDto>();
+    validatedOverrides.forEach(override => {
+      const key = `${override.assignedDate}-${override.taskId}`;
+      deduplicatedOverrides.set(key, override);
+    });
+    const finalOverrides = Array.from(deduplicatedOverrides.values());
+    
+    console.log('=== AFTER DEDUPLICATION ===');
+    console.log(`Original count: ${validatedOverrides.length}, Deduplicated count: ${finalOverrides.length}`);
+    finalOverrides.forEach((override, index) => {
+      console.log(`Final Override ${index + 1}: Date=${override.assignedDate}, TaskId=${override.taskId}, Action=${override.action}`);
+    });
+    
+    // Apply each override
+    for (const override of finalOverrides) {
       await this.applyTaskOverride(weekOverride.id, override);
     }
 
