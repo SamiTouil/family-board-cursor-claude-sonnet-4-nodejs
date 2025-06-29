@@ -169,6 +169,10 @@ export class WeekScheduleService {
     familyId: string,
     data: ApplyWeekOverrideDto
   ): Promise<WeekOverrideWithRelations> {
+    console.log('=== APPLY WEEK OVERRIDE START ===');
+    console.log('FamilyId:', familyId);
+    console.log('Data:', JSON.stringify(data, null, 2));
+    
     // Validate input data
     CreateWeekOverrideSchema.parse({
       weekStartDate: data.weekStartDate,
@@ -176,16 +180,20 @@ export class WeekScheduleService {
     });
 
     const weekStartDateObj = this.parseAndValidateWeekStartDate(data.weekStartDate);
+    console.log('Week Start Date Object:', weekStartDateObj);
 
     // Validate task overrides
     const validatedOverrides = data.taskOverrides.map(override => 
       CreateTaskOverrideSchema.parse(override)
     );
+    console.log('Validated Overrides:', validatedOverrides.length);
 
     // Check if this is a day-level override (all overrides for same date)
     const isDayLevelOverride = this.isDayLevelOverride(validatedOverrides);
+    console.log('Is Day Level Override:', isDayLevelOverride);
 
     // Create or update week override record
+    console.log('=== UPSERTING WEEK OVERRIDE ===');
     const weekOverride = await this.prisma.weekOverride.upsert({
       where: { 
         familyId_weekStartDate: { 
@@ -201,6 +209,12 @@ export class WeekScheduleService {
       update: {
         weekTemplateId: data.weekTemplateId !== undefined ? data.weekTemplateId : undefined,
       },
+    });
+    console.log('Week Override Upsert Result:', {
+      id: weekOverride.id,
+      familyId: weekOverride.familyId,
+      weekStartDate: weekOverride.weekStartDate,
+      weekTemplateId: weekOverride.weekTemplateId,
     });
 
     if (isDayLevelOverride && validatedOverrides.length > 0) {
