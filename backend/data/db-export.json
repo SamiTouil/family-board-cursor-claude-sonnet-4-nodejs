@@ -969,7 +969,30 @@
       "weekTemplateId": "cmchza4ps005z7z9548rq01qc"
     }
   ],
-  "weekOverrides": [],
-  "taskOverrides": [],
-  "exportedAt": "2025-06-29T18:04:01.276Z"
+  "weekOverrides": [
+    {
+      "id": "cmci41mki0001gr3oazlny0ps",
+      "weekStartDate": "2025-06-23T00:00:00.000Z",
+      "weekTemplateId": "cmchz9hu7005j7z95lwr53pbt",
+      "familyId": "cmc66ox86000bap3ezyaalsu7",
+      "createdAt": "2025-06-29T20:16:23.683Z",
+      "updatedAt": "2025-06-29T20:16:23.683Z"
+    }
+  ],
+  "taskOverrides": [
+    {
+      "id": "cmci41mko0003gr3oz5c60m19",
+      "assignedDate": "2025-06-28T00:00:00.000Z",
+      "taskId": "cmc7osqge000v8bio4dlxhew8",
+      "action": "REASSIGN",
+      "originalMemberId": "cmc66osup0009ap3euxjtgzu5",
+      "newMemberId": "cmc66pohx000fap3eeljuts01",
+      "overrideTime": null,
+      "overrideDuration": null,
+      "createdAt": "2025-06-29T20:16:23.688Z",
+      "updatedAt": "2025-06-29T20:16:23.688Z",
+      "weekOverrideId": "cmci41mki0001gr3oazlny0ps"
+    }
+  ],
+  "exportedAt": "2025-06-29T20:17:42.416Z"
 }

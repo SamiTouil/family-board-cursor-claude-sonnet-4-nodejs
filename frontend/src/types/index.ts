@@ -251,7 +251,7 @@ export interface TaskOverride {
   id: string;
   assignedDate: string;
   taskId: string;
-  action: 'ADD' | 'REMOVE' | 'REASSIGN' | 'MODIFY_TIME';
+  action: 'ADD' | 'REMOVE' | 'REASSIGN';
   originalMemberId: string | null;
   newMemberId: string | null;
   overrideTime: string | null;
@@ -267,7 +267,7 @@ export interface TaskOverride {
 export interface CreateTaskOverrideData {
   assignedDate: string;
   taskId: string;
-  action: 'ADD' | 'REMOVE' | 'REASSIGN' | 'MODIFY_TIME';
+  action: 'ADD' | 'REMOVE' | 'REASSIGN';
   originalMemberId?: string | null;
   newMemberId?: string | null;
   overrideTime?: string | null;
