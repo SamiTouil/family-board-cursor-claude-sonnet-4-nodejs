@@ -57,16 +57,16 @@ test.describe('Mandatory Family Access Control', () => {
     await page.getByLabel('Family Name').fill('Test Family');
     await page.getByRole('button', { name: 'Create Family' }).click();
     
-    // Should now be redirected to dashboard - check for UserSummaryCard
-    await expect(page.getByRole('heading', { name: 'Family Creator' })).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('Test Family')).toBeVisible();
+    // Should now be redirected to dashboard - check for WeeklyCalendar
+    await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.weekly-calendar')).toBeVisible();
     
     // Check that the document title shows the family name
     await expect(page).toHaveTitle('Test Family Board');
     
     // Verify we can't go back to family onboarding by refreshing
     await page.reload();
-    await expect(page.getByRole('heading', { name: 'Family Creator' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 5000 });
   });
 
   test('should allow dashboard access only after joining a family', async ({ page }) => {
@@ -85,7 +85,7 @@ test.describe('Mandatory Family Access Control', () => {
     await page.getByRole('button', { name: 'Create Family' }).click();
     
     // Should be at dashboard now
-    await expect(page.getByRole('heading', { name: 'Family Admin' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
     
     // Logout by clicking on user avatar to open menu
     await page.locator('.user-menu-avatar').click();
@@ -135,8 +135,8 @@ test.describe('Mandatory Family Access Control', () => {
     await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('Create New Family')).toBeVisible();
     
-    // Should NOT see dashboard (UserSummaryCard)
-    await expect(page.locator('.user-summary-card')).not.toBeVisible();
+    // Should NOT see dashboard (WeeklyCalendar)
+    await expect(page.locator('.weekly-calendar')).not.toBeVisible();
   });
 
   test('should redirect to family onboarding when trying to access dashboard directly', async ({ page }) => {

@@ -24,7 +24,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       // Navigate to Tasks page
-      await expect(page.getByRole('heading', { name: 'Admin TaskCRUD' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Tasks' }).click();
       await page.waitForTimeout(2000);
 
@@ -87,7 +87,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Family Name').fill('Validation Test Family');
       await page.getByRole('button', { name: 'Create Family' }).click();
 
-      await expect(page.getByRole('heading', { name: 'Admin TaskValidation' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Tasks' }).click();
       await page.waitForTimeout(2000);
 
@@ -135,7 +135,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Family Name').fill('Multi Tasks Family');
       await page.getByRole('button', { name: 'Create Family' }).click();
 
-      await expect(page.getByRole('heading', { name: 'Admin MultiTasks' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Tasks' }).click();
       await page.waitForTimeout(2000);
 
@@ -198,7 +198,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Family Name').fill('Routine Family');
       await page.getByRole('button', { name: 'Create Family' }).click();
 
-      await expect(page.getByRole('heading', { name: 'Admin RoutineCRUD' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       
       // First create some tasks to use in routines
       await page.getByRole('button', { name: 'Tasks' }).click();
@@ -266,7 +266,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Family Name').fill('Routine Items Family');
       await page.getByRole('button', { name: 'Create Family' }).click();
 
-      await expect(page.getByRole('heading', { name: 'Admin RoutineItems' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       
       // Create some tasks first
       await page.getByRole('button', { name: 'Tasks' }).click();
@@ -338,7 +338,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Family Name').fill('Concurrent Editing Family');
       await page.getByRole('button', { name: 'Create Family' }).click();
 
-      await expect(page.getByRole('heading', { name: 'Admin Concurrent' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Tasks' }).click();
       await page.waitForTimeout(2000);
 
@@ -400,7 +400,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Family Name').fill('Error Recovery Family');
       await page.getByRole('button', { name: 'Create Family' }).click();
 
-      await expect(page.getByRole('heading', { name: 'Admin Errors' })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Tasks' }).click();
       await page.waitForTimeout(2000);
 
