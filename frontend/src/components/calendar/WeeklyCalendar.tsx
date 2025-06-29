@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useFamily } from '../../contexts/FamilyContext';
-import { weekScheduleApi } from '../../services/api';
+import { weekScheduleApi, weekTemplateApi } from '../../services/api';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { UserAvatar } from '../ui/UserAvatar';
-import type { ResolvedWeekSchedule, ResolvedTask } from '../../types';
+import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate } from '../../types';
 import './WeeklyCalendar.css';
 
 interface WeeklyCalendarProps {
@@ -14,9 +14,18 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
   const { currentFamily } = useFamily();
   
   const [weekSchedule, setWeekSchedule] = useState<ResolvedWeekSchedule | null>(null);
+  const [weekTemplates, setWeekTemplates] = useState<WeekTemplate[]>([]);
   const [currentWeekStart, setCurrentWeekStart] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Week template application modal state
+  const [showApplyTemplateModal, setShowApplyTemplateModal] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
+
+  const isAdmin = currentFamily?.userRole === 'ADMIN';
 
   // Initialize with current week
   useEffect(() => {
@@ -25,6 +34,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       const monday = getMonday(today);
       setCurrentWeekStart(monday);
       loadWeekSchedule(monday);
+      loadWeekTemplates();
     }
   }, [currentFamily]);
 
@@ -51,6 +61,17 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     }
   };
 
+  const loadWeekTemplates = async () => {
+    if (!currentFamily) return;
+    
+    try {
+      const response = await weekTemplateApi.getTemplates(currentFamily.id);
+      setWeekTemplates(response.data.templates || []);
+    } catch (error) {
+      // Silently handle template loading errors - templates will be empty array
+    }
+  };
+
   const navigateWeek = (direction: 'prev' | 'next') => {
     const currentDate = new Date(currentWeekStart + 'T00:00:00.000Z');
     const newDate = new Date(currentDate);
@@ -65,6 +86,68 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     const monday = getMonday(today);
     setCurrentWeekStart(monday);
     loadWeekSchedule(monday);
+  };
+
+  const handleApplyTemplate = () => {
+    setShowApplyTemplateModal(true);
+    setSelectedTemplateId('');
+    setMessage(null);
+  };
+
+  const handleCancelApplyTemplate = () => {
+    setShowApplyTemplateModal(false);
+    setSelectedTemplateId('');
+  };
+
+  const handleConfirmApplyTemplate = async () => {
+    if (!currentFamily || !selectedTemplateId) return;
+
+    const selectedTemplate = weekTemplates.find(t => t.id === selectedTemplateId);
+    if (!selectedTemplate) return;
+
+    const confirmed = window.confirm(
+      `Apply "${selectedTemplate.name}" template to this week? This will replace the current schedule for the week of ${formatWeekRange(currentWeekStart)}.`
+    );
+    if (!confirmed) return;
+
+    try {
+      setIsApplyingTemplate(true);
+      
+      // Apply the week template by creating a week override
+      await weekScheduleApi.applyWeekOverride(currentFamily.id, {
+        weekStartDate: currentWeekStart,
+        weekTemplateId: selectedTemplateId,
+        taskOverrides: [] // No additional task overrides, just apply the template
+      });
+
+      setMessage({ type: 'success', text: `Applied template "${selectedTemplate.name}" successfully` });
+      setShowApplyTemplateModal(false);
+      loadWeekSchedule(currentWeekStart); // Reload to show changes
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to apply template' });
+    } finally {
+      setIsApplyingTemplate(false);
+    }
+  };
+
+  const handleRemoveOverrides = async () => {
+    if (!currentFamily || !weekSchedule?.hasOverrides) return;
+
+    const confirmed = window.confirm(
+      'Remove all customizations for this week and revert to the template?'
+    );
+    if (!confirmed) return;
+
+    try {
+      setIsLoading(true);
+      await weekScheduleApi.removeWeekOverride(currentFamily.id, currentWeekStart);
+      setMessage({ type: 'success', text: 'Week reverted to template' });
+      loadWeekSchedule(currentWeekStart);
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to remove overrides' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const formatDate = (dateString: string): string => {
@@ -183,8 +266,38 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
           >
             →
           </button>
+
+          {isAdmin && (
+            <div className="weekly-calendar-admin-controls">
+              <button
+                onClick={handleApplyTemplate}
+                className="weekly-calendar-apply-btn"
+                disabled={isLoading || weekTemplates.length === 0}
+                title={weekTemplates.length === 0 ? 'No week templates available' : 'Apply a weekly routine to this week'}
+              >
+                📋 Apply Routine
+              </button>
+              {weekSchedule?.hasOverrides && (
+                <button
+                  onClick={handleRemoveOverrides}
+                  className="weekly-calendar-revert-btn"
+                  disabled={isLoading}
+                  title="Revert to template"
+                >
+                  🔄 Revert
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Messages */}
+      {message && (
+        <div className={`weekly-calendar-message weekly-calendar-message-${message.type}`}>
+          {message.text}
+        </div>
+      )}
 
       {/* Calendar Content */}
       {isLoading ? (
@@ -287,6 +400,88 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       ) : (
         <div className="weekly-calendar-empty">
           <p>No schedule available for this week.</p>
+        </div>
+      )}
+
+      {/* Apply Template Modal */}
+      {showApplyTemplateModal && (
+        <div className="weekly-calendar-modal-overlay">
+          <div className="weekly-calendar-modal">
+            <div className="weekly-calendar-modal-header">
+              <h3>Apply Weekly Routine</h3>
+              <button
+                onClick={handleCancelApplyTemplate}
+                className="weekly-calendar-modal-close"
+                disabled={isApplyingTemplate}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="weekly-calendar-modal-content">
+              <p>Select a weekly routine to apply to the week of <strong>{formatWeekRange(currentWeekStart)}</strong>:</p>
+              
+              {weekTemplates.length === 0 ? (
+                <div className="weekly-calendar-modal-empty">
+                  <p>No weekly routines available. Create one first in the Week Templates section.</p>
+                </div>
+              ) : (
+                <div className="weekly-calendar-template-list">
+                  {weekTemplates.map(template => (
+                    <div
+                      key={template.id}
+                      className={`weekly-calendar-template-option ${selectedTemplateId === template.id ? 'selected' : ''}`}
+                      onClick={() => setSelectedTemplateId(template.id)}
+                    >
+                      <div className="weekly-calendar-template-info">
+                        <h4 className="weekly-calendar-template-name">{template.name}</h4>
+                        {template.description && (
+                          <p className="weekly-calendar-template-description">{template.description}</p>
+                        )}
+                        <div className="weekly-calendar-template-meta">
+                          <span className="weekly-calendar-template-days-count">
+                            {template.days?.length || 0} days configured
+                          </span>
+                          {template.isDefault && (
+                            <span className="weekly-calendar-template-badge default">Default</span>
+                          )}
+                          {template.applyRule && (
+                            <span className="weekly-calendar-template-badge rule">
+                              {template.applyRule === 'EVEN_WEEKS' ? 'Even Weeks' : 'Odd Weeks'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="weekly-calendar-template-selector">
+                        <input
+                          type="radio"
+                          name="selectedTemplate"
+                          value={template.id}
+                          checked={selectedTemplateId === template.id}
+                          onChange={() => setSelectedTemplateId(template.id)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="weekly-calendar-modal-actions">
+              <button
+                onClick={handleCancelApplyTemplate}
+                className="weekly-calendar-button weekly-calendar-button-secondary"
+                disabled={isApplyingTemplate}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmApplyTemplate}
+                className="weekly-calendar-button weekly-calendar-button-primary"
+                disabled={!selectedTemplateId || isApplyingTemplate}
+              >
+                {isApplyingTemplate ? 'Applying...' : 'Apply Template'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -32,11 +32,13 @@ const RoutinesPage: React.FC = () => {
         </div>
 
         {/* Right Column - Tab Content */}
+        <div className="templates-page-right-column">
           {activeTab === 'day-templates' ? (
             <DayTemplateManagement />
           ) : (
             <WeekTemplateManagement />
           )}
+        </div>
       </div>
     </div>
   );
