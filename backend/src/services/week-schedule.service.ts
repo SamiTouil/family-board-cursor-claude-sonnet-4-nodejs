@@ -204,22 +204,17 @@ export class WeekScheduleService {
     });
 
     if (isDayLevelOverride && validatedOverrides.length > 0) {
-      // For day-level overrides, only delete conflicting overrides
+      // For day-level overrides, delete all existing overrides for the target date
       const targetDateString = validatedOverrides[0].assignedDate;
       const targetDate = new Date(targetDateString + 'T00:00:00.000Z');
       
-      // Delete only the specific overrides that we're about to replace
-      // This prevents duplicates while preserving other overrides
-      for (const override of validatedOverrides) {
-        await this.prisma.taskOverride.deleteMany({
-          where: {
-            weekOverrideId: weekOverride.id,
-            assignedDate: targetDate,
-            taskId: override.taskId,
-            action: override.action,
-          },
-        });
-      }
+      // Delete all existing overrides for this date in one operation
+      await this.prisma.taskOverride.deleteMany({
+        where: {
+          weekOverrideId: weekOverride.id,
+          assignedDate: targetDate,
+        },
+      });
     } else {
       // For week-level overrides, remove all existing task overrides for this week
       await this.prisma.taskOverride.deleteMany({
@@ -490,29 +485,8 @@ export class WeekScheduleService {
   ): Promise<TaskOverride> {
     const assignedDate = new Date(override.assignedDate + 'T00:00:00.000Z');
     
-    // Check if this exact override already exists (same task, same action, same date)
-    const existing = await this.prisma.taskOverride.findFirst({
-      where: {
-        weekOverrideId,
-        assignedDate,
-        taskId: override.taskId,
-        action: override.action,
-      },
-    });
-    
-    if (existing) {
-      // Update the existing override with new data
-      return await this.prisma.taskOverride.update({
-        where: { id: existing.id },
-        data: {
-          originalMemberId: override.originalMemberId,
-          newMemberId: override.newMemberId,
-          overrideTime: override.overrideTime,
-          overrideDuration: override.overrideDuration,
-        },
-      });
-    }
-    
+    // Since we delete all existing overrides for the date before calling this method,
+    // we can directly create the new override without checking for duplicates
     return await this.prisma.taskOverride.create({
       data: {
         weekOverrideId,
