@@ -204,25 +204,22 @@ export class WeekScheduleService {
     });
 
     if (isDayLevelOverride && validatedOverrides.length > 0) {
-      // For day-level overrides, only remove overrides for the specific day
+      // For day-level overrides, only delete conflicting overrides
       const targetDateString = validatedOverrides[0].assignedDate;
       const targetDate = new Date(targetDateString + 'T00:00:00.000Z');
       
-      // First, check what exists
-      const existingOverrides = await this.prisma.taskOverride.findMany({
-        where: {
-          weekOverrideId: weekOverride.id,
-          assignedDate: targetDate,
-        },
-      });
-      
-      // Delete existing overrides for this specific day
-      await this.prisma.taskOverride.deleteMany({
-        where: {
-          weekOverrideId: weekOverride.id,
-          assignedDate: targetDate,
-        },
-      });
+      // Delete only the specific overrides that we're about to replace
+      // This prevents duplicates while preserving other overrides
+      for (const override of validatedOverrides) {
+        await this.prisma.taskOverride.deleteMany({
+          where: {
+            weekOverrideId: weekOverride.id,
+            assignedDate: targetDate,
+            taskId: override.taskId,
+            action: override.action,
+          },
+        });
+      }
     } else {
       // For week-level overrides, remove all existing task overrides for this week
       await this.prisma.taskOverride.deleteMany({
@@ -433,15 +430,26 @@ export class WeekScheduleService {
       return overrideDate.toDateString() === date.toDateString();
     });
 
-    // Check if there are any ADD overrides for this day
-    const hasAddOverrides = dateOverrides.some(o => o.action === 'ADD');
-
     let resolvedTasks: ResolvedTask[] = [];
 
-    if (hasAddOverrides) {
-      // If there are ADD overrides, ONLY use the override tasks (complete day replacement)
-      for (const override of dateOverrides) {
-        if (override.action === 'ADD') {
+    // Start with template items (if any)
+    if (baseDayTemplate?.dayTemplate.items) {
+      resolvedTasks = baseDayTemplate.dayTemplate.items.map(item => ({
+        taskId: item.taskId,
+        memberId: item.memberId,
+        overrideTime: item.overrideTime,
+        overrideDuration: item.overrideDuration,
+        source: 'template' as const,
+        task: item.task,
+        member: item.member,
+      }));
+    }
+
+    // Apply all overrides for this date
+    for (const override of dateOverrides) {
+      switch (override.action) {
+        case TaskOverrideAction.ADD:
+          // Add new task to the existing tasks
           resolvedTasks.push({
             taskId: override.taskId,
             memberId: override.newMemberId,
@@ -451,48 +459,20 @@ export class WeekScheduleService {
             task: override.task,
             member: override.newMember || null,
           });
-        }
-      }
-    } else {
-      // No ADD overrides, start with template items and apply other overrides
-      if (baseDayTemplate?.dayTemplate.items) {
-        resolvedTasks = baseDayTemplate.dayTemplate.items.map(item => ({
-          taskId: item.taskId,
-          memberId: item.memberId,
-          overrideTime: item.overrideTime,
-          overrideDuration: item.overrideDuration,
-          source: 'template' as const,
-          task: item.task,
-          member: item.member,
-        }));
-      }
-
-      // Apply non-ADD overrides for this date
-      for (const override of dateOverrides) {
-        switch (override.action) {
-          case TaskOverrideAction.REMOVE:
-            resolvedTasks = resolvedTasks.filter(t => t.taskId !== override.taskId);
-            break;
-            
-          case TaskOverrideAction.REASSIGN: {
-            const taskToReassign = resolvedTasks.find(t => t.taskId === override.taskId);
-            if (taskToReassign) {
-              taskToReassign.memberId = override.newMemberId;
-              taskToReassign.member = override.newMember || null;
-              taskToReassign.source = 'override';
-            }
-            break;
+          break;
+          
+        case TaskOverrideAction.REMOVE:
+          resolvedTasks = resolvedTasks.filter(t => t.taskId !== override.taskId);
+          break;
+          
+        case TaskOverrideAction.REASSIGN: {
+          const taskToReassign = resolvedTasks.find(t => t.taskId === override.taskId);
+          if (taskToReassign) {
+            taskToReassign.memberId = override.newMemberId;
+            taskToReassign.member = override.newMember || null;
+            taskToReassign.source = 'override';
           }
-            
-          case TaskOverrideAction.MODIFY_TIME: {
-            const taskToModify = resolvedTasks.find(t => t.taskId === override.taskId);
-            if (taskToModify) {
-              taskToModify.overrideTime = override.overrideTime;
-              taskToModify.overrideDuration = override.overrideDuration;
-              taskToModify.source = 'override';
-            }
-            break;
-          }
+          break;
         }
       }
     }
@@ -510,21 +490,21 @@ export class WeekScheduleService {
   ): Promise<TaskOverride> {
     const assignedDate = new Date(override.assignedDate + 'T00:00:00.000Z');
     
-    // Check if this override already exists
+    // Check if this exact override already exists (same task, same action, same date)
     const existing = await this.prisma.taskOverride.findFirst({
       where: {
         weekOverrideId,
         assignedDate,
         taskId: override.taskId,
+        action: override.action,
       },
     });
     
     if (existing) {
-      // Instead of creating a duplicate, update the existing one
+      // Update the existing override with new data
       return await this.prisma.taskOverride.update({
         where: { id: existing.id },
         data: {
-          action: override.action,
           originalMemberId: override.originalMemberId,
           newMemberId: override.newMemberId,
           overrideTime: override.overrideTime,

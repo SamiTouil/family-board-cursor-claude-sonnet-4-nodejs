@@ -412,11 +412,11 @@ export interface TaskOverride {
   id: string;
   assignedDate: Date; // Specific date
   taskId: string;
-  action: TaskOverrideAction; // ADD, REMOVE, REASSIGN, MODIFY_TIME
+  action: TaskOverrideAction; // ADD, REMOVE, REASSIGN
   originalMemberId: string | null; // For REASSIGN: who it was assigned to
   newMemberId: string | null; // For ADD/REASSIGN: who it's now assigned to
-  overrideTime: string | null; // For MODIFY_TIME: new time
-  overrideDuration: number | null; // For MODIFY_TIME: new duration
+  overrideTime: string | null; // For ADD: specific time
+  overrideDuration: number | null; // For ADD: specific duration
   createdAt: Date;
   updatedAt: Date;
   weekOverrideId: string;
@@ -427,7 +427,6 @@ export enum TaskOverrideAction {
   ADD = 'ADD',
   REMOVE = 'REMOVE',
   REASSIGN = 'REASSIGN',
-  MODIFY_TIME = 'MODIFY_TIME',
 }
 
 // WeekOverride with related data

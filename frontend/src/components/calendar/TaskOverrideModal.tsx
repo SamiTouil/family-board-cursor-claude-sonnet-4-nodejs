@@ -8,7 +8,7 @@ interface TaskOverrideModalProps {
   onConfirm: (overrideData: CreateTaskOverrideData) => Promise<void>;
   task?: ResolvedTask | undefined;
   date: string;
-  action: 'ADD' | 'REMOVE' | 'REASSIGN' | 'MODIFY_TIME';
+  action: 'ADD' | 'REMOVE' | 'REASSIGN';
   availableTasks?: Task[];
   familyMembers?: User[];
   isLoading?: boolean;
@@ -61,7 +61,6 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
       case 'ADD': return 'Add Task';
       case 'REMOVE': return 'Remove Task';
       case 'REASSIGN': return 'Reassign Task';
-      case 'MODIFY_TIME': return 'Modify Task Time';
       default: return 'Modify Task';
     }
   };
@@ -73,8 +72,8 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
       action,
       originalMemberId: action === 'REASSIGN' ? (task?.memberId || null) : null,
       newMemberId: action === 'ADD' || action === 'REASSIGN' ? selectedMemberId : null,
-      overrideTime: action === 'MODIFY_TIME' || action === 'ADD' ? overrideTime : null,
-      overrideDuration: action === 'MODIFY_TIME' || action === 'ADD' ? overrideDuration : null,
+      overrideTime: action === 'ADD' ? overrideTime : null,
+      overrideDuration: action === 'ADD' ? overrideDuration : null,
     };
 
     try {
@@ -96,8 +95,6 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
         return true;
       case 'REASSIGN':
         return selectedMemberId !== '' && selectedMemberId !== task?.memberId;
-      case 'MODIFY_TIME':
-        return overrideTime !== '' && overrideDuration > 0;
       default:
         return false;
     }
@@ -122,8 +119,7 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
         <div className="weekly-calendar-modal-content">
           <p>{action === 'ADD' ? `Add a new task to ${formatDate(date)}` : 
               action === 'REMOVE' ? `Remove "${task?.task.name}" from ${formatDate(date)}` :
-              action === 'REASSIGN' ? `Reassign "${task?.task.name}" on ${formatDate(date)}` :
-              `Modify time for "${task?.task.name}" on ${formatDate(date)}`}</p>
+              `Reassign "${task?.task.name}" on ${formatDate(date)}`}</p>
 
           {/* ADD Task Form */}
           {action === 'ADD' && (
@@ -220,35 +216,7 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
             </div>
           )}
 
-          {/* MODIFY_TIME Task Form */}
-          {action === 'MODIFY_TIME' && task && (
-            <div className="task-override-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>New Start Time:</label>
-                  <input
-                    type="time"
-                    value={overrideTime}
-                    onChange={(e) => setOverrideTime(e.target.value)}
-                    className="form-input"
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>New Duration (minutes):</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="1440"
-                    value={overrideDuration}
-                    onChange={(e) => setOverrideDuration(parseInt(e.target.value) || 30)}
-                    className="form-input"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
+
         </div>
 
         <div className="weekly-calendar-modal-actions">

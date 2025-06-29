@@ -36,7 +36,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
 
   // Task override modal state
   const [showTaskOverrideModal, setShowTaskOverrideModal] = useState(false);
-  const [taskOverrideAction, setTaskOverrideAction] = useState<'ADD' | 'REMOVE' | 'REASSIGN' | 'MODIFY_TIME'>('ADD');
+  const [taskOverrideAction, setTaskOverrideAction] = useState<'ADD' | 'REMOVE' | 'REASSIGN'>('ADD');
   const [selectedTask, setSelectedTask] = useState<ResolvedTask | undefined>(undefined);
   const [taskOverrideDate, setTaskOverrideDate] = useState<string>('');
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
@@ -108,9 +108,11 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     
     try {
       const response = await taskApi.getFamilyTasks(currentFamily.id);
-      setAvailableTasks(response.data?.tasks || []);
+      // Backend returns { success: true, data: [tasks array] }
+      // So we need response.data.data to get the actual tasks array
+      setAvailableTasks(response.data?.data || []);
     } catch (error) {
-      // Silently handle task loading errors - tasks will be empty array
+      setAvailableTasks([]); // Ensure empty array on error
     }
   };
 
@@ -347,7 +349,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
   };
 
   // Task override handlers
-  const handleTaskOverride = (action: 'ADD' | 'REMOVE' | 'REASSIGN' | 'MODIFY_TIME', task?: ResolvedTask, date?: string) => {
+  const handleTaskOverride = (action: 'ADD' | 'REMOVE' | 'REASSIGN', task?: ResolvedTask, date?: string) => {
     setTaskOverrideAction(action);
     setSelectedTask(task);
     setTaskOverrideDate(date || '');
@@ -651,13 +653,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                                 >
                                   ↻
                                 </button>
-                                <button
-                                  className="task-action-btn modify"
-                                  onClick={() => handleTaskOverride('MODIFY_TIME', task, day.date)}
-                                  title="Modify time"
-                                >
-                                  ⏰
-                                </button>
+
                               </div>
                             )}
                           </div>

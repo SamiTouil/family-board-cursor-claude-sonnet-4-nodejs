@@ -111,7 +111,7 @@ describe('CreateTaskOverrideSchema Validation', () => {
       const validData = {
         assignedDate: '2025-06-29',
         taskId: 'task123',
-        action: TaskOverrideAction.MODIFY_TIME,
+        action: TaskOverrideAction.ADD,
         overrideTime: '14:30',
         overrideDuration: 60,
       };
@@ -124,7 +124,7 @@ describe('CreateTaskOverrideSchema Validation', () => {
       const invalidData = {
         assignedDate: '2025-06-29',
         taskId: 'task123',
-        action: TaskOverrideAction.MODIFY_TIME,
+        action: TaskOverrideAction.ADD,
         overrideTime: '25:30', // Invalid hour
         overrideDuration: 60,
       };

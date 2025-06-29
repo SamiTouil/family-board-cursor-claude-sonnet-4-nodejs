@@ -246,13 +246,13 @@ model TaskOverride {
   taskId           String             @map("task_id")
   
   // Override types
-  action           TaskOverrideAction // ADD, REMOVE, REASSIGN, MODIFY_TIME
+  action           TaskOverrideAction // ADD, REMOVE, REASSIGN
   
   // Override values (only set when relevant)
   originalMemberId String?  @map("original_member_id") // For REASSIGN: who it was assigned to
   newMemberId      String?  @map("new_member_id")      // For ADD/REASSIGN: who it's now assigned to
-  overrideTime     String?  @map("override_time")      // For MODIFY_TIME: new time
-  overrideDuration Int?     @map("override_duration")  // For MODIFY_TIME: new duration
+  overrideTime     String?  @map("override_time")      // For ADD: specific time
+  overrideDuration Int?     @map("override_duration")  // For ADD: specific duration
   
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
@@ -271,7 +271,6 @@ enum TaskOverrideAction {
   ADD        // Add a task not in template
   REMOVE     // Remove a task from template
   REASSIGN   // Change who's assigned to a task
-  MODIFY_TIME // Change time/duration of a task
 }
 
 enum WeekTemplateRule {
