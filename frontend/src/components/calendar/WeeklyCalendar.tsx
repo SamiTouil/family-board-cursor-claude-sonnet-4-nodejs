@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useFamily } from '../../contexts/FamilyContext';
-import { weekScheduleApi, weekTemplateApi, dayTemplateApi } from '../../services/api';
+import { weekScheduleApi, weekTemplateApi, dayTemplateApi, taskApi } from '../../services/api';
+import { apiClient } from '../../services/api-client';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { UserAvatar } from '../ui/UserAvatar';
-import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate, DayTemplate } from '../../types';
+import { TaskOverrideModal } from './TaskOverrideModal';
+import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate, DayTemplate, Task, User, CreateTaskOverrideData } from '../../types';
 import './WeeklyCalendar.css';
 
 interface WeeklyCalendarProps {
@@ -32,6 +34,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
   const [selectedDayTemplateId, setSelectedDayTemplateId] = useState<string>('');
   const [isApplyingDayTemplate, setIsApplyingDayTemplate] = useState(false);
 
+  // Task override modal state
+  const [showTaskOverrideModal, setShowTaskOverrideModal] = useState(false);
+  const [taskOverrideAction, setTaskOverrideAction] = useState<'ADD' | 'REMOVE' | 'REASSIGN' | 'MODIFY_TIME'>('ADD');
+  const [selectedTask, setSelectedTask] = useState<ResolvedTask | undefined>(undefined);
+  const [taskOverrideDate, setTaskOverrideDate] = useState<string>('');
+  const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
+  const [familyMembers, setFamilyMembers] = useState<User[]>([]);
+
   const isAdmin = currentFamily?.userRole === 'ADMIN';
 
   // Initialize with current week
@@ -43,6 +53,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       loadWeekSchedule(monday);
       loadWeekTemplates();
       loadDayTemplates();
+      loadAvailableTasks();
+      loadFamilyMembers();
     }
   }, [currentFamily]);
 
@@ -88,6 +100,53 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       setDayTemplates(response.data?.templates || []);
     } catch (error) {
       // Silently handle template loading errors - templates will be empty array
+    }
+  };
+
+  const loadAvailableTasks = async () => {
+    if (!currentFamily) return;
+    
+    try {
+      const response = await taskApi.getFamilyTasks(currentFamily.id);
+      setAvailableTasks(response.data?.tasks || []);
+    } catch (error) {
+      // Silently handle task loading errors - tasks will be empty array
+    }
+  };
+
+  const loadFamilyMembers = async () => {
+    if (!currentFamily) {
+      return;
+    }
+    
+    try {
+      const response = await apiClient.get(`/families/${currentFamily.id}/members`);
+      
+      // Backend returns: { success: true, data: [FamilyMemberResponse array] }
+      // So we need response.data.data to get the actual members array
+      const membersData = response.data?.data || [];
+      
+      if (!Array.isArray(membersData)) {
+        setFamilyMembers([]);
+        return;
+      }
+      
+      // Backend returns FamilyMemberResponse objects with nested user data
+      // Transform to User objects that TaskOverrideModal expects
+      const members = membersData.map((member: any) => ({
+        id: member.user.id, // Use user.id for consistency
+        firstName: member.user.firstName,
+        lastName: member.user.lastName,
+        email: member.user.email,
+        avatarUrl: member.user.avatarUrl,
+        isVirtual: member.user.isVirtual || false,
+        createdAt: member.user.createdAt || new Date().toISOString(),
+        updatedAt: member.user.updatedAt || new Date().toISOString()
+      }));
+      
+      setFamilyMembers(members);
+    } catch (error) {
+      setFamilyMembers([]); // Ensure empty array on error
     }
   };
 
@@ -287,6 +346,41 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     }
   };
 
+  // Task override handlers
+  const handleTaskOverride = (action: 'ADD' | 'REMOVE' | 'REASSIGN' | 'MODIFY_TIME', task?: ResolvedTask, date?: string) => {
+    setTaskOverrideAction(action);
+    setSelectedTask(task);
+    setTaskOverrideDate(date || '');
+    setShowTaskOverrideModal(true);
+    setMessage(null);
+  };
+
+  const handleCancelTaskOverride = () => {
+    setShowTaskOverrideModal(false);
+    setSelectedTask(undefined);
+    setTaskOverrideDate('');
+  };
+
+  const handleConfirmTaskOverride = async (overrideData: CreateTaskOverrideData) => {
+    if (!currentFamily) return;
+
+    try {
+      await weekScheduleApi.applyWeekOverride(currentFamily.id, {
+        weekStartDate: currentWeekStart,
+        taskOverrides: [overrideData]
+      });
+
+      const actionText = overrideData.action === 'ADD' ? 'added' : 
+                        overrideData.action === 'REMOVE' ? 'removed' : 
+                        overrideData.action === 'REASSIGN' ? 'reassigned' : 'modified';
+      
+      setMessage({ type: 'success', text: `Task ${actionText} successfully` });
+      loadWeekSchedule(currentWeekStart); // Reload to show changes
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to apply task override' });
+    }
+  };
+
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString + 'T00:00:00.000Z');
     const today = new Date();
@@ -425,8 +519,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
               )}
             </div>
           )}
-        </div>
+                </div>
       </div>
+
+
 
       {/* Messages */}
       {message && (
@@ -537,10 +633,49 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                                 Modified
                               </div>
                             )}
+                            
+                            {/* Task Action Buttons */}
+                            {isAdmin && (
+                              <div className="weekly-calendar-task-actions">
+                                <button
+                                  className="task-action-btn remove"
+                                  onClick={() => handleTaskOverride('REMOVE', task, day.date)}
+                                  title="Remove task"
+                                >
+                                  ×
+                                </button>
+                                <button
+                                  className="task-action-btn reassign"
+                                  onClick={() => handleTaskOverride('REASSIGN', task, day.date)}
+                                  title="Reassign task"
+                                >
+                                  ↻
+                                </button>
+                                <button
+                                  className="task-action-btn modify"
+                                  onClick={() => handleTaskOverride('MODIFY_TIME', task, day.date)}
+                                  title="Modify time"
+                                >
+                                  ⏰
+                                </button>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
                     </div>
+                  )}
+                  
+                  {/* Add Task Button */}
+                  {isAdmin && (
+                    <button
+                      className="weekly-calendar-day-add-task"
+                      onClick={() => handleTaskOverride('ADD', undefined, day.date)}
+                      disabled={isLoading || availableTasks.length === 0}
+                      title={availableTasks.length === 0 ? 'No tasks available' : 'Add a task to this day'}
+                    >
+                      + Add Task
+                    </button>
                   )}
                 </div>
               </div>
@@ -706,6 +841,19 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
           </div>
         </div>
       )}
+
+      {/* Task Override Modal */}
+      <TaskOverrideModal
+        isOpen={showTaskOverrideModal}
+        onClose={handleCancelTaskOverride}
+        onConfirm={handleConfirmTaskOverride}
+        task={selectedTask}
+        date={taskOverrideDate}
+        action={taskOverrideAction}
+        availableTasks={availableTasks}
+        familyMembers={familyMembers}
+        isLoading={isLoading}
+      />
     </div>
   );
 }; 
