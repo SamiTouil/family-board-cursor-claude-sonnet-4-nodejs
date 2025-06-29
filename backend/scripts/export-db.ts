@@ -13,6 +13,10 @@ interface DbExport {
   tasks: any[];
   dayTemplates: any[];
   dayTemplateItems: any[];
+  weekTemplates: any[];
+  weekTemplateDays: any[];
+  weekOverrides: any[];
+  taskOverrides: any[];
   exportedAt: string;
 }
 
@@ -21,7 +25,7 @@ async function exportDatabase(): Promise<void> {
 
   try {
     // Export all data with relationships
-    const [users, families, familyMembers, familyInvites, familyJoinRequests, tasks, dayTemplates, dayTemplateItems] = await Promise.all([
+    const [users, families, familyMembers, familyInvites, familyJoinRequests, tasks, dayTemplates, dayTemplateItems, weekTemplates, weekTemplateDays, weekOverrides, taskOverrides] = await Promise.all([
       prisma.user.findMany({
         orderBy: { createdAt: 'asc' }
       }),
@@ -45,6 +49,18 @@ async function exportDatabase(): Promise<void> {
       }),
       prisma.dayTemplateItem.findMany({
         orderBy: { createdAt: 'asc' }
+      }),
+      prisma.weekTemplate.findMany({
+        orderBy: { createdAt: 'asc' }
+      }),
+      prisma.weekTemplateDay.findMany({
+        orderBy: { createdAt: 'asc' }
+      }),
+      prisma.weekOverride.findMany({
+        orderBy: { createdAt: 'asc' }
+      }),
+      prisma.taskOverride.findMany({
+        orderBy: { createdAt: 'asc' }
       })
     ]);
 
@@ -57,6 +73,10 @@ async function exportDatabase(): Promise<void> {
       tasks,
       dayTemplates,
       dayTemplateItems,
+      weekTemplates,
+      weekTemplateDays,
+      weekOverrides,
+      taskOverrides,
       exportedAt: new Date().toISOString()
     };
 
@@ -81,6 +101,10 @@ async function exportDatabase(): Promise<void> {
     console.log(`   - Tasks: ${tasks.length}`);
     console.log(`   - Day Templates: ${dayTemplates.length}`);
     console.log(`   - Day Template Items: ${dayTemplateItems.length}`);
+    console.log(`   - Week Templates: ${weekTemplates.length}`);
+    console.log(`   - Week Template Days: ${weekTemplateDays.length}`);
+    console.log(`   - Week Overrides: ${weekOverrides.length}`);
+    console.log(`   - Task Overrides: ${taskOverrides.length}`);
 
   } catch (error) {
     console.error('❌ Export failed:', error);
