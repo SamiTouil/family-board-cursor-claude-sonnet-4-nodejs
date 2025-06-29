@@ -208,13 +208,28 @@ export class WeekScheduleService {
       const targetDateString = validatedOverrides[0].assignedDate;
       const targetDate = new Date(targetDateString + 'T00:00:00.000Z');
       
-      // Delete all existing overrides for this date in one operation
-      await this.prisma.taskOverride.deleteMany({
+      console.log('=== DAY TEMPLATE APPLY DEBUG ===');
+      console.log('Week Override ID:', weekOverride.id);
+      console.log('Target Date:', targetDate);
+      console.log('Validatedoverrides count:', validatedOverrides.length);
+      
+      // Check existing overrides before deletion
+      const existingOverrides = await this.prisma.taskOverride.findMany({
         where: {
           weekOverrideId: weekOverride.id,
           assignedDate: targetDate,
         },
       });
+      console.log('Existing overrides before deletion:', existingOverrides.length);
+      
+      // Delete all existing overrides for this date in one operation
+      const deleteResult = await this.prisma.taskOverride.deleteMany({
+        where: {
+          weekOverrideId: weekOverride.id,
+          assignedDate: targetDate,
+        },
+      });
+      console.log('Deleted overrides count:', deleteResult.count);
     } else {
       // For week-level overrides, remove all existing task overrides for this week
       await this.prisma.taskOverride.deleteMany({
@@ -484,6 +499,13 @@ export class WeekScheduleService {
     override: CreateTaskOverrideDto
   ): Promise<TaskOverride> {
     const assignedDate = new Date(override.assignedDate + 'T00:00:00.000Z');
+    
+    console.log('Creating task override:', {
+      weekOverrideId,
+      assignedDate,
+      taskId: override.taskId,
+      action: override.action,
+    });
     
     // Since we delete all existing overrides for the date before calling this method,
     // we can directly create the new override without checking for duplicates
