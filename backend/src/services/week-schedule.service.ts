@@ -213,6 +213,24 @@ export class WeekScheduleService {
       console.log('Target Date:', targetDate);
       console.log('Validatedoverrides count:', validatedOverrides.length);
       
+      // Check ALL task overrides for this family and week to understand the full picture
+      const allWeekOverrides = await this.prisma.weekOverride.findMany({
+        where: {
+          familyId,
+          weekStartDate: weekStartDateObj,
+        },
+        include: {
+          taskOverrides: true,
+        },
+      });
+      console.log('All WeekOverride records for this week:', allWeekOverrides.length);
+      allWeekOverrides.forEach((wo, index) => {
+        console.log(`WeekOverride ${index + 1}: ID=${wo.id}, TaskOverrides=${wo.taskOverrides.length}`);
+        wo.taskOverrides.forEach((to, toIndex) => {
+          console.log(`  TaskOverride ${toIndex + 1}: Date=${to.assignedDate.toISOString()}, TaskId=${to.taskId}, Action=${to.action}`);
+        });
+      });
+      
       // Check existing overrides before deletion
       const existingOverrides = await this.prisma.taskOverride.findMany({
         where: {
@@ -240,6 +258,11 @@ export class WeekScheduleService {
     }
 
     // Apply each override
+    console.log('=== ABOUT TO CREATE TASK OVERRIDES ===');
+    validatedOverrides.forEach((override, index) => {
+      console.log(`Override ${index + 1}: Date=${override.assignedDate}, TaskId=${override.taskId}, Action=${override.action}`);
+    });
+    
     for (const override of validatedOverrides) {
       await this.applyTaskOverride(weekOverride.id, override);
     }
