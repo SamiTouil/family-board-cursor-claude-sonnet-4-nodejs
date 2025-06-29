@@ -186,11 +186,17 @@ export class WeekScheduleService {
     const validatedOverrides = data.taskOverrides.map(override => 
       CreateTaskOverrideSchema.parse(override)
     );
-    console.log('Validated Overrides:', validatedOverrides.length);
+    console.log('Validated overrides count:', validatedOverrides.length);
+    console.log('Validated overrides:', validatedOverrides.map(o => ({ date: o.assignedDate, taskId: o.taskId, action: o.action })));
 
-    // Check if this is a day-level override (all overrides for same date)
-    const isDayLevelOverride = this.isDayLevelOverride(validatedOverrides);
+    // Check if this is a day-level override (all overrides for the same date)
+    const isDayLevelOverride = validatedOverrides.length > 0 && 
+      validatedOverrides.every(override => override.assignedDate === validatedOverrides[0].assignedDate);
+    
     console.log('Is Day Level Override:', isDayLevelOverride);
+    if (isDayLevelOverride) {
+      console.log('Target date for day-level override:', validatedOverrides[0].assignedDate);
+    }
 
     // Create or update week override record
     console.log('=== UPSERTING WEEK OVERRIDE ===');
@@ -224,8 +230,30 @@ export class WeekScheduleService {
       
       console.log('=== DAY TEMPLATE APPLY DEBUG ===');
       console.log('Week Override ID:', weekOverride.id);
-      console.log('Target Date:', targetDate);
+      console.log('Target Date String:', targetDateString);
+      console.log('Target Date Object:', targetDate);
       console.log('Validatedoverrides count:', validatedOverrides.length);
+      
+      // Check existing overrides before deletion
+      const existingOverrides = await this.prisma.taskOverride.findMany({
+        where: {
+          weekOverrideId: weekOverride.id,
+          assignedDate: targetDate,
+        },
+      });
+      console.log('Existing overrides found for deletion:', existingOverrides.length);
+      existingOverrides.forEach((override, index) => {
+        console.log(`  Existing Override ${index + 1}: TaskId=${override.taskId}, Action=${override.action}, Date=${override.assignedDate}`);
+      });
+      
+      // Delete all existing overrides for this date in one operation
+      const deleteResult = await this.prisma.taskOverride.deleteMany({
+        where: {
+          weekOverrideId: weekOverride.id,
+          assignedDate: targetDate,
+        },
+      });
+      console.log('Deleted overrides count:', deleteResult.count);
       
       // Check ALL task overrides for this family and week to understand the full picture
       const allWeekOverrides = await this.prisma.weekOverride.findMany({
@@ -239,29 +267,16 @@ export class WeekScheduleService {
       });
       console.log('All WeekOverride records for this week:', allWeekOverrides.length);
       allWeekOverrides.forEach((wo, index) => {
-        console.log(`WeekOverride ${index + 1}: ID=${wo.id}, TaskOverrides=${wo.taskOverrides.length}`);
-        wo.taskOverrides.forEach((to, toIndex) => {
-          console.log(`  TaskOverride ${toIndex + 1}: Date=${to.assignedDate.toISOString()}, TaskId=${to.taskId}, Action=${to.action}`);
-        });
+        console.log(`  WeekOverride ${index + 1}: ID=${wo.id}, TaskOverrides=${wo.taskOverrides.length}`);
       });
       
-      // Check existing overrides before deletion
-      const existingOverrides = await this.prisma.taskOverride.findMany({
+      // Check remaining overrides after deletion
+      const remainingOverrides = await this.prisma.taskOverride.findMany({
         where: {
           weekOverrideId: weekOverride.id,
-          assignedDate: targetDate,
         },
       });
-      console.log('Existing overrides before deletion:', existingOverrides.length);
-      
-      // Delete all existing overrides for this date in one operation
-      const deleteResult = await this.prisma.taskOverride.deleteMany({
-        where: {
-          weekOverrideId: weekOverride.id,
-          assignedDate: targetDate,
-        },
-      });
-      console.log('Deleted overrides count:', deleteResult.count);
+      console.log('Remaining overrides after deletion:', remainingOverrides.length);
     } else {
       // For week-level overrides, remove all existing task overrides for this week
       await this.prisma.taskOverride.deleteMany({
