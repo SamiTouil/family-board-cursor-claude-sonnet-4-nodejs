@@ -829,5 +829,147 @@
       "dayTemplateId": "cmcauec0e002jjn1d5uj0sbs1"
     }
   ],
-  "exportedAt": "2025-06-28T20:00:45.353Z"
+  "weekTemplates": [
+    {
+      "id": "cmchz9hu7005j7z95lwr53pbt",
+      "name": "Semaine paire",
+      "description": null,
+      "isActive": true,
+      "isDefault": false,
+      "applyRule": "EVEN_WEEKS",
+      "priority": 0,
+      "createdAt": "2025-06-29T18:02:32.719Z",
+      "updatedAt": "2025-06-29T18:02:32.719Z",
+      "familyId": "cmc66ox86000bap3ezyaalsu7"
+    },
+    {
+      "id": "cmchza4ps005z7z9548rq01qc",
+      "name": "Semaine impaire",
+      "description": null,
+      "isActive": true,
+      "isDefault": false,
+      "applyRule": "ODD_WEEKS",
+      "priority": 0,
+      "createdAt": "2025-06-29T18:03:02.369Z",
+      "updatedAt": "2025-06-29T18:03:02.369Z",
+      "familyId": "cmc66ox86000bap3ezyaalsu7"
+    }
+  ],
+  "weekTemplateDays": [
+    {
+      "id": "cmchz9w5u005l7z95xqh6kz18",
+      "dayOfWeek": 0,
+      "dayTemplateId": "cmcauec0e002jjn1d5uj0sbs1",
+      "createdAt": "2025-06-29T18:02:51.282Z",
+      "updatedAt": "2025-06-29T18:02:51.282Z",
+      "weekTemplateId": "cmchz9hu7005j7z95lwr53pbt"
+    },
+    {
+      "id": "cmchz9w6d005n7z951xnmenql",
+      "dayOfWeek": 1,
+      "dayTemplateId": "cmc83r5sb0001fasmrf3tdvfu",
+      "createdAt": "2025-06-29T18:02:51.301Z",
+      "updatedAt": "2025-06-29T18:02:51.301Z",
+      "weekTemplateId": "cmchz9hu7005j7z95lwr53pbt"
+    },
+    {
+      "id": "cmchz9w6r005p7z95p1fo3p5w",
+      "dayOfWeek": 2,
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1",
+      "createdAt": "2025-06-29T18:02:51.315Z",
+      "updatedAt": "2025-06-29T18:02:51.315Z",
+      "weekTemplateId": "cmchz9hu7005j7z95lwr53pbt"
+    },
+    {
+      "id": "cmchz9w74005r7z953c5e0kog",
+      "dayOfWeek": 3,
+      "dayTemplateId": "cmc83r5sb0001fasmrf3tdvfu",
+      "createdAt": "2025-06-29T18:02:51.328Z",
+      "updatedAt": "2025-06-29T18:02:51.328Z",
+      "weekTemplateId": "cmchz9hu7005j7z95lwr53pbt"
+    },
+    {
+      "id": "cmchz9w7f005t7z9594v0sitt",
+      "dayOfWeek": 4,
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1",
+      "createdAt": "2025-06-29T18:02:51.340Z",
+      "updatedAt": "2025-06-29T18:02:51.340Z",
+      "weekTemplateId": "cmchz9hu7005j7z95lwr53pbt"
+    },
+    {
+      "id": "cmchz9w7p005v7z955am5w4hm",
+      "dayOfWeek": 5,
+      "dayTemplateId": "cmc83r5sb0001fasmrf3tdvfu",
+      "createdAt": "2025-06-29T18:02:51.350Z",
+      "updatedAt": "2025-06-29T18:02:51.350Z",
+      "weekTemplateId": "cmchz9hu7005j7z95lwr53pbt"
+    },
+    {
+      "id": "cmchz9w7z005x7z952td22lmz",
+      "dayOfWeek": 6,
+      "dayTemplateId": "cmcaub1gp001zjn1d26kgbb7e",
+      "createdAt": "2025-06-29T18:02:51.360Z",
+      "updatedAt": "2025-06-29T18:02:51.360Z",
+      "weekTemplateId": "cmchz9hu7005j7z95lwr53pbt"
+    },
+    {
+      "id": "cmchzan6f00617z95b7cr00lo",
+      "dayOfWeek": 0,
+      "dayTemplateId": "cmcaub1gp001zjn1d26kgbb7e",
+      "createdAt": "2025-06-29T18:03:26.296Z",
+      "updatedAt": "2025-06-29T18:03:26.296Z",
+      "weekTemplateId": "cmchza4ps005z7z9548rq01qc"
+    },
+    {
+      "id": "cmchzan6z00637z95sunhz07q",
+      "dayOfWeek": 1,
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1",
+      "createdAt": "2025-06-29T18:03:26.316Z",
+      "updatedAt": "2025-06-29T18:03:26.316Z",
+      "weekTemplateId": "cmchza4ps005z7z9548rq01qc"
+    },
+    {
+      "id": "cmchzan7g00657z95aqihzys5",
+      "dayOfWeek": 2,
+      "dayTemplateId": "cmc83r5sb0001fasmrf3tdvfu",
+      "createdAt": "2025-06-29T18:03:26.332Z",
+      "updatedAt": "2025-06-29T18:03:26.332Z",
+      "weekTemplateId": "cmchza4ps005z7z9548rq01qc"
+    },
+    {
+      "id": "cmchzan7t00677z95ia6lpqpq",
+      "dayOfWeek": 3,
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1",
+      "createdAt": "2025-06-29T18:03:26.346Z",
+      "updatedAt": "2025-06-29T18:03:26.346Z",
+      "weekTemplateId": "cmchza4ps005z7z9548rq01qc"
+    },
+    {
+      "id": "cmchzan8600697z95l18vnath",
+      "dayOfWeek": 4,
+      "dayTemplateId": "cmc83r5sb0001fasmrf3tdvfu",
+      "createdAt": "2025-06-29T18:03:26.358Z",
+      "updatedAt": "2025-06-29T18:03:26.358Z",
+      "weekTemplateId": "cmchza4ps005z7z9548rq01qc"
+    },
+    {
+      "id": "cmchzan8h006b7z95buh07dzs",
+      "dayOfWeek": 5,
+      "dayTemplateId": "cmcaqf6l00001jn1dq67ylkm1",
+      "createdAt": "2025-06-29T18:03:26.370Z",
+      "updatedAt": "2025-06-29T18:03:26.370Z",
+      "weekTemplateId": "cmchza4ps005z7z9548rq01qc"
+    },
+    {
+      "id": "cmchzan8s006d7z95138f19jn",
+      "dayOfWeek": 6,
+      "dayTemplateId": "cmcauec0e002jjn1d5uj0sbs1",
+      "createdAt": "2025-06-29T18:03:26.381Z",
+      "updatedAt": "2025-06-29T18:03:26.381Z",
+      "weekTemplateId": "cmchza4ps005z7z9548rq01qc"
+    }
+  ],
+  "weekOverrides": [],
+  "taskOverrides": [],
+  "exportedAt": "2025-06-29T18:04:01.276Z"
 }
