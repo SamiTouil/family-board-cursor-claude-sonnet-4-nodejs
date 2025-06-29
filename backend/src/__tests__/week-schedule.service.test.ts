@@ -17,6 +17,9 @@ jest.mock('@prisma/client', () => ({
     taskOverride: {
       deleteMany: jest.fn(),
       create: jest.fn(),
+      findMany: jest.fn(),
+      findFirst: jest.fn(),
+      update: jest.fn(),
     },
   })),
 }));
@@ -531,6 +534,8 @@ describe('WeekScheduleService', () => {
 
       (mockPrisma.weekOverride.upsert as jest.Mock).mockResolvedValue(mockCreatedOverride);
       (mockPrisma.taskOverride.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
+      (mockPrisma.taskOverride.findMany as jest.Mock).mockResolvedValue([]);
+      (mockPrisma.taskOverride.findFirst as jest.Mock).mockResolvedValue(null);
       (mockPrisma.taskOverride.create as jest.Mock).mockResolvedValue(mockCreatedTaskOverride);
       (mockPrisma.weekOverride.findFirst as jest.Mock).mockResolvedValue(mockWeekOverrideWithRelations);
 

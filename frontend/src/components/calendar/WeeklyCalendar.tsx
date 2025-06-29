@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useFamily } from '../../contexts/FamilyContext';
-import { weekScheduleApi, weekTemplateApi } from '../../services/api';
+import { weekScheduleApi, weekTemplateApi, dayTemplateApi } from '../../services/api';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { UserAvatar } from '../ui/UserAvatar';
-import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate } from '../../types';
+import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate, DayTemplate } from '../../types';
 import './WeeklyCalendar.css';
 
 interface WeeklyCalendarProps {
@@ -15,6 +15,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
   
   const [weekSchedule, setWeekSchedule] = useState<ResolvedWeekSchedule | null>(null);
   const [weekTemplates, setWeekTemplates] = useState<WeekTemplate[]>([]);
+  const [dayTemplates, setDayTemplates] = useState<DayTemplate[]>([]);
   const [currentWeekStart, setCurrentWeekStart] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,6 +25,12 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
   const [showApplyTemplateModal, setShowApplyTemplateModal] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
+
+  // Day template application modal state
+  const [showApplyDayTemplateModal, setShowApplyDayTemplateModal] = useState(false);
+  const [selectedDayDate, setSelectedDayDate] = useState<string>('');
+  const [selectedDayTemplateId, setSelectedDayTemplateId] = useState<string>('');
+  const [isApplyingDayTemplate, setIsApplyingDayTemplate] = useState(false);
 
   const isAdmin = currentFamily?.userRole === 'ADMIN';
 
@@ -35,6 +42,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       setCurrentWeekStart(monday);
       loadWeekSchedule(monday);
       loadWeekTemplates();
+      loadDayTemplates();
     }
   }, [currentFamily]);
 
@@ -68,6 +76,18 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       const response = await weekTemplateApi.getTemplates(currentFamily.id);
       setWeekTemplates(response.data.templates || []);
     } catch (error) {
+      // Silently handle template loading errors - templates will be empty array
+    }
+  };
+
+  const loadDayTemplates = async () => {
+    if (!currentFamily) return;
+    
+    try {
+      const response = await dayTemplateApi.getTemplates(currentFamily.id);
+      setDayTemplates(response.data?.templates || []);
+    } catch (error) {
+      console.error('Error loading day templates:', error);
       // Silently handle template loading errors - templates will be empty array
     }
   };
@@ -147,6 +167,126 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to remove overrides' });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleApplyDayTemplate = (dayDate: string) => {
+    setSelectedDayDate(dayDate);
+    setShowApplyDayTemplateModal(true);
+    setSelectedDayTemplateId('');
+    setMessage(null);
+  };
+
+  const handleCancelApplyDayTemplate = () => {
+    setShowApplyDayTemplateModal(false);
+    setSelectedDayDate('');
+    setSelectedDayTemplateId('');
+  };
+
+  const handleConfirmApplyDayTemplate = async () => {
+    if (!currentFamily || !selectedDayTemplateId || !selectedDayDate) {
+      setMessage({ type: 'error', text: 'Missing required information to apply day routine' });
+      return;
+    }
+
+    const selectedTemplate = dayTemplates.find(t => t.id === selectedDayTemplateId);
+    if (!selectedTemplate) {
+      setMessage({ type: 'error', text: 'Selected day routine not found' });
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Apply "${selectedTemplate.name}" routine to ${formatDate(selectedDayDate)}? This will completely replace the current schedule for this day.`
+    );
+    if (!confirmed) return;
+
+    try {
+      setIsApplyingDayTemplate(true);
+      
+      // Get the day template items to create the overrides
+      const dayTemplateResponse = await dayTemplateApi.getItems(currentFamily.id, selectedDayTemplateId);
+      
+      // Handle different response structures
+      let dayTemplateItems = [];
+      if (dayTemplateResponse?.data?.items) {
+        dayTemplateItems = dayTemplateResponse.data.items;
+      } else if (dayTemplateResponse?.data && Array.isArray(dayTemplateResponse.data)) {
+        dayTemplateItems = dayTemplateResponse.data;
+      } else {
+        console.warn('Unexpected day template response structure:', dayTemplateResponse);
+      }
+
+      if (!dayTemplateItems || dayTemplateItems.length === 0) {
+        setMessage({ type: 'error', text: `Day routine "${selectedTemplate.name}" has no tasks configured` });
+        return;
+      }
+
+      // Get current day's tasks to remove them first
+      const currentDay = weekSchedule?.days.find(day => day.date === selectedDayDate);
+      const currentTasks = currentDay?.tasks || [];
+
+      // Create task overrides to completely replace the day
+      const taskOverrides = [];
+
+      // Step 1: Remove all existing tasks for this day
+      for (const task of currentTasks) {
+        taskOverrides.push({
+          assignedDate: selectedDayDate,
+          taskId: task.taskId,
+          action: 'REMOVE' as const,
+          originalMemberId: task.memberId,
+          newMemberId: null,
+          overrideTime: null,
+          overrideDuration: null,
+        });
+      }
+
+      // Step 2: Add all tasks from the day template
+      for (const item of dayTemplateItems) {
+        if (!item.taskId) {
+          continue;
+        }
+        
+        taskOverrides.push({
+          assignedDate: selectedDayDate,
+          taskId: item.taskId,
+          action: 'ADD' as const,
+          originalMemberId: null,
+          newMemberId: item.memberId || null,
+          overrideTime: item.overrideTime || null,
+          overrideDuration: item.overrideDuration || null,
+        });
+      }
+
+      if (taskOverrides.length === 0) {
+        setMessage({ type: 'error', text: 'No valid task overrides to apply' });
+        return;
+      }
+
+      // Apply the day template overrides
+      await weekScheduleApi.applyWeekOverride(currentFamily.id, {
+        weekStartDate: currentWeekStart,
+        taskOverrides: taskOverrides
+      });
+
+      setMessage({ type: 'success', text: `Applied routine "${selectedTemplate.name}" to ${formatDate(selectedDayDate)}` });
+      setShowApplyDayTemplateModal(false);
+      loadWeekSchedule(currentWeekStart); // Reload to show changes
+    } catch (error: any) {
+      console.error('Day template application error:', error);
+      
+      let errorMessage = 'Failed to apply day routine';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsApplyingDayTemplate(false);
     }
   };
 
@@ -234,7 +374,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
             {weekSchedule?.baseTemplate && (
               <span className="weekly-calendar-template">
                 • {weekSchedule.baseTemplate.name}
-                {weekSchedule.hasOverrides && <span className="has-overrides"> (Modified)</span>}
               </span>
             )}
           </p>
@@ -325,12 +464,26 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
               >
                 {/* Day Header */}
                 <div className="weekly-calendar-day-header">
-                  <h3 className="weekly-calendar-day-name">
-                    {formatDate(day.date)}
-                  </h3>
-                  <span className="weekly-calendar-task-count">
-                    {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
-                  </span>
+                  <div className="weekly-calendar-day-info">
+                    <h3 className="weekly-calendar-day-name">
+                      {formatDate(day.date)}
+                    </h3>
+                    <span className="weekly-calendar-task-count">
+                      {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
+                    </span>
+                  </div>
+                  {isAdmin && (
+                    <div className="weekly-calendar-day-controls">
+                      <button
+                        onClick={() => handleApplyDayTemplate(day.date)}
+                        className="weekly-calendar-day-override-btn"
+                        disabled={isLoading || dayTemplates.length === 0}
+                        title={dayTemplates.length === 0 ? 'No day routines available' : 'Apply a daily routine to this day'}
+                      >
+                        📅
+                      </button>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Tasks Lane */}
@@ -479,6 +632,78 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                 disabled={!selectedTemplateId || isApplyingTemplate}
               >
                 {isApplyingTemplate ? 'Applying...' : 'Apply Template'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Apply Day Template Modal */}
+      {showApplyDayTemplateModal && (
+        <div className="weekly-calendar-modal-overlay">
+          <div className="weekly-calendar-modal">
+            <div className="weekly-calendar-modal-header">
+              <h3>Apply Daily Routine</h3>
+              <button
+                onClick={handleCancelApplyDayTemplate}
+                className="weekly-calendar-modal-close"
+                disabled={isApplyingDayTemplate}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="weekly-calendar-modal-content">
+              <p>Select a daily routine to apply to <strong>{formatDate(selectedDayDate)}</strong>:</p>
+              
+              {dayTemplates.length === 0 ? (
+                <div className="weekly-calendar-modal-empty">
+                  <p>No daily routines available. Create one first in the Daily Routines section.</p>
+                </div>
+              ) : (
+                <div className="weekly-calendar-template-list">
+                  {dayTemplates.map(template => (
+                    <div
+                      key={template.id}
+                      className={`weekly-calendar-template-option ${selectedDayTemplateId === template.id ? 'selected' : ''}`}
+                      onClick={() => setSelectedDayTemplateId(template.id)}
+                    >
+                      <div className="weekly-calendar-template-info">
+                        <h4 className="weekly-calendar-template-name">{template.name}</h4>
+                        {template.description && (
+                          <p className="weekly-calendar-template-description">{template.description}</p>
+                        )}
+                        <div className="weekly-calendar-template-meta">
+                          <span className="weekly-calendar-template-badge daily">Daily Routine</span>
+                        </div>
+                      </div>
+                      <div className="weekly-calendar-template-selector">
+                        <input
+                          type="radio"
+                          name="selectedDayTemplate"
+                          value={template.id}
+                          checked={selectedDayTemplateId === template.id}
+                          onChange={() => setSelectedDayTemplateId(template.id)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="weekly-calendar-modal-actions">
+              <button
+                onClick={handleCancelApplyDayTemplate}
+                className="weekly-calendar-button weekly-calendar-button-secondary"
+                disabled={isApplyingDayTemplate}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmApplyDayTemplate}
+                className="weekly-calendar-button weekly-calendar-button-primary"
+                disabled={!selectedDayTemplateId || isApplyingDayTemplate}
+              >
+                {isApplyingDayTemplate ? 'Applying...' : 'Apply Routine'}
               </button>
             </div>
           </div>
