@@ -313,7 +313,7 @@
 
 .weekly-calendar-task-source {
   position: absolute;
-  bottom: 0.5rem;
+  bottom: -0.3rem;
   right: 0.5rem;
   background-color: #fbbf24;
   color: #92400e;
