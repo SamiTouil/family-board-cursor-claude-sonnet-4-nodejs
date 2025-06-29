@@ -35,7 +35,12 @@ export const WeekScheduleView: React.FC = () => {
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
     d.setDate(diff);
-    return d.toISOString().split('T')[0]!;
+    
+    // Use local date formatting to avoid timezone issues
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const dayOfMonth = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${dayOfMonth}`;
   };
 
   const loadWeekSchedule = async (weekStartDate: string) => {
@@ -52,12 +57,16 @@ export const WeekScheduleView: React.FC = () => {
     }
   };
 
-
-
   const handlePreviousWeek = () => {
     const prevWeek = new Date(currentWeekStart);
     prevWeek.setDate(prevWeek.getDate() - 7);
-    const prevWeekStart = prevWeek.toISOString().split('T')[0]!;
+    
+    // Use local date formatting to avoid timezone issues
+    const year = prevWeek.getFullYear();
+    const month = String(prevWeek.getMonth() + 1).padStart(2, '0');
+    const dayOfMonth = String(prevWeek.getDate()).padStart(2, '0');
+    const prevWeekStart = `${year}-${month}-${dayOfMonth}`;
+    
     setCurrentWeekStart(prevWeekStart);
     loadWeekSchedule(prevWeekStart);
   };
@@ -65,7 +74,13 @@ export const WeekScheduleView: React.FC = () => {
   const handleNextWeek = () => {
     const nextWeek = new Date(currentWeekStart);
     nextWeek.setDate(nextWeek.getDate() + 7);
-    const nextWeekStart = nextWeek.toISOString().split('T')[0]!;
+    
+    // Use local date formatting to avoid timezone issues
+    const year = nextWeek.getFullYear();
+    const month = String(nextWeek.getMonth() + 1).padStart(2, '0');
+    const dayOfMonth = String(nextWeek.getDate()).padStart(2, '0');
+    const nextWeekStart = `${year}-${month}-${dayOfMonth}`;
+    
     setCurrentWeekStart(nextWeekStart);
     loadWeekSchedule(nextWeekStart);
   };
@@ -75,8 +90,6 @@ export const WeekScheduleView: React.FC = () => {
     setSelectedDate(date);
     setShowOverrideModal(true);
   };
-
-
 
   const handleRemoveOverrides = async () => {
     if (!currentFamily || !weekSchedule?.hasOverrides) return;
@@ -188,8 +201,6 @@ export const WeekScheduleView: React.FC = () => {
             </div>
           </div>
         )}
-
-
 
         {/* Week Schedule */}
         {isLoading ? (
