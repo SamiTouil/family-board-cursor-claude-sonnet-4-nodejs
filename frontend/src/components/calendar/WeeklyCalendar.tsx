@@ -68,7 +68,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       const response = await weekTemplateApi.getTemplates(currentFamily.id);
       setWeekTemplates(response.data.templates || []);
     } catch (error) {
-      console.error('Failed to load week templates:', error);
+      // Silently handle template loading errors - templates will be empty array
     }
   };
 
