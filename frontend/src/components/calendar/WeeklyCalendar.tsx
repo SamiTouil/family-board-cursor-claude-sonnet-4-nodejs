@@ -5,7 +5,7 @@ import { apiClient } from '../../services/api-client';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { UserAvatar } from '../ui/UserAvatar';
 import { TaskOverrideModal } from './TaskOverrideModal';
-import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate, DayTemplate, Task, User, CreateTaskOverrideData } from '../../types';
+import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate, DayTemplate, DayTemplateItem, Task, User, CreateTaskOverrideData } from '../../types';
 import './WeeklyCalendar.css';
 
 interface WeeklyCalendarProps {
@@ -208,7 +208,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       await weekScheduleApi.applyWeekOverride(currentFamily.id, {
         weekStartDate: currentWeekStart,
         weekTemplateId: selectedTemplateId,
-        taskOverrides: [] // No additional task overrides, just apply the template
+        taskOverrides: [], // No additional task overrides, just apply the template
+        replaceExisting: true // Week template application should replace all existing overrides
       });
 
       setMessage({ type: 'success', text: `Applied template "${selectedTemplate.name}" successfully` });
@@ -278,7 +279,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       const dayTemplateResponse = await dayTemplateApi.getItems(currentFamily.id, selectedDayTemplateId);
       
       // Handle different response structures
-      let dayTemplateItems = [];
+      let dayTemplateItems: DayTemplateItem[] = [];
       if (dayTemplateResponse?.data?.items) {
         dayTemplateItems = dayTemplateResponse.data.items;
       } else if (dayTemplateResponse?.data && Array.isArray(dayTemplateResponse.data)) {
@@ -292,41 +293,95 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
         return;
       }
 
-      // Get current day's tasks to remove them first
+      // Get current day's tasks
       const currentDay = weekSchedule?.days.find(day => day.date === selectedDayDate);
       const currentTasks = currentDay?.tasks || [];
 
       // Create task overrides to completely replace the day
       const taskOverrides = [];
 
-      // Step 1: Remove all existing tasks for this day
+      // Create sets for efficient comparison
+      const templateTaskIds = new Set(dayTemplateItems.map(item => item.taskId).filter(Boolean));
+
+      // Step 1: Remove tasks that are NOT in the template
       for (const task of currentTasks) {
-        taskOverrides.push({
-          assignedDate: selectedDayDate,
-          taskId: task.taskId,
-          action: 'REMOVE' as const,
-          originalMemberId: task.memberId,
-          newMemberId: null,
-          overrideTime: null,
-          overrideDuration: null,
-        });
+        if (!templateTaskIds.has(task.taskId)) {
+          taskOverrides.push({
+            assignedDate: selectedDayDate,
+            taskId: task.taskId,
+            action: 'REMOVE' as const,
+            originalMemberId: task.memberId,
+            newMemberId: null,
+            overrideTime: null,
+            overrideDuration: null,
+          });
+        }
       }
 
-      // Step 2: Add all tasks from the day template
+      // Step 2: Add/Update tasks from the template
       for (const item of dayTemplateItems) {
         if (!item.taskId) {
           continue;
         }
         
-        taskOverrides.push({
-          assignedDate: selectedDayDate,
-          taskId: item.taskId,
-          action: 'ADD' as const,
-          originalMemberId: null,
-          newMemberId: item.memberId || null,
-          overrideTime: item.overrideTime || null,
-          overrideDuration: item.overrideDuration || null,
-        });
+        const currentTask = currentTasks.find(task => task.taskId === item.taskId);
+        
+        if (!currentTask) {
+          // Task doesn't exist in current day - ADD it
+          taskOverrides.push({
+            assignedDate: selectedDayDate,
+            taskId: item.taskId,
+            action: 'ADD' as const,
+            originalMemberId: null,
+            newMemberId: item.memberId || null,
+            overrideTime: item.overrideTime || null,
+            overrideDuration: item.overrideDuration || null,
+          });
+        } else {
+          // Task exists - check if we need to reassign or modify it
+          const needsReassignment = item.memberId !== currentTask.memberId;
+          const templateTime = item.overrideTime || null;
+          const currentTime = currentTask.overrideTime || null;
+          const templateDuration = item.overrideDuration || null;
+          const currentDuration = currentTask.overrideDuration || null;
+          const needsTimeUpdate = templateTime !== currentTime || templateDuration !== currentDuration;
+          
+          if (needsReassignment || needsTimeUpdate) {
+            if (needsReassignment) {
+              // Reassign the task
+              taskOverrides.push({
+                assignedDate: selectedDayDate,
+                taskId: item.taskId,
+                action: 'REASSIGN' as const,
+                originalMemberId: currentTask.memberId,
+                newMemberId: item.memberId || null,
+                overrideTime: needsTimeUpdate ? templateTime : null,
+                overrideDuration: needsTimeUpdate ? templateDuration : null,
+              });
+            } else if (needsTimeUpdate) {
+              // Just update time/duration by removing and re-adding
+              taskOverrides.push({
+                assignedDate: selectedDayDate,
+                taskId: item.taskId,
+                action: 'REMOVE' as const,
+                originalMemberId: currentTask.memberId,
+                newMemberId: null,
+                overrideTime: null,
+                overrideDuration: null,
+              });
+              taskOverrides.push({
+                assignedDate: selectedDayDate,
+                taskId: item.taskId,
+                action: 'ADD' as const,
+                originalMemberId: null,
+                newMemberId: item.memberId || null,
+                overrideTime: templateTime,
+                overrideDuration: templateDuration,
+              });
+            }
+          }
+          // If task exists with same assignment and time, no override needed
+        }
       }
 
       if (taskOverrides.length === 0) {
@@ -334,10 +389,11 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
         return;
       }
 
-      // Apply the day template overrides
+      // Apply the day template overrides (replace existing overrides for this day)
       await weekScheduleApi.applyWeekOverride(currentFamily.id, {
         weekStartDate: currentWeekStart,
-        taskOverrides: taskOverrides
+        taskOverrides: taskOverrides,
+        replaceExisting: true // Day template application should replace all existing overrides for the day
       });
 
       setMessage({ type: 'success', text: `Applied routine "${selectedTemplate.name}" to ${formatDate(selectedDayDate)}` });
@@ -380,7 +436,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     try {
       await weekScheduleApi.applyWeekOverride(currentFamily.id, {
         weekStartDate: currentWeekStart,
-        taskOverrides: [overrideData]
+        taskOverrides: [overrideData],
+        replaceExisting: false // Individual task overrides should be cumulative
       });
 
       const actionText = overrideData.action === 'ADD' ? 'added' : 
