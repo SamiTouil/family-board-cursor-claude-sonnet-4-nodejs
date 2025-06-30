@@ -608,4 +608,5 @@ export interface ApplyWeekOverrideDto {
   weekStartDate: string; // ISO date string (YYYY-MM-DD) for the Monday of the week
   weekTemplateId?: string | null; // Optional: change the base template for this week
   taskOverrides: CreateTaskOverrideDto[]; // Array of task overrides to apply
+  replaceExisting?: boolean; // If true, replace all existing overrides for affected dates. If false (default), add to existing overrides
 } 

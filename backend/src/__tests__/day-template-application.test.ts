@@ -126,10 +126,11 @@ describe('Day Template Application Logic', () => {
         }
       ];
 
-      // Apply the overrides
+      // Apply the overrides with replaceExisting: true (day template application)
       const result = await weekScheduleService.applyWeekOverride(familyId, {
         weekStartDate,
-        taskOverrides
+        taskOverrides,
+        replaceExisting: true // Day template application should replace existing overrides
       });
 
       // Verify the week override was created/updated
@@ -259,11 +260,114 @@ describe('Day Template Application Logic', () => {
 
       await weekScheduleService.applyWeekOverride(familyId, {
         weekStartDate,
-        taskOverrides
+        taskOverrides,
+        replaceExisting: false // Individual task overrides should be cumulative
+      });
+
+      // Should delete conflicting overrides for task-1 (called twice, once for each override)
+      expect(mockPrisma.taskOverride.deleteMany).toHaveBeenCalledTimes(2);
+      expect(mockPrisma.taskOverride.deleteMany).toHaveBeenNthCalledWith(1, {
+        where: {
+          weekOverrideId: 'week-override-1',
+          assignedDate: new Date(targetDate),
+          taskId: 'task-1'
+        }
+      });
+      expect(mockPrisma.taskOverride.deleteMany).toHaveBeenNthCalledWith(2, {
+        where: {
+          weekOverrideId: 'week-override-1',
+          assignedDate: new Date(targetDate),
+          taskId: 'task-1'
+        }
       });
 
       // Should only create one override (the ADD one, since it comes last in deduplication)
       expect(mockPrisma.taskOverride.create).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.taskOverride.create).toHaveBeenCalledWith({
+        data: {
+          weekOverrideId: 'week-override-1',
+          assignedDate: new Date(targetDate),
+          taskId: 'task-1',
+          action: TaskOverrideAction.ADD,
+          originalMemberId: null,
+          newMemberId: 'member-1',
+          overrideTime: '09:00',
+          overrideDuration: 30
+        }
+      });
+    });
+
+    it('should handle cumulative overrides correctly (replaceExisting: false)', async () => {
+      const familyId = 'test-family';
+      const weekStartDate = '2024-01-01';
+      const targetDate = '2024-01-01';
+
+      // Mock existing week override
+      const mockWeekOverride = {
+        id: 'week-override-1',
+        familyId,
+        weekStartDate: new Date(weekStartDate),
+        weekTemplateId: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      mockPrisma.weekOverride.upsert.mockResolvedValue(mockWeekOverride);
+      mockPrisma.taskOverride.deleteMany.mockResolvedValue({ count: 0 });
+      
+      // Mock weekTemplate.findMany for getApplicableWeekTemplate
+      mockPrisma.weekTemplate.findMany.mockResolvedValue([]);
+      
+      mockPrisma.taskOverride.create.mockResolvedValue({
+        id: 'override-1',
+        weekOverrideId: 'week-override-1',
+        assignedDate: new Date(targetDate),
+        taskId: 'task-1',
+        action: TaskOverrideAction.ADD,
+        originalMemberId: null,
+        newMemberId: 'member-1',
+        overrideTime: '09:00',
+        overrideDuration: 30,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      jest.spyOn(weekScheduleService as any, 'getWeekOverrideById').mockResolvedValue({
+        ...mockWeekOverride,
+        family: { id: familyId, name: 'Test Family' },
+        weekTemplate: null,
+        taskOverrides: []
+      });
+
+      // Apply individual task override (should be cumulative)
+      const taskOverrides: CreateTaskOverrideDto[] = [
+        {
+          assignedDate: targetDate,
+          taskId: 'task-1',
+          action: TaskOverrideAction.ADD,
+          originalMemberId: null,
+          newMemberId: 'member-1',
+          overrideTime: '09:00',
+          overrideDuration: 30
+        }
+      ];
+
+      await weekScheduleService.applyWeekOverride(familyId, {
+        weekStartDate,
+        taskOverrides,
+        replaceExisting: false // Individual task overrides should be cumulative
+      });
+
+      // Should only delete conflicting overrides for the specific task, not all overrides for the day
+      expect(mockPrisma.taskOverride.deleteMany).toHaveBeenCalledWith({
+        where: {
+          weekOverrideId: 'week-override-1',
+          assignedDate: new Date(targetDate),
+          taskId: 'task-1'
+        }
+      });
+
+      // Should create the override
       expect(mockPrisma.taskOverride.create).toHaveBeenCalledWith({
         data: {
           weekOverrideId: 'week-override-1',

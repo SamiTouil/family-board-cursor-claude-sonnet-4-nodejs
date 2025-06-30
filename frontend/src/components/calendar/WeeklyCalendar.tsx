@@ -208,7 +208,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       await weekScheduleApi.applyWeekOverride(currentFamily.id, {
         weekStartDate: currentWeekStart,
         weekTemplateId: selectedTemplateId,
-        taskOverrides: [] // No additional task overrides, just apply the template
+        taskOverrides: [], // No additional task overrides, just apply the template
+        replaceExisting: true // Week template application should replace all existing overrides
       });
 
       setMessage({ type: 'success', text: `Applied template "${selectedTemplate.name}" successfully` });
@@ -301,7 +302,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
 
       // Create sets for efficient comparison
       const templateTaskIds = new Set(dayTemplateItems.map(item => item.taskId).filter(Boolean));
-      const currentTaskIds = new Set(currentTasks.map(task => task.taskId));
 
       // Step 1: Remove tasks that are NOT in the template
       for (const task of currentTasks) {
@@ -389,10 +389,11 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
         return;
       }
 
-      // Apply the day template overrides
+      // Apply the day template overrides (replace existing overrides for this day)
       await weekScheduleApi.applyWeekOverride(currentFamily.id, {
         weekStartDate: currentWeekStart,
-        taskOverrides: taskOverrides
+        taskOverrides: taskOverrides,
+        replaceExisting: true // Day template application should replace all existing overrides for the day
       });
 
       setMessage({ type: 'success', text: `Applied routine "${selectedTemplate.name}" to ${formatDate(selectedDayDate)}` });
@@ -435,7 +436,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     try {
       await weekScheduleApi.applyWeekOverride(currentFamily.id, {
         weekStartDate: currentWeekStart,
-        taskOverrides: [overrideData]
+        taskOverrides: [overrideData],
+        replaceExisting: false // Individual task overrides should be cumulative
       });
 
       const actionText = overrideData.action === 'ADD' ? 'added' : 

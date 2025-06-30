@@ -278,6 +278,7 @@ export interface ApplyWeekOverrideData {
   weekStartDate: string;
   weekTemplateId?: string | null;
   taskOverrides: CreateTaskOverrideData[];
+  replaceExisting?: boolean; // If true, replace all existing overrides for affected dates. If false (default), add to existing overrides
 }
 
 // Day Template types
