@@ -63,7 +63,12 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
     d.setDate(diff);
-    return d.toISOString().split('T')[0]!;
+    
+    // Use local date formatting to avoid timezone issues
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const dayOfMonth = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${dayOfMonth}`;
   };
 
   const loadWeekSchedule = async (weekStartDate: string) => {
@@ -156,7 +161,13 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     const currentDate = new Date(currentWeekStart + 'T00:00:00.000Z');
     const newDate = new Date(currentDate);
     newDate.setDate(currentDate.getDate() + (direction === 'next' ? 7 : -7));
-    const newWeekStart = newDate.toISOString().split('T')[0]!;
+    
+    // Use local date formatting to avoid timezone issues
+    const year = newDate.getFullYear();
+    const month = String(newDate.getMonth() + 1).padStart(2, '0');
+    const dayOfMonth = String(newDate.getDate()).padStart(2, '0');
+    const newWeekStart = `${year}-${month}-${dayOfMonth}`;
+    
     setCurrentWeekStart(newWeekStart);
     loadWeekSchedule(newWeekStart);
   };
