@@ -33,20 +33,58 @@
 
 .task-override-card-name {
   margin: 0 0 0.25rem 0;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #111827;
   line-height: 1.3;
   word-wrap: break-word;
 }
 
-.task-override-card-time {
-  font-size: 0.75rem;
-  color: #6b7280;
-  font-weight: 500;
+.task-override-card-tags {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.task-override-card-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.625rem;
+  font-weight: 500;
+  padding: 0.0625rem 0.25rem;
+  border-radius: 6px;
+  border: 1px solid;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  line-height: 1.1;
+}
+
+.task-override-card-tag.time-tag {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.task-override-card-tag.duration-tag {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.task-override-card-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.task-override-card-tag.time-tag:hover {
+  background-color: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.task-override-card-tag.duration-tag:hover {
+  background-color: #dcfce7;
+  border-color: #86efac;
 }
 
 .task-override-card-description {
@@ -162,6 +200,21 @@
 
   .task-override-card-member {
     align-self: flex-start;
+  }
+
+  .task-override-card-tags {
+    flex-wrap: wrap;
+    gap: 0.1875rem;
+  }
+
+  .task-override-card-tag {
+    font-size: 0.5625rem;
+    padding: 0.0625rem 0.1875rem;
+    border-radius: 4px;
+  }
+
+  .task-override-card-name {
+    font-size: 0.75rem;
   }
 }
 

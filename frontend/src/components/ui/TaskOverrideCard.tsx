@@ -11,6 +11,7 @@ interface TaskOverrideCardProps {
   onReassign?: (task: ResolvedTask) => void;
   formatTime: (time: string) => string;
   formatDuration: (minutes: number) => string;
+  showDescription?: boolean;
 }
 
 export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
@@ -20,7 +21,8 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
   onRemove,
   onReassign,
   formatTime,
-  formatDuration
+  formatDuration,
+  showDescription = true
 }) => {
   const startTime = task.overrideTime || task.task.defaultStartTime;
   const duration = task.overrideDuration || task.task.defaultDuration;
@@ -39,8 +41,13 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
           <h4 className="task-override-card-name">
             {task.task.name}
           </h4>
-          <div className="task-override-card-time">
-            {formatTime(startTime)} • {formatDuration(duration)}
+          <div className="task-override-card-tags">
+            <span className="task-override-card-tag time-tag">
+              {formatTime(startTime)}
+            </span>
+            <span className="task-override-card-tag duration-tag">
+              {formatDuration(duration)}
+            </span>
           </div>
         </div>
         
@@ -56,7 +63,7 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
         )}
       </div>
       
-      {task.task.description && (
+      {showDescription && task.task.description && (
         <div className="task-override-card-description">
           {task.task.description}
         </div>
