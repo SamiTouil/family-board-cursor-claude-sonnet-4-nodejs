@@ -59,7 +59,7 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
               firstName={task.member.firstName}
               lastName={task.member.lastName}
               avatarUrl={task.member.avatarUrl}
-              size="small"
+              size={compact ? "extra-small" : "small"}
             />
           </div>
         )}

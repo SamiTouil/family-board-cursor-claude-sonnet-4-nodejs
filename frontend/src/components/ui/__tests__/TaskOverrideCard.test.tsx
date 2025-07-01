@@ -260,4 +260,37 @@ describe('TaskOverrideCard', () => {
     expect(card).toHaveClass('task-override-card');
     expect(card).not.toHaveClass('compact');
   });
+
+  it('uses extra-small avatar size in compact mode', () => {
+    const { container } = render(
+      <TaskOverrideCard
+        task={mockTask}
+        taskIndex={0}
+        isAdmin={false}
+        formatTime={mockFormatTime}
+        formatDuration={mockFormatDuration}
+        compact={true}
+      />
+    );
+
+    const avatar = container.querySelector('.user-avatar-extra-small');
+    expect(avatar).toBeDefined();
+  });
+
+  it('uses small avatar size in normal mode', () => {
+    const { container } = render(
+      <TaskOverrideCard
+        task={mockTask}
+        taskIndex={0}
+        isAdmin={false}
+        formatTime={mockFormatTime}
+        formatDuration={mockFormatDuration}
+        compact={false}
+      />
+    );
+
+    const avatar = container.querySelector('.user-avatar-small');
+    expect(avatar).toBeDefined();
+    expect(container.querySelector('.user-avatar-extra-small')).toBeNull();
+  });
 }); 
