@@ -3,7 +3,7 @@ import { useFamily } from '../../contexts/FamilyContext';
 import { weekScheduleApi, weekTemplateApi, dayTemplateApi, taskApi } from '../../services/api';
 import { apiClient } from '../../services/api-client';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { UserAvatar } from '../ui/UserAvatar';
+import { TaskOverrideCard } from '../ui/TaskOverrideCard';
 import { TaskOverrideModal } from './TaskOverrideModal';
 import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate, DayTemplate, DayTemplateItem, Task, User, CreateTaskOverrideData } from '../../types';
 import './WeeklyCalendar.css';
@@ -657,76 +657,18 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                     </div>
                   ) : (
                     <div className="weekly-calendar-tasks-stack">
-                      {dayTasks.map((task, taskIndex) => {
-                        const startTime = task.overrideTime || task.task.defaultStartTime;
-                        const duration = task.overrideDuration || task.task.defaultDuration;
-                        
-                        return (
-                          <div 
-                            key={`${task.taskId}-${task.memberId}-${taskIndex}`}
-                            className={`weekly-calendar-task ${task.source === 'override' ? 'is-override' : ''}`}
-                            style={{ 
-                              borderLeftColor: task.task.color,
-                              backgroundColor: `${task.task.color}10`
-                            }}
-                          >
-                            <div className="weekly-calendar-task-main">
-                              <div className="weekly-calendar-task-info">
-                                <h4 className="weekly-calendar-task-name">
-                                  {task.task.name}
-                                </h4>
-                                <div className="weekly-calendar-task-time">
-                                  {formatTime(startTime)} • {formatDuration(duration)}
-                                </div>
-                              </div>
-                              
-                              {task.member && (
-                                <div className="weekly-calendar-task-member">
-                                  <UserAvatar
-                                    firstName={task.member.firstName}
-                                    lastName={task.member.lastName}
-                                    avatarUrl={task.member.avatarUrl}
-                                    size="small"
-                                  />
-                                </div>
-                              )}
-                            </div>
-                            
-                            {task.task.description && (
-                              <div className="weekly-calendar-task-description">
-                                {task.task.description}
-                              </div>
-                            )}
-                            
-                            {task.source === 'override' && (
-                              <div className="weekly-calendar-task-source">
-                                Modified
-                              </div>
-                            )}
-                            
-                            {/* Task Action Buttons */}
-                            {isAdmin && (
-                              <div className="weekly-calendar-task-actions">
-                                <button
-                                  className="task-action-btn remove"
-                                  onClick={() => handleTaskOverride('REMOVE', task, day.date)}
-                                  title="Remove task"
-                                >
-                                  ×
-                                </button>
-                                <button
-                                  className="task-action-btn reassign"
-                                  onClick={() => handleTaskOverride('REASSIGN', task, day.date)}
-                                  title="Reassign task"
-                                >
-                                  ↻
-                                </button>
-
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                      {dayTasks.map((task, taskIndex) => (
+                        <TaskOverrideCard
+                          key={`${task.taskId}-${task.memberId}-${taskIndex}`}
+                          task={task}
+                          taskIndex={taskIndex}
+                          isAdmin={isAdmin}
+                          onRemove={(task) => handleTaskOverride('REMOVE', task, day.date)}
+                          onReassign={(task) => handleTaskOverride('REASSIGN', task, day.date)}
+                          formatTime={formatTime}
+                          formatDuration={formatDuration}
+                        />
+                      ))}
                     </div>
                   )}
                   
