@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../../contexts/FamilyContext';
 import { weekTemplateApi, dayTemplateApi } from '../../../services/api';
-import type { WeekTemplate, DayTemplate, DayTemplateItem, CreateWeekTemplateData, UpdateWeekTemplateData } from '../../../types';
+import { TaskOverrideCard } from '../../../components/ui/TaskOverrideCard';
+import type { WeekTemplate, DayTemplate, DayTemplateItem, CreateWeekTemplateData, UpdateWeekTemplateData, ResolvedTask, Task } from '../../../types';
 import './WeekTemplateManagement.css';
 
 export const WeekTemplateManagement: React.FC = () => {
@@ -410,9 +411,7 @@ export const WeekTemplateManagement: React.FC = () => {
     return item.overrideTime || item.task?.defaultStartTime || '00:00';
   };
 
-  const getEffectiveDuration = (item: DayTemplateItem): number => {
-    return item.overrideDuration || item.task?.defaultDuration || 0;
-  };
+
 
   const sortTemplateItemsByTime = (items: DayTemplateItem[]): DayTemplateItem[] => {
     return [...items].sort((a, b) => {
@@ -420,6 +419,33 @@ export const WeekTemplateManagement: React.FC = () => {
       const timeB = getEffectiveTime(b);
       return timeA.localeCompare(timeB);
     });
+  };
+
+  const convertToResolvedTask = (item: DayTemplateItem): ResolvedTask => {
+    // Create a complete Task object from the partial task data
+    const task: Task = {
+      id: item.task?.id || '',
+      name: item.task?.name || '',
+      description: item.task?.description || null,
+      color: item.task?.color || '#6366f1',
+      icon: item.task?.icon || '📝',
+      defaultStartTime: item.task?.defaultStartTime || '09:00',
+      defaultDuration: item.task?.defaultDuration || 30,
+      familyId: item.task?.familyId || '',
+      isActive: true, // Assume active for template items
+      createdAt: new Date().toISOString(), // Default values for missing fields
+      updatedAt: new Date().toISOString()
+    };
+
+    return {
+      taskId: item.task?.id || '',
+      memberId: item.member?.id || null,
+      task: task,
+      member: item.member || null,
+      source: 'template' as const,
+      overrideTime: item.overrideTime,
+      overrideDuration: item.overrideDuration
+    };
   };
 
   return (
@@ -720,47 +746,17 @@ export const WeekTemplateManagement: React.FC = () => {
                                         {t('dailyRoutines.noTasks')}
                                       </div>
                                     ) : (
-                                      sortTemplateItemsByTime(dayTemplateItems[day.dayTemplate.id]!).map(item => (
-                                        <div key={item.id} className="week-template-management-task-item">
-                                          <div className="week-template-management-task-item-content">
-                                            {/* Member Avatar */}
-                                            <div className="week-template-management-task-avatar">
-                                              {item.member?.avatarUrl ? (
-                                                <img 
-                                                  src={item.member.avatarUrl} 
-                                                  alt={`${item.member.firstName} ${item.member.lastName}`}
-                                                />
-                                              ) : item.member ? (
-                                                `${item.member.firstName.charAt(0)}${item.member.lastName.charAt(0)}`
-                                              ) : (
-                                                '?'
-                                              )}
-                                            </div>
-                                            
-                                            {/* Task Info */}
-                                            <div className="week-template-management-task-info">
-                                              <div className="week-template-management-task-header">
-                                                <span 
-                                                  className="week-template-management-task-icon"
-                                                  style={{ backgroundColor: item.task?.color || '#6366f1' }}
-                                                >
-                                                  {item.task?.icon || '📝'}
-                                                </span>
-                                                <span className="week-template-management-task-name">
-                                                  {item.task?.name || 'Unknown Task'}
-                                                </span>
-                                              </div>
-                                              <div className="week-template-management-task-details">
-                                                <span className="week-template-management-task-time">
-                                                  {getEffectiveTime(item)}
-                                                </span>
-                                                <span className="week-template-management-task-duration">
-                                                  {formatDuration(getEffectiveDuration(item))}
-                                                </span>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
+                                      sortTemplateItemsByTime(dayTemplateItems[day.dayTemplate.id]!).map((item, index) => (
+                                        <TaskOverrideCard
+                                          key={item.id}
+                                          task={convertToResolvedTask(item)}
+                                          taskIndex={index}
+                                          isAdmin={isAdmin}
+                                          formatTime={(time) => time}
+                                          formatDuration={formatDuration}
+                                          showDescription={false}
+                                          compact={true}
+                                        />
                                       ))
                                     )}
                                   </div>
