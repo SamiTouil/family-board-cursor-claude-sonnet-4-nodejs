@@ -5,7 +5,7 @@ interface UserAvatarProps {
   firstName: string;
   lastName: string;
   avatarUrl?: string | null;
-  size?: 'small' | 'medium' | 'large';
+  size?: 'extra-small' | 'small' | 'medium' | 'large';
   className?: string;
   onClick?: () => void;
 }

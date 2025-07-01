@@ -27,6 +27,9 @@ describe('UserAvatar', () => {
   });
 
   it('applies correct size classes', () => {
+    const { container: extraSmallContainer } = render(<UserAvatar {...defaultProps} size="extra-small" />);
+    expect(extraSmallContainer.querySelector('.user-avatar-extra-small')).toBeDefined();
+
     const { container: smallContainer } = render(<UserAvatar {...defaultProps} size="small" />);
     expect(smallContainer.querySelector('.user-avatar-small')).toBeDefined();
 

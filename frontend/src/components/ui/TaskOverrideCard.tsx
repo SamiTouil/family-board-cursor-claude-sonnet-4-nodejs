@@ -12,6 +12,7 @@ interface TaskOverrideCardProps {
   formatTime: (time: string) => string;
   formatDuration: (minutes: number) => string;
   showDescription?: boolean;
+  compact?: boolean;
 }
 
 export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
@@ -22,7 +23,8 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
   onReassign,
   formatTime,
   formatDuration,
-  showDescription = true
+  showDescription = true,
+  compact = false
 }) => {
   const startTime = task.overrideTime || task.task.defaultStartTime;
   const duration = task.overrideDuration || task.task.defaultDuration;
@@ -30,7 +32,7 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
   return (
     <div 
       key={`${task.taskId}-${task.memberId}-${taskIndex}`}
-      className={`task-override-card ${task.source === 'override' ? 'is-override' : ''}`}
+      className={`task-override-card ${task.source === 'override' ? 'is-override' : ''} ${compact ? 'compact' : ''}`}
       style={{ 
         borderLeftColor: task.task.color,
         backgroundColor: `${task.task.color}10`
@@ -57,7 +59,7 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
               firstName={task.member.firstName}
               lastName={task.member.lastName}
               avatarUrl={task.member.avatarUrl}
-              size="small"
+              size={compact ? "extra-small" : "small"}
             />
           </div>
         )}

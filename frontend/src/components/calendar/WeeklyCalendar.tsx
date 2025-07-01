@@ -668,6 +668,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                           formatTime={formatTime}
                           formatDuration={formatDuration}
                           showDescription={false}
+                          compact={false}
                         />
                       ))}
                     </div>

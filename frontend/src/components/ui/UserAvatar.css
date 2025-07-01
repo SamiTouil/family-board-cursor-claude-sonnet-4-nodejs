@@ -30,6 +30,11 @@
 }
 
 /* Size variants */
+.user-avatar-extra-small {
+  width: 20px;
+  height: 20px;
+}
+
 .user-avatar-small {
   width: 32px;
   height: 32px;
@@ -71,6 +76,10 @@
 }
 
 /* Font sizes for different avatar sizes */
+.user-avatar-extra-small .user-avatar-initials {
+  font-size: 8px;
+}
+
 .user-avatar-small .user-avatar-initials {
   font-size: 12px;
 }
