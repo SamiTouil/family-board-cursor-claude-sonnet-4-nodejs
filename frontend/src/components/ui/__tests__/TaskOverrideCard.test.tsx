@@ -57,7 +57,8 @@ describe('TaskOverrideCard', () => {
     );
 
     expect(screen.getByText('Test Task')).toBeInTheDocument();
-    expect(screen.getByText('09:00 • 60min')).toBeInTheDocument();
+    expect(screen.getByText('09:00')).toBeInTheDocument();
+    expect(screen.getByText('60min')).toBeInTheDocument();
     expect(screen.getByText('Test description')).toBeInTheDocument();
     expect(screen.getByTestId('user-avatar')).toBeInTheDocument();
   });
@@ -139,7 +140,8 @@ describe('TaskOverrideCard', () => {
       />
     );
 
-    expect(screen.getByText('10:30 • 90min')).toBeInTheDocument();
+    expect(screen.getByText('10:30')).toBeInTheDocument();
+    expect(screen.getByText('90min')).toBeInTheDocument();
   });
 
   it('applies correct CSS classes', () => {
@@ -174,5 +176,54 @@ describe('TaskOverrideCard', () => {
     const card = container.firstChild as HTMLElement;
     expect(card).toHaveClass('task-override-card');
     expect(card).toHaveClass('is-override');
+  });
+
+  it('renders time and duration as separate tags with correct CSS classes', () => {
+    const { container } = render(
+      <TaskOverrideCard
+        task={mockTask}
+        taskIndex={0}
+        isAdmin={false}
+        formatTime={mockFormatTime}
+        formatDuration={mockFormatDuration}
+      />
+    );
+
+    const timeTag = container.querySelector('.time-tag');
+    const durationTag = container.querySelector('.duration-tag');
+
+    expect(timeTag).toBeInTheDocument();
+    expect(durationTag).toBeInTheDocument();
+    expect(timeTag).toHaveClass('task-override-card-tag', 'time-tag');
+    expect(durationTag).toHaveClass('task-override-card-tag', 'duration-tag');
+  });
+
+  it('hides description when showDescription is false', () => {
+    render(
+      <TaskOverrideCard
+        task={mockTask}
+        taskIndex={0}
+        isAdmin={false}
+        formatTime={mockFormatTime}
+        formatDuration={mockFormatDuration}
+        showDescription={false}
+      />
+    );
+
+    expect(screen.queryByText('Test description')).not.toBeInTheDocument();
+  });
+
+  it('shows description by default when showDescription is not provided', () => {
+    render(
+      <TaskOverrideCard
+        task={mockTask}
+        taskIndex={0}
+        isAdmin={false}
+        formatTime={mockFormatTime}
+        formatDuration={mockFormatDuration}
+      />
+    );
+
+    expect(screen.getByText('Test description')).toBeInTheDocument();
   });
 }); 

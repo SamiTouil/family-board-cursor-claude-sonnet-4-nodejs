@@ -667,6 +667,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                           onReassign={(task) => handleTaskOverride('REASSIGN', task, day.date)}
                           formatTime={formatTime}
                           formatDuration={formatDuration}
+                          showDescription={false}
                         />
                       ))}
                     </div>
