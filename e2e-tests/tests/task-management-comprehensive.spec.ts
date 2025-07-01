@@ -303,9 +303,9 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Add Task', exact: true }).click();
       
       // Verify task appears in routine
-      await expect(page.locator('.task-assignment-card')).toBeVisible();
-      await expect(page.locator('.task-assignment-card .task-assignment-card-time')).toContainText('06:00');
-      await expect(page.locator('.task-assignment-card .task-assignment-card-duration')).toContainText('30m');
+      await expect(page.locator('.task-override-card')).toBeVisible();
+      await expect(page.locator('.task-override-card .time-tag')).toContainText('06:00');
+      await expect(page.locator('.task-override-card .duration-tag')).toContainText('30m');
 
       // Add task with time override
       await page.getByRole('button', { name: 'Add Task to Routine' }).click();
@@ -315,8 +315,8 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Add Task', exact: true }).click();
       
       // Verify second task appears with overridden time
-      await expect(page.locator('.task-assignment-card').nth(1)).toBeVisible();
-      await expect(page.locator('.task-assignment-card').nth(1).locator('.task-assignment-card-time')).toContainText('07:00');
+      await expect(page.locator('.task-override-card').nth(1)).toBeVisible();
+      await expect(page.locator('.task-override-card').nth(1).locator('.time-tag')).toContainText('07:00');
     });
   });
 
