@@ -248,82 +248,7 @@
   gap: 0.75rem;
 }
 
-/* Task Card */
-.weekly-calendar-task {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-left: 4px solid #3b82f6;
-  border-radius: 8px;
-  padding: 0.75rem;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.weekly-calendar-task:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
-}
-
-.weekly-calendar-task.is-override {
-  border-left-style: dashed;
-  border-left-width: 3px;
-}
-
-.weekly-calendar-task-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.weekly-calendar-task-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.weekly-calendar-task-name {
-  margin: 0 0 0.25rem 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #111827;
-  line-height: 1.3;
-  word-wrap: break-word;
-}
-
-.weekly-calendar-task-time {
-  font-size: 0.75rem;
-  color: #6b7280;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.weekly-calendar-task-description {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: #6b7280;
-  line-height: 1.4;
-  font-style: italic;
-}
-
-.weekly-calendar-task-member {
-  flex-shrink: 0;
-}
-
-.weekly-calendar-task-source {
-  position: absolute;
-  bottom: -0.3rem;
-  right: 0.5rem;
-  background-color: #fbbf24;
-  color: #92400e;
-  font-size: 0.625rem;
-  font-weight: 600;
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
+/* Task Card styles moved to TaskOverrideCard.css */
 
 /* Responsive Design */
 @media (max-width: 1200px) {
@@ -360,13 +285,7 @@
     padding: 0.75rem;
   }
   
-  .weekly-calendar-task {
-    padding: 0.625rem;
-  }
-  
-  .weekly-calendar-task-name {
-    font-size: 0.8125rem;
-  }
+  /* Task styles removed - now handled by TaskOverrideCard.css */
 }
 
 @media (max-width: 480px) {
@@ -413,14 +332,7 @@
     padding: 0.75rem;
   }
   
-  .weekly-calendar-task-main {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .weekly-calendar-task-member {
-    align-self: flex-start;
-  }
+  /* Task styles removed - now handled by TaskOverrideCard.css */
 }
 
 /* Animation for loading */
@@ -439,8 +351,7 @@
 
 /* Smooth transitions */
 .weekly-calendar-grid,
-.weekly-calendar-day,
-.weekly-calendar-task {
+.weekly-calendar-day {
   transition: all 0.3s ease;
 }
 
@@ -454,14 +365,6 @@
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .weekly-calendar-task {
-    border-width: 2px;
-  }
-  
-  .weekly-calendar-task-name {
-    font-weight: 700;
-  }
-  
   .weekly-calendar-day-header {
     border-bottom-width: 2px;
   }
@@ -835,72 +738,7 @@
   font-weight: 500;
 }
 
-/* Task Action Buttons */
-.weekly-calendar-task-actions {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  display: flex;
-  gap: 2px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  z-index: 10;
-}
-
-.weekly-calendar-task:hover .weekly-calendar-task-actions {
-  opacity: 1;
-}
-
-.task-action-btn {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 12px;
-  color: #6b7280;
-  backdrop-filter: blur(4px);
-}
-
-.task-action-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.task-action-btn.remove {
-  color: #dc2626;
-}
-
-.task-action-btn.remove:hover {
-  background: #fee2e2;
-  border-color: #f87171;
-  color: #b91c1c;
-}
-
-.task-action-btn.reassign {
-  color: #7c3aed;
-}
-
-.task-action-btn.reassign:hover {
-  background: #ede9fe;
-  border-color: #a78bfa;
-  color: #6d28d9;
-}
-
-.task-action-btn.modify {
-  color: #ea580c;
-}
-
-.task-action-btn.modify:hover {
-  background: #fed7aa;
-  border-color: #fb923c;
-  color: #c2410c;
-}
+/* Task Action Button styles moved to TaskOverrideCard.css */
 
 /* Day Add Task Button */
 .weekly-calendar-day-add-task {
@@ -942,21 +780,8 @@
   transform: translateY(-1px);
 }
 
-/* Responsive adjustments for task actions */
+/* Responsive adjustments for forms */
 @media (max-width: 768px) {
-  .weekly-calendar-task-actions {
-    position: static;
-    opacity: 1;
-    justify-content: flex-end;
-    margin-top: 0.25rem;
-  }
-
-  .task-action-btn {
-    width: 24px;
-    height: 24px;
-    font-size: 14px;
-  }
-
   .form-row {
     grid-template-columns: 1fr;
     gap: 0.5rem;
