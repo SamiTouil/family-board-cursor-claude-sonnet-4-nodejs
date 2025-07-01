@@ -226,4 +226,38 @@ describe('TaskOverrideCard', () => {
 
     expect(screen.getByText('Test description')).toBeInTheDocument();
   });
+
+  it('applies compact CSS class when compact prop is true', () => {
+    const { container } = render(
+      <TaskOverrideCard
+        task={mockTask}
+        taskIndex={0}
+        isAdmin={false}
+        formatTime={mockFormatTime}
+        formatDuration={mockFormatDuration}
+        compact={true}
+      />
+    );
+
+    const card = container.firstChild as HTMLElement;
+    expect(card).toHaveClass('task-override-card');
+    expect(card).toHaveClass('compact');
+  });
+
+  it('does not apply compact CSS class when compact prop is false or not provided', () => {
+    const { container } = render(
+      <TaskOverrideCard
+        task={mockTask}
+        taskIndex={0}
+        isAdmin={false}
+        formatTime={mockFormatTime}
+        formatDuration={mockFormatDuration}
+        compact={false}
+      />
+    );
+
+    const card = container.firstChild as HTMLElement;
+    expect(card).toHaveClass('task-override-card');
+    expect(card).not.toHaveClass('compact');
+  });
 }); 
