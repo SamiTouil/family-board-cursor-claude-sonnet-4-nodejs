@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../../contexts/FamilyContext';
 import { taskApi, familyApi, dayTemplateApi } from '../../../services/api';
 import type { Task, DayTemplate, DayTemplateItem, CreateDayTemplateData, FamilyMember } from '../../../types';
-import { TaskAssignmentCard } from '../../tasks/components/TaskAssignmentCard';
+import { TaskOverrideCard } from '../../../components/ui/TaskOverrideCard';
 import './DayTemplateManagement.css';
 
 export const DayTemplateManagement: React.FC = () => {
@@ -871,10 +871,10 @@ export const DayTemplateManagement: React.FC = () => {
                       </div>
                     ) : templateItems[template.id] ? (
                       <div className="day-template-management-template-items-grid">
-                        {sortTemplateItemsByTime(templateItems[template.id]?.filter(item => item.task) || []).map((item) => (
-                          <TaskAssignmentCard
-                            key={item.id}
-                            resolvedTask={{
+                        {sortTemplateItemsByTime(templateItems[template.id]?.filter(item => item.task) || []).map((item) => {
+                          const taskOverrideProps: any = {
+                            key: item.id,
+                            task: {
                               taskId: item.taskId,
                               memberId: item.memberId,
                               overrideTime: item.overrideTime,
@@ -882,18 +882,21 @@ export const DayTemplateManagement: React.FC = () => {
                               source: 'template' as const,
                               member: item.member || null,
                               task: item.task!,
-                            }}
-                            {...(isAdmin && {
-                              onClick: () => handleEditTemplateItem(template.id, item),
-                              onDelete: () => {
-                                handleDeleteTemplateItem(template.id, item.id);
-                              }
-                            })}
-                            isClickable={isAdmin}
-                            isAdmin={isAdmin}
-                            isLoading={isLoading}
-                          />
-                        ))}
+                            },
+                            taskIndex: 0,
+                            isAdmin: isAdmin,
+                            formatTime: (time: string) => time,
+                            formatDuration: formatDuration,
+                            showDescription: true
+                          };
+
+                          if (isAdmin) {
+                            taskOverrideProps.onRemove = (_task: any) => handleDeleteTemplateItem(template.id, item.id);
+                            taskOverrideProps.onReassign = (_task: any) => handleEditTemplateItem(template.id, item);
+                          }
+
+                          return <TaskOverrideCard {...taskOverrideProps} />;
+                        })}
                       </div>
                     ) : (
                       <div className="day-template-management-template-empty">
