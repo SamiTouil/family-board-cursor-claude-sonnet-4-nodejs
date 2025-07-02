@@ -49,6 +49,15 @@
   color: #3b82f6;
 }
 
+/* When task name is editable, allow clicks to pass through the actions overlay */
+.task-override-card.editable .task-override-card-actions {
+  pointer-events: none;
+}
+
+.task-override-card.editable .task-override-card-actions .task-override-action-btn {
+  pointer-events: auto;
+}
+
 .task-override-card-tags {
   display: flex;
   align-items: center;

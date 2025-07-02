@@ -34,7 +34,7 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
   return (
     <div 
       key={`${task.taskId}-${task.memberId}-${taskIndex}`}
-      className={`task-override-card ${task.source === 'override' ? 'is-override' : ''} ${compact ? 'compact' : ''}`}
+      className={`task-override-card ${task.source === 'override' ? 'is-override' : ''} ${compact ? 'compact' : ''} ${onEdit ? 'editable' : ''}`}
       style={{ 
         borderLeftColor: task.task.color,
         backgroundColor: `${task.task.color}10`
