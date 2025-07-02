@@ -4,6 +4,7 @@ import { useFamily } from '../../../contexts/FamilyContext';
 import { taskApi, familyApi, dayTemplateApi } from '../../../services/api';
 import type { Task, DayTemplate, DayTemplateItem, CreateDayTemplateData, FamilyMember } from '../../../types';
 import { TaskOverrideCard } from '../../../components/ui/TaskOverrideCard';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
 import './DayTemplateManagement.css';
 
 export const DayTemplateManagement: React.FC = () => {
@@ -749,25 +750,23 @@ export const DayTemplateManagement: React.FC = () => {
                             <label htmlFor="templateItemTask" className="day-template-management-label">
                               Task *
                             </label>
-                            <select
+                            <CustomSelect
                               id="templateItemTask"
-                              name="taskId"
-                              className="day-template-management-input"
                               value={templateItemData.taskId}
-                              onChange={handleTemplateItemInputChange}
+                              onChange={(value) => setTemplateItemData(prev => ({ ...prev, taskId: String(value) }))}
+                              options={[
+                                { value: '', label: 'Select a task...' },
+                                ...tasks
+                                  .filter(task => task.isActive)
+                                  .sort((a, b) => a.defaultStartTime.localeCompare(b.defaultStartTime))
+                                  .map(task => ({
+                                    value: task.id,
+                                    label: `${task.icon} ${task.name} (${task.defaultStartTime}, ${formatDuration(task.defaultDuration)})`
+                                  }))
+                              ]}
                               disabled={isLoading}
-                              required
-                            >
-                              <option value="">Select a task...</option>
-                              {tasks
-                                .filter(task => task.isActive)
-                                .sort((a, b) => a.defaultStartTime.localeCompare(b.defaultStartTime))
-                                .map(task => (
-                                  <option key={task.id} value={task.id}>
-                                    {task.icon} {task.name} ({task.defaultStartTime}, {formatDuration(task.defaultDuration)})
-                                  </option>
-                                ))}
-                            </select>
+                              placeholder="Select a task..."
+                            />
                             {templateItemErrors['taskId'] && (
                               <p className="day-template-management-error">{templateItemErrors['taskId']}</p>
                             )}
@@ -777,21 +776,20 @@ export const DayTemplateManagement: React.FC = () => {
                             <label htmlFor="templateItemMember" className="day-template-management-label">
                               Assign to Member (Optional)
                             </label>
-                            <select
+                            <CustomSelect
                               id="templateItemMember"
-                              name="memberId"
-                              className="day-template-management-input"
                               value={templateItemData.memberId}
-                              onChange={handleTemplateItemInputChange}
+                              onChange={(value) => setTemplateItemData(prev => ({ ...prev, memberId: String(value) }))}
+                              options={[
+                                { value: '', label: 'Unassigned (any member can do this)' },
+                                ...familyMembers.map(member => ({
+                                  value: member.user?.id || '',
+                                  label: `${member.user?.firstName} ${member.user?.lastName}`
+                                }))
+                              ]}
                               disabled={isLoading}
-                            >
-                              <option value="">Unassigned (any member can do this)</option>
-                              {familyMembers.map(member => (
-                                <option key={member.id} value={member.user?.id}>
-                                  {member.user?.firstName} {member.user?.lastName}
-                                </option>
-                              ))}
-                            </select>
+                              placeholder="Unassigned (any member can do this)"
+                            />
                           </div>
 
                           <div className="day-template-management-form-row">

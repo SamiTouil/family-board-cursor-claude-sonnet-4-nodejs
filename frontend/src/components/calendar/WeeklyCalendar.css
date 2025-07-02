@@ -172,12 +172,6 @@
   color: #1d4ed8;
 }
 
-.weekly-calendar-task-count {
-  font-size: 0.75rem;
-  color: #6b7280;
-  font-weight: 500;
-}
-
 .weekly-calendar-day-controls {
   display: flex;
   align-items: center;
@@ -700,7 +694,6 @@
   margin-bottom: 0.5rem;
 }
 
-.form-select,
 .form-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
@@ -710,7 +703,6 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-select:focus,
 .form-input:focus {
   outline: none;
   border-color: #3b82f6;

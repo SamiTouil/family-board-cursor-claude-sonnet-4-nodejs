@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../../contexts/FamilyContext';
 import { weekTemplateApi, dayTemplateApi } from '../../../services/api';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
 import { TaskOverrideCard } from '../../../components/ui/TaskOverrideCard';
 import type { WeekTemplate, DayTemplate, DayTemplateItem, CreateWeekTemplateData, UpdateWeekTemplateData, ResolvedTask, Task } from '../../../types';
 import './WeekTemplateManagement.css';
@@ -547,16 +548,16 @@ export const WeekTemplateManagement: React.FC = () => {
                   <label className="week-template-management-label">
                     Application Rule
                   </label>
-                  <select
-                    name="applyRule"
+                  <CustomSelect
                     value={templateData.applyRule || ''}
-                    onChange={(e) => setTemplateData(prev => ({ ...prev, applyRule: e.target.value as 'EVEN_WEEKS' | 'ODD_WEEKS' | null || null }))}
-                    className="week-template-management-input"
-                  >
-                    <option value="">No specific rule</option>
-                    <option value="EVEN_WEEKS">Even weeks only</option>
-                    <option value="ODD_WEEKS">Odd weeks only</option>
-                  </select>
+                    onChange={(value) => setTemplateData(prev => ({ ...prev, applyRule: value as 'EVEN_WEEKS' | 'ODD_WEEKS' | null || null }))}
+                    options={[
+                      { value: '', label: 'No specific rule' },
+                      { value: 'EVEN_WEEKS', label: 'Even weeks only' },
+                      { value: 'ODD_WEEKS', label: 'Odd weeks only' }
+                    ]}
+                    placeholder="No specific rule"
+                  />
                   <p className="week-template-management-help-text">
                     Choose when this template should automatically apply
                   </p>
@@ -795,18 +796,18 @@ export const WeekTemplateManagement: React.FC = () => {
                       <label className="week-template-management-day-label">
                         {getDayName(dayOfWeek)}
                       </label>
-                      <select
+                      <CustomSelect
                         value={selectedDayTemplates[dayOfWeek] || ''}
-                        onChange={(e) => handleDayTemplateChange(dayOfWeek, e.target.value)}
-                        className="week-template-management-input"
-                      >
-                        <option value="">{t('weeklyRoutines.assignDays.selectRoutine')}</option>
-                        {dayTemplates.map(template => (
-                          <option key={template.id} value={template.id}>
-                            {template.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(value) => handleDayTemplateChange(dayOfWeek, String(value))}
+                        options={[
+                          { value: '', label: t('weeklyRoutines.assignDays.selectRoutine') },
+                          ...dayTemplates.map(template => ({
+                            value: template.id,
+                            label: template.name
+                          }))
+                        ]}
+                        placeholder={t('weeklyRoutines.assignDays.selectRoutine')}
+                      />
                     </div>
                   ))}
                 </div>

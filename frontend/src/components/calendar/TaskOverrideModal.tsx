@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { CustomSelect } from '../ui/CustomSelect';
 import type { ResolvedTask, Task, User, CreateTaskOverrideData } from '../../types';
 import './WeeklyCalendar.css';
 
@@ -126,36 +127,36 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
             <div className="task-override-form">
               <div className="form-group">
                 <label>Select Task:</label>
-                <select
+                <CustomSelect
                   value={selectedTaskId}
-                  onChange={(e) => setSelectedTaskId(e.target.value)}
-                  className="form-select"
+                  onChange={(value) => setSelectedTaskId(String(value))}
+                  options={[
+                    { value: '', label: 'Choose a task...' },
+                    ...availableTasks.map(task => ({
+                      value: task.id,
+                      label: task.name
+                    }))
+                  ]}
                   disabled={isSubmitting}
-                >
-                  <option value="">Choose a task...</option>
-                  {availableTasks.map(task => (
-                    <option key={task.id} value={task.id}>
-                      {task.name}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Choose a task..."
+                />
               </div>
 
               <div className="form-group">
                 <label>Assign to:</label>
-                <select
+                <CustomSelect
                   value={selectedMemberId}
-                  onChange={(e) => setSelectedMemberId(e.target.value)}
-                  className="form-select"
+                  onChange={(value) => setSelectedMemberId(String(value))}
+                  options={[
+                    { value: '', label: 'Choose a member...' },
+                    ...familyMembers.map(member => ({
+                      value: member.id,
+                      label: `${member.firstName} ${member.lastName}`
+                    }))
+                  ]}
                   disabled={isSubmitting}
-                >
-                  <option value="">Choose a member...</option>
-                  {familyMembers.map(member => (
-                    <option key={member.id} value={member.id}>
-                      {member.firstName} {member.lastName}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Choose a member..."
+                />
               </div>
 
               <div className="form-row">
@@ -199,19 +200,19 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
             <div className="task-override-form">
               <div className="form-group">
                 <label>Reassign to:</label>
-                <select
+                <CustomSelect
                   value={selectedMemberId}
-                  onChange={(e) => setSelectedMemberId(e.target.value)}
-                  className="form-select"
+                  onChange={(value) => setSelectedMemberId(String(value))}
+                  options={[
+                    { value: '', label: 'Choose a member...' },
+                    ...familyMembers.filter(member => member.id !== task.memberId).map(member => ({
+                      value: member.id,
+                      label: `${member.firstName} ${member.lastName}`
+                    }))
+                  ]}
                   disabled={isSubmitting}
-                >
-                  <option value="">Choose a member...</option>
-                  {familyMembers.filter(member => member.id !== task.memberId).map(member => (
-                    <option key={member.id} value={member.id}>
-                      {member.firstName} {member.lastName}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Choose a member..."
+                />
               </div>
             </div>
           )}
