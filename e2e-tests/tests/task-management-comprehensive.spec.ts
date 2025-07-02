@@ -64,7 +64,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       // Test task deletion with confirmation
       page.on('dialog', dialog => dialog.accept());
-      await page.locator('.task-management-task-action.delete').click();
+      await page.locator('.task-override-action-btn.remove').click();
       
       // Verify task is removed
       await expect(page.getByRole('heading', { name: 'Updated Morning Routine' })).not.toBeVisible();
