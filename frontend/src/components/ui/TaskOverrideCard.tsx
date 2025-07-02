@@ -9,6 +9,7 @@ interface TaskOverrideCardProps {
   isAdmin: boolean;
   onRemove?: (task: ResolvedTask) => void;
   onReassign?: (task: ResolvedTask) => void;
+  onEdit?: (task: ResolvedTask) => void;
   formatTime: (time: string) => string;
   formatDuration: (minutes: number) => string;
   showDescription?: boolean;
@@ -21,6 +22,7 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
   isAdmin,
   onRemove,
   onReassign,
+  onEdit,
   formatTime,
   formatDuration,
   showDescription = true,
@@ -40,7 +42,11 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
     >
       <div className="task-override-card-main">
         <div className="task-override-card-info">
-          <h4 className="task-override-card-name">
+          <h4 
+            className={`task-override-card-name ${onEdit ? 'clickable' : ''}`}
+            onClick={onEdit ? () => onEdit(task) : undefined}
+            title={onEdit ? 'Click to edit task' : undefined}
+          >
             {task.task.name}
           </h4>
           <div className="task-override-card-tags">

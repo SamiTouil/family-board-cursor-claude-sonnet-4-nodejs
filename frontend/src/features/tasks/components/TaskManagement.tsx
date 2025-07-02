@@ -546,15 +546,14 @@ export const TaskManagement: React.FC = () => {
               sortedActiveTasks.map((task) => (
                 <div
                   key={task.id}
-                  className={`task-management-task-wrapper ${isAdmin ? 'task-management-task-clickable' : ''}`}
-                  onClick={isAdmin ? () => handleEditTask(task) : undefined}
-                  title={isAdmin ? 'Click to edit task' : undefined}
+                  className="task-management-task-wrapper"
                 >
                   <TaskOverrideCard
                     task={adaptTaskForCard(task)}
                     taskIndex={0} // Not used for task management
                     isAdmin={isAdmin}
                     {...(isAdmin && { onRemove: (resolvedTask) => handleDeleteTask(resolvedTask.taskId) })}
+                    {...(isAdmin && { onEdit: (resolvedTask) => handleEditTask(resolvedTask.task) })}
                     formatTime={formatTime}
                     formatDuration={formatDuration}
                   />

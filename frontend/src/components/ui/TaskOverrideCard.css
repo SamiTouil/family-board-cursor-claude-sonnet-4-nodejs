@@ -40,6 +40,15 @@
   word-wrap: break-word;
 }
 
+.task-override-card-name.clickable {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.task-override-card-name.clickable:hover {
+  color: #3b82f6;
+}
+
 .task-override-card-tags {
   display: flex;
   align-items: center;
