@@ -198,6 +198,44 @@ describe('TaskOverrideCard', () => {
     expect(durationTag).toHaveClass('task-override-card-tag', 'duration-tag');
   });
 
+  it('makes task name clickable when onEdit prop is provided', () => {
+    const onEdit = vi.fn();
+
+    render(
+      <TaskOverrideCard
+        task={mockTask}
+        taskIndex={0}
+        isAdmin={true}
+        onEdit={onEdit}
+        formatTime={mockFormatTime}
+        formatDuration={mockFormatDuration}
+      />
+    );
+
+    const taskName = screen.getByText('Test Task');
+    expect(taskName).toHaveClass('clickable');
+    expect(taskName).toHaveAttribute('title', 'Click to edit task');
+
+    fireEvent.click(taskName);
+    expect(onEdit).toHaveBeenCalledWith(mockTask);
+  });
+
+  it('does not make task name clickable when onEdit prop is not provided', () => {
+    render(
+      <TaskOverrideCard
+        task={mockTask}
+        taskIndex={0}
+        isAdmin={true}
+        formatTime={mockFormatTime}
+        formatDuration={mockFormatDuration}
+      />
+    );
+
+    const taskName = screen.getByText('Test Task');
+    expect(taskName).not.toHaveClass('clickable');
+    expect(taskName).not.toHaveAttribute('title');
+  });
+
   it('hides description when showDescription is false', () => {
     render(
       <TaskOverrideCard

@@ -4,6 +4,7 @@ import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useFamily } from '../../../contexts/FamilyContext';
 import { taskApi } from '../../../services/api';
 import type { Task, CreateTaskData } from '../../../types';
+import { TaskOverrideCard } from '../../../components/ui/TaskOverrideCard';
 import './TaskManagement.css';
 
 export const TaskManagement: React.FC = () => {
@@ -259,13 +260,17 @@ export const TaskManagement: React.FC = () => {
     }
   };
 
+  const formatTime = (time: string): string => {
+    return time;
+  };
+
   const formatDuration = (minutes: number): string => {
-    if (minutes < 60) {
-      return `${minutes}m`;
-    }
     const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return remainingMinutes === 0 ? `${hours}h` : `${hours}h ${remainingMinutes}m`;
+    const mins = minutes % 60;
+    if (hours > 0) {
+      return `${hours}h ${mins > 0 ? `${mins}m` : ''}`.trim();
+    }
+    return `${mins}m`;
   };
 
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
@@ -301,6 +306,19 @@ export const TaskManagement: React.FC = () => {
   });
   
   const isFormOpen = addingTask || editingTask;
+
+  // Helper function to transform Task into ResolvedTask format for TaskOverrideCard
+  const adaptTaskForCard = (task: Task) => {
+    return {
+      taskId: task.id,
+      memberId: null, // No specific member assigned for task management view
+      overrideTime: null, // Will fall back to task.defaultStartTime
+      overrideDuration: null, // Will fall back to task.defaultDuration
+      source: 'template' as const, // Regular tasks are considered template-based
+      task: task,
+      member: null // No specific member assigned for task management view
+    };
+  };
 
   return (
     <div className="task-management">
@@ -526,50 +544,19 @@ export const TaskManagement: React.FC = () => {
               </div>
             ) : (
               sortedActiveTasks.map((task) => (
-                <div 
-                  key={task.id} 
-                  className={`task-management-task ${isAdmin ? 'task-management-task-clickable' : ''}`}
-                  style={{ 
-                    borderColor: task.color,
-                    backgroundColor: `${task.color}18`
-                  }}
-                  onClick={isAdmin ? () => handleEditTask(task) : undefined}
-                  title={isAdmin ? 'Click to edit task' : undefined}
+                <div
+                  key={task.id}
+                  className="task-management-task-wrapper"
                 >
-                  <div className="task-management-task-info">
-                    <div className="task-management-task-header">
-                      <div className="task-management-task-title">
-                        <span className="task-management-task-icon-emoji">{task.icon || '✅'}</span>
-                        <h6 className="task-management-task-name">{task.name}</h6>
-                      </div>
-                      <div className="task-management-task-time-container">
-                        <span className="task-management-task-time">{task.defaultStartTime}</span>
-                      </div>
-                    </div>
-                    <div className="task-management-task-description-row">
-                      {task.description ? (
-                        <p className="task-management-task-description">{task.description}</p>
-                      ) : (
-                        <div className="task-management-task-description-spacer"></div>
-                      )}
-                      <span className="task-management-task-duration">{formatDuration(task.defaultDuration)}</span>
-                    </div>
-                  </div>
-                  {isAdmin && (
-                    <div className="task-management-task-actions">
-                      <button
-                        className="task-management-task-action delete"
-                        title={t('common.delete')}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteTask(task.id);
-                        }}
-                        disabled={isLoading}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  )}
+                  <TaskOverrideCard
+                    task={adaptTaskForCard(task)}
+                    taskIndex={0} // Not used for task management
+                    isAdmin={isAdmin}
+                    {...(isAdmin && { onRemove: (resolvedTask) => handleDeleteTask(resolvedTask.taskId) })}
+                    {...(isAdmin && { onEdit: (resolvedTask) => handleEditTask(resolvedTask.task) })}
+                    formatTime={formatTime}
+                    formatDuration={formatDuration}
+                  />
                 </div>
               ))
             )}
