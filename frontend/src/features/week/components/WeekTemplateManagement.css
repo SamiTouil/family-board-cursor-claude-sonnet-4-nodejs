@@ -615,8 +615,9 @@
   text-transform: capitalize;
 }
 
-.week-template-management-day-row select {
+.week-template-management-day-row .custom-select-wrapper {
   flex: 1;
+  min-width: 200px;
 }
 
 /* Loading and Empty States */

@@ -1,21 +1,57 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './CustomSelect.css';
 
+/**
+ * Option interface for CustomSelect component
+ */
 interface SelectOption {
   value: number | string;
   label: string;
 }
 
+/**
+ * Props interface for CustomSelect component
+ */
 interface CustomSelectProps {
+  /** Unique identifier for the select element */
   id?: string;
+  /** Currently selected value */
   value: number | string;
+  /** Callback function called when selection changes */
   onChange: (value: number | string) => void;
+  /** Array of options to display in dropdown */
   options: SelectOption[];
+  /** Whether the select is disabled */
   disabled?: boolean;
+  /** Additional CSS classes */
   className?: string;
+  /** Placeholder text when no value is selected */
   placeholder?: string;
 }
 
+/**
+ * CustomSelect - A modern, accessible dropdown component
+ * 
+ * Features:
+ * - Modern styling with smooth animations
+ * - Full keyboard navigation support
+ * - Click outside to close functionality
+ * - ARIA attributes for accessibility
+ * - Customizable styling and disabled states
+ * 
+ * @example
+ * ```tsx
+ * <CustomSelect
+ *   value={selectedValue}
+ *   onChange={setSelectedValue}
+ *   options={[
+ *     { value: '1', label: 'Option 1' },
+ *     { value: '2', label: 'Option 2' }
+ *   ]}
+ *   placeholder="Choose an option..."
+ * />
+ * ```
+ */
 export const CustomSelect: React.FC<CustomSelectProps> = ({
   id,
   value,

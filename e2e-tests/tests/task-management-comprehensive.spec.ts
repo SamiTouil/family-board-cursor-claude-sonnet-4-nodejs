@@ -299,7 +299,13 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       // Add task to routine with default settings
       await page.getByRole('button', { name: 'Add Task to Routine' }).click();
       await page.waitForTimeout(1000); // Wait for dropdown to populate
-      await page.getByLabel('Task *').selectOption({ index: 1 }); // Select first available task
+      
+      // Click on CustomSelect to open dropdown
+      await page.locator('.day-template-management-form-group').filter({ hasText: 'Task *' }).locator('.custom-select').click();
+      await page.waitForTimeout(500); // Wait for dropdown to open
+      
+      // Select first available task from dropdown
+      await page.locator('.custom-select-option').nth(1).click(); // Skip the placeholder option
       await page.getByRole('button', { name: 'Add Task', exact: true }).click();
       
       // Verify task appears in routine
@@ -310,7 +316,13 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       // Add task with time override
       await page.getByRole('button', { name: 'Add Task to Routine' }).click();
       await page.waitForTimeout(1000); // Wait for dropdown to populate
-      await page.getByLabel('Task *').selectOption({ index: 2 }); // Select second available task
+      
+      // Click on CustomSelect to open dropdown
+      await page.locator('.day-template-management-form-group').filter({ hasText: 'Task *' }).locator('.custom-select').click();
+      await page.waitForTimeout(500); // Wait for dropdown to open
+      
+      // Select second available task from dropdown
+      await page.locator('.custom-select-option').nth(2).click(); // Skip the placeholder option
       await page.getByLabel('Override Time (Optional)').fill('07:00');
       await page.getByRole('button', { name: 'Add Task', exact: true }).click();
       
