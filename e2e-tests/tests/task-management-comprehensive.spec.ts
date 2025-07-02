@@ -306,7 +306,10 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       
       // Select first available task from dropdown
       await page.locator('.custom-select-option').nth(1).click(); // Skip the placeholder option
-      await page.getByRole('button', { name: 'Add Task', exact: true }).click();
+      await page.waitForTimeout(1000); // Wait for form to update after selection
+      
+      // Look for the Add Task button (it might be disabled initially)
+      await page.locator('button').filter({ hasText: 'Add Task' }).click();
       
       // Verify task appears in routine
       await expect(page.locator('.task-override-card')).toBeVisible();
@@ -323,8 +326,10 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       
       // Select second available task from dropdown
       await page.locator('.custom-select-option').nth(2).click(); // Skip the placeholder option
+      await page.waitForTimeout(1000); // Wait for form to update after selection
+      
       await page.getByLabel('Override Time (Optional)').fill('07:00');
-      await page.getByRole('button', { name: 'Add Task', exact: true }).click();
+      await page.locator('button').filter({ hasText: 'Add Task' }).click();
       
       // Verify second task appears with overridden time
       await expect(page.locator('.task-override-card').nth(1)).toBeVisible();
