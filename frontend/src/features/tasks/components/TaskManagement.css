@@ -385,6 +385,14 @@ select.task-management-input:disabled {
   align-items: flex-start;
 }
 
+.task-management-task-wrapper {
+  cursor: default;
+}
+
+.task-management-task-wrapper.task-management-task-clickable {
+  cursor: pointer;
+}
+
 .task-management-task {
   position: relative;
   display: flex;

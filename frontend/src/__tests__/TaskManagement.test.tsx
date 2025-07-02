@@ -375,7 +375,7 @@ describe('TaskManagement', () => {
     render(<TaskManagement />);
 
     await waitFor(() => {
-      const deleteButtons = screen.getAllByTitle('common.delete');
+      const deleteButtons = screen.getAllByTitle('Remove task');
       // Click on the second delete button (Clean Kitchen at 09:00) since tasks are now sorted by time
       // First task is now "Walk Dog" (task-2), second is "Clean Kitchen" (task-1)
       fireEvent.click(deleteButtons[1]);
@@ -401,7 +401,7 @@ describe('TaskManagement', () => {
     render(<TaskManagement />);
 
     await waitFor(() => {
-      const deleteButtons = screen.getAllByTitle('common.delete');
+      const deleteButtons = screen.getAllByTitle('Remove task');
       fireEvent.click(deleteButtons[0]);
     });
 
