@@ -316,6 +316,12 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await expect(page.locator('.task-override-card .time-tag')).toContainText('06:00');
       await expect(page.locator('.task-override-card .duration-tag')).toContainText('30m');
 
+      // Wait for the form to close and state to reset before adding another task
+      await page.waitForTimeout(2000);
+      
+      // Ensure the "Add Task to Routine" button is enabled before clicking
+      await expect(page.getByRole('button', { name: 'Add Task to Routine' })).toBeEnabled();
+
       // Add task with time override
       await page.getByRole('button', { name: 'Add Task to Routine' }).click();
       await page.waitForTimeout(1000); // Wait for dropdown to populate
