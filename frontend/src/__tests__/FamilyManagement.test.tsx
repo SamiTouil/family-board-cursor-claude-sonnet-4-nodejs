@@ -215,9 +215,9 @@ describe('FamilyManagement', () => {
     const nameInput = screen.getByDisplayValue('Test Family');
     fireEvent.change(nameInput, { target: { value: 'Updated Family' } });
 
-    // Submit form
-    const saveButton = screen.getByText('common.save');
-    fireEvent.click(saveButton);
+    // Submit form via modal Apply button
+    const applyButton = screen.getByText('Apply');
+    fireEvent.click(applyButton);
 
     await waitFor(() => {
       expect(mockFamilyApi.update).toHaveBeenCalledWith('family1', {
@@ -247,9 +247,9 @@ describe('FamilyManagement', () => {
     fireEvent.change(firstNameInput, { target: { value: 'Virtual' } });
     fireEvent.change(lastNameInput, { target: { value: 'Member' } });
 
-    // Submit form
-    const saveButton = screen.getByText('common.save');
-    fireEvent.click(saveButton);
+    // Submit form via modal Apply button
+    const applyButton = screen.getByText('Apply');
+    fireEvent.click(applyButton);
 
     await waitFor(() => {
       expect(mockFamilyApi.createVirtualMember).toHaveBeenCalledWith('family1', {

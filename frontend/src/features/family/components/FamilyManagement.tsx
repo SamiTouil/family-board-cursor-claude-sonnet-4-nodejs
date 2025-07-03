@@ -62,6 +62,10 @@ export const FamilyManagement: React.FC = () => {
   const [editVirtualMemberErrors, setEditVirtualMemberErrors] = useState<Record<string, string>>({});
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  // Modal state for forms
+  const [isEditFamilyModalOpen, setIsEditFamilyModalOpen] = useState(false);
+  const [isAddVirtualMemberModalOpen, setIsAddVirtualMemberModalOpen] = useState(false);
+
   // Invite creation state
   const [isCreatingInvite, setIsCreatingInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -179,11 +183,13 @@ export const FamilyManagement: React.FC = () => {
   const handleEditFamily = () => {
     setEditingFamily(true);
     setFamilyErrors({});
+    setIsEditFamilyModalOpen(true);
   };
 
   const handleCancelEditFamily = () => {
     setEditingFamily(false);
     setFamilyErrors({});
+    setIsEditFamilyModalOpen(false);
     // Reset form data to current family data
     if (currentFamily) {
       setFamilyData({
@@ -210,9 +216,7 @@ export const FamilyManagement: React.FC = () => {
     }
   };
 
-  const handleUpdateFamily = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleUpdateFamily = async () => {
     if (!validateFamilyForm() || !currentFamily) return;
 
     setIsLoading(true);
@@ -227,6 +231,7 @@ export const FamilyManagement: React.FC = () => {
       if (response.data.success) {
         setMessage({ type: 'success', text: t('family.updateSuccess') });
         setEditingFamily(false);
+        setIsEditFamilyModalOpen(false);
         await refreshFamilies();
       } else {
         setMessage({ type: 'error', text: response.data.message || t('family.updateError') });
@@ -266,6 +271,7 @@ export const FamilyManagement: React.FC = () => {
       avatarUrl: '',
     });
     setVirtualMemberErrors({});
+    setIsAddVirtualMemberModalOpen(true);
   };
 
   const handleCancelAddVirtualMember = () => {
@@ -276,6 +282,7 @@ export const FamilyManagement: React.FC = () => {
       avatarUrl: '',
     });
     setVirtualMemberErrors({});
+    setIsAddVirtualMemberModalOpen(false);
   };
 
   const handleVirtualMemberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -294,9 +301,7 @@ export const FamilyManagement: React.FC = () => {
     }
   };
 
-  const handleCreateVirtualMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleCreateVirtualMember = async () => {
     if (!validateVirtualMemberForm() || !currentFamily) return;
 
     setIsLoading(true);
@@ -312,6 +317,7 @@ export const FamilyManagement: React.FC = () => {
       if (response.data.success) {
         setMessage({ type: 'success', text: t('family.virtualMemberCreated') });
         setAddingVirtualMember(false);
+        setIsAddVirtualMemberModalOpen(false);
         setVirtualMemberData({
           firstName: '',
           lastName: '',
@@ -518,89 +524,7 @@ export const FamilyManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Inline Family Edit Form */}
-      {isAdmin && editingFamily && (
-        <div className="family-management-edit-inline">
-          <h4 className="family-management-form-title">{t('family.edit.title')}</h4>
-          <p className="family-management-help-text">{t('family.edit.subtitle')}</p>
-          <form onSubmit={handleUpdateFamily} className="family-management-form">
-            <div className="family-management-form-group">
-              <label htmlFor="familyNameInline" className="family-management-label">
-                {t('family.name')}
-              </label>
-              <input
-                type="text"
-                id="familyNameInline"
-                name="name"
-                value={familyData.name}
-                onChange={handleFamilyInputChange}
-                className={`family-management-input ${familyErrors['name'] ? 'family-management-input-error' : ''}`}
-                placeholder={t('family.create.namePlaceholder')}
-                disabled={isLoading}
-              />
-              {familyErrors['name'] && (
-                <span className="family-management-error">{familyErrors['name']}</span>
-              )}
-            </div>
 
-            <div className="family-management-form-group">
-              <label htmlFor="familyDescriptionInline" className="family-management-label">
-                {t('family.description')} ({t('common.optional')})
-              </label>
-              <textarea
-                id="familyDescriptionInline"
-                name="description"
-                value={familyData.description}
-                onChange={handleFamilyInputChange}
-                className={`family-management-input ${familyErrors['description'] ? 'family-management-input-error' : ''}`}
-                placeholder={t('family.create.descriptionPlaceholder')}
-                rows={3}
-                disabled={isLoading}
-              />
-              {familyErrors['description'] && (
-                <span className="family-management-error">{familyErrors['description']}</span>
-              )}
-            </div>
-
-            <div className="family-management-form-group">
-              <label htmlFor="familyAvatarUrlInline" className="family-management-label">
-                {t('family.avatar')} ({t('common.optional')})
-              </label>
-              <input
-                type="url"
-                id="familyAvatarUrlInline"
-                name="avatarUrl"
-                value={familyData.avatarUrl}
-                onChange={handleFamilyInputChange}
-                className={`family-management-input ${familyErrors['avatarUrl'] ? 'family-management-input-error' : ''}`}
-                placeholder="https://example.com/family-avatar.jpg"
-                disabled={isLoading}
-              />
-              {familyErrors['avatarUrl'] && (
-                <span className="family-management-error">{familyErrors['avatarUrl']}</span>
-              )}
-            </div>
-
-            <div className="family-management-form-actions">
-              <button
-                type="submit"
-                className="family-management-button family-management-button-primary"
-                disabled={isLoading}
-              >
-                {isLoading ? t('family.edit.updating') : t('common.save')}
-              </button>
-              <button
-                type="button"
-                onClick={handleCancelEditFamily}
-                className="family-management-button family-management-button-secondary"
-                disabled={isLoading}
-              >
-                {t('common.cancel')}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
       {/* Family Members */}
       <div className="family-management-subsection">
@@ -626,89 +550,7 @@ export const FamilyManagement: React.FC = () => {
           )}
         </div>
 
-        {/* Virtual Member Creation Form - Inline */}
-        {isAdmin && addingVirtualMember && (
-          <div className="family-management-virtual-member-add-inline">
-            <h5 className="family-management-form-title">{t('family.createVirtualMember')}</h5>
-            <form onSubmit={handleCreateVirtualMember} className="family-management-form">
-              <div className="family-management-form-row">
-                <div className="family-management-form-group">
-                  <label htmlFor="virtualFirstNameInline" className="family-management-label">
-                    {t('user.firstName')}
-                  </label>
-                  <input
-                    type="text"
-                    id="virtualFirstNameInline"
-                    name="firstName"
-                    value={virtualMemberData.firstName}
-                    onChange={handleVirtualMemberInputChange}
-                    className={`family-management-input ${virtualMemberErrors['firstName'] ? 'family-management-input-error' : ''}`}
-                    disabled={isLoading}
-                    autoFocus
-                  />
-                  {virtualMemberErrors['firstName'] && (
-                    <span className="family-management-error">{virtualMemberErrors['firstName']}</span>
-                  )}
-                </div>
 
-                <div className="family-management-form-group">
-                  <label htmlFor="virtualLastNameInline" className="family-management-label">
-                    {t('user.lastName')}
-                  </label>
-                  <input
-                    type="text"
-                    id="virtualLastNameInline"
-                    name="lastName"
-                    value={virtualMemberData.lastName}
-                    onChange={handleVirtualMemberInputChange}
-                    className={`family-management-input ${virtualMemberErrors['lastName'] ? 'family-management-input-error' : ''}`}
-                    disabled={isLoading}
-                  />
-                  {virtualMemberErrors['lastName'] && (
-                    <span className="family-management-error">{virtualMemberErrors['lastName']}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="family-management-form-group">
-                <label htmlFor="virtualAvatarUrlInline" className="family-management-label">
-                  {t('user.avatar')} URL ({t('common.optional')})
-                </label>
-                <input
-                  type="url"
-                  id="virtualAvatarUrlInline"
-                  name="avatarUrl"
-                  value={virtualMemberData.avatarUrl}
-                  onChange={handleVirtualMemberInputChange}
-                  className={`family-management-input ${virtualMemberErrors['avatarUrl'] ? 'family-management-input-error' : ''}`}
-                  placeholder="https://example.com/avatar.jpg"
-                  disabled={isLoading}
-                />
-                {virtualMemberErrors['avatarUrl'] && (
-                  <span className="family-management-error">{virtualMemberErrors['avatarUrl']}</span>
-                )}
-              </div>
-
-              <div className="family-management-form-actions">
-                <button
-                  type="button"
-                  onClick={handleCancelAddVirtualMember}
-                  className="family-management-button family-management-button-secondary"
-                  disabled={isLoading}
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="submit"
-                  className="family-management-button family-management-button-primary"
-                  disabled={isLoading}
-                >
-                  {isLoading ? t('common.loading') : t('common.save')}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
 
         <div className="family-management-members-list">
           {members.map((member) => {
@@ -908,6 +750,145 @@ export const FamilyManagement: React.FC = () => {
           </div>
         </>
       )}
+
+      {/* Edit Family Modal */}
+      <Modal
+        title={t('family.edit.title')}
+        isOpen={isEditFamilyModalOpen}
+        onClose={handleCancelEditFamily}
+        onApply={handleUpdateFamily}
+        variant="standard"
+      >
+        <div className="family-management-modal-content">
+          <p className="family-management-help-text">{t('family.edit.subtitle')}</p>
+          <div className="family-management-form-group">
+            <label htmlFor="familyName" className="family-management-label">
+              {t('family.name')}
+            </label>
+            <input
+              type="text"
+              id="familyName"
+              name="name"
+              value={familyData.name}
+              onChange={handleFamilyInputChange}
+              className={`family-management-input ${familyErrors['name'] ? 'family-management-input-error' : ''}`}
+              placeholder={t('family.create.namePlaceholder')}
+              disabled={isLoading}
+              autoFocus
+            />
+            {familyErrors['name'] && (
+              <span className="family-management-error">{familyErrors['name']}</span>
+            )}
+          </div>
+
+          <div className="family-management-form-group">
+            <label htmlFor="familyDescription" className="family-management-label">
+              {t('family.description')} ({t('common.optional')})
+            </label>
+            <textarea
+              id="familyDescription"
+              name="description"
+              value={familyData.description}
+              onChange={handleFamilyInputChange}
+              className={`family-management-input ${familyErrors['description'] ? 'family-management-input-error' : ''}`}
+              placeholder={t('family.create.descriptionPlaceholder')}
+              rows={3}
+              disabled={isLoading}
+            />
+            {familyErrors['description'] && (
+              <span className="family-management-error">{familyErrors['description']}</span>
+            )}
+          </div>
+
+          <div className="family-management-form-group">
+            <label htmlFor="familyAvatarUrl" className="family-management-label">
+              {t('family.avatar')} ({t('common.optional')})
+            </label>
+            <input
+              type="url"
+              id="familyAvatarUrl"
+              name="avatarUrl"
+              value={familyData.avatarUrl}
+              onChange={handleFamilyInputChange}
+              className={`family-management-input ${familyErrors['avatarUrl'] ? 'family-management-input-error' : ''}`}
+              placeholder="https://example.com/family-avatar.jpg"
+              disabled={isLoading}
+            />
+            {familyErrors['avatarUrl'] && (
+              <span className="family-management-error">{familyErrors['avatarUrl']}</span>
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      {/* Add Virtual Member Modal */}
+      <Modal
+        title={t('family.createVirtualMember')}
+        isOpen={isAddVirtualMemberModalOpen}
+        onClose={handleCancelAddVirtualMember}
+        onApply={handleCreateVirtualMember}
+        variant="standard"
+      >
+        <div className="family-management-modal-content">
+          <div className="family-management-form-row">
+            <div className="family-management-form-group">
+              <label htmlFor="virtualFirstName" className="family-management-label">
+                {t('user.firstName')}
+              </label>
+              <input
+                type="text"
+                id="virtualFirstName"
+                name="firstName"
+                value={virtualMemberData.firstName}
+                onChange={handleVirtualMemberInputChange}
+                className={`family-management-input ${virtualMemberErrors['firstName'] ? 'family-management-input-error' : ''}`}
+                disabled={isLoading}
+                autoFocus
+              />
+              {virtualMemberErrors['firstName'] && (
+                <span className="family-management-error">{virtualMemberErrors['firstName']}</span>
+              )}
+            </div>
+
+            <div className="family-management-form-group">
+              <label htmlFor="virtualLastName" className="family-management-label">
+                {t('user.lastName')}
+              </label>
+              <input
+                type="text"
+                id="virtualLastName"
+                name="lastName"
+                value={virtualMemberData.lastName}
+                onChange={handleVirtualMemberInputChange}
+                className={`family-management-input ${virtualMemberErrors['lastName'] ? 'family-management-input-error' : ''}`}
+                disabled={isLoading}
+              />
+              {virtualMemberErrors['lastName'] && (
+                <span className="family-management-error">{virtualMemberErrors['lastName']}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="family-management-form-group">
+            <label htmlFor="virtualAvatarUrl" className="family-management-label">
+              {t('user.avatar')} URL ({t('common.optional')})
+            </label>
+            <input
+              type="url"
+              id="virtualAvatarUrl"
+              name="avatarUrl"
+              value={virtualMemberData.avatarUrl}
+              onChange={handleVirtualMemberInputChange}
+              className={`family-management-input ${virtualMemberErrors['avatarUrl'] ? 'family-management-input-error' : ''}`}
+              placeholder="https://example.com/avatar.jpg"
+              disabled={isLoading}
+            />
+            {virtualMemberErrors['avatarUrl'] && (
+              <span className="family-management-error">{virtualMemberErrors['avatarUrl']}</span>
+            )}
+          </div>
+        </div>
+      </Modal>
 
       {/* Edit Virtual Member Modal */}
       <Modal
