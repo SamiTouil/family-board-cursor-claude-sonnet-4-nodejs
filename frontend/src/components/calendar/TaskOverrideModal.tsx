@@ -87,18 +87,7 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
     }
   };
 
-  const isFormValid = (): boolean => {
-    switch (action) {
-      case 'ADD':
-        return selectedTaskId !== '' && selectedMemberId !== '';
-      case 'REMOVE':
-        return true;
-      case 'REASSIGN':
-        return selectedMemberId !== '' && selectedMemberId !== task?.memberId;
-      default:
-        return false;
-    }
-  };
+
 
   const renderContent = () => (
     <>
