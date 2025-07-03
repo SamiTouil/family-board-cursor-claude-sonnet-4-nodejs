@@ -199,9 +199,12 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await expect(page.getByText('Uncle Bob')).toBeVisible();
       await page.getByText('Edit').last().click();
       
+      // Wait for modal to open
+      await expect(page.locator('.modal-overlay')).toBeVisible();
+      
       await page.getByLabel('First Name').fill('Uncle');
       await page.getByLabel('Last Name').fill('Robert');
-      await page.getByRole('button', { name: 'Save' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
 
       // Verify member name was updated
       await expect(page.getByText('Uncle Robert')).toBeVisible();

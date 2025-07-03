@@ -582,6 +582,14 @@
   }
 }
 
+/* Modal Content */
+.family-management-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0.5rem 0;
+}
+
 /* Focus states for accessibility */
 .family-management-button:focus-visible {
   outline: 2px solid #6366f1;
