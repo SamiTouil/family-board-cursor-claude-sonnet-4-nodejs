@@ -225,17 +225,17 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Add Routine' }).click();
       await page.getByLabel('Routine Name').fill('Weekday Morning');
       await page.getByLabel('Description').fill('Standard weekday morning routine');
-      await page.getByRole('button', { name: 'Create' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
 
       // Verify routine appears
       await expect(page.getByText('Weekday Morning')).toBeVisible();
       await expect(page.getByText('Standard weekday morning routine')).toBeVisible();
 
       // Test routine editing
-      await page.getByRole('button', { name: 'Edit' }).click();
+      await page.locator('.day-template-management-button-secondary').click();
       await page.getByLabel('Routine Name').fill('Updated Weekday Morning');
       await page.getByLabel('Description').fill('Updated morning routine description');
-      await page.getByRole('button', { name: 'Update' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
 
       // Verify updates
       await expect(page.getByText('Updated Weekday Morning')).toBeVisible();
@@ -249,7 +249,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await expect(page.getByText('Updated Weekday Morning')).not.toBeVisible();
     });
 
-    test.skip('should manage routine items with task assignments and overrides', async ({ page }) => {
+    test('should manage routine items with task assignments and overrides', async ({ page }) => {
       const adminEmail = `admin-routine-items-${Date.now()}@example.com`;
       
       // Setup admin, family, and tasks
@@ -293,7 +293,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Add Routine' }).click();
       await page.getByLabel('Routine Name').fill('Morning Routine');
       await page.getByLabel('Description').fill('Complete morning routine template');
-      await page.getByRole('button', { name: 'Create' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
       await page.waitForTimeout(2000);
 
       // Add task to routine with default settings
@@ -301,15 +301,15 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.waitForTimeout(1000); // Wait for dropdown to populate
       
       // Click on CustomSelect to open dropdown
-      await page.locator('.day-template-management-form-group').filter({ hasText: 'Task *' }).locator('.custom-select').click();
+      await page.locator('.modal-form-group').filter({ hasText: 'Task *' }).locator('.custom-select').click();
       await page.waitForTimeout(500); // Wait for dropdown to open
       
       // Select first available task from dropdown
       await page.locator('.custom-select-option').nth(1).click(); // Skip the placeholder option
       await page.waitForTimeout(1000); // Wait for form to update after selection
       
-      // Look for the Add Task button (it might be disabled initially)
-      await page.locator('button').filter({ hasText: 'Add Task' }).click();
+      // Use Apply button for modal
+      await page.getByRole('button', { name: 'Apply' }).click();
       
       // Verify task appears in routine
       await expect(page.locator('.task-override-card')).toBeVisible();
@@ -325,7 +325,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.waitForTimeout(1000); // Wait for dropdown to populate
       
       // Click on CustomSelect to open dropdown
-      await page.locator('.day-template-management-form-group').filter({ hasText: 'Task *' }).locator('.custom-select').click();
+      await page.locator('.modal-form-group').filter({ hasText: 'Task *' }).locator('.custom-select').click();
       await page.waitForTimeout(500); // Wait for dropdown to open
       
       // Select second available task from dropdown
@@ -333,7 +333,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.waitForTimeout(1000); // Wait for form to update after selection
       
       await page.getByLabel('Override Time (Optional)').fill('07:00');
-      await page.locator('button').filter({ hasText: 'Add Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
       
       // Verify second task appears with overridden time
       await expect(page.locator('.task-override-card').nth(1)).toBeVisible();
@@ -381,8 +381,8 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Add Routine' }).click();
       await page.getByLabel('Routine Name').fill('Concurrent Routine');
       
-      // Cancel routine creation - use more specific selector
-      await page.locator('.day-template-management-form').getByRole('button', { name: 'Cancel' }).click();
+      // Cancel routine creation - use modal cancel button
+      await page.getByRole('button', { name: 'Cancel' }).click();
       
       // Verify routine form is closed
       await expect(page.getByLabel('Routine Name')).not.toBeVisible();

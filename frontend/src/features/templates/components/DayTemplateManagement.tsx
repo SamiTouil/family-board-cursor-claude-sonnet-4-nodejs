@@ -5,6 +5,7 @@ import { taskApi, familyApi, dayTemplateApi } from '../../../services/api';
 import type { Task, DayTemplate, DayTemplateItem, CreateDayTemplateData, FamilyMember } from '../../../types';
 import { TaskOverrideCard } from '../../../components/ui/TaskOverrideCard';
 import { CustomSelect } from '../../../components/ui/CustomSelect';
+import Modal from '../../../components/ui/Modal';
 import './DayTemplateManagement.css';
 
 export const DayTemplateManagement: React.FC = () => {
@@ -20,7 +21,9 @@ export const DayTemplateManagement: React.FC = () => {
   const [templateItems, setTemplateItems] = useState<Record<string, DayTemplateItem[]>>({});
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
 
-  const [addingTemplate, setAddingTemplate] = useState(false);
+  // Template form state - convert to modal
+  const [isAddRoutineModalOpen, setIsAddRoutineModalOpen] = useState(false);
+  const [isEditRoutineModalOpen, setIsEditRoutineModalOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<DayTemplate | null>(null);
   const [templateData, setTemplateData] = useState({
     name: '',
@@ -28,9 +31,9 @@ export const DayTemplateManagement: React.FC = () => {
   });
   const [templateErrors, setTemplateErrors] = useState<Record<string, string>>({});
 
-  // Template item form state
-  const [addingTemplateItem, setAddingTemplateItem] = useState<string | null>(null); // templateId when adding
-  const [editingTemplateItem, setEditingTemplateItem] = useState<{ templateId: string; item: DayTemplateItem } | null>(null); // template item being edited
+  // Template item form state - convert to modal
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [currentTemplateId, setCurrentTemplateId] = useState<string | null>(null);
   const [templateItemData, setTemplateItemData] = useState({
     taskId: '',
     memberId: '',
@@ -125,7 +128,7 @@ export const DayTemplateManagement: React.FC = () => {
   };
 
   const handleAddTemplate = () => {
-    setAddingTemplate(true);
+    setIsAddRoutineModalOpen(true);
     setEditingTemplate(null);
     setMessage(null);
     setTemplateErrors({});
@@ -137,8 +140,8 @@ export const DayTemplateManagement: React.FC = () => {
   };
 
   const handleEditTemplate = (template: DayTemplate) => {
+    setIsEditRoutineModalOpen(true);
     setEditingTemplate(template);
-    setAddingTemplate(false);
     setMessage(null);
     setTemplateErrors({});
     // Pre-fill form with template data
@@ -149,7 +152,8 @@ export const DayTemplateManagement: React.FC = () => {
   };
 
   const handleCancelTemplateForm = (preserveMessage?: boolean) => {
-    setAddingTemplate(false);
+    setIsAddRoutineModalOpen(false);
+    setIsEditRoutineModalOpen(false);
     setEditingTemplate(null);
     
     if (!preserveMessage) {
@@ -163,23 +167,58 @@ export const DayTemplateManagement: React.FC = () => {
     });
   };
 
-  const handleTemplateInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setTemplateData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear error when user starts typing
-    if (templateErrors[name]) {
-      setTemplateErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
+  const handleApplyTemplate = async () => {
+    if (editingTemplate) {
+      await handleUpdateTemplate();
+    } else {
+      await handleCreateTemplate();
     }
   };
 
-  const handleCreateTemplate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleUpdateTemplate = async () => {
+    if (!validateTemplateForm() || !currentFamily || !editingTemplate) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const trimmedDescription = templateData.description.trim();
+      const updateData: any = {
+        name: templateData.name.trim(),
+      };
+      
+      // Only add description if it's not empty
+      if (trimmedDescription) {
+        updateData.description = trimmedDescription;
+      }
+
+      const response = await dayTemplateApi.updateTemplate(currentFamily.id, editingTemplate.id, updateData);
+
+      // Update the template in the list
+      setTemplates(prev => prev.map(t => 
+        t.id === editingTemplate.id ? response.data : t
+      ));
+      
+      // Show success message
+      setMessage({ type: 'success', text: 'Template updated successfully' });
+      
+      // Close the modal but preserve the success message
+      handleCancelTemplateForm(true);
+    } catch (error: any) {
+      let errorMessage = 'Failed to update template';
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateTemplate = async () => {
     if (!validateTemplateForm() || !currentFamily) {
       return;
     }
@@ -204,7 +243,7 @@ export const DayTemplateManagement: React.FC = () => {
       // Show success message
       setMessage({ type: 'success', text: 'Template created successfully' });
       
-      // Close the form but preserve the success message
+      // Close the modal but preserve the success message
       handleCancelTemplateForm(true);
     } catch (error: any) {
       let errorMessage = 'Failed to create template';
@@ -220,50 +259,21 @@ export const DayTemplateManagement: React.FC = () => {
     }
   };
 
-  const handleUpdateTemplate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleTemplateInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setTemplateData(prev => ({ ...prev, [name]: value }));
     
-    if (!validateTemplateForm() || !editingTemplate) {
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const trimmedDescription = templateData.description.trim();
-      const updateData: any = {
-        name: templateData.name.trim(),
-      };
-      
-      // Only add description if it's not empty
-      if (trimmedDescription) {
-        updateData.description = trimmedDescription;
-      }
-
-      const response = await dayTemplateApi.updateTemplate(currentFamily!.id, editingTemplate.id, updateData);
-
-      // Update the template in the list
-      setTemplates(prev => prev.map(template => 
-        template.id === editingTemplate.id ? response.data : template
-      ));
-      
-      // Show success message
-      setMessage({ type: 'success', text: 'Template updated successfully' });
-      
-      // Close the form but preserve the success message
-      handleCancelTemplateForm(true);
-    } catch (error: any) {
-      let errorMessage = 'Failed to update template';
-      if (error?.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      } else if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-      
-      setMessage({ type: 'error', text: errorMessage });
-    } finally {
-      setIsLoading(false);
+    // Clear error when user starts typing
+    if (templateErrors[name]) {
+      setTemplateErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
   };
+
+
 
   const handleDeleteTemplate = async (templateId: string) => {
     if (!window.confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
@@ -354,8 +364,8 @@ export const DayTemplateManagement: React.FC = () => {
   };
 
   const handleAddTemplateItem = (templateId: string) => {
-    setAddingTemplateItem(templateId);
-    setEditingTemplateItem(null);
+    setCurrentTemplateId(templateId);
+    setIsAddTaskModalOpen(true);
     setMessage(null);
     setTemplateItemErrors({});
     // Reset form data
@@ -367,23 +377,9 @@ export const DayTemplateManagement: React.FC = () => {
     });
   };
 
-  const handleEditTemplateItem = (templateId: string, item: DayTemplateItem) => {
-    setEditingTemplateItem({ templateId, item });
-    setAddingTemplateItem(null);
-    setMessage(null);
-    setTemplateItemErrors({});
-    // Pre-fill form with item data
-    setTemplateItemData({
-      taskId: item.taskId,
-      memberId: item.memberId || '',
-      overrideTime: item.overrideTime || '',
-      overrideDuration: item.overrideDuration?.toString() || ''
-    });
-  };
-
   const handleCancelTemplateItemForm = () => {
-    setAddingTemplateItem(null);
-    setEditingTemplateItem(null);
+    setIsAddTaskModalOpen(false);
+    setCurrentTemplateId(null);
     setTemplateItemErrors({});
     // Reset form data
     setTemplateItemData({
@@ -435,10 +431,8 @@ export const DayTemplateManagement: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleCreateTemplateItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateTemplateItemForm() || !addingTemplateItem || !currentFamily) {
+  const handleApplyTemplateItem = async () => {
+    if (!validateTemplateItemForm() || !currentTemplateId || !currentFamily) {
       return;
     }
 
@@ -462,18 +456,18 @@ export const DayTemplateManagement: React.FC = () => {
         createData.overrideDuration = parseInt(templateItemData.overrideDuration);
       }
 
-      const response = await dayTemplateApi.addItem(currentFamily.id, addingTemplateItem, createData);
+      const response = await dayTemplateApi.addItem(currentFamily.id, currentTemplateId, createData);
       
       // Add the new item to the cache
       setTemplateItems(prev => ({
         ...prev,
-        [addingTemplateItem]: [...(prev[addingTemplateItem] || []), response.data]
+        [currentTemplateId]: [...(prev[currentTemplateId] || []), response.data]
       }));
       
       // Show success message
       setMessage({ type: 'success', text: 'Task added to template successfully' });
       
-      // Close the form
+      // Close the modal
       handleCancelTemplateItemForm();
     } catch (error: any) {
       let errorMessage = 'Failed to add task to template';
@@ -489,66 +483,7 @@ export const DayTemplateManagement: React.FC = () => {
     }
   };
 
-  const handleUpdateTemplateItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateTemplateItemForm() || !editingTemplateItem || !currentFamily) {
-      return;
-    }
 
-    setIsLoading(true);
-    try {
-      const updateData: any = {
-        taskId: templateItemData.taskId,
-      };
-
-      // Only add memberId if it's not empty (empty means unassigned)
-      if (templateItemData.memberId) {
-        updateData.memberId = templateItemData.memberId;
-      }
-
-      // Only add overrides if they're provided
-      if (templateItemData.overrideTime) {
-        updateData.overrideTime = templateItemData.overrideTime;
-      }
-
-      if (templateItemData.overrideDuration) {
-        updateData.overrideDuration = parseInt(templateItemData.overrideDuration);
-      }
-
-      const response = await dayTemplateApi.updateItem(
-        currentFamily.id, 
-        editingTemplateItem.templateId, 
-        editingTemplateItem.item.id, 
-        updateData
-      );
-      
-      // Update the item in the cache
-      setTemplateItems(prev => ({
-        ...prev,
-        [editingTemplateItem.templateId]: (prev[editingTemplateItem.templateId] || []).map(item => 
-          item.id === editingTemplateItem.item.id ? response.data : item
-        )
-      }));
-      
-      // Show success message
-      setMessage({ type: 'success', text: 'Template item updated successfully' });
-      
-      // Close the form
-      handleCancelTemplateItemForm();
-    } catch (error: any) {
-      let errorMessage = 'Failed to update template item';
-      if (error?.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      } else if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-      
-      setMessage({ type: 'error', text: errorMessage });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Load template items when templates are loaded
   useEffect(() => {
@@ -587,88 +522,17 @@ export const DayTemplateManagement: React.FC = () => {
             {isAdmin && (
               <div className="day-template-management-button-group">
                 <button
-                  onClick={addingTemplate || editingTemplate ? () => handleCancelTemplateForm() : handleAddTemplate}
+                  onClick={handleAddTemplate}
                   className="day-template-management-button day-template-management-button-primary day-template-management-button-sm"
                   disabled={isLoading}
                 >
-                  {addingTemplate || editingTemplate ? t('common.cancel') : t('dailyRoutines.routines.add')}
+                  {t('dailyRoutines.routines.add')}
                 </button>
               </div>
             )}
           </div>
 
-          {/* Template Creation/Edit Form - Inline */}
-          {isAdmin && (addingTemplate || editingTemplate) && (
-            <div className="day-template-management-template-add-inline">
-              <h5 className="day-template-management-form-title">
-                {editingTemplate ? t('dailyRoutines.routines.edit') : t('dailyRoutines.routines.add')}
-              </h5>
-              <p className="day-template-management-help-text">
-                {editingTemplate ? t('dailyRoutines.routines.edit') : t('dailyRoutines.routines.empty.description')}
-              </p>
-              <form className="day-template-management-form" onSubmit={editingTemplate ? handleUpdateTemplate : handleCreateTemplate}>
-                                  <div className="day-template-management-form-group">
-                    <label htmlFor="templateName" className="day-template-management-label">
-                      {t('dailyRoutines.fields.name')}
-                    </label>
-                    <input
-                      type="text"
-                      id="templateName"
-                      name="name"
-                      className="day-template-management-input"
-                      placeholder={t('dailyRoutines.placeholders.name')}
-                      disabled={isLoading}
-                      autoFocus
-                      value={templateData.name}
-                      onChange={handleTemplateInputChange}
-                    />
-                    {templateErrors['name'] && (
-                      <p className="day-template-management-error">{templateErrors['name']}</p>
-                    )}
-                  </div>
 
-                  <div className="day-template-management-form-group">
-                    <label htmlFor="templateDescription" className="day-template-management-label">
-                      {t('dailyRoutines.fields.description')}
-                    </label>
-                    <textarea
-                      id="templateDescription"
-                      name="description"
-                      className="day-template-management-input"
-                      placeholder={t('dailyRoutines.placeholders.description')}
-                      rows={3}
-                      disabled={isLoading}
-                      value={templateData.description}
-                      onChange={handleTemplateInputChange}
-                    />
-                    {templateErrors['description'] && (
-                      <p className="day-template-management-error">{templateErrors['description']}</p>
-                    )}
-                  </div>
-
-                <div className="day-template-management-form-actions">
-                                      <button
-                      type="submit"
-                      className="day-template-management-button day-template-management-button-primary"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? t('common.saving') : (editingTemplate ? t('common.update') : t('common.create'))}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleCancelTemplateForm();
-                      }}
-                      className="day-template-management-button day-template-management-button-secondary"
-                      disabled={isLoading}
-                    >
-                      {t('common.cancel')}
-                    </button>
-                </div>
-              </form>
-            </div>
-          )}
 
           {/* Templates List */}
           <div className="day-template-management-templates-list">
@@ -684,7 +548,7 @@ export const DayTemplateManagement: React.FC = () => {
                 </div>
                 <h5 className="day-template-management-empty-title">No Templates Yet</h5>
                 <p className="day-template-management-empty-description">Create reusable templates to quickly schedule recurring task patterns</p>
-                {isAdmin && !(addingTemplate || editingTemplate) && (
+                {isAdmin && (
                   <button
                     onClick={handleAddTemplate}
                     className="day-template-management-button day-template-management-button-primary"
@@ -707,7 +571,7 @@ export const DayTemplateManagement: React.FC = () => {
                           <button
                             className="day-template-management-button day-template-management-button-primary day-template-management-button-sm"
                             onClick={() => handleAddTemplateItem(template.id)}
-                            disabled={isLoading || addingTemplateItem === template.id || (editingTemplateItem?.templateId === template.id)}
+                            disabled={isLoading}
                           >
                             {t('dailyRoutines.addTask')}
                           </button>
@@ -733,135 +597,12 @@ export const DayTemplateManagement: React.FC = () => {
 
                   {/* Template Items */}
                   <div className="day-template-management-template-items">
-                    {/* Add/Edit Template Item Form */}
-                    {isAdmin && (addingTemplateItem === template.id || editingTemplateItem?.templateId === template.id) && (
-                      <div className="day-template-management-template-item-add-inline">
-                        <h5 className="day-template-management-form-title">
-                          {editingTemplateItem ? 'Edit Template Item' : 'Add Task to Template'}
-                        </h5>
-                        <p className="day-template-management-help-text">
-                          {editingTemplateItem 
-                            ? 'Update the task assignment details'
-                            : 'Select a task and optionally assign it to a family member or leave it unassigned'
-                          }
-                        </p>
-                        <form className="day-template-management-form" onSubmit={editingTemplateItem ? handleUpdateTemplateItem : handleCreateTemplateItem}>
-                          <div className="day-template-management-form-group">
-                            <label htmlFor="templateItemTask" className="day-template-management-label">
-                              Task *
-                            </label>
-                            <CustomSelect
-                              id="templateItemTask"
-                              value={templateItemData.taskId}
-                              onChange={(value) => setTemplateItemData(prev => ({ ...prev, taskId: String(value) }))}
-                              options={[
-                                { value: '', label: 'Select a task...' },
-                                ...tasks
-                                  .filter(task => task.isActive)
-                                  .sort((a, b) => a.defaultStartTime.localeCompare(b.defaultStartTime))
-                                  .map(task => ({
-                                    value: task.id,
-                                    label: `${task.icon} ${task.name} (${task.defaultStartTime}, ${formatDuration(task.defaultDuration)})`
-                                  }))
-                              ]}
-                              disabled={isLoading}
-                              placeholder="Select a task..."
-                            />
-                            {templateItemErrors['taskId'] && (
-                              <p className="day-template-management-error">{templateItemErrors['taskId']}</p>
-                            )}
-                          </div>
 
-                          <div className="day-template-management-form-group">
-                            <label htmlFor="templateItemMember" className="day-template-management-label">
-                              Assign to Member (Optional)
-                            </label>
-                            <CustomSelect
-                              id="templateItemMember"
-                              value={templateItemData.memberId}
-                              onChange={(value) => setTemplateItemData(prev => ({ ...prev, memberId: String(value) }))}
-                              options={[
-                                { value: '', label: 'Unassigned (any member can do this)' },
-                                ...familyMembers.map(member => ({
-                                  value: member.user?.id || '',
-                                  label: `${member.user?.firstName} ${member.user?.lastName}`
-                                }))
-                              ]}
-                              disabled={isLoading}
-                              placeholder="Unassigned (any member can do this)"
-                            />
-                          </div>
-
-                          <div className="day-template-management-form-row">
-                            <div className="day-template-management-form-group">
-                              <label htmlFor="templateItemTime" className="day-template-management-label">
-                                Override Time (Optional)
-                              </label>
-                              <input
-                                type="time"
-                                id="templateItemTime"
-                                name="overrideTime"
-                                className="day-template-management-input"
-                                value={templateItemData.overrideTime}
-                                onChange={handleTemplateItemInputChange}
-                                disabled={isLoading}
-                                placeholder="HH:MM"
-                              />
-                              {templateItemErrors['overrideTime'] && (
-                                <p className="day-template-management-error">{templateItemErrors['overrideTime']}</p>
-                              )}
-                            </div>
-
-                            <div className="day-template-management-form-group">
-                              <label htmlFor="templateItemDuration" className="day-template-management-label">
-                                Override Duration (Optional)
-                              </label>
-                              <input
-                                type="number"
-                                id="templateItemDuration"
-                                name="overrideDuration"
-                                className="day-template-management-input"
-                                value={templateItemData.overrideDuration}
-                                onChange={handleTemplateItemInputChange}
-                                disabled={isLoading}
-                                placeholder="Minutes"
-                                min="1"
-                                max="1440"
-                              />
-                              {templateItemErrors['overrideDuration'] && (
-                                <p className="day-template-management-error">{templateItemErrors['overrideDuration']}</p>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="day-template-management-form-actions">
-                            <button
-                              type="submit"
-                              className="day-template-management-button day-template-management-button-primary"
-                              disabled={isLoading}
-                            >
-                              {isLoading 
-                                ? (editingTemplateItem ? 'Updating...' : 'Adding...') 
-                                : (editingTemplateItem ? 'Update Task' : 'Add Task')
-                              }
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleCancelTemplateItemForm}
-                              className="day-template-management-button day-template-management-button-secondary"
-                              disabled={isLoading}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-                    )}
 
                     {templateItems[template.id]?.length === 0 ? (
                       <div className="day-template-management-template-empty">
                         <p>No tasks in this template yet</p>
-                        {isAdmin && addingTemplateItem !== template.id && (
+                        {isAdmin && (
                           <p className="day-template-management-help-text">
                             Add tasks to this template to create reusable scheduling patterns
                           </p>
@@ -890,7 +631,6 @@ export const DayTemplateManagement: React.FC = () => {
 
                           if (isAdmin) {
                             taskOverrideProps.onRemove = (_task: any) => handleDeleteTemplateItem(template.id, item.id);
-                            taskOverrideProps.onReassign = (_task: any) => handleEditTemplateItem(template.id, item);
                           }
 
                           return <TaskOverrideCard {...taskOverrideProps} />;
@@ -908,6 +648,153 @@ export const DayTemplateManagement: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Add/Edit Routine Modal */}
+      <Modal
+        title={editingTemplate ? t('dailyRoutines.routines.edit') : t('dailyRoutines.routines.add')}
+        isOpen={isAddRoutineModalOpen || isEditRoutineModalOpen}
+        onClose={handleCancelTemplateForm}
+        onApply={handleApplyTemplate}
+      >
+        <div className="modal-form">
+          <div className="modal-form-group">
+            <label htmlFor="templateName" className="modal-form-label">
+              {t('dailyRoutines.fields.name')}
+            </label>
+            <input
+              type="text"
+              id="templateName"
+              name="name"
+              className="modal-form-input"
+              placeholder={t('dailyRoutines.placeholders.name')}
+              disabled={isLoading}
+              autoFocus
+              value={templateData.name}
+              onChange={handleTemplateInputChange}
+            />
+            {templateErrors['name'] && (
+              <p className="modal-form-error">{templateErrors['name']}</p>
+            )}
+          </div>
+
+          <div className="modal-form-group">
+            <label htmlFor="templateDescription" className="modal-form-label">
+              {t('dailyRoutines.fields.description')}
+            </label>
+            <textarea
+              id="templateDescription"
+              name="description"
+              className="modal-form-input"
+              placeholder={t('dailyRoutines.placeholders.description')}
+              rows={3}
+              disabled={isLoading}
+              value={templateData.description}
+              onChange={handleTemplateInputChange}
+            />
+            {templateErrors['description'] && (
+              <p className="modal-form-error">{templateErrors['description']}</p>
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      {/* Add Task to Routine Modal */}
+      <Modal
+        title={t('dailyRoutines.addTask')}
+        isOpen={isAddTaskModalOpen}
+        onClose={handleCancelTemplateItemForm}
+        onApply={handleApplyTemplateItem}
+      >
+        <div className="modal-form">
+          <div className="modal-form-group">
+            <label htmlFor="templateItemTask" className="modal-form-label">
+              Task *
+            </label>
+            <CustomSelect
+              id="templateItemTask"
+              value={templateItemData.taskId}
+              onChange={(value) => setTemplateItemData(prev => ({ ...prev, taskId: String(value) }))}
+              options={[
+                { value: '', label: 'Select a task...' },
+                ...tasks
+                  .filter(task => task.isActive)
+                  .sort((a, b) => a.defaultStartTime.localeCompare(b.defaultStartTime))
+                  .map(task => ({
+                    value: task.id,
+                    label: `${task.icon} ${task.name} (${task.defaultStartTime}, ${formatDuration(task.defaultDuration)})`
+                  }))
+              ]}
+              disabled={isLoading}
+              placeholder="Select a task..."
+            />
+            {templateItemErrors['taskId'] && (
+              <p className="modal-form-error">{templateItemErrors['taskId']}</p>
+            )}
+          </div>
+
+          <div className="modal-form-group">
+            <label htmlFor="templateItemMember" className="modal-form-label">
+              Assign to Member (Optional)
+            </label>
+            <CustomSelect
+              id="templateItemMember"
+              value={templateItemData.memberId}
+              onChange={(value) => setTemplateItemData(prev => ({ ...prev, memberId: String(value) }))}
+              options={[
+                { value: '', label: 'Unassigned (any member can do this)' },
+                ...familyMembers.map(member => ({
+                  value: member.user?.id || '',
+                  label: `${member.user?.firstName} ${member.user?.lastName}`
+                }))
+              ]}
+              disabled={isLoading}
+              placeholder="Unassigned (any member can do this)"
+            />
+          </div>
+
+          <div className="modal-form-row">
+            <div className="modal-form-group">
+              <label htmlFor="templateItemTime" className="modal-form-label">
+                Override Time (Optional)
+              </label>
+              <input
+                type="time"
+                id="templateItemTime"
+                name="overrideTime"
+                className="modal-form-input"
+                value={templateItemData.overrideTime}
+                onChange={handleTemplateItemInputChange}
+                disabled={isLoading}
+                placeholder="HH:MM"
+              />
+              {templateItemErrors['overrideTime'] && (
+                <p className="modal-form-error">{templateItemErrors['overrideTime']}</p>
+              )}
+            </div>
+
+            <div className="modal-form-group">
+              <label htmlFor="templateItemDuration" className="modal-form-label">
+                Override Duration (Optional)
+              </label>
+              <input
+                type="number"
+                id="templateItemDuration"
+                name="overrideDuration"
+                className="modal-form-input"
+                value={templateItemData.overrideDuration}
+                onChange={handleTemplateItemInputChange}
+                disabled={isLoading}
+                placeholder="Minutes"
+                min="1"
+                max="1440"
+              />
+              {templateItemErrors['overrideDuration'] && (
+                <p className="modal-form-error">{templateItemErrors['overrideDuration']}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
