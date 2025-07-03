@@ -35,8 +35,6 @@
   font-weight: 500;
 }
 
-
-
 .weekly-calendar-controls {
   display: flex;
   align-items: center;
@@ -428,6 +426,178 @@
   background: #fee2e2;
   color: #991b1b;
   border: 1px solid #fca5a5;
+}
+
+/* Member Avatar Grid for Task Override Modal */
+.member-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.member-avatar-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+  position: relative;
+}
+
+.member-avatar-option:hover {
+  border-color: #6366f1;
+  background-color: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+}
+
+.member-avatar-option.selected {
+  border-color: #6366f1;
+  background-color: #eef2ff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.member-avatar-option.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: #6366f1;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.member-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.member-avatar-option.selected .member-name {
+  color: #6366f1;
+  font-weight: 600;
+}
+
+.no-members-message {
+  color: #6b7280;
+  font-style: italic;
+  text-align: center;
+  padding: 2rem;
+  margin: 0;
+}
+
+/* Responsive adjustments for member avatar grid */
+@media (max-width: 768px) {
+  .member-avatar-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  .member-avatar-option {
+    padding: 0.75rem;
+  }
+  
+  .member-name {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .member-avatar-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .member-avatar-option {
+    padding: 0.5rem;
+  }
+  
+  .member-name {
+    font-size: 0.75rem;
+  }
+}
+
+/* Form Styles for Task Override Modal */
+.task-override-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-input {
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-input:disabled {
+  background-color: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.confirmation-warning {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.confirmation-warning p {
+  margin: 0;
+  color: #92400e;
+  font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import { CustomSelect } from '../ui/CustomSelect';
+import { UserAvatar } from '../ui/UserAvatar';
 import type { ResolvedTask, Task, User, CreateTaskOverrideData } from '../../types';
 import './WeeklyCalendar.css';
 
@@ -87,7 +88,9 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
     }
   };
 
-
+  const handleMemberSelect = (memberId: string) => {
+    setSelectedMemberId(memberId);
+  };
 
   const renderContent = () => (
     <>
@@ -170,19 +173,30 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
         <div className="task-override-form">
           <div className="form-group">
             <label>Reassign to:</label>
-            <CustomSelect
-              value={selectedMemberId}
-              onChange={(value) => setSelectedMemberId(String(value))}
-              options={[
-                { value: '', label: 'Choose a member...' },
-                ...familyMembers.filter(member => member.id !== task.memberId).map(member => ({
-                  value: member.id,
-                  label: `${member.firstName} ${member.lastName}`
-                }))
-              ]}
-              disabled={isSubmitting}
-              placeholder="Choose a member..."
-            />
+            <div className="member-avatar-grid">
+              {familyMembers
+                .filter(member => member.id !== task.memberId)
+                .map(member => (
+                  <div
+                    key={member.id}
+                    className={`member-avatar-option ${selectedMemberId === member.id ? 'selected' : ''}`}
+                    onClick={() => !isSubmitting && handleMemberSelect(member.id)}
+                  >
+                    <UserAvatar
+                      firstName={member.firstName}
+                      lastName={member.lastName}
+                      avatarUrl={member.avatarUrl ?? null}
+                      size="large"
+                    />
+                    <span className="member-name">
+                      {member.firstName} {member.lastName}
+                    </span>
+                  </div>
+                ))}
+            </div>
+            {familyMembers.filter(member => member.id !== task.memberId).length === 0 && (
+              <p className="no-members-message">No other family members available for reassignment.</p>
+            )}
           </div>
         </div>
       )}
