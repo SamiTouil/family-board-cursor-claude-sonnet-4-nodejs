@@ -856,4 +856,74 @@ select.task-management-input:disabled {
 
 .task-management-template-add-item .task-management-button {
   min-width: 160px;
+}
+
+/* Modal Content Styles */
+.task-management-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 4px;
+}
+
+.task-management-modal-content .task-management-form-row {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 16px;
+  align-items: end;
+}
+
+.task-management-modal-content .task-management-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-management-modal-content .task-management-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.task-management-modal-content .task-management-input {
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.task-management-modal-content .task-management-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.task-management-modal-content .task-management-color-input {
+  width: 60px;
+  height: 42px;
+  padding: 4px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.task-management-modal-content .task-management-error {
+  color: #dc2626;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+/* Modal responsive adjustments */
+@media (max-width: 768px) {
+  .task-management-modal-content .task-management-form-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .task-management-modal-content .task-management-color-input {
+    width: 100%;
+    max-width: 120px;
+  }
 } 
