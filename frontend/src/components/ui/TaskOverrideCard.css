@@ -187,16 +187,6 @@
   color: #6d28d9;
 }
 
-.task-override-action-btn.edit {
-  color: #059669;
-}
-
-.task-override-action-btn.edit:hover {
-  background: #d1fae5;
-  border-color: #6ee7b7;
-  color: #047857;
-}
-
 .task-override-action-btn.modify {
   background-color: #059669;
 }

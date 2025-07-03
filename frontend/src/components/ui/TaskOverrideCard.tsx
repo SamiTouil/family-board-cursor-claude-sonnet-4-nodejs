@@ -42,7 +42,11 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
     >
       <div className="task-override-card-main">
         <div className="task-override-card-info">
-          <h4 className="task-override-card-name">
+          <h4 
+            className={`task-override-card-name ${onEdit ? 'clickable' : ''}`}
+            onClick={onEdit ? () => onEdit(task) : undefined}
+            title={onEdit ? 'Click to edit task' : undefined}
+          >
             {task.task.name}
           </h4>
           <div className="task-override-card-tags">
@@ -82,15 +86,6 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
       {/* Task Action Buttons */}
       {isAdmin && (
         <div className="task-override-card-actions">
-          {onEdit && (
-            <button
-              className="task-override-action-btn edit"
-              onClick={() => onEdit(task)}
-              title="Edit task"
-            >
-              ✏️
-            </button>
-          )}
           <button
             className="task-override-action-btn remove"
             onClick={() => onRemove?.(task)}
@@ -98,15 +93,13 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
           >
             ×
           </button>
-          {onReassign && (
-            <button
-              className="task-override-action-btn reassign"
-              onClick={() => onReassign?.(task)}
-              title="Reassign task"
-            >
-              ↻
-            </button>
-          )}
+          <button
+            className="task-override-action-btn reassign"
+            onClick={() => onReassign?.(task)}
+            title="Reassign task"
+          >
+            ↻
+          </button>
         </div>
       )}
     </div>

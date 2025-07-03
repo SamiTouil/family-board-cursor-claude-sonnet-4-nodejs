@@ -198,7 +198,7 @@ describe('TaskOverrideCard', () => {
     expect(durationTag).toHaveClass('task-override-card-tag', 'duration-tag');
   });
 
-  it('shows edit button when onEdit prop is provided and admin is true', () => {
+  it('makes task name clickable when onEdit prop is provided', () => {
     const onEdit = vi.fn();
 
     render(
@@ -212,15 +212,15 @@ describe('TaskOverrideCard', () => {
       />
     );
 
-    const editButton = screen.getByTitle('Edit task');
-    expect(editButton).toBeInTheDocument();
-    expect(editButton).toHaveClass('task-override-action-btn', 'edit');
+    const taskName = screen.getByText('Test Task');
+    expect(taskName).toHaveClass('clickable');
+    expect(taskName).toHaveAttribute('title', 'Click to edit task');
 
-    fireEvent.click(editButton);
+    fireEvent.click(taskName);
     expect(onEdit).toHaveBeenCalledWith(mockTask);
   });
 
-  it('does not show edit button when onEdit prop is not provided', () => {
+  it('does not make task name clickable when onEdit prop is not provided', () => {
     render(
       <TaskOverrideCard
         task={mockTask}
@@ -231,8 +231,9 @@ describe('TaskOverrideCard', () => {
       />
     );
 
-    const editButton = screen.queryByTitle('Edit task');
-    expect(editButton).not.toBeInTheDocument();
+    const taskName = screen.getByText('Test Task');
+    expect(taskName).not.toHaveClass('clickable');
+    expect(taskName).not.toHaveAttribute('title');
   });
 
   it('hides description when showDescription is false', () => {

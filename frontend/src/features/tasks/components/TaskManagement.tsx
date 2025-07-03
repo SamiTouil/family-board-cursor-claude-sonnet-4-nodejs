@@ -5,7 +5,6 @@ import { useFamily } from '../../../contexts/FamilyContext';
 import { taskApi } from '../../../services/api';
 import type { Task, CreateTaskData } from '../../../types';
 import { TaskOverrideCard } from '../../../components/ui/TaskOverrideCard';
-import Modal from '../../../components/ui/Modal';
 import './TaskManagement.css';
 
 export const TaskManagement: React.FC = () => {
@@ -17,10 +16,6 @@ export const TaskManagement: React.FC = () => {
   const [addingTask, setAddingTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  // Modal state
-  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
-  const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
 
   // Form state for task creation/editing
   const [taskData, setTaskData] = useState({
@@ -90,7 +85,6 @@ export const TaskManagement: React.FC = () => {
     setMessage(null);
     setTaskErrors({});
     setShowEmojiPicker(false);
-    setIsAddTaskModalOpen(true);
     // Reset form data
     setTaskData({
       name: '',
@@ -108,7 +102,6 @@ export const TaskManagement: React.FC = () => {
     setMessage(null);
     setTaskErrors({});
     setShowEmojiPicker(false);
-    setIsEditTaskModalOpen(true);
     // Pre-fill form with task data
     setTaskData({
       name: task.name,
@@ -124,8 +117,6 @@ export const TaskManagement: React.FC = () => {
     setAddingTask(false);
     setEditingTask(null);
     setShowEmojiPicker(false);
-    setIsAddTaskModalOpen(false);
-    setIsEditTaskModalOpen(false);
     
     // If it's a boolean or undefined, use it as preserveMessage flag
     // If it's a mouse event, don't preserve the message (default behavior)
@@ -194,8 +185,7 @@ export const TaskManagement: React.FC = () => {
       // Show success message
       setMessage({ type: 'success', text: t('tasks.created') });
       
-      // Close the modal but preserve the success message
-      setIsAddTaskModalOpen(false);
+      // Close the form but preserve the success message
       handleCancelForm(true);
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || t('tasks.createError');
@@ -238,8 +228,7 @@ export const TaskManagement: React.FC = () => {
       // Show success message
       setMessage({ type: 'success', text: t('tasks.updated') });
       
-      // Close the modal but preserve the success message
-      setIsEditTaskModalOpen(false);
+      // Close the form but preserve the success message
       handleCancelForm(true);
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || t('tasks.updateError');
@@ -316,7 +305,7 @@ export const TaskManagement: React.FC = () => {
     return minutesA - minutesB;
   });
   
-
+  const isFormOpen = addingTask || editingTask;
 
   // Helper function to transform Task into ResolvedTask format for TaskOverrideCard
   const adaptTaskForCard = (task: Task) => {
@@ -357,17 +346,178 @@ export const TaskManagement: React.FC = () => {
             {isAdmin && (
               <div className="task-management-button-group">
                 <button
-                  onClick={handleAddTask}
+                  onClick={isFormOpen ? handleCancelForm : handleAddTask}
                   className="task-management-button task-management-button-primary task-management-button-sm"
                   disabled={isLoading}
                 >
-                  {t('tasks.createTask')}
+                  {isFormOpen ? t('common.cancel') : t('tasks.createTask')}
                 </button>
               </div>
             )}
           </div>
 
+          {/* Task Creation/Edit Form - Inline */}
+          {isAdmin && isFormOpen && (
+            <div className="task-management-task-add-inline">
+              <h5 className="task-management-form-title">
+                {editingTask ? 'Edit Task' : t('tasks.createTask')}
+              </h5>
+              <p className="task-management-help-text">
+                {editingTask ? 'Update task details' : t('tasks.createTaskHelp')}
+              </p>
+              <form className="task-management-form" onSubmit={editingTask ? handleUpdateTask : handleCreateTask}>
+                <div className="task-management-form-row">
+                  <div className="task-management-form-group">
+                    <label htmlFor="taskName" className="task-management-label">
+                      {t('tasks.name')}
+                    </label>
+                    <input
+                      type="text"
+                      id="taskName"
+                      name="name"
+                      className="task-management-input"
+                      placeholder={t('tasks.namePlaceholder')}
+                      disabled={isLoading}
+                      autoFocus
+                      value={taskData.name}
+                      onChange={handleTaskInputChange}
+                    />
+                    {taskErrors['name'] && (
+                      <p className="task-management-error">{taskErrors['name']}</p>
+                    )}
+                  </div>
 
+                  <div className="task-management-form-group">
+                    <label htmlFor="taskColor" className="task-management-label">
+                      {t('tasks.color')}
+                    </label>
+                    <input
+                      type="color"
+                      id="taskColor"
+                      name="color"
+                      className="task-management-input task-management-color-input"
+                      value={taskData.color}
+                      disabled={isLoading}
+                      onChange={handleTaskInputChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="task-management-form-group">
+                  <label className="task-management-label">
+                    Icon
+                  </label>
+                  <div className="task-management-icon-selector">
+                    <div className="task-management-icon-selector-row">
+                      <div className="task-management-icon-preview">
+                        <span className="task-management-icon-preview-emoji">{taskData.icon || '✅'}</span>
+                        <span className="task-management-icon-preview-label">Selected</span>
+                      </div>
+                      
+                      <button
+                        type="button"
+                        className="task-management-emoji-picker-button"
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        disabled={isLoading}
+                      >
+                        {showEmojiPicker ? 'Close Emoji Picker' : 'Choose Emoji'}
+                      </button>
+                    </div>
+                    
+                    {showEmojiPicker && (
+                      <div className="task-management-emoji-picker-container">
+                        <EmojiPicker
+                          onEmojiClick={handleEmojiSelect}
+                          width="100%"
+                          height={400}
+                          searchPlaceholder="Search emojis..."
+                          previewConfig={{
+                            showPreview: false
+                          }}
+                          skinTonesDisabled={true}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="task-management-form-group">
+                  <label htmlFor="taskDescription" className="task-management-label">
+                    {t('tasks.description')} ({t('common.optional')})
+                  </label>
+                  <textarea
+                    id="taskDescription"
+                    name="description"
+                    className="task-management-input"
+                    placeholder={t('tasks.descriptionPlaceholder')}
+                    rows={3}
+                    disabled={isLoading}
+                    value={taskData.description}
+                    onChange={handleTaskInputChange}
+                  />
+                  {taskErrors['description'] && (
+                    <p className="task-management-error">{taskErrors['description']}</p>
+                  )}
+                </div>
+
+                <div className="task-management-form-row">
+                  <div className="task-management-form-group">
+                    <label htmlFor="taskStartTime" className="task-management-label">
+                      {t('tasks.defaultStartTime')}
+                    </label>
+                    <input
+                      type="time"
+                      id="taskStartTime"
+                      name="defaultStartTime"
+                      className="task-management-input"
+                      value={taskData.defaultStartTime}
+                      disabled={isLoading}
+                      onChange={handleTaskInputChange}
+                    />
+                  </div>
+
+                  <div className="task-management-form-group">
+                    <label htmlFor="taskDuration" className="task-management-label">
+                      {t('tasks.defaultDuration')} ({t('tasks.minutes')})
+                    </label>
+                    <input
+                      type="number"
+                      id="taskDuration"
+                      name="defaultDuration"
+                      className="task-management-input"
+                      placeholder="30"
+                      min="1"
+                      max="1440"
+                      disabled={isLoading}
+                      value={taskData.defaultDuration}
+                      onChange={handleTaskInputChange}
+                    />
+                    {taskErrors['defaultDuration'] && (
+                      <p className="task-management-error">{taskErrors['defaultDuration']}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="task-management-form-actions">
+                  <button
+                    type="submit"
+                    className="task-management-button task-management-button-primary"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? t('tasks.creating') : (editingTask ? 'Update Task' : t('tasks.createTask'))}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelForm}
+                    className="task-management-button task-management-button-secondary"
+                    disabled={isLoading}
+                  >
+                    {t('common.cancel')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
           {/* Tasks List */}
           <div className="task-management-tasks-list">
@@ -383,7 +533,7 @@ export const TaskManagement: React.FC = () => {
                 </div>
                 <h5 className="task-management-empty-title">{t('tasks.noTasks')}</h5>
                 <p className="task-management-empty-description">{t('tasks.noTasksDescription')}</p>
-                {isAdmin && (
+                {isAdmin && !isFormOpen && (
                   <button
                     onClick={handleAddTask}
                     className="task-management-button task-management-button-primary"
@@ -413,292 +563,6 @@ export const TaskManagement: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Add Task Modal */}
-      <Modal
-        title={t('tasks.createTask')}
-        isOpen={isAddTaskModalOpen}
-        onClose={handleCancelForm}
-        onApply={() => handleCreateTask({ preventDefault: () => {} } as React.FormEvent)}
-        variant="standard"
-      >
-        <div className="task-management-modal-content">
-          <div className="task-management-form-row">
-            <div className="task-management-form-group">
-              <label htmlFor="addTaskName" className="task-management-label">
-                {t('tasks.name')}
-              </label>
-              <input
-                type="text"
-                id="addTaskName"
-                name="name"
-                className="task-management-input"
-                placeholder={t('tasks.namePlaceholder')}
-                disabled={isLoading}
-                autoFocus
-                value={taskData.name}
-                onChange={handleTaskInputChange}
-              />
-              {taskErrors['name'] && (
-                <p className="task-management-error">{taskErrors['name']}</p>
-              )}
-            </div>
-
-            <div className="task-management-form-group">
-              <label htmlFor="addTaskColor" className="task-management-label">
-                {t('tasks.color')}
-              </label>
-              <input
-                type="color"
-                id="addTaskColor"
-                name="color"
-                className="task-management-input task-management-color-input"
-                value={taskData.color}
-                disabled={isLoading}
-                onChange={handleTaskInputChange}
-              />
-            </div>
-          </div>
-
-          <div className="task-management-form-group">
-            <label className="task-management-label">
-              Icon
-            </label>
-            <div className="task-management-icon-selector">
-              <div className="task-management-icon-selector-row">
-                <div className="task-management-icon-preview">
-                  <span className="task-management-icon-preview-emoji">{taskData.icon || '✅'}</span>
-                  <span className="task-management-icon-preview-label">Selected</span>
-                </div>
-                
-                <button
-                  type="button"
-                  className="task-management-emoji-picker-button"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  disabled={isLoading}
-                >
-                  {showEmojiPicker ? 'Close Emoji Picker' : 'Choose Emoji'}
-                </button>
-              </div>
-              
-              {showEmojiPicker && (
-                <div className="task-management-emoji-picker-container">
-                  <EmojiPicker
-                    onEmojiClick={handleEmojiSelect}
-                    width="100%"
-                    height={400}
-                    searchPlaceholder="Search emojis..."
-                    previewConfig={{
-                      showPreview: false
-                    }}
-                    skinTonesDisabled={true}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="task-management-form-group">
-            <label htmlFor="addTaskDescription" className="task-management-label">
-              {t('tasks.description')} ({t('common.optional')})
-            </label>
-            <textarea
-              id="addTaskDescription"
-              name="description"
-              className="task-management-input"
-              placeholder={t('tasks.descriptionPlaceholder')}
-              rows={3}
-              disabled={isLoading}
-              value={taskData.description}
-              onChange={handleTaskInputChange}
-            />
-            {taskErrors['description'] && (
-              <p className="task-management-error">{taskErrors['description']}</p>
-            )}
-          </div>
-
-          <div className="task-management-form-row">
-            <div className="task-management-form-group">
-              <label htmlFor="addTaskStartTime" className="task-management-label">
-                {t('tasks.defaultStartTime')}
-              </label>
-              <input
-                type="time"
-                id="addTaskStartTime"
-                name="defaultStartTime"
-                className="task-management-input"
-                value={taskData.defaultStartTime}
-                disabled={isLoading}
-                onChange={handleTaskInputChange}
-              />
-            </div>
-
-            <div className="task-management-form-group">
-              <label htmlFor="addTaskDuration" className="task-management-label">
-                {t('tasks.defaultDuration')} ({t('tasks.minutes')})
-              </label>
-              <input
-                type="number"
-                id="addTaskDuration"
-                name="defaultDuration"
-                className="task-management-input"
-                placeholder="30"
-                min="1"
-                max="1440"
-                disabled={isLoading}
-                value={taskData.defaultDuration}
-                onChange={handleTaskInputChange}
-              />
-              {taskErrors['defaultDuration'] && (
-                <p className="task-management-error">{taskErrors['defaultDuration']}</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Edit Task Modal */}
-      <Modal
-        title="Edit Task"
-        isOpen={isEditTaskModalOpen}
-        onClose={handleCancelForm}
-        onApply={() => handleUpdateTask({ preventDefault: () => {} } as React.FormEvent)}
-        variant="standard"
-      >
-        <div className="task-management-modal-content">
-          <div className="task-management-form-row">
-            <div className="task-management-form-group">
-              <label htmlFor="editTaskName" className="task-management-label">
-                {t('tasks.name')}
-              </label>
-              <input
-                type="text"
-                id="editTaskName"
-                name="name"
-                className="task-management-input"
-                placeholder={t('tasks.namePlaceholder')}
-                disabled={isLoading}
-                autoFocus
-                value={taskData.name}
-                onChange={handleTaskInputChange}
-              />
-              {taskErrors['name'] && (
-                <p className="task-management-error">{taskErrors['name']}</p>
-              )}
-            </div>
-
-            <div className="task-management-form-group">
-              <label htmlFor="editTaskColor" className="task-management-label">
-                {t('tasks.color')}
-              </label>
-              <input
-                type="color"
-                id="editTaskColor"
-                name="color"
-                className="task-management-input task-management-color-input"
-                value={taskData.color}
-                disabled={isLoading}
-                onChange={handleTaskInputChange}
-              />
-            </div>
-          </div>
-
-          <div className="task-management-form-group">
-            <label className="task-management-label">
-              Icon
-            </label>
-            <div className="task-management-icon-selector">
-              <div className="task-management-icon-selector-row">
-                <div className="task-management-icon-preview">
-                  <span className="task-management-icon-preview-emoji">{taskData.icon || '✅'}</span>
-                  <span className="task-management-icon-preview-label">Selected</span>
-                </div>
-                
-                <button
-                  type="button"
-                  className="task-management-emoji-picker-button"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  disabled={isLoading}
-                >
-                  {showEmojiPicker ? 'Close Emoji Picker' : 'Choose Emoji'}
-                </button>
-              </div>
-              
-              {showEmojiPicker && (
-                <div className="task-management-emoji-picker-container">
-                  <EmojiPicker
-                    onEmojiClick={handleEmojiSelect}
-                    width="100%"
-                    height={400}
-                    searchPlaceholder="Search emojis..."
-                    previewConfig={{
-                      showPreview: false
-                    }}
-                    skinTonesDisabled={true}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="task-management-form-group">
-            <label htmlFor="editTaskDescription" className="task-management-label">
-              {t('tasks.description')} ({t('common.optional')})
-            </label>
-            <textarea
-              id="editTaskDescription"
-              name="description"
-              className="task-management-input"
-              placeholder={t('tasks.descriptionPlaceholder')}
-              rows={3}
-              disabled={isLoading}
-              value={taskData.description}
-              onChange={handleTaskInputChange}
-            />
-            {taskErrors['description'] && (
-              <p className="task-management-error">{taskErrors['description']}</p>
-            )}
-          </div>
-
-          <div className="task-management-form-row">
-            <div className="task-management-form-group">
-              <label htmlFor="editTaskStartTime" className="task-management-label">
-                {t('tasks.defaultStartTime')}
-              </label>
-              <input
-                type="time"
-                id="editTaskStartTime"
-                name="defaultStartTime"
-                className="task-management-input"
-                value={taskData.defaultStartTime}
-                disabled={isLoading}
-                onChange={handleTaskInputChange}
-              />
-            </div>
-
-            <div className="task-management-form-group">
-              <label htmlFor="editTaskDuration" className="task-management-label">
-                {t('tasks.defaultDuration')} ({t('tasks.minutes')})
-              </label>
-              <input
-                type="number"
-                id="editTaskDuration"
-                name="defaultDuration"
-                className="task-management-input"
-                placeholder="30"
-                min="1"
-                max="1440"
-                disabled={isLoading}
-                value={taskData.defaultDuration}
-                onChange={handleTaskInputChange}
-              />
-              {taskErrors['defaultDuration'] && (
-                <p className="task-management-error">{taskErrors['defaultDuration']}</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }; 
