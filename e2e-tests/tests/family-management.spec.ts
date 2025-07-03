@@ -158,9 +158,13 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.waitForTimeout(2000);
       
       await page.getByRole('button', { name: 'Add Virtual Member' }).click();
+      
+      // Wait for modal to open
+      await expect(page.locator('.modal-overlay')).toBeVisible();
+      
       await page.getByLabel('First Name').fill('Grandpa');
       await page.getByLabel('Last Name').fill('Joe');
-      await page.getByRole('button', { name: 'Save' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
 
       // Verify virtual member appears in list
       await expect(page.getByText('Grandpa Joe')).toBeVisible();
@@ -191,9 +195,13 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.waitForTimeout(2000);
       
       await page.getByRole('button', { name: 'Add Virtual Member' }).click();
+      
+      // Wait for modal to open
+      await expect(page.locator('.modal-overlay')).toBeVisible();
+      
       await page.getByLabel('First Name').fill('Uncle');
       await page.getByLabel('Last Name').fill('Bob');
-      await page.getByRole('button', { name: 'Save' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
 
       // Edit the virtual member
       await expect(page.getByText('Uncle Bob')).toBeVisible();
@@ -234,9 +242,13 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.waitForTimeout(2000);
       
       await page.getByRole('button', { name: 'Add Virtual Member' }).click();
+      
+      // Wait for modal to open
+      await expect(page.locator('.modal-overlay')).toBeVisible();
+      
       await page.getByLabel('First Name').fill('Aunt');
       await page.getByLabel('Last Name').fill('Sally');
-      await page.getByRole('button', { name: 'Save' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
 
       // Remove the virtual member - handle confirmation dialog
       await expect(page.getByText('Aunt Sally')).toBeVisible();
@@ -277,10 +289,14 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.waitForTimeout(2000);
       
       await page.getByRole('button', { name: 'Edit Family' }).click();
+      
+      // Wait for modal to open
+      await expect(page.locator('.modal-overlay')).toBeVisible();
+      
       await page.getByLabel('Family Name').fill('Updated Family Name');
       // Note: Edit family form uses "Description (optional)" label
       await page.getByLabel('Description (optional)').fill('Updated family description');
-      await page.getByRole('button', { name: 'Save' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
 
       // Wait for success message - check for the success message class instead of specific text
       await expect(page.locator('.family-management-message-success')).toBeVisible({ timeout: 5000 });
@@ -323,16 +339,19 @@ test.describe('Family Management - Advanced Scenarios', () => {
       
       await page.getByRole('button', { name: 'Edit Family' }).click();
       
+      // Wait for modal to open
+      await expect(page.locator('.modal-overlay')).toBeVisible();
+      
       // Try to save with empty family name
       await page.getByLabel('Family Name').fill('');
-      await page.getByRole('button', { name: 'Save' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
 
       // Should see validation error (check for the actual error message from the i18n files)
       await expect(page.locator('.family-management-error')).toBeVisible();
       
       // Try with name that's too short
       await page.getByLabel('Family Name').fill('A');
-      await page.getByRole('button', { name: 'Save' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
       
       // Should see validation error
       await expect(page.locator('.family-management-error')).toBeVisible();
@@ -363,12 +382,15 @@ test.describe('Family Management - Advanced Scenarios', () => {
       
       await page.getByRole('button', { name: 'Edit Family' }).click();
       
+      // Wait for modal to open
+      await expect(page.locator('.modal-overlay')).toBeVisible();
+      
       // Make changes
       await page.getByLabel('Family Name').fill('Modified Name');
       await page.getByLabel('Description (optional)').fill('Modified description');
       
-      // Cancel the changes - use more specific selector to avoid strict mode violation
-      await page.locator('.family-management-form').getByRole('button', { name: 'Cancel' }).click();
+      // Cancel the changes using the modal cancel button (be specific to avoid strict mode violation)
+      await page.locator('.modal-cancel-button').click();
 
       // Verify original values are restored and edit mode is closed - use more specific selector
       await expect(page.locator('.family-management-title')).toContainText('Original Cancel Family');
