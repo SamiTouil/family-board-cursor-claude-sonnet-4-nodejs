@@ -528,16 +528,19 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     <div className={`weekly-calendar ${className || ''}`}>
       {/* Calendar Header */}
       <div className="weekly-calendar-header">
-        <div className="weekly-calendar-title">
-          <h2>Weekly Schedule</h2>
-          <p className="weekly-calendar-subtitle">
+        <div className="weekly-calendar-title-section">
+          <h2 className="weekly-calendar-title">Weekly Schedule</h2>
+          <span className="weekly-calendar-date-range">
             {formatWeekRange(currentWeekStart)}
-            {weekSchedule?.baseTemplate && (
-              <span className="weekly-calendar-template">
-                • {weekSchedule.baseTemplate.name}
-              </span>
-            )}
-          </p>
+          </span>
+          {weekSchedule?.baseTemplate && (
+            <span className="weekly-calendar-template-info">
+              • {weekSchedule.baseTemplate.name}
+              {weekSchedule.hasOverrides && (
+                <span className="weekly-calendar-modified-indicator"> • modified</span>
+              )}
+            </span>
+          )}
         </div>
         
         <div className="weekly-calendar-controls">
@@ -589,10 +592,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
               )}
             </div>
           )}
-                </div>
+        </div>
       </div>
-
-
 
       {/* Messages */}
       {message && (
