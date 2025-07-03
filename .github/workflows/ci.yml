@@ -62,6 +62,9 @@ jobs:
 
     - name: Start PostgreSQL with Docker
       run: |
+        docker system prune -f || true
+        docker rm -f postgres-test || true
+        sleep 5
         docker run -d \
           --name postgres-test \
           -e POSTGRES_PASSWORD=postgres \
