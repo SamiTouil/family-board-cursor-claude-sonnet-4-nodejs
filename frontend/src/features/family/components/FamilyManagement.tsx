@@ -6,6 +6,7 @@ import { useWebSocket } from '../../../contexts/WebSocketContext';
 import { UserAvatar } from '../../../components/ui/UserAvatar';
 import { RoleTag } from '../../../components/ui/RoleTag';
 import { CustomSelect } from '../../../components/ui/CustomSelect';
+import Modal from '../../../components/ui/Modal';
 import { familyApi } from '../../../services/api';
 import type { FamilyMember, FamilyJoinRequest, FamilyInvite, UpdateFamilyData, UpdateVirtualMemberData, CreateVirtualMemberData } from '../../../types';
 import './FamilyManagement.css';
@@ -52,13 +53,14 @@ export const FamilyManagement: React.FC = () => {
   const [addingVirtualMember, setAddingVirtualMember] = useState(false);
 
   // Virtual member editing state
-  const [editingVirtualMember, setEditingVirtualMember] = useState<string | null>(null);
+  const [editingVirtualMember, setEditingVirtualMember] = useState<FamilyMember | null>(null);
   const [editVirtualMemberData, setEditVirtualMemberData] = useState({
     firstName: '',
     lastName: '',
     avatarUrl: '',
   });
   const [editVirtualMemberErrors, setEditVirtualMemberErrors] = useState<Record<string, string>>({});
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Invite creation state
   const [isCreatingInvite, setIsCreatingInvite] = useState(false);
@@ -330,13 +332,14 @@ export const FamilyManagement: React.FC = () => {
   const handleEditVirtualMember = (member: FamilyMember) => {
     if (!member.user) return;
     
-    setEditingVirtualMember(member.user.id);
+    setEditingVirtualMember(member);
     setEditVirtualMemberData({
       firstName: member.user.firstName || '',
       lastName: member.user.lastName || '',
       avatarUrl: member.user.avatarUrl || '',
     });
     setEditVirtualMemberErrors({});
+    setIsEditModalOpen(true);
   };
 
   const handleCancelEditVirtualMember = () => {
@@ -347,6 +350,7 @@ export const FamilyManagement: React.FC = () => {
       avatarUrl: '',
     });
     setEditVirtualMemberErrors({});
+    setIsEditModalOpen(false);
   };
 
   const handleEditVirtualMemberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -384,10 +388,8 @@ export const FamilyManagement: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleUpdateVirtualMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateEditVirtualMemberForm() || !editingVirtualMember || !currentFamily) return;
+  const handleUpdateVirtualMember = async () => {
+    if (!validateEditVirtualMemberForm() || !editingVirtualMember?.user?.id || !currentFamily) return;
 
     setIsLoading(true);
     try {
@@ -397,10 +399,11 @@ export const FamilyManagement: React.FC = () => {
         ...(editVirtualMemberData.avatarUrl.trim() && { avatarUrl: editVirtualMemberData.avatarUrl.trim() }),
       };
 
-      const response = await familyApi.updateVirtualMember(currentFamily.id, editingVirtualMember, updateData);
+      const response = await familyApi.updateVirtualMember(currentFamily.id, editingVirtualMember.user.id, updateData);
       if (response.data.success) {
         setMessage({ type: 'success', text: t('family.virtualMemberUpdated') });
         setEditingVirtualMember(null);
+        setIsEditModalOpen(false);
         await loadFamilyData();
       } else {
         setMessage({ type: 'error', text: response.data.message || t('family.virtualMemberUpdateError') });
@@ -769,89 +772,7 @@ export const FamilyManagement: React.FC = () => {
                   )}
                 </div>
 
-                {/* Virtual Member Edit Form - Appears right below the member being edited */}
-                {isAdmin && member.user?.isVirtual && editingVirtualMember === member.user.id && (
-                  <div className="family-management-virtual-member-edit-inline">
-                    <h5 className="family-management-form-title">{t('family.editVirtualMember')}</h5>
-                    <form onSubmit={handleUpdateVirtualMember} className="family-management-form">
-                      <div className="family-management-form-row">
-                        <div className="family-management-form-group">
-                          <label htmlFor="editVirtualFirstName" className="family-management-label">
-                            {t('user.firstName')}
-                          </label>
-                          <input
-                            type="text"
-                            id="editVirtualFirstName"
-                            name="firstName"
-                            value={editVirtualMemberData.firstName}
-                            onChange={handleEditVirtualMemberInputChange}
-                            className={`family-management-input ${editVirtualMemberErrors['firstName'] ? 'family-management-input-error' : ''}`}
-                            disabled={isLoading}
-                            autoFocus
-                          />
-                          {editVirtualMemberErrors['firstName'] && (
-                            <span className="family-management-error">{editVirtualMemberErrors['firstName']}</span>
-                          )}
-                        </div>
 
-                        <div className="family-management-form-group">
-                          <label htmlFor="editVirtualLastName" className="family-management-label">
-                            {t('user.lastName')}
-                          </label>
-                          <input
-                            type="text"
-                            id="editVirtualLastName"
-                            name="lastName"
-                            value={editVirtualMemberData.lastName}
-                            onChange={handleEditVirtualMemberInputChange}
-                            className={`family-management-input ${editVirtualMemberErrors['lastName'] ? 'family-management-input-error' : ''}`}
-                            disabled={isLoading}
-                          />
-                          {editVirtualMemberErrors['lastName'] && (
-                            <span className="family-management-error">{editVirtualMemberErrors['lastName']}</span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="family-management-form-group">
-                        <label htmlFor="editVirtualAvatarUrl" className="family-management-label">
-                          {t('user.avatar')} URL ({t('common.optional')})
-                        </label>
-                        <input
-                          type="url"
-                          id="editVirtualAvatarUrl"
-                          name="avatarUrl"
-                          value={editVirtualMemberData.avatarUrl}
-                          onChange={handleEditVirtualMemberInputChange}
-                          className={`family-management-input ${editVirtualMemberErrors['avatarUrl'] ? 'family-management-input-error' : ''}`}
-                          placeholder="https://example.com/avatar.jpg"
-                          disabled={isLoading}
-                        />
-                        {editVirtualMemberErrors['avatarUrl'] && (
-                          <span className="family-management-error">{editVirtualMemberErrors['avatarUrl']}</span>
-                        )}
-                      </div>
-
-                      <div className="family-management-form-actions">
-                        <button
-                          type="submit"
-                          className="family-management-button family-management-button-primary"
-                          disabled={isLoading}
-                        >
-                          {isLoading ? t('common.loading') : t('common.save')}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleCancelEditVirtualMember}
-                          className="family-management-button family-management-button-secondary"
-                          disabled={isLoading}
-                        >
-                          {t('common.cancel')}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
               </React.Fragment>
             );
           })}
@@ -987,6 +908,75 @@ export const FamilyManagement: React.FC = () => {
           </div>
         </>
       )}
+
+      {/* Edit Virtual Member Modal */}
+      <Modal
+        title={t('family.editVirtualMember')}
+        isOpen={isEditModalOpen}
+        onClose={handleCancelEditVirtualMember}
+        onApply={handleUpdateVirtualMember}
+        variant="standard"
+      >
+        <div className="family-management-modal-content">
+          <div className="family-management-form-row">
+            <div className="family-management-form-group">
+              <label htmlFor="editVirtualFirstName" className="family-management-label">
+                {t('user.firstName')}
+              </label>
+              <input
+                type="text"
+                id="editVirtualFirstName"
+                name="firstName"
+                value={editVirtualMemberData.firstName}
+                onChange={handleEditVirtualMemberInputChange}
+                className={`family-management-input ${editVirtualMemberErrors['firstName'] ? 'family-management-input-error' : ''}`}
+                disabled={isLoading}
+                autoFocus
+              />
+              {editVirtualMemberErrors['firstName'] && (
+                <span className="family-management-error">{editVirtualMemberErrors['firstName']}</span>
+              )}
+            </div>
+
+            <div className="family-management-form-group">
+              <label htmlFor="editVirtualLastName" className="family-management-label">
+                {t('user.lastName')}
+              </label>
+              <input
+                type="text"
+                id="editVirtualLastName"
+                name="lastName"
+                value={editVirtualMemberData.lastName}
+                onChange={handleEditVirtualMemberInputChange}
+                className={`family-management-input ${editVirtualMemberErrors['lastName'] ? 'family-management-input-error' : ''}`}
+                disabled={isLoading}
+              />
+              {editVirtualMemberErrors['lastName'] && (
+                <span className="family-management-error">{editVirtualMemberErrors['lastName']}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="family-management-form-group">
+            <label htmlFor="editVirtualAvatarUrl" className="family-management-label">
+              {t('user.avatar')} URL ({t('common.optional')})
+            </label>
+            <input
+              type="url"
+              id="editVirtualAvatarUrl"
+              name="avatarUrl"
+              value={editVirtualMemberData.avatarUrl}
+              onChange={handleEditVirtualMemberInputChange}
+              className={`family-management-input ${editVirtualMemberErrors['avatarUrl'] ? 'family-management-input-error' : ''}`}
+              placeholder="https://example.com/avatar.jpg"
+              disabled={isLoading}
+            />
+            {editVirtualMemberErrors['avatarUrl'] && (
+              <span className="family-management-error">{editVirtualMemberErrors['avatarUrl']}</span>
+            )}
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
