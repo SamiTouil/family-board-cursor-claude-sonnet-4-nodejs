@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { authApi } from '../../../services/api';
+import Modal from '../../../components/ui/Modal';
 import type { ChangePasswordData } from '../../../types';
 import './UserProfile.css';
 
@@ -22,7 +23,6 @@ const isValidUrl = (string: string): boolean => {
 export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
   const { t } = useTranslation();
   const { user, refreshUser } = useAuth();
-  const modalRef = useRef<HTMLDivElement>(null);
   
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -43,20 +43,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
 
   const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
   const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
-
-  // Click outside to close
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [onClose]);
 
   const validateProfileForm = (): boolean => {
     const errors: Record<string, string> = {};
@@ -215,210 +201,175 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="user-profile-overlay">
-      <div className="user-profile-modal" ref={modalRef}>
-        <div className="user-profile-header">
-          <h2 className="user-profile-title">{t('user.settings')}</h2>
-          <button
-            onClick={onClose}
-            className="user-profile-close"
-            type="button"
-            aria-label={t('common.close')}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
+    <Modal
+      title={t('user.settings')}
+      isOpen={true}
+      onClose={onClose}
+      variant="settings"
+    >
+      <div className="user-profile-container">
+        {/* Success/Error Messages */}
+        {message && (
+          <div className={`user-profile-message user-profile-message-${message.type}`}>
+            {message.text}
+          </div>
+        )}
+
+        {/* Personal Information */}
+        <div className="user-profile-section">
+          <h3 className="user-profile-section-title">{t('user.personalInfo')}</h3>
+          
+          <form onSubmit={handleProfileSubmit} className="user-profile-form">
+            <div className="user-profile-form-group">
+              <label htmlFor="email" className="user-profile-label">
+                {t('user.email')}
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={user.email || ''}
+                className="user-profile-input"
+                disabled
+              />
+              <span className="user-profile-help">{t('user.emailNotEditable')}</span>
+            </div>
+
+            <div className="user-profile-form-row">
+              <div className="user-profile-form-group">
+                <label htmlFor="firstName" className="user-profile-label">
+                  {t('user.firstName')}
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={profileData.firstName}
+                  onChange={handleProfileInputChange}
+                  className={`user-profile-input ${profileErrors['firstName'] ? 'user-profile-input-error' : ''}`}
+                />
+                {profileErrors['firstName'] && (
+                  <span className="user-profile-error">{profileErrors['firstName']}</span>
+                )}
+              </div>
+
+              <div className="user-profile-form-group">
+                <label htmlFor="lastName" className="user-profile-label">
+                  {t('user.lastName')}
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={profileData.lastName}
+                  onChange={handleProfileInputChange}
+                  className={`user-profile-input ${profileErrors['lastName'] ? 'user-profile-input-error' : ''}`}
+                />
+                {profileErrors['lastName'] && (
+                  <span className="user-profile-error">{profileErrors['lastName']}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="user-profile-form-group">
+              <label htmlFor="avatarUrl" className="user-profile-label">
+                {t('user.avatar')} URL ({t('common.optional')})
+              </label>
+              <input
+                type="url"
+                id="avatarUrl"
+                name="avatarUrl"
+                value={profileData.avatarUrl}
+                onChange={handleProfileInputChange}
+                className={`user-profile-input ${profileErrors['avatarUrl'] ? 'user-profile-input-error' : ''}`}
+                placeholder="https://example.com/avatar.jpg"
+              />
+              {profileErrors['avatarUrl'] && (
+                <span className="user-profile-error">{profileErrors['avatarUrl']}</span>
+              )}
+            </div>
+
+            <div className="user-profile-form-actions">
+              <button
+                type="submit"
+                className="user-profile-button user-profile-button-primary"
+                disabled={isLoading}
+              >
+                {isLoading ? t('user.updating') : t('user.updateProfile')}
+              </button>
+            </div>
+          </form>
         </div>
 
-        <div className="user-profile-content">
-          {/* Success/Error Messages */}
-          {message && (
-            <div className={`user-profile-message user-profile-message-${message.type}`}>
-              {message.text}
-            </div>
-          )}
-
-          {/* Personal Information Section */}
-          <section className="user-profile-section">
-            <div className="user-profile-section-header">
-              <div className="user-profile-section-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-              </div>
-              <h3 className="user-profile-section-title">{t('user.personalInfo')}</h3>
-            </div>
-
-            <form onSubmit={handleProfileSubmit} className="user-profile-form">
-              <div className="user-profile-form-row">
-                <div className="user-profile-form-group">
-                  <label htmlFor="email" className="user-profile-label">
-                    {t('user.email')}
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={user.email || ''}
-                    className="user-profile-input user-profile-input-disabled"
-                    disabled
-                  />
-                  <span className="user-profile-help">{t('user.emailNotEditable')}</span>
-                </div>
-              </div>
-
-              <div className="user-profile-form-row">
-                <div className="user-profile-form-group">
-                  <label htmlFor="firstName" className="user-profile-label">
-                    {t('user.firstName')}
-                  </label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    name="firstName"
-                    value={profileData.firstName}
-                    onChange={handleProfileInputChange}
-                    className={`user-profile-input ${profileErrors['firstName'] ? 'user-profile-input-error' : ''}`}
-                  />
-                  {profileErrors['firstName'] && (
-                    <span className="user-profile-error">{profileErrors['firstName']}</span>
-                  )}
-                </div>
-
-                <div className="user-profile-form-group">
-                  <label htmlFor="lastName" className="user-profile-label">
-                    {t('user.lastName')}
-                  </label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    name="lastName"
-                    value={profileData.lastName}
-                    onChange={handleProfileInputChange}
-                    className={`user-profile-input ${profileErrors['lastName'] ? 'user-profile-input-error' : ''}`}
-                  />
-                  {profileErrors['lastName'] && (
-                    <span className="user-profile-error">{profileErrors['lastName']}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="user-profile-form-row">
-                <div className="user-profile-form-group">
-                  <label htmlFor="avatarUrl" className="user-profile-label">
-                    {t('user.avatar')} URL ({t('common.optional')})
-                  </label>
-                  <input
-                    type="url"
-                    id="avatarUrl"
-                    name="avatarUrl"
-                    value={profileData.avatarUrl}
-                    onChange={handleProfileInputChange}
-                    className={`user-profile-input ${profileErrors['avatarUrl'] ? 'user-profile-input-error' : ''}`}
-                    placeholder="https://example.com/avatar.jpg"
-                  />
-                  {profileErrors['avatarUrl'] && (
-                    <span className="user-profile-error">{profileErrors['avatarUrl']}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="user-profile-form-actions">
-                <button
-                  type="submit"
-                  className="user-profile-button user-profile-button-primary"
-                  disabled={isLoading}
-                >
-                  {isLoading ? t('user.updating') : t('user.updateProfile')}
-                </button>
-              </div>
-            </form>
-          </section>
-
-          {/* Password Change Section */}
-          <section className="user-profile-section">
-            <div className="user-profile-section-header">
-              <div className="user-profile-section-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                  <circle cx="12" cy="16" r="1"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-              </div>
-              <h3 className="user-profile-section-title">{t('user.changePassword')}</h3>
+        {/* Password Change */}
+        <div className="user-profile-section">
+          <h3 className="user-profile-section-title">{t('user.changePassword')}</h3>
+          
+          <form onSubmit={handlePasswordSubmit} className="user-profile-form">
+            <div className="user-profile-form-group">
+              <label htmlFor="currentPassword" className="user-profile-label">
+                {t('user.currentPassword')}
+              </label>
+              <input
+                type="password"
+                id="currentPassword"
+                name="currentPassword"
+                value={passwordData.currentPassword}
+                onChange={handlePasswordInputChange}
+                className={`user-profile-input ${passwordErrors['currentPassword'] ? 'user-profile-input-error' : ''}`}
+              />
+              {passwordErrors['currentPassword'] && (
+                <span className="user-profile-error">{passwordErrors['currentPassword']}</span>
+              )}
             </div>
 
-            <form onSubmit={handlePasswordSubmit} className="user-profile-form">
-              <div className="user-profile-form-row">
-                <div className="user-profile-form-group">
-                  <label htmlFor="currentPassword" className="user-profile-label">
-                    {t('user.currentPassword')}
-                  </label>
-                  <input
-                    type="password"
-                    id="currentPassword"
-                    name="currentPassword"
-                    value={passwordData.currentPassword}
-                    onChange={handlePasswordInputChange}
-                    className={`user-profile-input ${passwordErrors['currentPassword'] ? 'user-profile-input-error' : ''}`}
-                  />
-                  {passwordErrors['currentPassword'] && (
-                    <span className="user-profile-error">{passwordErrors['currentPassword']}</span>
-                  )}
-                </div>
+            <div className="user-profile-form-row">
+              <div className="user-profile-form-group">
+                <label htmlFor="newPassword" className="user-profile-label">
+                  {t('user.newPassword')}
+                </label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  name="newPassword"
+                  value={passwordData.newPassword}
+                  onChange={handlePasswordInputChange}
+                  className={`user-profile-input ${passwordErrors['newPassword'] ? 'user-profile-input-error' : ''}`}
+                />
+                {passwordErrors['newPassword'] && (
+                  <span className="user-profile-error">{passwordErrors['newPassword']}</span>
+                )}
               </div>
 
-              <div className="user-profile-form-row">
-                <div className="user-profile-form-group">
-                  <label htmlFor="newPassword" className="user-profile-label">
-                    {t('user.newPassword')}
-                  </label>
-                  <input
-                    type="password"
-                    id="newPassword"
-                    name="newPassword"
-                    value={passwordData.newPassword}
-                    onChange={handlePasswordInputChange}
-                    className={`user-profile-input ${passwordErrors['newPassword'] ? 'user-profile-input-error' : ''}`}
-                  />
-                  {passwordErrors['newPassword'] && (
-                    <span className="user-profile-error">{passwordErrors['newPassword']}</span>
-                  )}
-                </div>
-
-                <div className="user-profile-form-group">
-                  <label htmlFor="confirmPassword" className="user-profile-label">
-                    {t('user.confirmNewPassword')}
-                  </label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    value={passwordData.confirmPassword}
-                    onChange={handlePasswordInputChange}
-                    className={`user-profile-input ${passwordErrors['confirmPassword'] ? 'user-profile-input-error' : ''}`}
-                  />
-                  {passwordErrors['confirmPassword'] && (
-                    <span className="user-profile-error">{passwordErrors['confirmPassword']}</span>
-                  )}
-                </div>
+              <div className="user-profile-form-group">
+                <label htmlFor="confirmPassword" className="user-profile-label">
+                  {t('user.confirmNewPassword')}
+                </label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={passwordData.confirmPassword}
+                  onChange={handlePasswordInputChange}
+                  className={`user-profile-input ${passwordErrors['confirmPassword'] ? 'user-profile-input-error' : ''}`}
+                />
+                {passwordErrors['confirmPassword'] && (
+                  <span className="user-profile-error">{passwordErrors['confirmPassword']}</span>
+                )}
               </div>
+            </div>
 
-              <div className="user-profile-form-actions">
-                <button
-                  type="submit"
-                  className="user-profile-button user-profile-button-primary"
-                  disabled={isLoading}
-                >
-                  {isLoading ? t('user.changingPassword') : t('user.changePassword')}
-                </button>
-              </div>
-            </form>
-          </section>
+            <div className="user-profile-form-actions">
+              <button
+                type="submit"
+                className="user-profile-button user-profile-button-primary"
+                disabled={isLoading}
+              >
+                {isLoading ? t('user.changingPassword') : t('user.changePassword')}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }; 

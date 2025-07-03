@@ -63,7 +63,7 @@ describe('UserProfile', () => {
   it('calls onClose when close button is clicked', () => {
     render(<UserProfile onClose={mockOnClose} />);
     
-    const closeButton = screen.getByRole('button', { name: /close/i });
+    const closeButton = screen.getByRole('button', { name: '×' });
     fireEvent.click(closeButton);
     
     expect(mockOnClose).toHaveBeenCalledTimes(1);
