@@ -297,7 +297,7 @@ describe('TaskManagement', () => {
     expect(mockTaskApi.createTask).not.toHaveBeenCalled();
   });
 
-  it('opens edit form when task is clicked', async () => {
+  it('opens edit form when edit button is clicked', async () => {
     mockTaskApi.getFamilyTasks.mockResolvedValue({
       data: { success: true, data: mockTasks },
     });
@@ -305,16 +305,18 @@ describe('TaskManagement', () => {
     render(<TaskManagement />);
 
     await waitFor(() => {
-      const taskElements = screen.getAllByTitle('Click to edit task');
-      // Click on the second task (Clean Kitchen at 09:00) since tasks are now sorted by time
+      const editButtons = screen.getAllByTitle('Edit task');
+      // Click on the second task's edit button (Clean Kitchen at 09:00) since tasks are now sorted by time
       // First task is now "Walk Dog" at 07:00, second is "Clean Kitchen" at 09:00
-      fireEvent.click(taskElements[1]);
+      fireEvent.click(editButtons[1]);
     });
 
-    // Check that form is pre-filled with task data
-    expect(screen.getByDisplayValue('Clean Kitchen')).toBeDefined();
-    expect(screen.getByDisplayValue('Clean all surfaces and dishes')).toBeDefined();
-    expect(screen.getByDisplayValue('60')).toBeDefined();
+    // Wait for modal to open and check that form is pre-filled with task data
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Clean Kitchen')).toBeDefined();
+      expect(screen.getByDisplayValue('Clean all surfaces and dishes')).toBeDefined();
+      expect(screen.getByDisplayValue('60')).toBeDefined();
+    });
   });
 
   it('updates a task successfully', async () => {
@@ -333,20 +335,24 @@ describe('TaskManagement', () => {
 
     render(<TaskManagement />);
 
-    // Open edit form by clicking on task
+    // Open edit form by clicking on edit button
     await waitFor(() => {
-      const taskElements = screen.getAllByTitle('Click to edit task');
-      // Click on the second task (Clean Kitchen at 09:00) since tasks are now sorted by time
-      fireEvent.click(taskElements[1]);
+      const editButtons = screen.getAllByTitle('Edit task');
+      // Click on the second task's edit button (Clean Kitchen at 09:00) since tasks are now sorted by time
+      fireEvent.click(editButtons[1]);
     });
 
-    // Update task name
+    // Wait for modal to open and update task name
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Clean Kitchen')).toBeDefined();
+    });
+    
     fireEvent.change(screen.getByDisplayValue('Clean Kitchen'), {
       target: { value: 'Updated Task Name' },
     });
 
-    // Submit form
-    fireEvent.click(screen.getByText('Update Task'));
+    // Submit form using Apply button
+    fireEvent.click(screen.getByText('Apply'));
 
     await waitFor(() => {
       expect(mockTaskApi.updateTask).toHaveBeenCalledWith('task-1', {
