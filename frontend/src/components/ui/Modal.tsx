@@ -1,15 +1,26 @@
 import React from 'react';
 import './Modal.css';
 
-interface ModalProps {
+interface BaseModalProps {
   title: string;
   isOpen: boolean;
   onClose: () => void;
-  onApply: () => void;
   children: React.ReactNode;
 }
 
-const Modal: React.FC<ModalProps> = ({ title, isOpen, onClose, onApply, children }) => {
+interface StandardModalProps extends BaseModalProps {
+  variant?: 'standard';
+  onApply: () => void;
+}
+
+interface SettingsModalProps extends BaseModalProps {
+  variant: 'settings';
+  onApply?: never;
+}
+
+type ModalProps = StandardModalProps | SettingsModalProps;
+
+const Modal: React.FC<ModalProps> = ({ title, isOpen, onClose, onApply, children, variant = 'standard' }) => {
   if (!isOpen) {
     return null;
   }
@@ -24,17 +35,20 @@ const Modal: React.FC<ModalProps> = ({ title, isOpen, onClose, onApply, children
           </button>
         </div>
         <div className="modal-content">{children}</div>
-        <div className="modal-footer">
-          <button className="modal-cancel-button" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="modal-apply-button" onClick={onApply}>
-            Apply
-          </button>
-        </div>
+        {variant === 'standard' && (
+          <div className="modal-footer">
+            <button className="modal-cancel-button" onClick={onClose}>
+              Cancel
+            </button>
+            <button className="modal-apply-button" onClick={onApply}>
+              Apply
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default Modal;
+
