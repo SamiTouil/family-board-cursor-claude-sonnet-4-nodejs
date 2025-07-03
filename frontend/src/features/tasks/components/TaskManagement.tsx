@@ -14,7 +14,6 @@ export const TaskManagement: React.FC = () => {
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [addingTask, setAddingTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -85,7 +84,6 @@ export const TaskManagement: React.FC = () => {
   };
 
   const handleAddTask = () => {
-    setAddingTask(true);
     setEditingTask(null);
     setMessage(null);
     setTaskErrors({});
@@ -104,7 +102,6 @@ export const TaskManagement: React.FC = () => {
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
-    setAddingTask(false);
     setMessage(null);
     setTaskErrors({});
     setShowEmojiPicker(false);
@@ -121,7 +118,6 @@ export const TaskManagement: React.FC = () => {
   };
 
   const handleCancelForm = (preserveMessageOrEvent?: boolean | React.MouseEvent) => {
-    setAddingTask(false);
     setEditingTask(null);
     setShowEmojiPicker(false);
     setIsAddTaskModalOpen(false);
