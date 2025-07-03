@@ -132,6 +132,9 @@ jobs:
     - name: Install backend dependencies
       run: cd backend && npm ci
 
+    - name: Install frontend dependencies
+      run: cd frontend && npm ci
+
     - name: Generate Prisma client
       run: cd backend && npx prisma generate
 
