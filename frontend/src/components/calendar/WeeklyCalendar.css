@@ -240,6 +240,44 @@
   gap: 0.75rem;
 }
 
+/* Add Task Button */
+.weekly-calendar-day-add-task {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background-color: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.weekly-calendar-day-add-task:hover:not(:disabled) {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+  color: #475569;
+  transform: translateY(-1px);
+}
+
+.weekly-calendar-day-add-task:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.weekly-calendar-day-add-task:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
 /* Task Card styles moved to TaskOverrideCard.css */
 
 /* Responsive Design */
@@ -597,6 +635,283 @@
 @media (max-width: 480px) {
   .form-row {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Weekly Calendar Modals */
+.weekly-calendar-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.weekly-calendar-modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.weekly-calendar-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+}
+
+.weekly-calendar-modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.weekly-calendar-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: white;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.weekly-calendar-modal-close:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 1;
+}
+
+.weekly-calendar-modal-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.weekly-calendar-modal-content {
+  padding: 2rem;
+}
+
+.weekly-calendar-modal-content p {
+  margin: 0 0 1.5rem 0;
+  color: #374151;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.weekly-calendar-modal-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.weekly-calendar-template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.weekly-calendar-template-option {
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+}
+
+.weekly-calendar-template-option:hover {
+  border-color: #6366f1;
+  background: #f8fafc;
+}
+
+.weekly-calendar-template-option.selected {
+  border-color: #6366f1;
+  background: #eef2ff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.weekly-calendar-template-info {
+  flex: 1;
+}
+
+.weekly-calendar-template-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.weekly-calendar-template-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.weekly-calendar-template-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.weekly-calendar-template-days-count {
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.weekly-calendar-template-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.weekly-calendar-template-badge.default {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.weekly-calendar-template-badge.rule {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.weekly-calendar-template-badge.daily {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.weekly-calendar-template-selector {
+  margin-left: 1rem;
+}
+
+.weekly-calendar-template-selector input[type="radio"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+}
+
+.weekly-calendar-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 0 0 12px 12px;
+}
+
+.weekly-calendar-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
+}
+
+.weekly-calendar-button-primary {
+  background: #6366f1;
+  color: white;
+}
+
+.weekly-calendar-button-primary:hover:not(:disabled) {
+  background: #5b21b6;
+  transform: translateY(-1px);
+}
+
+.weekly-calendar-button-primary:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.weekly-calendar-button-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.weekly-calendar-button-secondary:hover:not(:disabled) {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.weekly-calendar-button-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive modal adjustments */
+@media (max-width: 768px) {
+  .weekly-calendar-modal {
+    max-width: 95vw;
+    margin: 0.5rem;
+  }
+  
+  .weekly-calendar-modal-header {
+    padding: 1rem 1.5rem;
+  }
+  
+  .weekly-calendar-modal-header h3 {
+    font-size: 1.125rem;
+  }
+  
+  .weekly-calendar-modal-content {
+    padding: 1.5rem;
+  }
+  
+  .weekly-calendar-modal-actions {
+    padding: 1rem 1.5rem;
+    flex-direction: column-reverse;
+  }
+  
+  .weekly-calendar-button {
+    width: 100%;
+  }
+  
+  .weekly-calendar-template-option {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .weekly-calendar-template-selector {
+    margin-left: 0;
+    align-self: flex-end;
   }
 }
 
