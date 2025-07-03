@@ -26,9 +26,6 @@ jobs:
     - name: Install backend dependencies
       run: cd backend && npm ci
 
-    - name: Install frontend dependencies
-      run: cd frontend && npm ci
-
     - name: Generate Prisma client
       run: cd backend && npx prisma generate
 
@@ -62,6 +59,9 @@ jobs:
 
     - name: Start PostgreSQL with Docker
       run: |
+        docker system prune -f || true
+        docker rm -f postgres-test || true
+        sleep 5
         docker run -d \
           --name postgres-test \
           -e POSTGRES_PASSWORD=postgres \

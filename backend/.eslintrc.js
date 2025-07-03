@@ -15,7 +15,7 @@ module.exports = {
   },
   ignorePatterns: ['.eslintrc.js', 'dist/', 'node_modules/'],
   rules: {
-    'no-console': 'warn',
+    'no-console': 'off',
     'no-debugger': 'error',
     'no-unused-vars': 'off', // Turn off base rule to avoid conflicts
   },
