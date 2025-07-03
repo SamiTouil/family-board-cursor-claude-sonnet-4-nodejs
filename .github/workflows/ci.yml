@@ -26,11 +26,8 @@ jobs:
     - name: Install backend dependencies
       run: cd backend && npm ci
 
-    - name: Install frontend dependencies
-      run: cd frontend && npm ci
-
     - name: Generate Prisma client
-      run: cd backend && npm run prisma:generate
+      run: cd backend && npx prisma generate
 
     - name: Lint backend
       run: cd backend && npm run lint
@@ -58,7 +55,7 @@ jobs:
       run: cd backend && npm ci
 
     - name: Generate Prisma client
-      run: cd backend && npm run prisma:generate
+      run: cd backend && npx prisma generate
 
     - name: Start PostgreSQL with Docker
       run: |
@@ -135,11 +132,8 @@ jobs:
     - name: Install backend dependencies
       run: cd backend && npm ci
 
-    - name: Install frontend dependencies
-      run: cd frontend && npm ci
-
     - name: Generate Prisma client
-      run: cd backend && npm run prisma:generate
+      run: cd backend && npx prisma generate
 
     - name: Build backend
       run: cd backend && npm run build
