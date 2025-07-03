@@ -40,7 +40,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       // Test color picker
       await page.getByLabel('Color').fill('#ff6b6b');
       
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
       
       // Verify task appears in list with correct details
       await expect(page.getByText('Morning Routine')).toBeVisible();
@@ -48,13 +48,13 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await expect(page.getByText('45m')).toBeVisible();
       await expect(page.getByText('Complete morning routine tasks')).toBeVisible();
 
-      // Test task editing
-      await page.getByRole('heading', { name: 'Morning Routine' }).click();
+      // Test task editing - click the edit button (✏️) instead of heading
+      await page.locator('.task-override-action-btn.edit').first().click();
       await page.getByLabel('Task Name').fill('Updated Morning Routine');
       await page.getByLabel('Description (Optional)').fill('Updated morning routine description');
       await page.getByLabel('Default Start Time').fill('06:30');
       await page.getByLabel('Default Duration (minutes)').fill('60');
-      await page.getByRole('button', { name: 'Update Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
 
       // Verify updates
       await expect(page.getByText('Updated Morning Routine')).toBeVisible();
@@ -93,24 +93,24 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       // Test empty task name validation
       await page.getByRole('button', { name: 'Create Your First Task' }).click();
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
       await expect(page.locator('.task-management-error')).toBeVisible();
 
       // Test task name too short
       await page.getByLabel('Task Name').fill('A');
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
       await expect(page.locator('.task-management-error')).toBeVisible();
 
       // Test task name too long
       await page.getByLabel('Task Name').fill('A'.repeat(101));
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
       await expect(page.locator('.task-management-error')).toBeVisible();
 
       // Test valid task creation with proper values
       await page.getByLabel('Task Name').fill('Valid Task Name');
       await page.getByLabel('Default Start Time').fill('09:00');
       await page.getByLabel('Default Duration (minutes)').fill('30');
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
       
       // Should succeed and task should appear
       await expect(page.getByText('Valid Task Name')).toBeVisible();
@@ -152,7 +152,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Task Name').fill(tasks[0].name);
       await page.getByLabel('Default Start Time').fill(tasks[0].time);
       await page.getByLabel('Default Duration (minutes)').fill(tasks[0].duration);
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
       await page.waitForTimeout(1000);
 
       // Create remaining tasks
@@ -162,7 +162,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
         await page.getByLabel('Task Name').fill(task.name);
         await page.getByLabel('Default Start Time').fill(task.time);
         await page.getByLabel('Default Duration (minutes)').fill(task.duration);
-        await page.getByRole('button', { name: 'Create Task' }).click();
+        await page.getByRole('button', { name: 'Apply' }).click();
         await page.waitForTimeout(1000);
       }
 
@@ -207,14 +207,14 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Task Name').fill('Wake Up');
       await page.getByLabel('Default Start Time').fill('07:00');
       await page.getByLabel('Default Duration (minutes)').fill('5');
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
       await page.waitForTimeout(1000);
 
       await page.getByRole('button', { name: 'Create Task' }).click();
       await page.getByLabel('Task Name').fill('Brush Teeth');
       await page.getByLabel('Default Start Time').fill('07:05');
       await page.getByLabel('Default Duration (minutes)').fill('3');
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
       await page.waitForTimeout(1000);
 
       // Navigate to Routines page for routine management
@@ -275,14 +275,14 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Task Name').fill('Morning Jog');
       await page.getByLabel('Default Start Time').fill('06:00');
       await page.getByLabel('Default Duration (minutes)').fill('30');
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
       await page.waitForTimeout(1000);
 
       await page.getByRole('button', { name: 'Create Task' }).click();
       await page.getByLabel('Task Name').fill('Shower');
       await page.getByLabel('Default Start Time').fill('06:30');
       await page.getByLabel('Default Duration (minutes)').fill('15');
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
       await page.waitForTimeout(1000);
 
       // Navigate to Routines page for routine management
@@ -367,8 +367,8 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Create Your First Task' }).click();
       await page.getByLabel('Task Name').fill('Partial Task Entry');
       
-      // Cancel task creation - use more specific selector
-      await page.locator('.task-management-form').getByRole('button', { name: 'Cancel' }).click();
+      // Cancel task creation - use modal cancel button
+      await page.getByRole('button', { name: 'Cancel' }).click();
       
       // Verify form is closed and data is cleared
       await expect(page.getByLabel('Task Name')).not.toBeVisible();
@@ -396,7 +396,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Task Name').fill('Successfully Created Task');
       await page.getByLabel('Default Start Time').fill('12:00');
       await page.getByLabel('Default Duration (minutes)').fill('20');
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
 
       // Verify task was created successfully
       await expect(page.getByText('Successfully Created Task')).toBeVisible();
@@ -430,7 +430,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Task Name').fill('Midnight Task');
       await page.getByLabel('Default Start Time').fill('00:00');
       await page.getByLabel('Default Duration (minutes)').fill('5');
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
 
       // Verify midnight task creation
       await expect(page.getByText('Midnight Task')).toBeVisible();
@@ -441,7 +441,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Task Name').fill('All Day Task');
       await page.getByLabel('Default Start Time').fill('00:01');
       await page.getByLabel('Default Duration (minutes)').fill('1440');
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
 
       // Verify all-day task creation
       await expect(page.getByText('All Day Task')).toBeVisible();
@@ -452,7 +452,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Task Name').fill('Late Night Task');
       await page.getByLabel('Default Start Time').fill('23:59');
       await page.getByLabel('Default Duration (minutes)').fill('1');
-      await page.getByRole('button', { name: 'Create Task' }).click();
+      await page.getByRole('button', { name: 'Apply' }).click();
 
       // Verify late night task
       await expect(page.getByText('Late Night Task')).toBeVisible();

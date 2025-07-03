@@ -187,7 +187,8 @@ describe('TaskManagement', () => {
       fireEvent.click(createButton);
     });
 
-    expect(screen.getByText('tasks.createTask')).toBeDefined();
+    // Check that the modal is open by looking for the modal title
+    expect(screen.getByRole('heading', { name: 'tasks.createTask' })).toBeDefined();
     expect(screen.getByLabelText('tasks.name')).toBeDefined();
     expect(screen.getByLabelText('tasks.color')).toBeDefined();
   });
@@ -243,8 +244,8 @@ describe('TaskManagement', () => {
       target: { value: '45' },
     });
 
-    // Submit form by clicking the submit button
-    const submitButton = screen.getByRole('button', { name: 'tasks.createTask' });
+    // Submit form by clicking the Apply button in the modal
+    const submitButton = screen.getByRole('button', { name: 'Apply' });
     fireEvent.click(submitButton);
 
     // Wait for API call
@@ -285,7 +286,7 @@ describe('TaskManagement', () => {
     });
 
     // Submit form without filling required fields (name should be empty by default)
-    const submitButton = screen.getByRole('button', { name: 'tasks.createTask' });
+    const submitButton = screen.getByRole('button', { name: 'Apply' });
     fireEvent.click(submitButton);
 
     // Wait for validation error to appear
