@@ -70,67 +70,97 @@ export const ShiftIndicator: React.FC = () => {
 
     const now = new Date();
     
-    // Get all user's tasks for this week, sorted by date and time
-    const userTasks: Array<{ task: ResolvedTask; date: Date; startTime: Date; endTime: Date }> = [];
+    // Get all tasks for today, sorted by time
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
     
-    weekSchedule.days.forEach(day => {
-      // Parse the date string from the API response (YYYY-MM-DD format)
-      const dayDate = new Date(day.date);
-      day.tasks.forEach(task => {
-        if (task.memberId === user.id) {
-          const startTime = task.overrideTime || task.task.defaultStartTime;
-          const duration = task.overrideDuration || task.task.defaultDuration;
-          
-          const [hours, minutes] = startTime.split(':').map(Number);
-          
-          // Create task start time using local timezone
-          const taskStart = new Date(dayDate);
-          taskStart.setHours(hours || 0, minutes || 0, 0, 0);
-          
-          const taskEnd = new Date(taskStart);
-          taskEnd.setMinutes(taskEnd.getMinutes() + duration);
-          
-          userTasks.push({
-            task,
-            date: dayDate,
-            startTime: taskStart,
-            endTime: taskEnd
-          });
-        }
+    const todaySchedule = weekSchedule.days.find(day => day.date === todayStr);
+    if (!todaySchedule || todaySchedule.tasks.length === 0) {
+      return null; // No tasks today
+    }
+
+    // Create array of all tasks today with their start times
+    const allTodayTasks: Array<{ task: ResolvedTask; startTime: Date }> = [];
+    
+    todaySchedule.tasks.forEach(task => {
+      const startTime = task.overrideTime || task.task.defaultStartTime;
+      const [hours, minutes] = startTime.split(':').map(Number);
+      
+      const taskStart = new Date(today);
+      taskStart.setHours(hours || 0, minutes || 0, 0, 0);
+      
+      allTodayTasks.push({
+        task,
+        startTime: taskStart
       });
     });
 
-    // Sort tasks by start time
-    userTasks.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    // Sort all tasks by start time
+    allTodayTasks.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
-    // Check if user is currently in a shift (any task)
-    const currentTask = userTasks.find(({ startTime, endTime }) => 
-      now >= startTime && now < endTime // Changed <= to < for end time
-    );
-
-    if (currentTask) {
-      // User is currently doing a task
-      const timeRemaining = formatTimeRemaining(currentTask.endTime.getTime() - now.getTime());
-      return {
-        type: 'current',
-        endTime: currentTask.endTime,
-        timeRemaining
-      };
-    }
-
-    // Find next task
-    const nextTask = userTasks.find(({ startTime }) => startTime > now);
+    // Find the most recent task (closest in the past)
+    const pastTasks = allTodayTasks.filter(({ startTime }) => startTime <= now);
     
-    if (nextTask) {
-      const timeUntilStart = formatTimeRemaining(nextTask.startTime.getTime() - now.getTime());
-      return {
-        type: 'next',
-        startTime: nextTask.startTime,
-        timeUntilStart
-      };
+    if (pastTasks.length === 0) {
+      // No tasks have started yet, find next task for current user
+      const nextUserTask = allTodayTasks.find(({ task }) => task.memberId === user.id);
+      if (nextUserTask) {
+        const timeUntilStart = formatTimeRemaining(nextUserTask.startTime.getTime() - now.getTime());
+        return {
+          type: 'next',
+          startTime: nextUserTask.startTime,
+          timeUntilStart
+        };
+      }
+      return null;
     }
 
-    return null;
+    // Get the most recent task (last in pastTasks array)
+    const mostRecentTask = pastTasks[pastTasks.length - 1];
+    if (!mostRecentTask) {
+      return null; // This shouldn't happen since we checked pastTasks.length > 0, but TypeScript safety
+    }
+    
+    // Check if the most recent task is assigned to the current user
+    if (mostRecentTask.task.memberId === user.id) {
+      // User is currently in shift - find when their shift ends (next task by someone else or end of day)
+      const nextTask = allTodayTasks.find(({ startTime }) => startTime > mostRecentTask.startTime);
+      
+      if (nextTask) {
+        // Shift ends when next task starts
+        const timeRemaining = formatTimeRemaining(nextTask.startTime.getTime() - now.getTime());
+        return {
+          type: 'current',
+          endTime: nextTask.startTime,
+          timeRemaining
+        };
+      } else {
+        // No more tasks today, shift ends at end of day (let's say 11:59 PM)
+        const endOfDay = new Date(today);
+        endOfDay.setHours(23, 59, 59, 999);
+        const timeRemaining = formatTimeRemaining(endOfDay.getTime() - now.getTime());
+        return {
+          type: 'current',
+          endTime: endOfDay,
+          timeRemaining
+        };
+      }
+    } else {
+      // User is not in shift - find their next task
+      const nextUserTask = allTodayTasks.find(({ startTime, task }) => 
+        startTime > now && task.memberId === user.id
+      );
+      
+      if (nextUserTask) {
+        const timeUntilStart = formatTimeRemaining(nextUserTask.startTime.getTime() - now.getTime());
+        return {
+          type: 'next',
+          startTime: nextUserTask.startTime,
+          timeUntilStart
+        };
+      }
+      return null; // No more tasks for user today
+    }
   };
 
   const formatTimeRemaining = (milliseconds: number): string => {
