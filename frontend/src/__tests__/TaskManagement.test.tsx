@@ -529,7 +529,15 @@ describe('TaskManagement', () => {
       expect(screen.getByText('Evening Task')).toBeDefined();
       
       // Verify chronological order by checking the DOM structure
-      const taskNames = screen.getAllByText(/(Morning|Afternoon|Evening) Task$/).map(el => el.textContent);
+      // Get task names by finding h4 elements with task-override-card-name class
+      const taskNameElements = document.querySelectorAll('.task-override-card-name');
+      const taskNames = Array.from(taskNameElements).map(el => {
+        // Remove the icon text (first part) and get just the task name
+        const fullText = el.textContent || '';
+        const iconElement = el.querySelector('.task-override-card-icon');
+        const iconText = iconElement?.textContent || '';
+        return fullText.replace(iconText, '').trim();
+      });
       expect(taskNames).toEqual(['Morning Task', 'Afternoon Task', 'Evening Task']);
     });
   });
