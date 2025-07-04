@@ -1,11 +1,17 @@
 # Multi-stage build for production
 FROM node:18-alpine AS builder
 
+# Set memory limits for Node.js
+ENV NODE_OPTIONS="--max-old-space-size=512"
+
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-RUN npm ci --omit=dev
+
+# Install dependencies with memory optimization
+RUN npm install --silent && \
+    npm cache clean --force
 
 # Copy source code
 COPY . .

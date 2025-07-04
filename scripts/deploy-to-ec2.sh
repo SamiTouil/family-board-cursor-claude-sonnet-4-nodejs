@@ -117,9 +117,23 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable family-board.service
 
-# Build and start the application
-echo "🏗️  Building and starting the application..."
+# Clean up Docker to free memory
+echo "🧹 Cleaning up Docker to free memory..."
+docker system prune -f
+
+# Build services sequentially to avoid memory issues
+echo "🏗️  Building services sequentially..."
+echo "📦 Building backend..."
+docker-compose -f docker-compose.prod.yml build backend
+
+echo "📦 Building frontend..."
+docker-compose -f docker-compose.prod.yml build frontend
+
+echo "📦 Building remaining services..."
 docker-compose -f docker-compose.prod.yml build
+
+# Start the application
+echo "🚀 Starting the application..."
 docker-compose -f docker-compose.prod.yml up -d
 
 # Wait for services to start
