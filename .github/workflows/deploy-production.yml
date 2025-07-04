@@ -1,0 +1,148 @@
+name: Continuous Deployment to Production
+
+on:
+  push:
+    branches: [main]  # Triggers when PR is merged to main
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Run all tests first (your existing CI)
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          npm test
+
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm test
+
+      - name: Run linting
+        run: |
+          cd backend && npm run lint
+          cd ../frontend && npm run lint
+
+      - name: Build applications
+        run: |
+          cd backend && npm run build
+          cd ../frontend && npm run build
+
+  # Deploy to production (only if tests pass)
+  deploy:
+    name: Deploy to Production
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_EC2_HOST }}
+          username: ${{ secrets.PROD_EC2_USER }}
+          key: ${{ secrets.PROD_EC2_SSH_KEY }}
+          port: ${{ secrets.PROD_EC2_PORT || 22 }}
+          script: |
+            set -e  # Exit on any error
+            
+            echo "🚀 Starting deployment..."
+            
+            # Navigate to application directory
+            cd /home/ubuntu/family-board
+            
+            # Pull latest changes
+            echo "📥 Pulling latest code..."
+            git fetch origin
+            git reset --hard origin/main
+            
+            # Create backup of current deployment
+            echo "💾 Creating backup..."
+            timestamp=$(date +%Y%m%d_%H%M%S)
+            docker-compose -f docker-compose.prod.yml logs > logs_backup_$timestamp.log 2>&1 || true
+            
+            # Build new images
+            echo "🔨 Building new images..."
+            docker-compose -f docker-compose.prod.yml build --no-cache
+            
+            # Stop current services gracefully
+            echo "⏹️ Stopping current services..."
+            docker-compose -f docker-compose.prod.yml down --timeout 30
+            
+            # Run database migrations
+            echo "🗄️ Running database migrations..."
+            docker-compose -f docker-compose.prod.yml run --rm db-migrate
+            
+            # Start new services
+            echo "▶️ Starting new services..."
+            docker-compose -f docker-compose.prod.yml up -d
+            
+            # Wait for services to be ready
+            echo "⏳ Waiting for services to start..."
+            sleep 30
+            
+            # Health check
+            echo "🏥 Running health checks..."
+            max_attempts=10
+            attempt=1
+            
+            while [ $attempt -le $max_attempts ]; do
+              if curl -f -s http://localhost/api/health > /dev/null; then
+                echo "✅ Health check passed!"
+                break
+              else
+                echo "❌ Health check failed (attempt $attempt/$max_attempts)"
+                if [ $attempt -eq $max_attempts ]; then
+                  echo "🚨 Deployment failed - rolling back..."
+                  docker-compose -f docker-compose.prod.yml down
+                  # Could restore previous backup here
+                  exit 1
+                fi
+                sleep 10
+                attempt=$((attempt + 1))
+              fi
+            done
+            
+            # Cleanup old images
+            echo "🧹 Cleaning up old images..."
+            docker image prune -f
+            
+            echo "🎉 Deployment completed successfully!"
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "✅ Production deployment successful!"
+          # Optional: Send Slack/Discord notification
+          
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          echo "❌ Production deployment failed!"
+          # Optional: Send alert notification 
