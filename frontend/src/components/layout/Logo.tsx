@@ -16,9 +16,9 @@ const Logo: React.FC<LogoProps> = ({ size = 46, className = '' }) => {
     >
       {/* Gradient definition */}
       <defs>
-        <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style={{stopColor:'#8b5cf6', stopOpacity:1}} />
-          <stop offset="100%" style={{stopColor:'#7c3aed', stopOpacity:1}} />
+        <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style={{stopColor:'#667eea', stopOpacity:1}} />
+          <stop offset="100%" style={{stopColor:'#1e3a8a', stopOpacity:1}} />
         </linearGradient>
         <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="rgba(0,0,0,0.2)"/>
@@ -33,7 +33,7 @@ const Logo: React.FC<LogoProps> = ({ size = 46, className = '' }) => {
         height="48" 
         rx="12" 
         ry="12"
-        fill="url(#purpleGradient)" 
+        fill="url(#blueGradient)" 
         filter="url(#shadow)"
       />
       
