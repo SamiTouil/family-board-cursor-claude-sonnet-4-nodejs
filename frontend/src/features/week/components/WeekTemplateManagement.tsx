@@ -4,6 +4,7 @@ import { useFamily } from '../../../contexts/FamilyContext';
 import { weekTemplateApi, dayTemplateApi } from '../../../services/api';
 import { CustomSelect } from '../../../components/ui/CustomSelect';
 import { TaskOverrideCard } from '../../../components/ui/TaskOverrideCard';
+import Modal from '../../../components/ui/Modal';
 import type { WeekTemplate, DayTemplate, DayTemplateItem, CreateWeekTemplateData, UpdateWeekTemplateData, ResolvedTask, Task } from '../../../types';
 import './WeekTemplateManagement.css';
 
@@ -19,8 +20,9 @@ export const WeekTemplateManagement: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Week template form state
-  const [addingTemplate, setAddingTemplate] = useState(false);
+  // Week template form state - convert to modal
+  const [isAddRoutineModalOpen, setIsAddRoutineModalOpen] = useState(false);
+  const [isEditRoutineModalOpen, setIsEditRoutineModalOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<WeekTemplate | null>(null);
   const [templateData, setTemplateData] = useState({
     name: '',
@@ -31,8 +33,9 @@ export const WeekTemplateManagement: React.FC = () => {
   });
   const [templateErrors, setTemplateErrors] = useState<Record<string, string>>({});
 
-  // Day assignment state
-  const [assigningDays, setAssigningDays] = useState<string | null>(null); // templateId when assigning days
+  // Day assignment state - convert to modal
+  const [isAssignDaysModalOpen, setIsAssignDaysModalOpen] = useState(false);
+  const [currentTemplateId, setCurrentTemplateId] = useState<string | null>(null);
   const [selectedDayTemplates, setSelectedDayTemplates] = useState<Record<number, string>>({});
 
   const isAdmin = currentFamily?.userRole === 'ADMIN';
@@ -135,7 +138,7 @@ export const WeekTemplateManagement: React.FC = () => {
   };
 
   const handleAddTemplate = () => {
-    setAddingTemplate(true);
+    setIsAddRoutineModalOpen(true);
     setEditingTemplate(null);
     setMessage(null);
     setTemplateErrors({});
@@ -150,7 +153,7 @@ export const WeekTemplateManagement: React.FC = () => {
 
   const handleEditTemplate = (template: WeekTemplate) => {
     setEditingTemplate(template);
-    setAddingTemplate(false);
+    setIsEditRoutineModalOpen(true);
     setMessage(null);
     setTemplateErrors({});
     setTemplateData({
@@ -163,7 +166,8 @@ export const WeekTemplateManagement: React.FC = () => {
   };
 
   const handleCancelForm = () => {
-    setAddingTemplate(false);
+    setIsAddRoutineModalOpen(false);
+    setIsEditRoutineModalOpen(false);
     setEditingTemplate(null);
     setTemplateErrors({});
     setMessage(null);
@@ -174,6 +178,80 @@ export const WeekTemplateManagement: React.FC = () => {
       applyRule: null,
       priority: 0,
     });
+  };
+
+  const handleApplyTemplate = async () => {
+    if (editingTemplate) {
+      await handleUpdateTemplateModal();
+    } else {
+      await handleCreateTemplateModal();
+    }
+  };
+
+  const handleCreateTemplateModal = async () => {
+    if (!currentFamily || !validateTemplateForm()) return;
+
+    setIsLoading(true);
+    try {
+      const trimmedDescription = templateData.description.trim();
+      const createData: CreateWeekTemplateData = {
+        name: templateData.name.trim(),
+      };
+      
+      if (trimmedDescription) {
+        createData.description = trimmedDescription;
+      }
+
+      if (templateData.isDefault) {
+        createData.isDefault = templateData.isDefault;
+      }
+
+      if (templateData.applyRule) {
+        createData.applyRule = templateData.applyRule;
+      }
+
+      if (templateData.priority > 0) {
+        createData.priority = templateData.priority;
+      }
+
+      const response = await weekTemplateApi.createTemplate(currentFamily.id, createData);
+      setWeekTemplates(prev => [...prev, response.data]);
+      setMessage({ type: 'success', text: t('weeklyRoutines.createSuccess') });
+      handleCancelForm();
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.response?.data?.message || t('weeklyRoutines.createError') });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateTemplateModal = async () => {
+    if (!currentFamily || !editingTemplate || !validateTemplateForm()) return;
+
+    setIsLoading(true);
+    try {
+      const trimmedDescription = templateData.description.trim();
+      const updateData: UpdateWeekTemplateData = {
+        name: templateData.name.trim(),
+      };
+      
+      if (trimmedDescription) {
+        updateData.description = trimmedDescription;
+      }
+
+      updateData.isDefault = templateData.isDefault;
+      updateData.applyRule = templateData.applyRule;
+      updateData.priority = templateData.priority;
+
+      const response = await weekTemplateApi.updateTemplate(currentFamily.id, editingTemplate.id, updateData);
+      setWeekTemplates(prev => prev.map(t => t.id === editingTemplate.id ? response.data : t));
+      setMessage({ type: 'success', text: t('weeklyRoutines.updateSuccess') });
+      handleCancelForm();
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.response?.data?.message || t('weeklyRoutines.updateError') });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleTemplateInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -193,67 +271,7 @@ export const WeekTemplateManagement: React.FC = () => {
     }
   };
 
-  const handleCreateTemplate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentFamily || !validateTemplateForm()) return;
 
-    try {
-      const createData: CreateWeekTemplateData = {
-        name: templateData.name.trim(),
-        ...(templateData.description.trim() && { description: templateData.description.trim() }),
-        isDefault: templateData.isDefault,
-        applyRule: templateData.applyRule,
-        priority: templateData.priority,
-      };
-
-      const response = await weekTemplateApi.createTemplate(currentFamily.id, createData);
-      // Backend returns the template data directly, not wrapped in success object
-      setWeekTemplates(prev => [...prev, response.data]);
-      setMessage({ type: 'success', text: t('weekTemplates.createSuccess') });
-      handleCancelForm();
-    } catch (error: any) {
-      if (error.response?.status === 409) {
-        setTemplateErrors({ name: t('weekTemplates.validation.nameExists') });
-      } else if (error.response?.status === 401) {
-        setMessage({ type: 'error', text: t('auth.sessionExpired') });
-      } else {
-        const errorMessage = error.response?.data?.message || error.message || t('weekTemplates.createError');
-        setMessage({ type: 'error', text: errorMessage });
-      }
-    }
-  };
-
-  const handleUpdateTemplate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentFamily || !editingTemplate || !validateTemplateForm()) return;
-
-    try {
-      const updateData: UpdateWeekTemplateData = {
-        name: templateData.name.trim(),
-        ...(templateData.description.trim() && { description: templateData.description.trim() }),
-        isDefault: templateData.isDefault,
-        applyRule: templateData.applyRule,
-        priority: templateData.priority,
-      };
-
-      const response = await weekTemplateApi.updateTemplate(currentFamily.id, editingTemplate.id, updateData);
-      // Backend returns the template data directly, not wrapped in success object
-      setWeekTemplates(prev => prev.map(t => 
-        t.id === editingTemplate.id ? response.data : t
-      ));
-      setMessage({ type: 'success', text: t('weekTemplates.updateSuccess') });
-      handleCancelForm();
-    } catch (error: any) {
-      if (error.response?.status === 409) {
-        setTemplateErrors({ name: t('weekTemplates.validation.nameExists') });
-      } else if (error.response?.status === 401) {
-        setMessage({ type: 'error', text: t('auth.sessionExpired') });
-      } else {
-        const errorMessage = error.response?.data?.message || error.message || t('weekTemplates.updateError');
-        setMessage({ type: 'error', text: errorMessage });
-      }
-    }
-  };
 
   const handleDeleteTemplate = async (templateId: string) => {
     if (!currentFamily) return;
@@ -276,7 +294,8 @@ export const WeekTemplateManagement: React.FC = () => {
   };
 
   const handleAssignDays = (templateId: string) => {
-    setAssigningDays(templateId);
+    setCurrentTemplateId(templateId);
+    setIsAssignDaysModalOpen(true);
     setMessage(null);
     
     // Pre-populate with existing day assignments
@@ -293,7 +312,8 @@ export const WeekTemplateManagement: React.FC = () => {
   };
 
   const handleCancelAssignDays = () => {
-    setAssigningDays(null);
+    setCurrentTemplateId(null);
+    setIsAssignDaysModalOpen(false);
     setSelectedDayTemplates({});
   };
 
@@ -305,11 +325,11 @@ export const WeekTemplateManagement: React.FC = () => {
   };
 
   const handleSaveDayAssignments = async () => {
-    if (!currentFamily || !assigningDays) return;
+    if (!currentFamily || !currentTemplateId) return;
 
     try {
       // Get the current template to compare existing assignments
-      const template = weekTemplates.find(t => t.id === assigningDays);
+      const template = weekTemplates.find(t => t.id === currentTemplateId);
       const existingDays = template?.days || [];
       
       // Build a map of existing assignments
@@ -331,14 +351,14 @@ export const WeekTemplateManagement: React.FC = () => {
           if (existingDayTemplateId) {
             // Day already has an assignment - update it if different
             if (existingDayTemplateId !== newDayTemplateId) {
-              await weekTemplateApi.updateTemplateDay(currentFamily.id, assigningDays, existingDayId!, {
+              await weekTemplateApi.updateTemplateDay(currentFamily.id, currentTemplateId, existingDayId!, {
                 dayTemplateId: newDayTemplateId,
               });
             }
             // If same template, no action needed
           } else {
             // Day doesn't have an assignment - create new one
-            await weekTemplateApi.addTemplateDay(currentFamily.id, assigningDays, {
+            await weekTemplateApi.addTemplateDay(currentFamily.id, currentTemplateId, {
               dayOfWeek,
               dayTemplateId: newDayTemplateId,
             });
@@ -347,7 +367,7 @@ export const WeekTemplateManagement: React.FC = () => {
           // User cleared the selection for this day
           if (existingDayTemplateId && existingDayId) {
             // Remove existing assignment
-            await weekTemplateApi.removeTemplateDay(currentFamily.id, assigningDays, existingDayId);
+            await weekTemplateApi.removeTemplateDay(currentFamily.id, currentTemplateId, existingDayId);
           }
           // If no existing assignment, no action needed
         }
@@ -358,7 +378,7 @@ export const WeekTemplateManagement: React.FC = () => {
       for (const existingDay of existingDays) {
         if (!Object.prototype.hasOwnProperty.call(selectedDayTemplates, existingDay.dayOfWeek)) {
           // This day exists in template but wasn't in the dialog selection - remove it
-          await weekTemplateApi.removeTemplateDay(currentFamily.id, assigningDays, existingDay.id);
+          await weekTemplateApi.removeTemplateDay(currentFamily.id, currentTemplateId, existingDay.id);
         }
       }
       
@@ -485,122 +505,7 @@ export const WeekTemplateManagement: React.FC = () => {
             )}
           </div>
 
-          {/* Add/Edit Template Form */}
-          {(addingTemplate || editingTemplate) && (
-            <div className="week-template-management-form-container">
-              <h4 className="week-template-management-form-title">
-                {editingTemplate ? t('weeklyRoutines.routines.edit') : t('weeklyRoutines.routines.add')}
-              </h4>
-              <form onSubmit={editingTemplate ? handleUpdateTemplate : handleCreateTemplate} className="week-template-management-form">
-                <div className="week-template-management-form-group">
-                  <label className="week-template-management-label">
-                    {t('weeklyRoutines.fields.name')} *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={templateData.name}
-                    onChange={handleTemplateInputChange}
-                    className={`week-template-management-input ${templateErrors['name'] ? 'week-template-management-input-error' : ''}`}
-                    placeholder={t('weeklyRoutines.placeholders.name')}
-                    maxLength={100}
-                  />
-                  {templateErrors['name'] && (
-                    <div className="week-template-management-error">{templateErrors['name']}</div>
-                  )}
-                </div>
 
-                <div className="week-template-management-form-group">
-                  <label className="week-template-management-label">
-                    {t('weeklyRoutines.fields.description')}
-                  </label>
-                  <textarea
-                    name="description"
-                    value={templateData.description}
-                    onChange={handleTemplateInputChange}
-                    className={`week-template-management-input ${templateErrors['description'] ? 'week-template-management-input-error' : ''}`}
-                    placeholder={t('weeklyRoutines.placeholders.description')}
-                    rows={3}
-                    maxLength={500}
-                  />
-                  {templateErrors['description'] && (
-                    <div className="week-template-management-error">{templateErrors['description']}</div>
-                  )}
-                </div>
-
-                <div className="week-template-management-form-group">
-                  <label className="week-template-management-label">
-                    <input
-                      type="checkbox"
-                      name="isDefault"
-                      checked={templateData.isDefault}
-                      onChange={(e) => setTemplateData(prev => ({ ...prev, isDefault: e.target.checked }))}
-                      className="week-template-management-checkbox"
-                    />
-                    Default Template
-                  </label>
-                  <p className="week-template-management-help-text">
-                    If checked, this template will be used when no other rules apply
-                  </p>
-                </div>
-
-                <div className="week-template-management-form-group">
-                  <label className="week-template-management-label">
-                    Application Rule
-                  </label>
-                  <CustomSelect
-                    value={templateData.applyRule || ''}
-                    onChange={(value) => setTemplateData(prev => ({ ...prev, applyRule: value as 'EVEN_WEEKS' | 'ODD_WEEKS' | null || null }))}
-                    options={[
-                      { value: '', label: 'No specific rule' },
-                      { value: 'EVEN_WEEKS', label: 'Even weeks only' },
-                      { value: 'ODD_WEEKS', label: 'Odd weeks only' }
-                    ]}
-                    placeholder="No specific rule"
-                  />
-                  <p className="week-template-management-help-text">
-                    Choose when this template should automatically apply
-                  </p>
-                </div>
-
-                <div className="week-template-management-form-group">
-                  <label className="week-template-management-label">
-                    Priority
-                  </label>
-                  <input
-                    type="number"
-                    name="priority"
-                    value={templateData.priority}
-                    onChange={(e) => setTemplateData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
-                    className="week-template-management-input"
-                    min="0"
-                    max="1000"
-                    placeholder="0"
-                  />
-                  <p className="week-template-management-help-text">
-                    Higher priority templates are chosen when multiple rules match (0-1000)
-                  </p>
-                </div>
-
-                <div className="week-template-management-form-actions">
-                  <button
-                    type="button"
-                    onClick={handleCancelForm}
-                    className="week-template-management-button week-template-management-button-secondary"
-                  >
-                    {t('common.cancel')}
-                  </button>
-                  <button
-                    type="submit"
-                    className="week-template-management-button week-template-management-button-primary"
-                    disabled={isLoading}
-                  >
-                    {editingTemplate ? t('common.update') : t('common.create')}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
 
           {/* Templates List */}
           {isLoading ? (
@@ -625,7 +530,7 @@ export const WeekTemplateManagement: React.FC = () => {
               </div>
               <h5 className="week-template-management-empty-title">No Week Templates Yet</h5>
               <p className="week-template-management-empty-description">Create reusable week templates to quickly schedule recurring weekly patterns</p>
-              {isAdmin && !(addingTemplate || editingTemplate) && (
+              {isAdmin && (
                 <button
                   onClick={handleAddTemplate}
                   className="week-template-management-button week-template-management-button-primary"
@@ -775,62 +680,152 @@ export const WeekTemplateManagement: React.FC = () => {
           )}
         </div>
 
-        {/* Day Assignment Modal */}
-        {assigningDays && (
-          <div className="week-template-management-modal-overlay">
-            <div className="week-template-management-modal">
-              <div className="week-template-management-modal-header">
-                <h3>{t('weeklyRoutines.assignDays.title')}</h3>
-                <button
-                  onClick={handleCancelAssignDays}
-                  className="week-template-management-modal-close"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="week-template-management-modal-content">
-                <p>{t('weeklyRoutines.assignDays.description')}</p>
-                <div className="week-template-management-days-assignment">
-                  {[1, 2, 3, 4, 5, 6, 0].map(dayOfWeek => ( // Monday to Sunday
-                    <div key={dayOfWeek} className="week-template-management-day-row">
-                      <label className="week-template-management-day-label">
-                        {getDayName(dayOfWeek)}
-                      </label>
-                      <CustomSelect
-                        value={selectedDayTemplates[dayOfWeek] || ''}
-                        onChange={(value) => handleDayTemplateChange(dayOfWeek, String(value))}
-                        options={[
-                          { value: '', label: t('weeklyRoutines.assignDays.selectRoutine') },
-                          ...dayTemplates.map(template => ({
-                            value: template.id,
-                            label: template.name
-                          }))
-                        ]}
-                        placeholder={t('weeklyRoutines.assignDays.selectRoutine')}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="week-template-management-modal-actions">
-                <button
-                  onClick={handleCancelAssignDays}
-                  className="week-template-management-button week-template-management-button-secondary"
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  onClick={handleSaveDayAssignments}
-                  className="week-template-management-button week-template-management-button-primary"
-                  disabled={Object.keys(selectedDayTemplates).length === 0}
-                >
-                  {t('weeklyRoutines.assignDays.save')}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+
       </div>
+
+      {/* Add/Edit Routine Modal */}
+      <Modal
+        title={editingTemplate ? t('weeklyRoutines.routines.edit') : t('weeklyRoutines.routines.add')}
+        isOpen={isAddRoutineModalOpen || isEditRoutineModalOpen}
+        onClose={handleCancelForm}
+        onApply={handleApplyTemplate}
+      >
+        <div className="modal-form">
+          <div className="modal-form-group">
+            <label htmlFor="templateName" className="modal-form-label">
+              {t('weeklyRoutines.fields.name')} *
+            </label>
+            <input
+              type="text"
+              id="templateName"
+              name="name"
+              className="modal-form-input"
+              placeholder={t('weeklyRoutines.placeholders.name')}
+              disabled={isLoading}
+              autoFocus
+              value={templateData.name}
+              onChange={handleTemplateInputChange}
+              maxLength={100}
+            />
+            {templateErrors['name'] && (
+              <p className="modal-form-error">{templateErrors['name']}</p>
+            )}
+          </div>
+
+          <div className="modal-form-group">
+            <label htmlFor="templateDescription" className="modal-form-label">
+              {t('weeklyRoutines.fields.description')}
+            </label>
+            <textarea
+              id="templateDescription"
+              name="description"
+              className="modal-form-input"
+              placeholder={t('weeklyRoutines.placeholders.description')}
+              rows={3}
+              disabled={isLoading}
+              value={templateData.description}
+              onChange={handleTemplateInputChange}
+              maxLength={500}
+            />
+            {templateErrors['description'] && (
+              <p className="modal-form-error">{templateErrors['description']}</p>
+            )}
+          </div>
+
+          <div className="modal-form-group">
+            <label className="modal-form-label">
+              <input
+                type="checkbox"
+                name="isDefault"
+                checked={templateData.isDefault}
+                onChange={(e) => setTemplateData(prev => ({ ...prev, isDefault: e.target.checked }))}
+                className="modal-form-checkbox"
+                style={{ marginRight: '8px' }}
+              />
+              Default Template
+            </label>
+            <p className="modal-form-help-text">
+              If checked, this template will be used when no other rules apply
+            </p>
+          </div>
+
+          <div className="modal-form-group">
+            <label htmlFor="templateApplyRule" className="modal-form-label">
+              Application Rule
+            </label>
+            <CustomSelect
+              id="templateApplyRule"
+              value={templateData.applyRule || ''}
+              onChange={(value) => setTemplateData(prev => ({ ...prev, applyRule: value as 'EVEN_WEEKS' | 'ODD_WEEKS' | null || null }))}
+              options={[
+                { value: '', label: 'No specific rule' },
+                { value: 'EVEN_WEEKS', label: 'Even weeks only' },
+                { value: 'ODD_WEEKS', label: 'Odd weeks only' }
+              ]}
+              placeholder="No specific rule"
+              disabled={isLoading}
+            />
+            <p className="modal-form-help-text">
+              Choose when this template should automatically apply
+            </p>
+          </div>
+
+          <div className="modal-form-group">
+            <label htmlFor="templatePriority" className="modal-form-label">
+              Priority
+            </label>
+            <input
+              type="number"
+              id="templatePriority"
+              name="priority"
+              className="modal-form-input"
+              value={templateData.priority}
+              onChange={(e) => setTemplateData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
+              min="0"
+              max="1000"
+              placeholder="0"
+              disabled={isLoading}
+            />
+            <p className="modal-form-help-text">
+              Higher priority templates are chosen when multiple rules match (0-1000)
+            </p>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Assign Daily Routines Modal */}
+      <Modal
+        title={t('weeklyRoutines.assignDays.title')}
+        isOpen={isAssignDaysModalOpen}
+        onClose={handleCancelAssignDays}
+        onApply={handleSaveDayAssignments}
+      >
+        <div className="modal-form">
+          <p>{t('weeklyRoutines.assignDays.description')}</p>
+          <div className="modal-form-days-assignment">
+            {[1, 2, 3, 4, 5, 6, 0].map(dayOfWeek => ( // Monday to Sunday
+              <div key={dayOfWeek} className="modal-form-day-row">
+                <label className="modal-form-label">
+                  {getDayName(dayOfWeek)}
+                </label>
+                <CustomSelect
+                  value={selectedDayTemplates[dayOfWeek] || ''}
+                  onChange={(value) => handleDayTemplateChange(dayOfWeek, String(value))}
+                  options={[
+                    { value: '', label: t('weeklyRoutines.assignDays.selectRoutine') },
+                    ...dayTemplates.map(template => ({
+                      value: template.id,
+                      label: template.name
+                    }))
+                  ]}
+                  placeholder={t('weeklyRoutines.assignDays.selectRoutine')}
+                  disabled={isLoading}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }; 

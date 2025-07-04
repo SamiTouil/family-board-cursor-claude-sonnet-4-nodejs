@@ -130,6 +130,89 @@
   cursor: not-allowed;
 }
 
+/* Modal Form Styles */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.modal-form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.modal-form-input {
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.modal-form-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.modal-form-input:disabled {
+  background-color: #f9fafb;
+  opacity: 0.6;
+}
+
+.modal-form-error {
+  color: #dc2626;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.modal-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.modal-form-help-text {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+.modal-form-checkbox {
+  accent-color: #6366f1;
+}
+
+.modal-form-days-assignment {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.modal-form-day-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.modal-form-day-row .modal-form-label {
+  min-width: 80px;
+  font-weight: 500;
+  text-transform: capitalize;
+  margin: 0;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .modal-overlay {
@@ -176,5 +259,9 @@
   .modal-apply-button {
     width: 100%;
     justify-content: center;
+  }
+
+  .modal-form-row {
+    grid-template-columns: 1fr;
   }
 }
