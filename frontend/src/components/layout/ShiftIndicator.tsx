@@ -26,6 +26,8 @@ export const ShiftIndicator: React.FC = () => {
       const interval = setInterval(loadShiftInfo, 60000);
       return () => clearInterval(interval);
     }
+    // Return undefined when conditions are not met
+    return undefined;
   }, [currentFamily, user]);
 
   const getCurrentWeekStart = (): string => {
