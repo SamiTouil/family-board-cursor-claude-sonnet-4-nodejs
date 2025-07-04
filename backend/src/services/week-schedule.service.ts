@@ -15,6 +15,7 @@ import {
   TaskOverride,
   TaskOverrideAction,
 } from '../types/task.types';
+import { getWebSocketService } from './websocket.service';
 
 export class WeekScheduleService {
   private prisma: PrismaClient;
@@ -167,7 +168,8 @@ export class WeekScheduleService {
    */
   async applyWeekOverride(
     familyId: string,
-    data: ApplyWeekOverrideDto
+    data: ApplyWeekOverrideDto,
+    adminUserId?: string
   ): Promise<WeekOverrideWithRelations> {
     // Validate input data
     CreateWeekOverrideSchema.parse({
@@ -251,6 +253,11 @@ export class WeekScheduleService {
     // Apply each override
     for (const override of finalOverrides) {
       await this.applyTaskOverride(weekOverride.id, override);
+    }
+
+    // Send notifications for task reassignments if adminUserId is provided
+    if (adminUserId && finalOverrides.length > 0) {
+      await this.sendTaskReassignmentNotifications(familyId, finalOverrides, adminUserId);
     }
 
     // Return the updated week override with relations
@@ -523,6 +530,98 @@ export class WeekScheduleService {
         overrideDuration: override.overrideDuration,
       },
     });
+  }
+
+  /**
+   * Send notifications for task reassignments
+   */
+  private async sendTaskReassignmentNotifications(
+    familyId: string,
+    overrides: CreateTaskOverrideDto[],
+    adminUserId: string
+  ): Promise<void> {
+    const webSocketService = getWebSocketService();
+    if (!webSocketService) {
+      return; // WebSocket service not available
+    }
+
+    // Get admin user information
+    const adminUser = await this.prisma.user.findUnique({
+      where: { id: adminUserId },
+      select: { firstName: true, lastName: true },
+    });
+
+    if (!adminUser) {
+      return; // Admin user not found
+    }
+
+    const adminName = `${adminUser.firstName} ${adminUser.lastName}`;
+
+    // Process each override and send appropriate notifications
+    for (const override of overrides) {
+      // Get task information
+      const task = await this.prisma.task.findUnique({
+        where: { id: override.taskId },
+        select: { name: true },
+      });
+
+      if (!task) {
+        continue; // Skip if task not found
+      }
+
+      // Format date for display
+      const date = new Date(override.assignedDate + 'T00:00:00.000Z');
+      const formattedDate = date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+      });
+
+      // Handle different override actions
+      switch (override.action) {
+        case TaskOverrideAction.REASSIGN:
+          if (override.originalMemberId && override.newMemberId) {
+            await webSocketService.notifyTaskReassigned(familyId, {
+              taskId: override.taskId,
+              taskName: task.name,
+              date: formattedDate,
+              originalMemberId: override.originalMemberId,
+              newMemberId: override.newMemberId,
+              adminUserId,
+              adminName,
+            });
+          }
+          break;
+
+        case TaskOverrideAction.ADD:
+          if (override.newMemberId) {
+            await webSocketService.notifyTaskReassigned(familyId, {
+              taskId: override.taskId,
+              taskName: task.name,
+              date: formattedDate,
+              originalMemberId: null, // Task was added, not reassigned
+              newMemberId: override.newMemberId,
+              adminUserId,
+              adminName,
+            });
+          }
+          break;
+
+        case TaskOverrideAction.REMOVE:
+          if (override.originalMemberId) {
+            await webSocketService.notifyTaskReassigned(familyId, {
+              taskId: override.taskId,
+              taskName: task.name,
+              date: formattedDate,
+              originalMemberId: override.originalMemberId,
+              newMemberId: null, // Task was removed
+              adminUserId,
+              adminName,
+            });
+          }
+          break;
+      }
+    }
   }
 
   private async getWeekOverrideById(

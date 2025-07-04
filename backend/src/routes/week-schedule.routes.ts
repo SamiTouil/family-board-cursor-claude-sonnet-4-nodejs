@@ -130,7 +130,7 @@ router.post('/:familyId/week-schedule/override', async (req: AuthenticatedReques
     const userId = req.user!.userId;
     await checkFamilyAdmin(userId, familyId);
 
-    const weekOverride = await weekScheduleService.applyWeekOverride(familyId, overrideData);
+    const weekOverride = await weekScheduleService.applyWeekOverride(familyId, overrideData, userId);
 
     const response = {
       message: 'Week override applied successfully',

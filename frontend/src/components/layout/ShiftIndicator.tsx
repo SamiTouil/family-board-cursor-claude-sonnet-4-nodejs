@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useFamily } from '../../contexts/FamilyContext';
+import { useWebSocket } from '../../contexts/WebSocketContext';
 import { weekScheduleApi } from '../../services/api';
 import type { ResolvedWeekSchedule, ResolvedTask } from '../../types';
 import './ShiftIndicator.css';
@@ -16,19 +17,9 @@ interface ShiftInfo {
 export const ShiftIndicator: React.FC = () => {
   const { user } = useAuth();
   const { currentFamily } = useFamily();
+  const { on, off } = useWebSocket();
   const [shiftInfo, setShiftInfo] = useState<ShiftInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (currentFamily && user) {
-      loadShiftInfo();
-      // Update every minute
-      const interval = setInterval(loadShiftInfo, 60000);
-      return () => clearInterval(interval);
-    }
-    // Return undefined when conditions are not met
-    return undefined;
-  }, [currentFamily, user]);
 
   const getCurrentWeekStart = (): string => {
     const today = new Date();
@@ -48,7 +39,7 @@ export const ShiftIndicator: React.FC = () => {
     return `${year}-${month}-${dayOfMonth}`;
   };
 
-  const loadShiftInfo = async () => {
+  const loadShiftInfo = useCallback(async () => {
     if (!currentFamily || !user) return;
 
     setIsLoading(true);
@@ -65,7 +56,34 @@ export const ShiftIndicator: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentFamily, user]);
+
+  useEffect(() => {
+    if (currentFamily && user) {
+      loadShiftInfo();
+      // Update every minute
+      const interval = setInterval(loadShiftInfo, 60000);
+      return () => clearInterval(interval);
+    }
+    // Return undefined when conditions are not met
+    return undefined;
+  }, [currentFamily, user, loadShiftInfo]);
+
+  // Listen for task schedule updates to refresh shift info
+  useEffect(() => {
+    if (!currentFamily) return;
+
+    const handleTaskScheduleUpdate = () => {
+      // Refresh shift info when tasks are reassigned
+      loadShiftInfo();
+    };
+
+    on('task-schedule-updated', handleTaskScheduleUpdate);
+
+    return () => {
+      off('task-schedule-updated', handleTaskScheduleUpdate);
+    };
+  }, [currentFamily, on, off, loadShiftInfo]);
 
   const calculateShiftInfo = (weekSchedule: ResolvedWeekSchedule): ShiftInfo | null => {
     if (!user) return null;

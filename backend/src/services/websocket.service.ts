@@ -264,6 +264,59 @@ export class WebSocketService {
   }
 
   /**
+   * Notify about task reassignments
+   */
+  public notifyTaskReassigned(familyId: string, taskReassignmentData: {
+    taskId: string;
+    taskName: string;
+    date: string;
+    originalMemberId: string | null;
+    newMemberId: string | null;
+    originalMemberName?: string;
+    newMemberName?: string;
+    adminUserId: string;
+    adminName: string;
+  }) {
+    // Notify the user who lost the task (if any)
+    if (taskReassignmentData.originalMemberId) {
+      this.sendToUser(taskReassignmentData.originalMemberId, 'task-unassigned', {
+        type: 'task-unassigned',
+        familyId,
+        taskId: taskReassignmentData.taskId,
+        taskName: taskReassignmentData.taskName,
+        date: taskReassignmentData.date,
+        adminName: taskReassignmentData.adminName,
+        message: `"${taskReassignmentData.taskName}" on ${taskReassignmentData.date} has been unassigned from you by ${taskReassignmentData.adminName}`,
+      });
+    }
+
+    // Notify the user who got the task (if any)
+    if (taskReassignmentData.newMemberId) {
+      this.sendToUser(taskReassignmentData.newMemberId, 'task-assigned', {
+        type: 'task-assigned',
+        familyId,
+        taskId: taskReassignmentData.taskId,
+        taskName: taskReassignmentData.taskName,
+        date: taskReassignmentData.date,
+        adminName: taskReassignmentData.adminName,
+        message: `"${taskReassignmentData.taskName}" on ${taskReassignmentData.date} has been assigned to you by ${taskReassignmentData.adminName}`,
+      });
+    }
+
+    // Notify all family members about the general task change (for shift indicator updates)
+    this.sendToFamily(familyId, 'task-schedule-updated', {
+      type: 'task-schedule-updated',
+      familyId,
+      taskId: taskReassignmentData.taskId,
+      taskName: taskReassignmentData.taskName,
+      date: taskReassignmentData.date,
+      originalMemberId: taskReassignmentData.originalMemberId,
+      newMemberId: taskReassignmentData.newMemberId,
+      adminName: taskReassignmentData.adminName,
+    });
+  }
+
+  /**
    * Get connected users count
    */
   public getConnectedUsersCount(): number {
