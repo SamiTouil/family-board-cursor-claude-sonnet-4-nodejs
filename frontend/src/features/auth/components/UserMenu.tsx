@@ -94,6 +94,10 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onEditProfile }) => {
         return '📝';
       case 'member-role-changed':
         return '🔄';
+      case 'task-assigned':
+        return '📋';
+      case 'task-unassigned':
+        return '📋';
       default:
         return '📢';
     }

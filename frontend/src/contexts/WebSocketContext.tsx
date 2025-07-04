@@ -181,6 +181,33 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       });
     });
 
+    // Task reassignment event handlers
+    newSocket.on('task-assigned', (data) => {
+      addNotification({
+        type: 'task-assigned',
+        message: data.message,
+        data,
+      });
+      // Forward the event to any registered listeners
+      eventListeners.current['task-assigned']?.forEach(callback => callback(data));
+    });
+
+    newSocket.on('task-unassigned', (data) => {
+      addNotification({
+        type: 'task-unassigned',
+        message: data.message,
+        data,
+      });
+      // Forward the event to any registered listeners
+      eventListeners.current['task-unassigned']?.forEach(callback => callback(data));
+    });
+
+    newSocket.on('task-schedule-updated', (data) => {
+      // This event is used for updating the shift indicator and other components
+      // We don't add a notification for this, just forward to listeners
+      eventListeners.current['task-schedule-updated']?.forEach(callback => callback(data));
+    });
+
     socketRef.current = newSocket;
     setSocket(newSocket);
   }, [isAuthenticated, addNotification]);
