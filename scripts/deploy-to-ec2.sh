@@ -25,7 +25,17 @@ if ! command -v docker &> /dev/null; then
     sudo sh get-docker.sh
     sudo usermod -aG docker $USER
     rm get-docker.sh
-    echo "⚠️  Please log out and log back in for Docker permissions to take effect"
+    echo "🔧 Applying Docker permissions..."
+    newgrp docker
+fi
+
+# Ensure Docker permissions are correct
+if ! docker ps &> /dev/null; then
+    echo "🔧 Fixing Docker permissions..."
+    sudo usermod -aG docker $USER
+    newgrp docker
+    sudo systemctl restart docker
+    sleep 5
 fi
 
 # Install Docker Compose if not present

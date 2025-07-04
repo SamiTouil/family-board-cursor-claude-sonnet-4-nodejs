@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Database migration service (runs once then exits)
   db-migrate:
