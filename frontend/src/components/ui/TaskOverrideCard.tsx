@@ -43,6 +43,7 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
       <div className="task-override-card-main">
         <div className="task-override-card-info">
           <h4 className="task-override-card-name">
+            <span className="task-override-card-icon">{task.task.icon || '✅'}</span>
             {task.task.name}
           </h4>
           <div className="task-override-card-tags">
