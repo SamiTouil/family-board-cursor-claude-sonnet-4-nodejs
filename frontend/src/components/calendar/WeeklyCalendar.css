@@ -63,31 +63,7 @@
   gap: 0.5rem;
 }
 
-.weekly-calendar-nav-btn,
-.weekly-calendar-today-btn {
-  background-color: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  border-radius: 8px;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
-}
-
-.weekly-calendar-nav-btn:hover,
-.weekly-calendar-today-btn:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-1px);
-}
-
-.weekly-calendar-nav-btn:active,
-.weekly-calendar-today-btn:active {
-  transform: translateY(0);
-}
+/* Old button styles removed - now using Button component */
 
 /* Loading and Error States */
 .weekly-calendar-loading {
@@ -119,21 +95,7 @@
   font-weight: 500;
 }
 
-.retry-btn {
-  background-color: #dc2626;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.retry-btn:hover {
-  background-color: #b91c1c;
-}
+/* Retry button styles removed - now using Button component */
 
 .weekly-calendar-empty {
   padding: 3rem 2rem;
@@ -432,40 +394,7 @@
   border-left: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.weekly-calendar-apply-btn,
-.weekly-calendar-revert-btn {
-  background-color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #4c1d95;
-  border-radius: 6px;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.weekly-calendar-apply-btn:hover:not(:disabled),
-.weekly-calendar-revert-btn:hover:not(:disabled) {
-  background-color: white;
-  transform: translateY(-1px);
-}
-
-.weekly-calendar-apply-btn:disabled,
-.weekly-calendar-revert-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.weekly-calendar-revert-btn {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-.weekly-calendar-revert-btn:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.3);
-}
+/* Old admin button styles removed - now using Button component */
 
 /* Messages */
 .weekly-calendar-message {
@@ -849,53 +778,7 @@
   border-radius: 0 0 12px 12px;
 }
 
-.weekly-calendar-button {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 100px;
-}
-
-.weekly-calendar-button-primary {
-  background: #6366f1;
-  color: white;
-}
-
-.weekly-calendar-button-primary:hover:not(:disabled) {
-  background: #5b21b6;
-  transform: translateY(-1px);
-}
-
-.weekly-calendar-button-primary:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.weekly-calendar-button-secondary {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
-}
-
-.weekly-calendar-button-secondary:hover:not(:disabled) {
-  background: #e5e7eb;
-  border-color: #9ca3af;
-  transform: translateY(-1px);
-}
-
-.weekly-calendar-button-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
+/* Old modal button styles removed - now using Button component */
 
 /* Responsive modal adjustments */
 @media (max-width: 768px) {

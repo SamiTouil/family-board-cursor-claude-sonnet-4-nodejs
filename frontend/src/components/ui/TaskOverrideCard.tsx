@@ -1,5 +1,6 @@
 import React from 'react';
 import { UserAvatar } from './UserAvatar';
+import { Button } from './Button';
 import type { ResolvedTask } from '../../types';
 import './TaskOverrideCard.css';
 
@@ -84,29 +85,32 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
       {isAdmin && (
         <div className="task-override-card-actions">
           {onEdit && (
-            <button
-              className="task-override-action-btn edit"
+            <Button
+              variant="icon"
+              className="btn-icon-success"
               onClick={() => onEdit(task)}
               title="Edit task"
             >
               ✏️
-            </button>
+            </Button>
           )}
-          <button
-            className="task-override-action-btn remove"
+          <Button
+            variant="icon"
+            className="btn-icon-danger"
             onClick={() => onRemove?.(task)}
             title="Remove task"
           >
             ×
-          </button>
+          </Button>
           {onReassign && (
-            <button
-              className="task-override-action-btn reassign"
+            <Button
+              variant="icon"
+              className="btn-icon-primary"
               onClick={() => onReassign?.(task)}
               title="Reassign task"
             >
               ↻
-            </button>
+            </Button>
           )}
         </div>
       )}

@@ -4,8 +4,7 @@ import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useFamily } from '../../../contexts/FamilyContext';
 import { taskApi } from '../../../services/api';
 import type { Task, CreateTaskData } from '../../../types';
-import { TaskOverrideCard } from '../../../components/ui/TaskOverrideCard';
-import Modal from '../../../components/ui/Modal';
+import { TaskOverrideCard, Modal, Button } from '../../../components/ui';
 import './TaskManagement.css';
 
 export const TaskManagement: React.FC = () => {
@@ -352,13 +351,14 @@ export const TaskManagement: React.FC = () => {
             </h4>
             {isAdmin && (
               <div className="task-management-button-group">
-                <button
+                <Button
+                  variant="primary"
+                  size="sm"
                   onClick={handleAddTask}
-                  className="task-management-button task-management-button-primary task-management-button-sm"
                   disabled={isLoading}
                 >
                   {t('tasks.createTask')}
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -380,12 +380,12 @@ export const TaskManagement: React.FC = () => {
                 <h5 className="task-management-empty-title">{t('tasks.noTasks')}</h5>
                 <p className="task-management-empty-description">{t('tasks.noTasksDescription')}</p>
                 {isAdmin && (
-                  <button
+                  <Button
+                    variant="primary"
                     onClick={handleAddTask}
-                    className="task-management-button task-management-button-primary"
                   >
                     {t('tasks.createFirstTask')}
-                  </button>
+                  </Button>
                 )}
               </div>
             ) : (
@@ -467,14 +467,15 @@ export const TaskManagement: React.FC = () => {
                   <span className="task-management-icon-preview-label">Selected</span>
                 </div>
                 
-                <button
+                <Button
                   type="button"
-                  className="task-management-emoji-picker-button"
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                   disabled={isLoading}
                 >
                   {showEmojiPicker ? 'Close Emoji Picker' : 'Choose Emoji'}
-                </button>
+                </Button>
               </div>
               
               {showEmojiPicker && (

@@ -3,7 +3,7 @@ import { useFamily } from '../../contexts/FamilyContext';
 import { weekScheduleApi, weekTemplateApi, dayTemplateApi, taskApi } from '../../services/api';
 import { apiClient } from '../../services/api-client';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { TaskOverrideCard } from '../ui/TaskOverrideCard';
+import { TaskOverrideCard, Button } from '../ui';
 import { TaskOverrideModal } from './TaskOverrideModal';
 import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate, DayTemplate, DayTemplateItem, Task, User, CreateTaskOverrideData } from '../../types';
 import './WeeklyCalendar.css';
@@ -544,51 +544,56 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
         </div>
         
         <div className="weekly-calendar-controls">
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => navigateWeek('prev')}
-            className="weekly-calendar-nav-btn"
             title="Previous week"
           >
             ←
-          </button>
+          </Button>
           
           {!isCurrentWeek() && (
-            <button
+            <Button
+              variant="primary"
+              size="sm"
               onClick={goToCurrentWeek}
-              className="weekly-calendar-today-btn"
               title="Go to current week"
             >
               Today
-            </button>
+            </Button>
           )}
           
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => navigateWeek('next')}
-            className="weekly-calendar-nav-btn"
             title="Next week"
           >
             →
-          </button>
+          </Button>
 
           {isAdmin && (
             <div className="weekly-calendar-admin-controls">
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={handleApplyTemplate}
-                className="weekly-calendar-apply-btn"
                 disabled={isLoading || weekTemplates.length === 0}
                 title={weekTemplates.length === 0 ? 'No week templates available' : 'Apply a weekly routine to this week'}
               >
                 📋 Apply Routine
-              </button>
+              </Button>
               {weekSchedule?.hasOverrides && (
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={handleRemoveOverrides}
-                  className="weekly-calendar-revert-btn"
                   disabled={isLoading}
                   title="Revert to template"
                 >
                   🔄 Revert
-                </button>
+                </Button>
               )}
             </div>
           )}
@@ -611,9 +616,13 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       ) : error ? (
         <div className="weekly-calendar-error">
           <p>⚠️ {error}</p>
-          <button onClick={() => loadWeekSchedule(currentWeekStart)} className="retry-btn">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => loadWeekSchedule(currentWeekStart)}
+          >
             Try Again
-          </button>
+          </Button>
         </div>
       ) : weekSchedule ? (
         <div className="weekly-calendar-grid">
@@ -638,14 +647,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                   </div>
                   {isAdmin && (
                     <div className="weekly-calendar-day-controls">
-                      <button
+                      <Button
+                        variant="icon"
                         onClick={() => handleApplyDayTemplate(day.date)}
-                        className="weekly-calendar-day-override-btn"
                         disabled={isLoading || dayTemplates.length === 0}
                         title={dayTemplates.length === 0 ? 'No day routines available' : 'Apply a daily routine to this day'}
                       >
                         📅
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -677,14 +686,16 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                   
                   {/* Add Task Button */}
                   {isAdmin && (
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="weekly-calendar-day-add-task"
                       onClick={() => handleTaskOverride('ADD', undefined, day.date)}
                       disabled={isLoading || availableTasks.length === 0}
                       title={availableTasks.length === 0 ? 'No tasks available' : 'Add a task to this day'}
                     >
                       + Add Task
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -703,13 +714,13 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
           <div className="weekly-calendar-modal">
             <div className="weekly-calendar-modal-header">
               <h3>Apply Weekly Routine</h3>
-              <button
+              <Button
+                variant="icon"
                 onClick={handleCancelApplyTemplate}
-                className="weekly-calendar-modal-close"
                 disabled={isApplyingTemplate}
               >
                 ✕
-              </button>
+              </Button>
             </div>
             <div className="weekly-calendar-modal-content">
               <p>Select a weekly routine to apply to the week of <strong>{formatWeekRange(currentWeekStart)}</strong>:</p>
@@ -760,20 +771,21 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
               )}
             </div>
             <div className="weekly-calendar-modal-actions">
-              <button
+              <Button
+                variant="secondary"
                 onClick={handleCancelApplyTemplate}
-                className="weekly-calendar-button weekly-calendar-button-secondary"
                 disabled={isApplyingTemplate}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
                 onClick={handleConfirmApplyTemplate}
-                className="weekly-calendar-button weekly-calendar-button-primary"
                 disabled={!selectedTemplateId || isApplyingTemplate}
+                loading={isApplyingTemplate}
               >
-                {isApplyingTemplate ? 'Applying...' : 'Apply Template'}
-              </button>
+                Apply Template
+              </Button>
             </div>
           </div>
         </div>
@@ -785,13 +797,13 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
           <div className="weekly-calendar-modal">
             <div className="weekly-calendar-modal-header">
               <h3>Apply Daily Routine</h3>
-              <button
+              <Button
+                variant="icon"
                 onClick={handleCancelApplyDayTemplate}
-                className="weekly-calendar-modal-close"
                 disabled={isApplyingDayTemplate}
               >
                 ✕
-              </button>
+              </Button>
             </div>
             <div className="weekly-calendar-modal-content">
               <p>Select a daily routine to apply to <strong>{formatDate(selectedDayDate)}</strong>:</p>
@@ -832,20 +844,21 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
               )}
             </div>
             <div className="weekly-calendar-modal-actions">
-              <button
+              <Button
+                variant="secondary"
                 onClick={handleCancelApplyDayTemplate}
-                className="weekly-calendar-button weekly-calendar-button-secondary"
                 disabled={isApplyingDayTemplate}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
                 onClick={handleConfirmApplyDayTemplate}
-                className="weekly-calendar-button weekly-calendar-button-primary"
                 disabled={!selectedDayTemplateId || isApplyingDayTemplate}
+                loading={isApplyingDayTemplate}
               >
-                {isApplyingDayTemplate ? 'Applying...' : 'Apply Routine'}
-              </button>
+                Apply Routine
+              </Button>
             </div>
           </div>
         </div>

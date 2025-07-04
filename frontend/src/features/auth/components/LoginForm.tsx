@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
+import { Button } from '../../../components/ui';
 import type { LoginData } from '../../../types';
 import './AuthForm.css';
 
@@ -127,25 +128,28 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup }) => {
           )}
         </div>
 
-        <button
+        <Button
           type="submit"
-          className="auth-form-button"
+          variant="primary"
+          size="lg"
           disabled={isLoading}
+          loading={isLoading}
         >
-          {isLoading ? t('auth.signingIn') : t('auth.login')}
-        </button>
+          {t('auth.login')}
+        </Button>
 
         <div className="auth-form-footer">
           <p className="auth-form-switch">
             {t('auth.noAccount')}{' '}
-            <button
+            <Button
               type="button"
+              variant="link"
+              size="sm"
               onClick={onSwitchToSignup}
-              className="auth-form-link"
               disabled={isLoading}
             >
               {t('auth.signupLink')}
-            </button>
+            </Button>
           </p>
         </div>
       </form>
