@@ -33,6 +33,8 @@ export const DayTemplateManagement: React.FC = () => {
 
   // Template item form state - convert to modal
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
+  const [editingTemplateItem, setEditingTemplateItem] = useState<{ templateId: string; item: any } | null>(null);
   const [currentTemplateId, setCurrentTemplateId] = useState<string | null>(null);
   const [templateItemData, setTemplateItemData] = useState({
     taskId: '',
@@ -273,8 +275,6 @@ export const DayTemplateManagement: React.FC = () => {
     }
   };
 
-
-
   const handleDeleteTemplate = async (templateId: string) => {
     if (!window.confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
       return;
@@ -377,8 +377,24 @@ export const DayTemplateManagement: React.FC = () => {
     });
   };
 
+  const handleEditTemplateItem = (templateId: string, item: any) => {
+    setEditingTemplateItem({ templateId, item });
+    setIsEditTaskModalOpen(true);
+    setMessage(null);
+    setTemplateItemErrors({});
+    // Pre-fill form with item data
+    setTemplateItemData({
+      taskId: item.taskId,
+      memberId: item.memberId || '',
+      overrideTime: item.overrideTime || '',
+      overrideDuration: item.overrideDuration ? String(item.overrideDuration) : ''
+    });
+  };
+
   const handleCancelTemplateItemForm = () => {
     setIsAddTaskModalOpen(false);
+    setIsEditTaskModalOpen(false);
+    setEditingTemplateItem(null);
     setCurrentTemplateId(null);
     setTemplateItemErrors({});
     // Reset form data
@@ -432,6 +448,14 @@ export const DayTemplateManagement: React.FC = () => {
   };
 
   const handleApplyTemplateItem = async () => {
+    if (editingTemplateItem) {
+      await handleUpdateTemplateItem();
+    } else {
+      await handleCreateTemplateItem();
+    }
+  };
+
+  const handleCreateTemplateItem = async () => {
     if (!validateTemplateItemForm() || !currentTemplateId || !currentFamily) {
       return;
     }
@@ -483,7 +507,70 @@ export const DayTemplateManagement: React.FC = () => {
     }
   };
 
+  const handleUpdateTemplateItem = async () => {
+    if (!validateTemplateItemForm() || !editingTemplateItem || !currentFamily) {
+      return;
+    }
 
+    setIsLoading(true);
+    try {
+      const updateData: any = {};
+
+      // Only add memberId if it's different from current (empty means unassigned)
+      if (templateItemData.memberId !== (editingTemplateItem.item.memberId || '')) {
+        updateData.memberId = templateItemData.memberId || null;
+      }
+
+      // Only add overrides if they're different from current
+      if (templateItemData.overrideTime !== (editingTemplateItem.item.overrideTime || '')) {
+        updateData.overrideTime = templateItemData.overrideTime || null;
+      }
+
+      const newDuration = templateItemData.overrideDuration ? parseInt(templateItemData.overrideDuration) : null;
+      if (newDuration !== editingTemplateItem.item.overrideDuration) {
+        updateData.overrideDuration = newDuration;
+      }
+
+      // Only make API call if there are changes
+      if (Object.keys(updateData).length === 0) {
+        setMessage({ type: 'success', text: 'No changes to save' });
+        handleCancelTemplateItemForm();
+        return;
+      }
+
+      const response = await dayTemplateApi.updateItem(
+        currentFamily.id, 
+        editingTemplateItem.templateId, 
+        editingTemplateItem.item.id, 
+        updateData
+      );
+      
+      // Update the item in the cache
+      setTemplateItems(prev => ({
+        ...prev,
+        [editingTemplateItem.templateId]: (prev[editingTemplateItem.templateId] || []).map(item => 
+          item.id === editingTemplateItem.item.id ? response.data : item
+        )
+      }));
+      
+      // Show success message
+      setMessage({ type: 'success', text: 'Task assignment updated successfully' });
+      
+      // Close the modal
+      handleCancelTemplateItemForm();
+    } catch (error: any) {
+      let errorMessage = 'Failed to update task assignment';
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Load template items when templates are loaded
   useEffect(() => {
@@ -531,8 +618,6 @@ export const DayTemplateManagement: React.FC = () => {
               </div>
             )}
           </div>
-
-
 
           {/* Templates List */}
           <div className="day-template-management-templates-list">
@@ -597,8 +682,6 @@ export const DayTemplateManagement: React.FC = () => {
 
                   {/* Template Items */}
                   <div className="day-template-management-template-items">
-
-
                     {templateItems[template.id]?.length === 0 ? (
                       <div className="day-template-management-template-empty">
                         <p>No tasks in this template yet</p>
@@ -630,6 +713,7 @@ export const DayTemplateManagement: React.FC = () => {
                           };
 
                           if (isAdmin) {
+                            taskOverrideProps.onEdit = (_task: any) => handleEditTemplateItem(template.id, item);
                             taskOverrideProps.onRemove = (_task: any) => handleDeleteTemplateItem(template.id, item.id);
                           }
 
@@ -698,10 +782,10 @@ export const DayTemplateManagement: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Add Task to Routine Modal */}
+      {/* Add/Edit Task Modal */}
       <Modal
-        title={t('dailyRoutines.addTask')}
-        isOpen={isAddTaskModalOpen}
+        title={editingTemplateItem ? 'Edit Task Assignment' : t('dailyRoutines.addTask')}
+        isOpen={isAddTaskModalOpen || isEditTaskModalOpen}
         onClose={handleCancelTemplateItemForm}
         onApply={handleApplyTemplateItem}
       >
@@ -710,23 +794,30 @@ export const DayTemplateManagement: React.FC = () => {
             <label htmlFor="templateItemTask" className="modal-form-label">
               Task *
             </label>
-            <CustomSelect
-              id="templateItemTask"
-              value={templateItemData.taskId}
-              onChange={(value) => setTemplateItemData(prev => ({ ...prev, taskId: String(value) }))}
-              options={[
-                { value: '', label: 'Select a task...' },
-                ...tasks
-                  .filter(task => task.isActive)
-                  .sort((a, b) => a.defaultStartTime.localeCompare(b.defaultStartTime))
-                  .map(task => ({
-                    value: task.id,
-                    label: `${task.icon} ${task.name} (${task.defaultStartTime}, ${formatDuration(task.defaultDuration)})`
-                  }))
-              ]}
-              disabled={isLoading}
-              placeholder="Select a task..."
-            />
+            {editingTemplateItem ? (
+              <div className="modal-form-input-readonly">
+                {editingTemplateItem.item.task?.icon} {editingTemplateItem.item.task?.name} 
+                ({editingTemplateItem.item.task?.defaultStartTime}, {formatDuration(editingTemplateItem.item.task?.defaultDuration || 0)})
+              </div>
+            ) : (
+              <CustomSelect
+                id="templateItemTask"
+                value={templateItemData.taskId}
+                onChange={(value) => setTemplateItemData(prev => ({ ...prev, taskId: String(value) }))}
+                options={[
+                  { value: '', label: 'Select a task...' },
+                  ...tasks
+                    .filter(task => task.isActive)
+                    .sort((a, b) => a.defaultStartTime.localeCompare(b.defaultStartTime))
+                    .map(task => ({
+                      value: task.id,
+                      label: `${task.icon} ${task.name} (${task.defaultStartTime}, ${formatDuration(task.defaultDuration)})`
+                    }))
+                ]}
+                disabled={isLoading}
+                placeholder="Select a task..."
+              />
+            )}
             {templateItemErrors['taskId'] && (
               <p className="modal-form-error">{templateItemErrors['taskId']}</p>
             )}
