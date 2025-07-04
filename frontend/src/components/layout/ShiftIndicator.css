@@ -1,0 +1,60 @@
+.shift-indicator {
+  display: flex;
+  align-items: center;
+  margin-left: 1rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.shift-indicator-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+}
+
+.shift-indicator-status {
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.shift-indicator-status.current {
+  color: #059669; /* Green for current shift */
+}
+
+.shift-indicator-status.next {
+  color: #0369a1; /* Blue for next shift */
+}
+
+.shift-indicator-time {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .shift-indicator {
+    display: none; /* Hide on mobile to save space */
+  }
+}
+
+@media (max-width: 1024px) {
+  .shift-indicator {
+    margin-left: 0.5rem;
+  }
+  
+  .shift-indicator-content {
+    gap: 0.0625rem;
+  }
+  
+  .shift-indicator-status {
+    font-size: 0.6875rem;
+  }
+  
+  .shift-indicator-time {
+    font-size: 0.8125rem;
+  }
+} 

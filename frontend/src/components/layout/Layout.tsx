@@ -5,6 +5,7 @@ import { UserMenu } from '../../features/auth/components/UserMenu';
 import { UserProfile } from '../../features/auth/components/UserProfile';
 import Navigation from './Navigation';
 import Logo from './Logo';
+import { ShiftIndicator } from './ShiftIndicator';
 import './Layout.css';
 
 const Layout: React.FC = () => {
@@ -21,6 +22,7 @@ const Layout: React.FC = () => {
         <div className="layout-header-container">
           <div className="layout-header-left">
             <Logo />
+            <ShiftIndicator />
           </div>
           
           <Navigation />
