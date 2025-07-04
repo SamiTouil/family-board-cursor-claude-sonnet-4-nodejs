@@ -12,6 +12,7 @@ import taskRoutes from './routes/task.routes';
 import dayTemplateRoutes from './routes/day-template.routes';
 import weekTemplateRoutes from './routes/week-template.routes';
 import weekScheduleRoutes from './routes/week-schedule.routes';
+import healthRoutes from './routes/health.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { initializeWebSocket } from './services/websocket.service';
 
@@ -33,12 +34,8 @@ async function startServer(): Promise<void> {
     app.use(cors());
     app.use(express.json());
 
-    // Health check
-    app.get('/health', (_req, res) => {
-      res.json({ status: 'ok', timestamp: new Date().toISOString() });
-    });
-
     // Routes
+    app.use('/api', healthRoutes);
     app.use('/api/auth', authRoutes);
     app.use('/api/users', userRoutes);
     app.use('/api/families', familyRoutes);
