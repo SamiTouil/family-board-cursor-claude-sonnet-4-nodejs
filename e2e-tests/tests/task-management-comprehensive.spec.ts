@@ -49,7 +49,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await expect(page.getByText('Complete morning routine tasks')).toBeVisible();
 
       // Test task editing - click the edit button (✏️) instead of heading
-      await page.locator('.task-override-action-btn.edit').first().click();
+      await page.locator('.btn-icon-success').first().click();
       await page.getByLabel('Task Name').fill('Updated Morning Routine');
       await page.getByLabel('Description (Optional)').fill('Updated morning routine description');
       await page.getByLabel('Default Start Time').fill('06:30');
@@ -64,7 +64,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       // Test task deletion with confirmation
       page.on('dialog', dialog => dialog.accept());
-      await page.locator('.task-override-action-btn.remove').click();
+      await page.locator('.btn-icon-danger').click();
       
       // Verify task is removed
       await expect(page.getByRole('heading', { name: 'Updated Morning Routine' })).not.toBeVisible();

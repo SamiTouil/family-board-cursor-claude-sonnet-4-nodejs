@@ -3,10 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../../contexts/FamilyContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useWebSocket } from '../../../contexts/WebSocketContext';
-import { UserAvatar } from '../../../components/ui/UserAvatar';
-import { RoleTag } from '../../../components/ui/RoleTag';
-import { CustomSelect } from '../../../components/ui/CustomSelect';
-import Modal from '../../../components/ui/Modal';
+import { UserAvatar, RoleTag, CustomSelect, Modal, Button } from '../../../components/ui';
 import { familyApi } from '../../../services/api';
 import type { FamilyMember, FamilyJoinRequest, FamilyInvite, UpdateFamilyData, UpdateVirtualMemberData, CreateVirtualMemberData } from '../../../types';
 import './FamilyManagement.css';
@@ -532,20 +529,22 @@ export const FamilyManagement: React.FC = () => {
           <h4 className="family-management-subsection-title">{t('family.members')}</h4>
           {isAdmin && (
             <div className="family-management-button-group">
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={editingFamily ? handleCancelEditFamily : handleEditFamily}
-                className="family-management-button family-management-button-secondary family-management-button-sm"
                 disabled={isLoading}
               >
                 {editingFamily ? t('common.cancel') : t('family.editButton')}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={addingVirtualMember ? handleCancelAddVirtualMember : handleAddVirtualMember}
-                className="family-management-button family-management-button-secondary family-management-button-sm"
                 disabled={isLoading}
               >
                 {addingVirtualMember ? t('common.cancel') : t('family.createVirtualMember')}
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -593,23 +592,25 @@ export const FamilyManagement: React.FC = () => {
                   {isAdmin && !isCurrentUser && (
                     <div className="family-management-member-actions">
                       {member.user?.isVirtual && (
-                        <button
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           onClick={() => handleEditVirtualMember(member)}
-                          className="family-management-button family-management-button-secondary family-management-button-sm"
                           disabled={isLoading}
                           title={t('family.editVirtualMember')}
                         >
                           {t('common.edit')}
-                        </button>
+                        </Button>
                       )}
-                      <button
+                      <Button
+                        variant="danger"
+                        size="sm"
                         onClick={() => handleRemoveMember(member.id, memberName)}
-                        className="family-management-button family-management-button-danger family-management-button-sm"
                         disabled={isLoading}
                         title={t('family.removeMember')}
                       >
                         {t('family.remove')}
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -653,18 +654,20 @@ export const FamilyManagement: React.FC = () => {
                       </div>
                     </div>
                     <div className="family-management-request-actions">
-                      <button
+                      <Button
+                        variant="success"
+                        size="sm"
                         onClick={() => handleJoinRequestResponse(request.id, 'APPROVED')}
-                        className="family-management-button family-management-button-success family-management-button-sm"
                       >
                         {t('family.approve')}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
                         onClick={() => handleJoinRequestResponse(request.id, 'REJECTED')}
-                        className="family-management-button family-management-button-danger family-management-button-sm"
                       >
                         {t('family.reject')}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -711,13 +714,14 @@ export const FamilyManagement: React.FC = () => {
                 </div>
               </div>
               <div className="family-management-form-actions">
-                <button
+                <Button
                   type="submit"
-                  className="family-management-button family-management-button-primary"
+                  variant="primary"
                   disabled={isCreatingInvite}
+                  loading={isCreatingInvite}
                 >
-                  {isCreatingInvite ? t('family.generatingInvite') : t('family.generateInvite')}
-                </button>
+                  {t('family.generateInvite')}
+                </Button>
               </div>
             </form>
 
@@ -736,13 +740,14 @@ export const FamilyManagement: React.FC = () => {
                         {t('family.expiresOn')}: {new Date(invite.expiresAt).toLocaleDateString()}
                       </div>
                     </div>
-                    <button
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() => navigator.clipboard.writeText(invite.code)}
-                      className="family-management-button family-management-button-secondary family-management-button-sm"
                       title={t('family.copyInviteCode')}
                     >
                       {t('family.copy')}
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>

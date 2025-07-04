@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from './Button';
 import './Modal.css';
 
 interface BaseModalProps {
@@ -37,12 +38,12 @@ const Modal: React.FC<ModalProps> = ({ title, isOpen, onClose, onApply, children
         <div className="modal-content">{children}</div>
         {variant === 'standard' && (
           <div className="modal-footer">
-            <button className="modal-cancel-button" onClick={onClose}>
+            <Button variant="secondary" onClick={onClose}>
               Cancel
-            </button>
-            <button className="modal-apply-button" onClick={onApply}>
+            </Button>
+            <Button variant="primary" onClick={onApply}>
               Apply
-            </button>
+            </Button>
           </div>
         )}
       </div>

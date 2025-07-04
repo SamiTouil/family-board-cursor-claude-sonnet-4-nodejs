@@ -214,7 +214,7 @@ describe('TaskOverrideCard', () => {
 
     const editButton = screen.getByTitle('Edit task');
     expect(editButton).toBeInTheDocument();
-    expect(editButton).toHaveClass('task-override-action-btn', 'edit');
+    expect(editButton).toHaveClass('btn', 'btn-icon', 'btn-md', 'btn-icon-success');
 
     fireEvent.click(editButton);
     expect(onEdit).toHaveBeenCalledWith(mockTask);

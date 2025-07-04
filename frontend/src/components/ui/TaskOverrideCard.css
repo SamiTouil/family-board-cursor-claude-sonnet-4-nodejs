@@ -155,63 +155,14 @@
   opacity: 1;
 }
 
-.task-override-action-btn {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
+/* Override Button component styles for task actions */
+.task-override-card-actions .btn-icon {
   width: 20px;
   height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  min-width: 20px;
+  min-height: 20px;
   font-size: 12px;
-  color: #6b7280;
-  backdrop-filter: blur(4px);
-}
-
-.task-override-action-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.task-override-action-btn.remove {
-  color: #dc2626;
-}
-
-.task-override-action-btn.remove:hover {
-  background: #fee2e2;
-  border-color: #f87171;
-  color: #b91c1c;
-}
-
-.task-override-action-btn.reassign {
-  color: #7c3aed;
-}
-
-.task-override-action-btn.reassign:hover {
-  background: #ede9fe;
-  border-color: #a78bfa;
-  color: #6d28d9;
-}
-
-.task-override-action-btn.edit {
-  color: #059669;
-}
-
-.task-override-action-btn.edit:hover {
-  background: #d1fae5;
-  border-color: #6ee7b7;
-  color: #047857;
-}
-
-.task-override-action-btn.modify {
-  background-color: #059669;
-}
-
-.task-override-action-btn.modify:hover {
-  background-color: #047857;
+  padding: 0;
 }
 
 /* Mobile Responsive */
@@ -223,9 +174,11 @@
     margin-top: 0.25rem;
   }
 
-  .task-override-action-btn {
+  .task-override-card-actions .btn-icon {
     width: 24px;
     height: 24px;
+    min-width: 24px;
+    min-height: 24px;
     font-size: 14px;
   }
 
@@ -319,9 +272,11 @@
   gap: 1px;
 }
 
-.task-override-card.compact .task-override-action-btn {
+.task-override-card.compact .task-override-card-actions .btn-icon {
   width: 16px;
   height: 16px;
+  min-width: 16px;
+  min-height: 16px;
   font-size: 10px;
   border-radius: 2px;
 }
@@ -358,9 +313,11 @@
     margin-top: 0.125rem;
   }
 
-  .task-override-card.compact .task-override-action-btn {
+  .task-override-card.compact .task-override-card-actions .btn-icon {
     width: 18px;
     height: 18px;
+    min-width: 18px;
+    min-height: 18px;
     font-size: 12px;
   }
 } 
