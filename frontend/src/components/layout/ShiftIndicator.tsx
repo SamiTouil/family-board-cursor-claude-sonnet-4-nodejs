@@ -180,6 +180,32 @@ export const ShiftIndicator: React.FC = () => {
     });
   };
 
+  const formatTimeWithDate = (date: Date): string => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    const timeDiff = targetDate.getTime() - today.getTime();
+    const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    
+    const timeStr = formatTime(date);
+    
+    if (daysDiff === 0) {
+      return timeStr; // Today - no need to specify
+    } else if (daysDiff === 1) {
+      return `${timeStr} Tomorrow`;
+    } else if (daysDiff === -1) {
+      return `${timeStr} Yesterday`;
+    } else if (daysDiff > 1 && daysDiff <= 6) {
+      const dayName = date.toLocaleDateString([], { weekday: 'long' });
+      return `${timeStr} ${dayName}`;
+    } else {
+      // For dates beyond this week, show the actual date
+      const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      return `${timeStr} ${dateStr}`;
+    }
+  };
+
   if (!currentFamily || !user || isLoading) {
     return null;
   }
@@ -201,14 +227,14 @@ export const ShiftIndicator: React.FC = () => {
           <>
             <span className="shift-indicator-status current">Shift ends</span>
             <span className="shift-indicator-time">
-              {formatTime(shiftInfo.endTime!)} ({shiftInfo.timeRemaining} left)
+              {formatTimeWithDate(shiftInfo.endTime!)} ({shiftInfo.timeRemaining} left)
             </span>
           </>
         ) : (
           <>
             <span className="shift-indicator-status next">Next shift</span>
             <span className="shift-indicator-time">
-              {formatTime(shiftInfo.startTime!)} (in {shiftInfo.timeUntilStart})
+              {formatTimeWithDate(shiftInfo.startTime!)} (in {shiftInfo.timeUntilStart})
             </span>
           </>
         )}
