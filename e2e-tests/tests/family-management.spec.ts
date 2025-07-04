@@ -390,7 +390,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       await page.getByLabel('Description (optional)').fill('Modified description');
       
       // Cancel the changes using the modal cancel button (be specific to avoid strict mode violation)
-      await page.getByRole('button', { name: 'Cancel' }).click();
+      await page.locator('.modal-footer').getByRole('button', { name: 'Cancel' }).click();
 
       // Verify original values are restored and edit mode is closed - use more specific selector
       await expect(page.locator('.family-management-title')).toContainText('Original Cancel Family');
