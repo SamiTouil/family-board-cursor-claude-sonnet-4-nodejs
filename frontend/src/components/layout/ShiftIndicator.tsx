@@ -70,40 +70,35 @@ export const ShiftIndicator: React.FC = () => {
 
     const now = new Date();
     
-    // Get all tasks for today, sorted by time
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    // Get all tasks for the entire week, sorted by date and time
+    const allWeekTasks: Array<{ task: ResolvedTask; startTime: Date }> = [];
     
-    const todaySchedule = weekSchedule.days.find(day => day.date === todayStr);
-    if (!todaySchedule || todaySchedule.tasks.length === 0) {
-      return null; // No tasks today
-    }
-
-    // Create array of all tasks today with their start times
-    const allTodayTasks: Array<{ task: ResolvedTask; startTime: Date }> = [];
-    
-    todaySchedule.tasks.forEach(task => {
-      const startTime = task.overrideTime || task.task.defaultStartTime;
-      const [hours, minutes] = startTime.split(':').map(Number);
-      
-      const taskStart = new Date(today);
-      taskStart.setHours(hours || 0, minutes || 0, 0, 0);
-      
-      allTodayTasks.push({
-        task,
-        startTime: taskStart
+    weekSchedule.days.forEach(day => {
+      day.tasks.forEach(task => {
+        const startTime = task.overrideTime || task.task.defaultStartTime;
+        const [hours, minutes] = startTime.split(':').map(Number);
+        
+        // Parse the day date and set the task time
+        const dayDate = new Date(day.date + 'T00:00:00');
+        const taskStart = new Date(dayDate);
+        taskStart.setHours(hours || 0, minutes || 0, 0, 0);
+        
+        allWeekTasks.push({
+          task,
+          startTime: taskStart
+        });
       });
     });
 
-    // Sort all tasks by start time
-    allTodayTasks.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    // Sort all tasks by start time (across all days)
+    allWeekTasks.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
     // Find the most recent task (closest in the past)
-    const pastTasks = allTodayTasks.filter(({ startTime }) => startTime <= now);
+    const pastTasks = allWeekTasks.filter(({ startTime }) => startTime <= now);
     
     if (pastTasks.length === 0) {
       // No tasks have started yet, find next task for current user
-      const nextUserTask = allTodayTasks.find(({ task }) => task.memberId === user.id);
+      const nextUserTask = allWeekTasks.find(({ task }) => task.memberId === user.id);
       if (nextUserTask) {
         const timeUntilStart = formatTimeRemaining(nextUserTask.startTime.getTime() - now.getTime());
         return {
@@ -124,7 +119,7 @@ export const ShiftIndicator: React.FC = () => {
     // Check if the most recent task is assigned to the current user
     if (mostRecentTask.task.memberId === user.id) {
       // User is currently in shift - find when their shift ends (first task assigned to someone else)
-      const shiftEndTask = allTodayTasks.find(({ startTime, task }) => 
+      const shiftEndTask = allWeekTasks.find(({ startTime, task }) => 
         startTime > mostRecentTask.startTime && task.memberId !== user.id
       );
       
@@ -137,19 +132,20 @@ export const ShiftIndicator: React.FC = () => {
           timeRemaining
         };
       } else {
-        // No more tasks assigned to others today, shift ends at end of day (11:59 PM)
-        const endOfDay = new Date(today);
-        endOfDay.setHours(23, 59, 59, 999);
-        const timeRemaining = formatTimeRemaining(endOfDay.getTime() - now.getTime());
+        // No more tasks assigned to others in the entire week, shift ends at end of week
+        const endOfWeek = new Date(now);
+        endOfWeek.setDate(now.getDate() + (6 - now.getDay())); // Go to Saturday
+        endOfWeek.setHours(23, 59, 59, 999);
+        const timeRemaining = formatTimeRemaining(endOfWeek.getTime() - now.getTime());
         return {
           type: 'current',
-          endTime: endOfDay,
+          endTime: endOfWeek,
           timeRemaining
         };
       }
     } else {
       // User is not in shift - find their next task
-      const nextUserTask = allTodayTasks.find(({ startTime, task }) => 
+      const nextUserTask = allWeekTasks.find(({ startTime, task }) => 
         startTime > now && task.memberId === user.id
       );
       
@@ -161,7 +157,7 @@ export const ShiftIndicator: React.FC = () => {
           timeUntilStart
         };
       }
-      return null; // No more tasks for user today
+      return null; // No more tasks for user this week
     }
   };
 
