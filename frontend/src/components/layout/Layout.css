@@ -27,7 +27,7 @@
 }
 
 .layout-header-left {
-  flex: 0 0 auto;
+  flex: 1;
   display: flex;
   align-items: center;
 }
