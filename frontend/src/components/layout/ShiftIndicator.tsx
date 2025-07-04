@@ -69,12 +69,12 @@ export const ShiftIndicator: React.FC = () => {
     if (!user) return null;
 
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
     // Get all user's tasks for this week, sorted by date and time
     const userTasks: Array<{ task: ResolvedTask; date: Date; startTime: Date; endTime: Date }> = [];
     
     weekSchedule.days.forEach(day => {
+      // Parse the date string from the API response (YYYY-MM-DD format)
       const dayDate = new Date(day.date);
       day.tasks.forEach(task => {
         if (task.memberId === user.id) {
@@ -82,6 +82,8 @@ export const ShiftIndicator: React.FC = () => {
           const duration = task.overrideDuration || task.task.defaultDuration;
           
           const [hours, minutes] = startTime.split(':').map(Number);
+          
+          // Create task start time using local timezone
           const taskStart = new Date(dayDate);
           taskStart.setHours(hours || 0, minutes || 0, 0, 0);
           
@@ -103,7 +105,7 @@ export const ShiftIndicator: React.FC = () => {
 
     // Check if user is currently in a shift (any task)
     const currentTask = userTasks.find(({ startTime, endTime }) => 
-      now >= startTime && now <= endTime
+      now >= startTime && now < endTime // Changed <= to < for end time
     );
 
     if (currentTask) {
