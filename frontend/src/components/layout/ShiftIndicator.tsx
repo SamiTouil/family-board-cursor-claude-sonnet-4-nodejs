@@ -123,19 +123,21 @@ export const ShiftIndicator: React.FC = () => {
     
     // Check if the most recent task is assigned to the current user
     if (mostRecentTask.task.memberId === user.id) {
-      // User is currently in shift - find when their shift ends (next task by someone else or end of day)
-      const nextTask = allTodayTasks.find(({ startTime }) => startTime > mostRecentTask.startTime);
+      // User is currently in shift - find when their shift ends (first task assigned to someone else)
+      const shiftEndTask = allTodayTasks.find(({ startTime, task }) => 
+        startTime > mostRecentTask.startTime && task.memberId !== user.id
+      );
       
-      if (nextTask) {
-        // Shift ends when next task starts
-        const timeRemaining = formatTimeRemaining(nextTask.startTime.getTime() - now.getTime());
+      if (shiftEndTask) {
+        // Shift ends when first task assigned to someone else starts
+        const timeRemaining = formatTimeRemaining(shiftEndTask.startTime.getTime() - now.getTime());
         return {
           type: 'current',
-          endTime: nextTask.startTime,
+          endTime: shiftEndTask.startTime,
           timeRemaining
         };
       } else {
-        // No more tasks today, shift ends at end of day (let's say 11:59 PM)
+        // No more tasks assigned to others today, shift ends at end of day (11:59 PM)
         const endOfDay = new Date(today);
         endOfDay.setHours(23, 59, 59, 999);
         const timeRemaining = formatTimeRemaining(endOfDay.getTime() - now.getTime());
