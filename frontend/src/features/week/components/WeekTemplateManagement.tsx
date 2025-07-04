@@ -271,67 +271,7 @@ export const WeekTemplateManagement: React.FC = () => {
     }
   };
 
-  const handleCreateTemplate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentFamily || !validateTemplateForm()) return;
 
-    try {
-      const createData: CreateWeekTemplateData = {
-        name: templateData.name.trim(),
-        ...(templateData.description.trim() && { description: templateData.description.trim() }),
-        isDefault: templateData.isDefault,
-        applyRule: templateData.applyRule,
-        priority: templateData.priority,
-      };
-
-      const response = await weekTemplateApi.createTemplate(currentFamily.id, createData);
-      // Backend returns the template data directly, not wrapped in success object
-      setWeekTemplates(prev => [...prev, response.data]);
-      setMessage({ type: 'success', text: t('weekTemplates.createSuccess') });
-      handleCancelForm();
-    } catch (error: any) {
-      if (error.response?.status === 409) {
-        setTemplateErrors({ name: t('weekTemplates.validation.nameExists') });
-      } else if (error.response?.status === 401) {
-        setMessage({ type: 'error', text: t('auth.sessionExpired') });
-      } else {
-        const errorMessage = error.response?.data?.message || error.message || t('weekTemplates.createError');
-        setMessage({ type: 'error', text: errorMessage });
-      }
-    }
-  };
-
-  const handleUpdateTemplate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentFamily || !editingTemplate || !validateTemplateForm()) return;
-
-    try {
-      const updateData: UpdateWeekTemplateData = {
-        name: templateData.name.trim(),
-        ...(templateData.description.trim() && { description: templateData.description.trim() }),
-        isDefault: templateData.isDefault,
-        applyRule: templateData.applyRule,
-        priority: templateData.priority,
-      };
-
-      const response = await weekTemplateApi.updateTemplate(currentFamily.id, editingTemplate.id, updateData);
-      // Backend returns the template data directly, not wrapped in success object
-      setWeekTemplates(prev => prev.map(t => 
-        t.id === editingTemplate.id ? response.data : t
-      ));
-      setMessage({ type: 'success', text: t('weekTemplates.updateSuccess') });
-      handleCancelForm();
-    } catch (error: any) {
-      if (error.response?.status === 409) {
-        setTemplateErrors({ name: t('weekTemplates.validation.nameExists') });
-      } else if (error.response?.status === 401) {
-        setMessage({ type: 'error', text: t('auth.sessionExpired') });
-      } else {
-        const errorMessage = error.response?.data?.message || error.message || t('weekTemplates.updateError');
-        setMessage({ type: 'error', text: errorMessage });
-      }
-    }
-  };
 
   const handleDeleteTemplate = async (templateId: string) => {
     if (!currentFamily) return;
