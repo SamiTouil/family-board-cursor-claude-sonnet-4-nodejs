@@ -12,6 +12,7 @@ import { useFamily } from '../../contexts/FamilyContext';
 import { weekScheduleApi, taskApi, familyApi } from '../../services/api';
 import { LoadingSpinner, TaskOverrideCard, Button, UserAvatar } from '../ui';
 import { ShiftIndicator } from '../ui/ShiftIndicator';
+import { TaskOverrideModal, CreateTaskOverrideData } from './TaskOverrideModal';
 import type { ResolvedWeekSchedule, ResolvedTask, ResolvedDay, Task, User } from '../../types';
 
 interface WeeklyCalendarProps {
@@ -28,6 +29,12 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
   const [familyMembers, setFamilyMembers] = useState<User[]>([]);
+
+  // Task override modal state
+  const [showTaskOverrideModal, setShowTaskOverrideModal] = useState(false);
+  const [taskOverrideAction, setTaskOverrideAction] = useState<'ADD' | 'REMOVE' | 'REASSIGN'>('ADD');
+  const [selectedTask, setSelectedTask] = useState<ResolvedTask | undefined>(undefined);
+  const [taskOverrideDate, setTaskOverrideDate] = useState<string>('');
 
   const { width: screenWidth } = Dimensions.get('window');
   const isTablet = screenWidth > 768;
@@ -244,12 +251,38 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   };
 
   const handleTaskOverride = (action: 'ADD' | 'REMOVE' | 'REASSIGN', task?: ResolvedTask, date?: string) => {
-    // For now, show a simple alert - this would be replaced with a modal in full implementation
-    Alert.alert(
-      'Task Override',
-      `${action} task ${task?.task.name || 'new task'} on ${date ? formatDate(date) : 'selected date'}`,
-      [{ text: 'OK' }]
-    );
+    setTaskOverrideAction(action);
+    setSelectedTask(task);
+    setTaskOverrideDate(date || '');
+    setShowTaskOverrideModal(true);
+    setMessage(null);
+  };
+
+  const handleCancelTaskOverride = () => {
+    setShowTaskOverrideModal(false);
+    setSelectedTask(undefined);
+    setTaskOverrideDate('');
+  };
+
+  const handleConfirmTaskOverride = async (overrideData: CreateTaskOverrideData) => {
+    if (!currentFamily) return;
+
+    try {
+      await weekScheduleApi.applyWeekOverride(currentFamily.id, {
+        weekStartDate: currentWeekStart,
+        taskOverrides: [overrideData],
+        replaceExisting: false // Individual task overrides should be cumulative
+      });
+
+      const actionText = overrideData.action === 'ADD' ? 'added' : 
+                        overrideData.action === 'REMOVE' ? 'removed' : 
+                        overrideData.action === 'REASSIGN' ? 'reassigned' : 'modified';
+      
+      setMessage({ type: 'success', text: `Task ${actionText} successfully` });
+      loadWeekSchedule(currentWeekStart); // Reload to show changes
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to apply task override' });
+    }
   };
 
   const getVisibleDays = (): ResolvedDay[] => {
@@ -469,6 +502,19 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
           <Text style={styles.errorText}>No schedule data available</Text>
         </View>
       )}
+      
+      {/* Task Override Modal */}
+      <TaskOverrideModal
+        visible={showTaskOverrideModal}
+        onClose={handleCancelTaskOverride}
+        onConfirm={handleConfirmTaskOverride}
+        task={selectedTask}
+        date={taskOverrideDate}
+        action={taskOverrideAction}
+        availableTasks={availableTasks}
+        familyMembers={familyMembers}
+        isLoading={isLoading}
+      />
     </View>
   );
 };
