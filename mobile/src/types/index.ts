@@ -36,16 +36,17 @@ export interface Family {
 
 export interface FamilyMember {
   id: string;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  avatarUrl?: string;
+  userId: string;
   role: 'ADMIN' | 'MEMBER';
-  isVirtual: boolean;
-  userId?: string;
-  familyId: string;
-  createdAt: string;
-  updatedAt: string;
+  joinedAt: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    avatarUrl?: string | null;
+    isVirtual?: boolean;
+  };
 }
 
 export interface FamilyJoinRequest {
@@ -61,9 +62,33 @@ export interface FamilyJoinRequest {
     firstName: string;
     lastName: string;
     email: string;
+    avatarUrl?: string;
   };
   createdAt: string;
   updatedAt: string;
+}
+
+export interface FamilyInvite {
+  id: string;
+  code: string;
+  status: 'PENDING' | 'ACCEPTED' | 'EXPIRED';
+  expiresAt: string;
+  createdAt: string;
+  family: {
+    id: string;
+    name: string;
+  };
+  sender: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+  receiver?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
 }
 
 export interface CreateFamilyData {
