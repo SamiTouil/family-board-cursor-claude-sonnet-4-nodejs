@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useFamily } from '../../contexts/FamilyContext';
-import { weekScheduleApi, taskApi } from '../../services/api';
+import { weekScheduleApi, taskApi, familyApi } from '../../services/api';
 import { LoadingSpinner, TaskOverrideCard, Button } from '../ui';
 import type { ResolvedWeekSchedule, ResolvedTask, ResolvedDay, Task, User } from '../../types';
 
@@ -71,8 +71,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     setError(null);
     try {
       const response = await weekScheduleApi.getWeekSchedule(currentFamily.id, weekStartDate);
-      setWeekSchedule(response.data);
+      // Backend returns { success: true, data: ResolvedWeekSchedule }
+      setWeekSchedule(response.data.data || response.data);
     } catch (error: any) {
+      console.error('Failed to load week schedule:', error);
       setError(error.response?.data?.message || 'Failed to load week schedule');
     } finally {
       setIsLoading(false);
@@ -94,16 +96,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     if (!currentFamily) return;
     
     try {
-      // Use the family API to get members
-      const response = await fetch(`https://mabt.eu/api/families/${currentFamily.id}/members`, {
-        headers: {
-          'Authorization': `Bearer ${await import('@react-native-async-storage/async-storage').then(m => m.default.getItem('authToken'))}`
-        }
-      });
-      const data = await response.json();
+      const response = await familyApi.getMembers(currentFamily.id);
       
-      if (data.success && Array.isArray(data.data)) {
-        const members = data.data.map((member: any) => ({
+      // Backend returns: { success: true, data: [FamilyMemberResponse array] }
+      const membersData = response.data?.data || [];
+      
+      if (Array.isArray(membersData)) {
+        // Backend returns FamilyMemberResponse objects with nested user data
+        const members = membersData.map((member: any) => ({
           id: member.user.id,
           firstName: member.user.firstName,
           lastName: member.user.lastName,
@@ -116,6 +116,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         setFamilyMembers(members);
       }
     } catch (error) {
+      console.error('Failed to load family members:', error);
       setFamilyMembers([]);
     }
   };
