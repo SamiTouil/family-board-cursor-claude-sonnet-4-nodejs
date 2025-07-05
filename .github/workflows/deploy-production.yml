@@ -1,21 +1,26 @@
 name: Continuous Deployment to Production
 
 on:
-  workflow_run:
-    workflows: ["Build & Test Pipeline"]
-    types:
-      - completed
+  # Trigger on pushes to main (after PR merge)
+  push:
     branches: [main]
+  
+  # Allow manual deployment trigger
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual deployment'
+        required: false
+        default: 'Manual deployment'
 
 env:
   NODE_VERSION: '18'
 
 jobs:
-  # Deploy to production (only if CI workflow completed successfully)
+  # Deploy to production (after PR merge to main)
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
     
     steps:
       - name: Checkout code
