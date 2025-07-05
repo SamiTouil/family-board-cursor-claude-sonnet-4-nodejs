@@ -6,4 +6,5 @@ export { UserAvatar } from './UserAvatar';
 export { ShiftIndicator } from './ShiftIndicator';
 export { UserMenu } from './UserMenu';
 export { UserProfile } from './UserProfile';
-export { default as Logo } from './Logo'; 
+export { default as Logo } from './Logo';
+export { TaskCard } from './TaskCard'; 

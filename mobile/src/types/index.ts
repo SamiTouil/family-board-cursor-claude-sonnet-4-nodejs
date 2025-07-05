@@ -136,8 +136,28 @@ export interface Task {
   defaultStartTime: string;
   defaultDuration: number;
   familyId: string;
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateTaskData {
+  name: string;
+  description?: string;
+  icon?: string;
+  color: string;
+  defaultStartTime: string;
+  defaultDuration: number;
+}
+
+export interface UpdateTaskData {
+  name?: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  defaultStartTime?: string;
+  defaultDuration?: number;
+  isActive?: boolean;
 }
 
 export interface ResolvedTask {

@@ -109,7 +109,19 @@ export const weekScheduleApi = {
 
 // Task API
 export const taskApi = {
-  async getFamilyTasks(familyId: string) {
-    return await apiClient.get(`/tasks/family/${familyId}`);
+  async getFamilyTasks(familyId: string, params?: { isActive?: boolean }) {
+    return await apiClient.get(`/tasks/family/${familyId}`, { params });
+  },
+  
+  async createTask(familyId: string, data: any) {
+    return await apiClient.post(`/tasks/family/${familyId}`, data);
+  },
+  
+  async updateTask(taskId: string, data: any) {
+    return await apiClient.put(`/tasks/${taskId}`, data);
+  },
+  
+  async deleteTask(taskId: string) {
+    return await apiClient.delete(`/tasks/${taskId}`);
   }
 }; 
