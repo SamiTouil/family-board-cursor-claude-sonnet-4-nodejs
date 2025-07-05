@@ -26,9 +26,11 @@
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "typeRoots": ["./node_modules/@types", "../node_modules/@types"],
+    "types": []
   },
   "include": ["src"],
-  "exclude": ["src/**/*.test.tsx", "src/**/*.test.ts", "src/__tests__/**/*"],
+  "exclude": ["src/**/*.test.tsx", "src/**/*.test.ts", "src/__tests__/**/*", "../mobile", "../node_modules/@react-native", "../node_modules/react-native*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 } 
