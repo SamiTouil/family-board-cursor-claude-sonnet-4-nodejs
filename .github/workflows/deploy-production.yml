@@ -83,6 +83,35 @@ jobs:
             # Navigate to application directory
             cd /home/ubuntu/family-board
             
+            # Configure swap space if not already present (for memory-constrained instances)
+            echo "💾 Ensuring swap space is configured..."
+            SWAP_SIZE="2G"
+            SWAP_FILE="/swapfile"
+            
+            if ! swapon --show | grep -q "$SWAP_FILE"; then
+              echo "🔧 Creating ${SWAP_SIZE} swap file..."
+              sudo fallocate -l $SWAP_SIZE $SWAP_FILE
+              sudo chmod 600 $SWAP_FILE
+              sudo mkswap $SWAP_FILE
+              sudo swapon $SWAP_FILE
+              
+              # Make swap permanent
+              if ! grep -q "$SWAP_FILE" /etc/fstab; then
+                echo "$SWAP_FILE none swap sw 0 0" | sudo tee -a /etc/fstab
+              fi
+              echo "✅ Swap space configured successfully!"
+            else
+              echo "✅ Swap space already configured"
+            fi
+            
+            # Display memory status for monitoring
+            echo "📊 Current memory status:"
+            free -h
+            
+            # Clean up Docker to free memory before building
+            echo "🧹 Cleaning up Docker to free memory..."
+            docker system prune -f || true
+            
             # Pull latest changes
             echo "📥 Pulling latest code..."
             git fetch origin
@@ -93,9 +122,16 @@ jobs:
             timestamp=$(date +%Y%m%d_%H%M%S)
             docker-compose -f docker-compose.prod.yml logs > logs_backup_$timestamp.log 2>&1 || true
             
-            # Build new images
-            echo "🔨 Building new images..."
-            docker-compose -f docker-compose.prod.yml build --no-cache
+            # Build new images sequentially to avoid memory issues
+            echo "🔨 Building new images sequentially..."
+            echo "📦 Building backend..."
+            docker-compose -f docker-compose.prod.yml build --no-cache backend
+            
+            echo "📦 Building frontend..."
+            docker-compose -f docker-compose.prod.yml build --no-cache frontend
+            
+            echo "📦 Building remaining services..."
+            docker-compose -f docker-compose.prod.yml build --no-cache nginx
             
             # Stop current services gracefully
             echo "⏹️ Stopping current services..."
