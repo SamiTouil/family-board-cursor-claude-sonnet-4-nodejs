@@ -198,11 +198,11 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 20,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowRadius: 25,
+    elevation: 20,
   },
   header: {
     marginBottom: 24,
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   pendingIcon: {
-    fontSize: 64,
+    fontSize: 48,
     marginBottom: 8,
   },
   pendingFamily: {
@@ -253,10 +253,10 @@ const styles = StyleSheet.create({
   },
   pendingMessage: {
     fontSize: 16,
-    color: '#374151',
+    color: '#4a5568',
     textAlign: 'center',
     lineHeight: 24,
-    maxWidth: 300,
+    marginTop: 8,
   },
   pendingActions: {
     width: '100%',

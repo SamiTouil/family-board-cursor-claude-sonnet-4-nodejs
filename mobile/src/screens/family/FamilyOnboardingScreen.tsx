@@ -8,11 +8,12 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../contexts/AuthContext';
 import { useFamily } from '../../contexts/FamilyContext';
 import { CreateFamilyForm } from '../../components/forms/CreateFamilyForm';
 import { JoinFamilyForm } from '../../components/forms/JoinFamilyForm';
-import { Button } from '../../components/ui';
+import { Button, Logo } from '../../components/ui';
 
 type OnboardingStep = 'choice' | 'create' | 'join';
 
@@ -57,70 +58,80 @@ export const FamilyOnboardingScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {currentStep === 'choice' && (
-          <View style={styles.choiceContainer}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Welcome to Family Board</Text>
-              <Text style={styles.subtitle}>
-                Choose how you'd like to get started with organizing your family
-              </Text>
-            </View>
-            
-            <View style={styles.options}>
-              <TouchableOpacity
-                style={styles.option}
-                onPress={() => setCurrentStep('create')}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.optionIcon}>👨‍👩‍👧‍👦</Text>
-                <Text style={styles.optionTitle}>Create a Family</Text>
-                <Text style={styles.optionDescription}>
-                  Start a new family board and invite members to join
+    <LinearGradient
+      colors={['#667eea', '#764ba2']}
+      style={styles.container}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {currentStep === 'choice' && (
+            <View style={styles.choiceContainer}>
+              <View style={styles.header}>
+                <Logo size={64} style={styles.logo} />
+                <Text style={styles.title}>Welcome to Family Board</Text>
+                <Text style={styles.subtitle}>
+                  Choose how you'd like to get started with organizing your family
                 </Text>
-              </TouchableOpacity>
+              </View>
               
-              <TouchableOpacity
-                style={styles.option}
-                onPress={() => setCurrentStep('join')}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.optionIcon}>🤝</Text>
-                <Text style={styles.optionTitle}>Join a Family</Text>
-                <Text style={styles.optionDescription}>
-                  Join an existing family using an invite code
-                </Text>
-              </TouchableOpacity>
-            </View>
+              <View style={styles.options}>
+                <TouchableOpacity
+                  style={styles.option}
+                  onPress={() => setCurrentStep('create')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.optionIcon}>👨‍👩‍👧‍👦</Text>
+                  <Text style={styles.optionTitle}>Create a Family</Text>
+                  <Text style={styles.optionDescription}>
+                    Start a new family board and invite members to join
+                  </Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={styles.option}
+                  onPress={() => setCurrentStep('join')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.optionIcon}>🤝</Text>
+                  <Text style={styles.optionTitle}>Join a Family</Text>
+                  <Text style={styles.optionDescription}>
+                    Join an existing family using an invite code
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-            <View style={styles.backButtonContainer}>
-              <Button
-                title="Sign Out"
-                onPress={handleBack}
-                variant="ghost"
-                size="sm"
-              />
+              <View style={styles.backButtonContainer}>
+                <Button
+                  title="Sign Out"
+                  onPress={handleBack}
+                  variant="ghost"
+                  size="sm"
+                />
+              </View>
             </View>
-          </View>
-        )}
-        
-        {currentStep === 'create' && (
-          <CreateFamilyForm onBack={handleBack} />
-        )}
-        
-        {currentStep === 'join' && (
-          <JoinFamilyForm onBack={handleBack} onRequestCancelled={handleRequestCancelled} />
-        )}
-      </ScrollView>
-    </SafeAreaView>
+          )}
+          
+          {currentStep === 'create' && (
+            <CreateFamilyForm onBack={handleBack} />
+          )}
+          
+          {currentStep === 'join' && (
+            <JoinFamilyForm onBack={handleBack} onRequestCancelled={handleRequestCancelled} />
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#667eea',
+  },
+  safeArea: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
@@ -134,15 +145,18 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 20,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowRadius: 25,
+    elevation: 20,
   },
   header: {
     alignItems: 'center',
     marginBottom: 32,
+  },
+  logo: {
+    marginBottom: 16,
   },
   title: {
     fontSize: 28,

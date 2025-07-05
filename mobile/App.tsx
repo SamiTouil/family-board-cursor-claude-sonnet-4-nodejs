@@ -2,6 +2,8 @@ import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { View, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { FamilyProvider, useFamily } from './src/contexts/FamilyContext';
 import { LoginScreen } from './src/screens/auth/LoginScreen';
@@ -40,7 +42,16 @@ const AppNavigator = () => {
 
   // Show loading while checking auth and family status
   if (authLoading || (isAuthenticated && familyLoading)) {
-    return <LoadingSpinner />;
+    return (
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        style={styles.container}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <LoadingSpinner />
+      </LinearGradient>
+    );
   }
 
   return (
@@ -69,10 +80,16 @@ export default function App() {
     <NavigationContainer>
       <AuthProvider>
         <FamilyProvider>
-          <StatusBar style="auto" />
+          <StatusBar style="light" />
           <AppNavigator />
         </FamilyProvider>
       </AuthProvider>
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

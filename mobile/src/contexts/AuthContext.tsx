@@ -65,16 +65,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (data: LoginData): Promise<void> => {
     try {
+      console.log('Attempting login with:', { email: data.email });
       const response = await authApi.login(data);
+      console.log('Login response:', response.data);
+      
       if (response.data.success) {
         const { user: userData, token } = response.data.data;
+        console.log('Login successful, user:', userData);
         setUser(userData);
         await AsyncStorage.setItem('authToken', token);
         await AsyncStorage.setItem('authUser', JSON.stringify(userData));
       } else {
+        console.log('Login failed:', response.data.message);
         throw new Error(response.data.message || 'Invalid credentials');
       }
     } catch (error: any) {
+      console.log('Login error:', error);
+      console.log('Error response:', error.response?.data);
+      
       // Handle specific error cases
       if (error.response?.status === 401) {
         throw new Error('Invalid email or password');

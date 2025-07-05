@@ -9,9 +9,10 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button, TextInput } from '../../components/ui';
+import { Button, TextInput, Logo } from '../../components/ui';
 import type { LoginData, AuthStackParamList } from '../../types';
 
 interface LoginScreenProps {
@@ -74,72 +75,82 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoid}
-      >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to your Family Board account</Text>
-          </View>
-
-          <View style={styles.form}>
-            <TextInput
-              label="Email"
-              value={formData.email}
-              onChangeText={handleInputChange('email')}
-              placeholder="Enter your email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              error={errors.email}
-              editable={!isLoading}
-            />
-
-            <TextInput
-              label="Password"
-              value={formData.password}
-              onChangeText={handleInputChange('password')}
-              placeholder="Enter your password"
-              secureTextEntry
-              autoComplete="password"
-              error={errors.password}
-              editable={!isLoading}
-            />
-
-            <Button
-              title="Sign In"
-              onPress={handleSubmit}
-              variant="primary"
-              size="lg"
-              disabled={isLoading}
-              loading={isLoading}
-              style={styles.submitButton}
-            />
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account? </Text>
-              <Button
-                title="Sign Up"
-                onPress={navigateToSignup}
-                variant="ghost"
-                size="sm"
-                disabled={isLoading}
-              />
+    <LinearGradient
+      colors={['#667eea', '#764ba2']}
+      style={styles.container}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoid}
+        >
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <View style={styles.header}>
+              <Logo size={80} style={styles.logo} />
+              <Text style={styles.title}>Family Board</Text>
+              <Text style={styles.subtitle}>Sign in to your account</Text>
             </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+            <View style={styles.form}>
+              <TextInput
+                label="Email"
+                value={formData.email}
+                onChangeText={handleInputChange('email')}
+                placeholder="Enter your email"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                error={errors.email}
+                editable={!isLoading}
+              />
+
+              <TextInput
+                label="Password"
+                value={formData.password}
+                onChangeText={handleInputChange('password')}
+                placeholder="Enter your password"
+                secureTextEntry
+                autoComplete="password"
+                error={errors.password}
+                editable={!isLoading}
+              />
+
+              <Button
+                title="Sign In"
+                onPress={handleSubmit}
+                variant="primary"
+                size="lg"
+                disabled={isLoading}
+                loading={isLoading}
+                style={styles.submitButton}
+              />
+
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>Don't have an account? </Text>
+                <Button
+                  title="Sign Up"
+                  onPress={navigateToSignup}
+                  variant="ghost"
+                  size="sm"
+                  disabled={isLoading}
+                />
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#667eea',
+  },
+  safeArea: {
+    flex: 1,
   },
   keyboardAvoid: {
     flex: 1,
@@ -153,16 +164,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
+  logo: {
+    marginBottom: 16,
+  },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 8,
     textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#e0e7ff',
+    color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -173,11 +190,11 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 20,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowRadius: 25,
+    elevation: 20,
   },
   submitButton: {
     marginTop: 8,
