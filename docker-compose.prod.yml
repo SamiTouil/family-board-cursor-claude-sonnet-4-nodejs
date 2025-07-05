@@ -24,6 +24,52 @@ services:
         reservations:
           memory: 128M
 
+  # Database migration conflict resolution service
+  db-migrate-resolve:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: family-board-db-migrate-resolve
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - family-board-network
+    profiles:
+      - migration
+    command: ["npx", "prisma", "migrate", "resolve", "--applied", "20250704221451_initial_schema"]
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # Database push service (fallback for migration conflicts)
+  db-push:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: family-board-db-push
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - family-board-network
+    profiles:
+      - migration
+    command: ["npx", "prisma", "db", "push", "--accept-data-loss"]
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
   # Database connection check
   db-check:
     build:

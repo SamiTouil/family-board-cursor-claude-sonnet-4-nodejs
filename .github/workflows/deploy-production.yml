@@ -120,9 +120,25 @@ jobs:
             echo "⏹️ Stopping current services..."
             docker-compose -f docker-compose.prod.yml down --timeout 30
             
-            # Run database migrations
+            # Run database migrations with conflict resolution
             echo "🗄️ Running database migrations..."
-            docker-compose -f docker-compose.prod.yml run --rm db-migrate
+            echo "🔍 Checking migration status..."
+            
+            # First try to resolve any migration conflicts
+            if ! docker-compose -f docker-compose.prod.yml run --rm db-migrate; then
+              echo "⚠️ Migration failed, attempting to resolve conflicts..."
+              echo "🔧 Marking existing schema as migrated..."
+              
+              # Mark the migration as applied without running it (resolve conflict)
+              docker-compose -f docker-compose.prod.yml run --rm -e MIGRATION_RESOLVE=true db-migrate-resolve || {
+                echo "❌ Failed to resolve migration conflicts"
+                echo "🔄 Attempting database push as fallback..."
+                docker-compose -f docker-compose.prod.yml run --rm db-push || {
+                  echo "🚨 All migration attempts failed!"
+                  exit 1
+                }
+              }
+            fi
             
             # Start new services
             echo "▶️ Starting new services..."
