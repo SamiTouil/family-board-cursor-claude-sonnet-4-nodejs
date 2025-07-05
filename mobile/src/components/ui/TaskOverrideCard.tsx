@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Button } from './Button';
 import type { ResolvedTask } from '../../types';
+import { UserAvatar } from './UserAvatar';
 
 interface TaskOverrideCardProps {
   task: ResolvedTask;
@@ -63,12 +64,12 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
         
         {task.member && (
           <View style={styles.taskMember}>
-            <View style={[styles.avatar, compact && styles.avatarCompact]}>
-              <Text style={[styles.avatarText, compact && styles.avatarTextCompact]}>
-                {task.member.firstName.charAt(0).toUpperCase()}
-                {task.member.lastName.charAt(0).toUpperCase()}
-              </Text>
-            </View>
+            <UserAvatar
+              firstName={task.member.firstName}
+              lastName={task.member.lastName}
+              avatarUrl={task.member.avatarUrl}
+              size={compact ? "extra-small" : "small"}
+            />
           </View>
         )}
       </View>
@@ -185,27 +186,6 @@ const styles = StyleSheet.create({
   },
   taskMember: {
     marginLeft: 12,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#6366f1',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarCompact: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-  },
-  avatarText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  avatarTextCompact: {
-    fontSize: 12,
   },
   taskDescription: {
     fontSize: 14,
