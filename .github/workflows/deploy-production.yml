@@ -1,87 +1,79 @@
 name: Continuous Deployment to Production
 
 on:
-  push:
-    branches: [main]  # Triggers when PR is merged to main
+  workflow_run:
+    workflows: ["Build & Test Pipeline"]
+    types:
+      - completed
+    branches: [main]
 
 env:
   NODE_VERSION: '18'
 
 jobs:
-  # Run all tests first (your existing CI)
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install backend dependencies
-        run: |
-          cd backend
-          npm install
-
-      - name: Generate Prisma client
-        run: |
-          cd backend
-          npx prisma generate
-
-      - name: Install frontend dependencies
-        run: |
-          cd frontend
-          npm install
-
-      # Skip backend tests temporarily as they require DATABASE_URL
-      # - name: Run backend tests
-      #   run: |
-      #     cd backend
-      #     npm test
-
-      - name: Run frontend tests
-        run: |
-          cd frontend
-          npm test
-
-      - name: Run linting
-        run: |
-          cd backend && npm run lint
-          cd ../frontend && npm run lint
-
-      - name: Build applications
-        run: |
-          cd backend && npm run build
-          cd ../frontend && npm run build
-
-  # Deploy to production (only if tests pass)
+  # Deploy to production (only if CI workflow completed successfully)
   deploy:
     name: Deploy to Production
-    needs: test
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.PROD_EC2_HOST }}
-          username: ${{ secrets.PROD_EC2_USER }}
-          key: ${{ secrets.PROD_EC2_SSH_KEY }}
-          port: ${{ secrets.PROD_EC2_PORT || 22 }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          port: ${{ secrets.EC2_PORT }}
           script: |
             set -e  # Exit on any error
             
             echo "🚀 Starting deployment..."
             
             # Navigate to application directory
-            cd /home/ubuntu/family-board
+            cd /home/${{ secrets.EC2_USER }}/family-board
+            
+            # Configure swap space if not already present (for memory-constrained instances)
+            echo "💾 Ensuring swap space is configured..."
+            SWAP_SIZE="2G"
+            SWAP_FILE="/swapfile"
+            
+            if ! swapon --show | grep -q "$SWAP_FILE"; then
+              echo "🔧 Creating ${SWAP_SIZE} swap file..."
+              sudo fallocate -l $SWAP_SIZE $SWAP_FILE
+              sudo chmod 600 $SWAP_FILE
+              sudo mkswap $SWAP_FILE
+              sudo swapon $SWAP_FILE
+              
+              # Make swap permanent
+              if ! grep -q "$SWAP_FILE" /etc/fstab; then
+                echo "$SWAP_FILE none swap sw 0 0" | sudo tee -a /etc/fstab
+              fi
+              echo "✅ Swap space configured successfully!"
+            else
+              echo "✅ Swap space already configured"
+            fi
+            
+            # Display memory status for monitoring
+            echo "📊 Current memory status:"
+            free -h
+            
+            # Check disk space and clean up if needed
+            echo "💽 Checking disk space..."
+            df -h
+            
+            # Clean up Docker aggressively if disk usage is high (>80%)
+            DISK_USAGE=$(df / | tail -1 | awk '{print $5}' | sed 's/%//')
+            if [ "$DISK_USAGE" -gt 80 ]; then
+              echo "⚠️  High disk usage detected (${DISK_USAGE}%), cleaning up Docker..."
+              docker system prune -af --volumes || true
+              echo "✅ Docker cleanup completed"
+              df -h
+            else
+              echo "✅ Disk space is sufficient (${DISK_USAGE}% used)"
+              # Light cleanup to free some space
+              docker system prune -f || true
+            fi
             
             # Pull latest changes
             echo "📥 Pulling latest code..."
@@ -93,9 +85,16 @@ jobs:
             timestamp=$(date +%Y%m%d_%H%M%S)
             docker-compose -f docker-compose.prod.yml logs > logs_backup_$timestamp.log 2>&1 || true
             
-            # Build new images
-            echo "🔨 Building new images..."
-            docker-compose -f docker-compose.prod.yml build --no-cache
+            # Build new images sequentially to avoid memory issues
+            echo "🔨 Building new images sequentially..."
+            echo "📦 Building backend..."
+            docker-compose -f docker-compose.prod.yml build --no-cache backend
+            
+            echo "📦 Building frontend..."
+            docker-compose -f docker-compose.prod.yml build --no-cache frontend
+            
+            echo "📦 Building remaining services..."
+            docker-compose -f docker-compose.prod.yml build --no-cache nginx
             
             # Stop current services gracefully
             echo "⏹️ Stopping current services..."
@@ -138,6 +137,10 @@ jobs:
             # Cleanup old images
             echo "🧹 Cleaning up old images..."
             docker image prune -f
+            
+            # Final disk space check
+            echo "💽 Final disk space status:"
+            df -h
             
             echo "🎉 Deployment completed successfully!"
 
