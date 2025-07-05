@@ -213,7 +213,7 @@ export const ShiftIndicator: React.FC = () => {
   if (!shiftInfo) {
     return (
       <View style={styles.container}>
-        <Text style={styles.statusText}>No shifts scheduled</Text>
+        <Text style={styles.singleLineText}>No shifts scheduled</Text>
       </View>
     );
   }
@@ -221,19 +221,19 @@ export const ShiftIndicator: React.FC = () => {
   return (
     <View style={styles.container}>
       {shiftInfo.type === 'current' ? (
-        <View style={styles.content}>
-          <Text style={[styles.statusText, styles.currentShift]}>Shift ends</Text>
+        <Text style={styles.singleLineText}>
+          <Text style={[styles.statusText, styles.currentShift]}>Shift ends </Text>
           <Text style={styles.timeText}>
             {formatTimeWithDate(shiftInfo.endTime!)} ({shiftInfo.timeRemaining} left)
           </Text>
-        </View>
+        </Text>
       ) : (
-        <View style={styles.content}>
-          <Text style={[styles.statusText, styles.nextShift]}>Next shift</Text>
+        <Text style={styles.singleLineText}>
+          <Text style={[styles.statusText, styles.nextShift]}>Next shift </Text>
           <Text style={styles.timeText}>
             {formatTimeWithDate(shiftInfo.startTime!)} (in {shiftInfo.timeUntilStart})
           </Text>
-        </View>
+        </Text>
       )}
     </View>
   );
@@ -241,17 +241,19 @@ export const ShiftIndicator: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    // Remove marginLeft since this is now positioned on the right
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  content: {
-    alignItems: 'flex-end', // Right-align the content
+  singleLineText: {
+    fontSize: 14,
+    color: '#6b7280',
+    fontWeight: '500',
   },
   statusText: {
     fontWeight: '600',
-    fontSize: 12,
+    fontSize: 14,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 2,
   },
   currentShift: {
     color: '#059669', // Green for current shift
