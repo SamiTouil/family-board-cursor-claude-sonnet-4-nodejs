@@ -262,11 +262,9 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     <View style={[styles.container, style]}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.titleSection}>
+        {/* Title Row with Template Info */}
+        <View style={styles.titleRow}>
           <Text style={styles.title}>Weekly Schedule</Text>
-          <Text style={styles.dateRange}>
-            {formatWeekRange(currentWeekStart)}
-          </Text>
           {weekSchedule?.baseTemplate && (
             <Text style={styles.templateInfo}>
               • {weekSchedule.baseTemplate.name}
@@ -277,29 +275,36 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
           )}
         </View>
         
-        <View style={styles.controls}>
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={() => navigateWeek('prev')}
-          >
-            <Text style={styles.navButtonText}>←</Text>
-          </TouchableOpacity>
+        {/* Date Range Row with Navigation Controls */}
+        <View style={styles.dateRow}>
+          <Text style={styles.dateRange}>
+            {formatWeekRange(currentWeekStart)}
+          </Text>
           
-          {!isCurrentWeek() && (
+          <View style={styles.controls}>
             <TouchableOpacity
-              style={[styles.navButton, styles.todayButton]}
-              onPress={goToCurrentWeek}
+              style={styles.navButton}
+              onPress={() => navigateWeek('prev')}
             >
-              <Text style={styles.todayButtonText}>Today</Text>
+              <Text style={styles.navButtonText}>←</Text>
             </TouchableOpacity>
-          )}
-          
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={() => navigateWeek('next')}
-          >
-            <Text style={styles.navButtonText}>→</Text>
-          </TouchableOpacity>
+            
+            {!isCurrentWeek() && (
+              <TouchableOpacity
+                style={[styles.navButton, styles.todayButton]}
+                onPress={goToCurrentWeek}
+              >
+                <Text style={styles.todayButtonText}>Today</Text>
+              </TouchableOpacity>
+            )}
+            
+            <TouchableOpacity
+              style={styles.navButton}
+              onPress={() => navigateWeek('next')}
+            >
+              <Text style={styles.navButtonText}>→</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -464,19 +469,16 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  titleSection: {
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 12,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1a202c',
-    marginBottom: 4,
-  },
-  dateRange: {
-    fontSize: 16,
-    color: '#6b7280',
-    marginBottom: 4,
+    marginRight: 8,
   },
   templateInfo: {
     fontSize: 14,
@@ -486,11 +488,19 @@ const styles = StyleSheet.create({
     color: '#fbbf24',
     fontWeight: '600',
   },
+  dateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateRange: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
   controls: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
   },
   navButton: {
     backgroundColor: '#f3f4f6',
