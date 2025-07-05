@@ -111,7 +111,7 @@ jobs:
             docker-compose -f docker-compose.prod.yml build --no-cache backend
             
             echo "📦 Building frontend..."
-            docker-compose -f docker-compose.prod.yml build --no-cache frontend
+            docker-compose -f docker-compose.prod.yml build --no-cache --build-arg VITE_API_URL="$VITE_API_URL" frontend
             
             echo "📦 Building remaining services..."
             docker-compose -f docker-compose.prod.yml build --no-cache nginx
