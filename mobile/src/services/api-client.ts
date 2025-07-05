@@ -1,8 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// API base URL for production
-const API_BASE_URL = 'https://mabt.eu/api';
+// API base URL for local development
+const API_BASE_URL = 'http://localhost:3001/api';
 
 // Create axios instance
 const apiClient = axios.create({
