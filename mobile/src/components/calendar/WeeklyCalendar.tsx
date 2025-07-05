@@ -77,8 +77,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     try {
       const response = await weekScheduleApi.getWeekSchedule(currentFamily.id, weekStartDate);
       console.log('WeeklyCalendar: API response:', response.data);
-      // Backend returns { success: true, data: ResolvedWeekSchedule }
-      const scheduleData = response.data.data || response.data;
+      // Backend returns the ResolvedWeekSchedule directly (not wrapped in { success: true, data: ... })
+      const scheduleData = response.data;
       console.log('WeeklyCalendar: Extracted schedule data:', scheduleData);
       console.log('WeeklyCalendar: Schedule data type:', typeof scheduleData);
       console.log('WeeklyCalendar: Schedule data keys:', Object.keys(scheduleData || {}));
@@ -107,8 +107,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     
     try {
       const response = await taskApi.getFamilyTasks(currentFamily.id);
-      setAvailableTasks(response.data?.data || []);
+      console.log('WeeklyCalendar: Tasks API response:', response.data);
+      // Backend returns { success: true, data: [tasks array] }
+      // So we need response.data.data to get the actual tasks array
+      const tasksData = response.data?.data || response.data;
+      console.log('WeeklyCalendar: Extracted tasks data:', tasksData);
+      setAvailableTasks(Array.isArray(tasksData) ? tasksData : []);
     } catch (error) {
+      console.error('WeeklyCalendar: Failed to load tasks:', error);
       setAvailableTasks([]);
     }
   };
