@@ -163,7 +163,22 @@ services:
       retries: 3
       start_period: 30s
 
-  # Nginx reverse proxy
+  # Certbot for SSL certificate management
+  certbot:
+    image: certbot/certbot:latest
+    container_name: family-board-certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - web-root:/var/www/certbot
+    networks:
+      - family-board-network
+    # This will be run manually for initial setup and renewal
+    profiles:
+      - ssl-setup
+    command: certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos --no-eff-email -d mabt.eu -d www.mabt.eu
+
+  # Nginx reverse proxy with SSL support
   nginx:
     image: nginx:alpine
     container_name: family-board-nginx
@@ -172,7 +187,9 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/ssl/certs:ro
+      - certbot-etc:/etc/letsencrypt:ro
+      - certbot-var:/var/lib/letsencrypt:ro
+      - web-root:/var/www/certbot:ro
     depends_on:
       - frontend
       - backend
@@ -196,6 +213,14 @@ services:
 networks:
   family-board-network:
     driver: bridge
+
+volumes:
+  certbot-etc:
+    driver: local
+  certbot-var:
+    driver: local
+  web-root:
+    driver: local
 
 # Docker system configuration for automatic cleanup
 x-docker-cleanup: &docker-cleanup
