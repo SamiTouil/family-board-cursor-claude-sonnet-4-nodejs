@@ -47,7 +47,7 @@ services:
         reservations:
           memory: 128M
 
-  # Database push service (fallback for migration conflicts)
+  # Database push service (safe fallback for migration conflicts)
   db-push:
     build:
       context: ./backend
@@ -61,7 +61,7 @@ services:
       - family-board-network
     profiles:
       - migration
-    command: ["npx", "prisma", "db", "push", "--accept-data-loss"]
+    command: ["npx", "prisma", "db", "push"]
     # Resource limits
     deploy:
       resources:
