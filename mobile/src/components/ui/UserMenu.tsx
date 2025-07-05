@@ -10,30 +10,31 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
+import { NotificationService } from '../../services/NotificationService';
 import { UserAvatar } from './UserAvatar';
-
-interface Notification {
-  id: string;
-  type: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-}
 
 interface UserMenuProps {
   visible: boolean;
   onClose: () => void;
   onOpenSettings: () => void;
+  onOpenNotifications?: () => void;
 }
 
 export const UserMenu: React.FC<UserMenuProps> = ({
   visible,
   onClose,
   onOpenSettings,
+  onOpenNotifications,
 }) => {
   const { user, logout } = useAuth();
-  const [notifications] = useState<Notification[]>([]); // Placeholder for now
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const {
+    notifications,
+    unreadCount,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    clearNotifications,
+  } = useNotifications();
 
   const handleLogout = () => {
     Alert.alert(
@@ -62,40 +63,34 @@ export const UserMenu: React.FC<UserMenuProps> = ({
     onOpenSettings();
   };
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'join-request-created':
-        return '👥';
-      case 'join-request-approved':
-        return '✅';
-      case 'join-request-rejected':
-        return '❌';
-      case 'member-joined':
-        return '🎉';
-      case 'family-updated':
-        return '📝';
-      case 'member-role-changed':
-        return '🔄';
-      case 'task-assigned':
-        return '📋';
-      case 'task-unassigned':
-        return '📋';
-      default:
-        return '📢';
+  const handleNotificationPress = (notificationId: string) => {
+    markNotificationAsRead(notificationId);
+  };
+
+  const handleViewAllNotifications = () => {
+    onClose();
+    if (onOpenNotifications) {
+      onOpenNotifications();
     }
   };
 
-  const formatTimestamp = (timestamp: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
+  const handleMarkAllAsRead = () => {
+    if (unreadCount > 0) {
+      markAllNotificationsAsRead();
+    }
+  };
 
-    if (minutes < 1) return 'just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
+  const handleClearAllNotifications = () => {
+    if (notifications.length > 0) {
+      Alert.alert(
+        'Clear All Notifications',
+        'Are you sure you want to clear all notifications?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Clear All', style: 'destructive', onPress: clearNotifications },
+        ]
+      );
+    }
   };
 
   if (!user) {
@@ -140,14 +135,38 @@ export const UserMenu: React.FC<UserMenuProps> = ({
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Notifications</Text>
-              {unreadCount > 0 && (
-                <View style={styles.notificationBadge}>
-                  <Text style={styles.notificationBadgeText}>
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </Text>
-                </View>
-              )}
+              <View style={styles.notificationActions}>
+                {unreadCount > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationBadgeText}>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
+
+            {/* Notification Actions */}
+            {notifications.length > 0 && (
+              <View style={styles.notificationActionsRow}>
+                {unreadCount > 0 && (
+                  <TouchableOpacity
+                    style={styles.notificationActionButton}
+                    onPress={handleMarkAllAsRead}
+                  >
+                    <Text style={styles.notificationActionButtonText}>Mark All Read</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={[styles.notificationActionButton, styles.notificationActionButtonSecondary]}
+                  onPress={handleClearAllNotifications}
+                >
+                  <Text style={[styles.notificationActionButtonText, styles.notificationActionButtonTextSecondary]}>
+                    Clear All
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
             <View style={styles.notificationsList}>
               {notifications.length === 0 ? (
@@ -156,30 +175,48 @@ export const UserMenu: React.FC<UserMenuProps> = ({
                   <Text style={styles.noNotificationsText}>No notifications</Text>
                 </View>
               ) : (
-                notifications.slice(0, 5).map((notification) => (
-                  <TouchableOpacity
-                    key={notification.id}
-                    style={[
-                      styles.notificationItem,
-                      !notification.read && styles.notificationItemUnread,
-                    ]}
-                  >
-                    <Text style={styles.notificationIcon}>
-                      {getNotificationIcon(notification.type)}
-                    </Text>
-                    <View style={styles.notificationContent}>
-                      <Text style={styles.notificationMessage}>
-                        {notification.message}
+                <>
+                  {notifications.slice(0, 5).map((notification) => {
+                    const config = NotificationService.getNotificationConfig(notification.type);
+                    const formattedTime = NotificationService.formatTimestamp(notification.timestamp);
+                    
+                    return (
+                      <TouchableOpacity
+                        key={notification.id}
+                        style={[
+                          styles.notificationItem,
+                          !notification.read && styles.notificationItemUnread,
+                        ]}
+                        onPress={() => handleNotificationPress(notification.id)}
+                      >
+                        <Text style={styles.notificationIcon}>
+                          {config.icon}
+                        </Text>
+                        <View style={styles.notificationContent}>
+                          <Text style={styles.notificationMessage}>
+                            {notification.message}
+                          </Text>
+                          <Text style={styles.notificationTime}>
+                            {formattedTime}
+                          </Text>
+                        </View>
+                        {!notification.read && (
+                          <View style={styles.unreadDot} />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                  {notifications.length > 5 && (
+                    <TouchableOpacity
+                      style={styles.viewAllNotifications}
+                      onPress={handleViewAllNotifications}
+                    >
+                      <Text style={styles.viewAllNotificationsText}>
+                        View all {notifications.length} notifications
                       </Text>
-                      <Text style={styles.notificationTime}>
-                        {formatTimestamp(notification.timestamp)}
-                      </Text>
-                    </View>
-                    {!notification.read && (
-                      <View style={styles.unreadDot} />
-                    )}
-                  </TouchableOpacity>
-                ))
+                    </TouchableOpacity>
+                  )}
+                </>
               )}
             </View>
           </View>
@@ -187,6 +224,23 @@ export const UserMenu: React.FC<UserMenuProps> = ({
           {/* Actions Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Account</Text>
+            
+            {onOpenNotifications && (
+              <TouchableOpacity style={styles.actionItem} onPress={handleViewAllNotifications}>
+                <View style={styles.actionIcon}>
+                  <Text style={styles.actionIconText}>🔔</Text>
+                </View>
+                <Text style={styles.actionText}>All Notifications</Text>
+                {unreadCount > 0 && (
+                  <View style={styles.actionBadge}>
+                    <Text style={styles.actionBadgeText}>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Text>
+                  </View>
+                )}
+                <Text style={styles.actionChevron}>›</Text>
+              </TouchableOpacity>
+            )}
             
             <TouchableOpacity style={styles.actionItem} onPress={handleSettings}>
               <View style={styles.actionIcon}>
@@ -389,5 +443,60 @@ const styles = StyleSheet.create({
   actionChevron: {
     fontSize: 18,
     color: '#9ca3af',
+  },
+  notificationActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  notificationActionsRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    gap: 12,
+  },
+  notificationActionButton: {
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    flex: 1,
+    alignItems: 'center',
+  },
+  notificationActionButtonSecondary: {
+    backgroundColor: '#fef2f2',
+  },
+  notificationActionButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  notificationActionButtonTextSecondary: {
+    color: '#dc2626',
+  },
+  viewAllNotifications: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+  },
+  viewAllNotificationsText: {
+    fontSize: 14,
+    color: '#3b82f6',
+    fontWeight: '600',
+  },
+  actionBadge: {
+    backgroundColor: '#ef4444',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    minWidth: 20,
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  actionBadgeText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '600',
   },
 }); 
