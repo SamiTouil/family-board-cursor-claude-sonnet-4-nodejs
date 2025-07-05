@@ -278,24 +278,26 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     <View style={[styles.container, style]}>
       {/* Header */}
       <View style={styles.header}>
-        {/* Title Row with Template Info */}
-        <View style={styles.titleRow}>
-          <View style={styles.titleLeft}>
-            {weekSchedule?.baseTemplate ? (
-              <Text style={styles.templateInfo}>
-                {weekSchedule.baseTemplate.name}
-                {weekSchedule.hasOverrides && (
-                  <Text style={styles.modifiedIndicator}> • modified</Text>
-                )}
-              </Text>
-            ) : (
-              <Text style={styles.templateInfo}>Schedule</Text>
-            )}
-          </View>
+        {/* Line 1: Template Name + Modified Indicator */}
+        <View style={styles.templateRow}>
+          {weekSchedule?.baseTemplate ? (
+            <Text style={styles.templateInfo}>
+              {weekSchedule.baseTemplate.name}
+              {weekSchedule.hasOverrides && (
+                <Text style={styles.modifiedIndicator}> • modified</Text>
+              )}
+            </Text>
+          ) : (
+            <Text style={styles.templateInfo}>Schedule</Text>
+          )}
+        </View>
+        
+        {/* Line 2: Shift Indicator */}
+        <View style={styles.shiftRow}>
           <ShiftIndicator />
         </View>
         
-        {/* Date Range Row with Navigation Controls */}
+        {/* Line 3: Date Range + Navigation Controls */}
         <View style={styles.dateRow}>
           <View style={styles.dateAndControls}>
             <Text style={styles.dateRange}>
@@ -490,16 +492,17 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  titleRow: {
+  templateRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  titleLeft: {
+  shiftRow: {
     flexDirection: 'row',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    flex: 1,
+    marginBottom: 8,
   },
   templateInfo: {
     fontSize: 20,
@@ -514,6 +517,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
+    marginBottom: 0,
   },
   dateAndControls: {
     flexDirection: 'row',
