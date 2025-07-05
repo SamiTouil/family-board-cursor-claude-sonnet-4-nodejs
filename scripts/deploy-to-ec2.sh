@@ -152,9 +152,69 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable family-board.service
 
-# Clean up Docker to free memory
-echo "🧹 Cleaning up Docker to free memory..."
-docker system prune -f
+# Check disk space and clean up if needed
+echo "💽 Checking disk space..."
+df -h
+
+# Clean up Docker aggressively if disk usage is high (>80%)
+DISK_USAGE=$(df / | tail -1 | awk '{print $5}' | sed 's/%//')
+if [ "$DISK_USAGE" -gt 80 ]; then
+  echo "⚠️  High disk usage detected (${DISK_USAGE}%), running comprehensive cleanup..."
+  
+  # Run system cleanup script if available
+  if [ -f "./scripts/system-cleanup.sh" ]; then
+    chmod +x ./scripts/system-cleanup.sh
+    ./scripts/system-cleanup.sh
+  else
+    # Fallback aggressive cleanup
+    echo "🐳 Running aggressive Docker cleanup..."
+    docker system prune -af --volumes || true
+    
+    echo "📦 Cleaning APT cache..."
+    sudo apt-get clean || true
+    sudo apt-get autoremove -y || true
+    
+    echo "📋 Cleaning system logs..."
+    sudo journalctl --vacuum-time=3d || true
+    
+    echo "📱 Cleaning snap packages..."
+    set +e
+    LANG=en_US.UTF-8 snap list --all | awk '/disabled/{print $1, $3}' | while read snapname revision; do
+        sudo snap remove "$snapname" --revision="$revision" 2>/dev/null || true
+    done
+    set -e
+  fi
+  
+  echo "✅ Comprehensive cleanup completed"
+  df -h
+else
+  echo "✅ Disk space is sufficient (${DISK_USAGE}% used)"
+  # Light cleanup to free some space
+  docker system prune -f || true
+fi
+
+# Configure Docker for space efficiency if not already done
+if [ ! -f "/etc/docker/daemon.json" ]; then
+  echo "⚙️  Configuring Docker for space efficiency..."
+  sudo mkdir -p /etc/docker
+  cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+    "log-driver": "json-file",
+    "log-opts": {
+        "max-size": "10m",
+        "max-file": "3"
+    },
+    "storage-driver": "overlay2",
+    "storage-opts": [
+        "overlay2.override_kernel_check=true"
+    ],
+    "max-concurrent-downloads": 3,
+    "max-concurrent-uploads": 3
+}
+EOF
+  sudo systemctl restart docker || true
+  echo "✅ Docker configuration optimized"
+fi
 
 # Build services sequentially to avoid memory issues
 echo "🏗️  Building services sequentially..."

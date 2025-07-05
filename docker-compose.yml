@@ -30,6 +30,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: development
     container_name: family-board-backend
     ports:
       - "${BACKEND_PORT:-3001}:3001"
