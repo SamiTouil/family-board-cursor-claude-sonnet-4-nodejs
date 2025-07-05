@@ -86,4 +86,26 @@ export const familyApi = {
   async createInvite(familyId: string, data: any) {
     return await apiClient.post(`/families/${familyId}/invites`, data);
   }
+};
+
+// Week Schedule API
+export const weekScheduleApi = {
+  async getWeekSchedule(familyId: string, weekStartDate: string) {
+    return await apiClient.get(`/families/${familyId}/week-schedule/${weekStartDate}`);
+  },
+  
+  async applyWeekOverride(familyId: string, data: any) {
+    return await apiClient.post(`/families/${familyId}/week-overrides`, data);
+  },
+  
+  async removeWeekOverride(familyId: string, weekStartDate: string) {
+    return await apiClient.delete(`/families/${familyId}/week-overrides/${weekStartDate}`);
+  }
+};
+
+// Task API
+export const taskApi = {
+  async getFamilyTasks(familyId: string) {
+    return await apiClient.get(`/families/${familyId}/tasks`);
+  }
 }; 
