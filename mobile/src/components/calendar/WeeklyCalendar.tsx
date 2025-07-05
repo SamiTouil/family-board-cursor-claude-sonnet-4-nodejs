@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { useFamily } from '../../contexts/FamilyContext';
 import { weekScheduleApi, taskApi, familyApi } from '../../services/api';
-import { LoadingSpinner, TaskOverrideCard, Button } from '../ui';
+import { LoadingSpinner, TaskOverrideCard, Button, UserAvatar } from '../ui';
+import { ShiftIndicator } from '../ui/ShiftIndicator';
 import type { ResolvedWeekSchedule, ResolvedTask, ResolvedDay, Task, User } from '../../types';
 
 interface WeeklyCalendarProps {
@@ -227,6 +228,21 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     return currentWeekStart === currentMonday;
   };
 
+  const handleTaskPress = (task: ResolvedTask, date: string) => {
+    if (!isAdmin) return;
+    
+    // Show action menu for task (placeholder for now - will show alert)
+    Alert.alert(
+      'Task Actions',
+      `What would you like to do with "${task.task.name}"?`,
+      [
+        { text: 'Edit', onPress: () => handleTaskOverride('REASSIGN', task, date) },
+        { text: 'Remove', onPress: () => handleTaskOverride('REMOVE', task, date), style: 'destructive' },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
+  };
+
   const handleTaskOverride = (action: 'ADD' | 'REMOVE' | 'REASSIGN', task?: ResolvedTask, date?: string) => {
     // For now, show a simple alert - this would be replaced with a modal in full implementation
     Alert.alert(
@@ -264,46 +280,52 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
       <View style={styles.header}>
         {/* Title Row with Template Info */}
         <View style={styles.titleRow}>
-          <Text style={styles.title}>Weekly Schedule</Text>
-          {weekSchedule?.baseTemplate && (
-            <Text style={styles.templateInfo}>
-              • {weekSchedule.baseTemplate.name}
-              {weekSchedule.hasOverrides && (
-                <Text style={styles.modifiedIndicator}> • modified</Text>
-              )}
-            </Text>
-          )}
+          <View style={styles.titleLeft}>
+            {weekSchedule?.baseTemplate ? (
+              <Text style={styles.templateInfo}>
+                {weekSchedule.baseTemplate.name}
+                {weekSchedule.hasOverrides && (
+                  <Text style={styles.modifiedIndicator}> • modified</Text>
+                )}
+              </Text>
+            ) : (
+              <Text style={styles.templateInfo}>Schedule</Text>
+            )}
+          </View>
+          <ShiftIndicator />
         </View>
         
         {/* Date Range Row with Navigation Controls */}
         <View style={styles.dateRow}>
-          <Text style={styles.dateRange}>
-            {formatWeekRange(currentWeekStart)}
-          </Text>
-          
-          <View style={styles.controls}>
-            <TouchableOpacity
-              style={styles.navButton}
-              onPress={() => navigateWeek('prev')}
-            >
-              <Text style={styles.navButtonText}>←</Text>
-            </TouchableOpacity>
+          <View style={styles.dateAndControls}>
+            <Text style={styles.dateRange}>
+              {formatWeekRange(currentWeekStart)}
+            </Text>
             
-            {!isCurrentWeek() && (
+            <View style={styles.controls}>
               <TouchableOpacity
-                style={[styles.navButton, styles.todayButton]}
-                onPress={goToCurrentWeek}
+                style={styles.navButton}
+                onPress={() => navigateWeek('prev')}
               >
-                <Text style={styles.todayButtonText}>Today</Text>
+                <Text style={styles.navButtonText}>←</Text>
               </TouchableOpacity>
-            )}
-            
-            <TouchableOpacity
-              style={styles.navButton}
-              onPress={() => navigateWeek('next')}
-            >
-              <Text style={styles.navButtonText}>→</Text>
-            </TouchableOpacity>
+              
+              {!isCurrentWeek() && (
+                <TouchableOpacity
+                  style={[styles.navButton, styles.todayButton]}
+                  onPress={goToCurrentWeek}
+                >
+                  <Text style={styles.todayButtonText}>Today</Text>
+                </TouchableOpacity>
+              )}
+              
+              <TouchableOpacity
+                style={styles.navButton}
+                onPress={() => navigateWeek('next')}
+              >
+                <Text style={styles.navButtonText}>→</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -414,8 +436,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
                             task={task}
                             taskIndex={taskIndex}
                             isAdmin={isAdmin}
-                            onRemove={(task) => handleTaskOverride('REMOVE', task, day.date)}
-                            onReassign={(task) => handleTaskOverride('REASSIGN', task, day.date)}
+                            onPress={(task) => handleTaskPress(task, day.date)}
                             formatTime={formatTime}
                             formatDuration={formatDuration}
                             showDescription={false}
@@ -471,18 +492,19 @@ const styles = StyleSheet.create({
   },
   titleRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1a202c',
-    marginRight: 8,
+  titleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   templateInfo: {
-    fontSize: 14,
-    color: '#6b7280',
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1f2937',
   },
   modifiedIndicator: {
     color: '#fbbf24',
@@ -490,8 +512,13 @@ const styles = StyleSheet.create({
   },
   dateRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
+  },
+  dateAndControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   dateRange: {
     fontSize: 16,

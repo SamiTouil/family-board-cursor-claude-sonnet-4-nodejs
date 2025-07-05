@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Button } from './Button';
 import type { ResolvedTask } from '../../types';
 import { UserAvatar } from './UserAvatar';
 
@@ -8,9 +7,7 @@ interface TaskOverrideCardProps {
   task: ResolvedTask;
   taskIndex: number;
   isAdmin: boolean;
-  onRemove?: (task: ResolvedTask) => void;
-  onReassign?: (task: ResolvedTask) => void;
-  onEdit?: (task: ResolvedTask) => void;
+  onPress?: (task: ResolvedTask) => void;
   formatTime: (time: string) => string;
   formatDuration: (minutes: number) => string;
   showDescription?: boolean;
@@ -21,9 +18,7 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
   task,
   taskIndex,
   isAdmin,
-  onRemove,
-  onReassign,
-  onEdit,
+  onPress,
   formatTime,
   formatDuration,
   showDescription = true,
@@ -33,7 +28,7 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
   const duration = task.overrideDuration || task.task.defaultDuration;
 
   return (
-    <View 
+    <TouchableOpacity 
       style={[
         styles.taskCard, 
         compact && styles.compact,
@@ -42,6 +37,8 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
           backgroundColor: `${task.task.color}10`
         }
       ]}
+      onPress={() => onPress?.(task)}
+      activeOpacity={0.7}
     >
       <View style={styles.taskMain}>
         <View style={styles.taskInfo}>
@@ -62,16 +59,24 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
           </View>
         </View>
         
-        {task.member && (
-          <View style={styles.taskMember}>
-            <UserAvatar
-              firstName={task.member.firstName}
-              lastName={task.member.lastName}
-              avatarUrl={task.member.avatarUrl}
-              size={compact ? "extra-small" : "small"}
-            />
-          </View>
-        )}
+        <View style={styles.taskRight}>
+          {task.member && (
+            <View style={styles.taskMember}>
+              <UserAvatar
+                firstName={task.member.firstName}
+                lastName={task.member.lastName}
+                avatarUrl={task.member.avatarUrl}
+                size={compact ? "extra-small" : "small"}
+              />
+            </View>
+          )}
+          
+          {task.source === 'override' && (
+            <View style={styles.modifiedBadge}>
+              <Text style={styles.modifiedText}>Modified</Text>
+            </View>
+          )}
+        </View>
       </View>
       
       {showDescription && task.task.description && (
@@ -79,41 +84,7 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
           {task.task.description}
         </Text>
       )}
-      
-      {task.source === 'override' && (
-        <View style={styles.modifiedBadge}>
-          <Text style={styles.modifiedText}>Modified</Text>
-        </View>
-      )}
-      
-      {/* Task Action Buttons */}
-      {isAdmin && (
-        <View style={styles.taskActions}>
-          {onEdit && (
-            <TouchableOpacity
-              style={[styles.actionButton, styles.editButton]}
-              onPress={() => onEdit(task)}
-            >
-              <Text style={styles.actionButtonText}>✏️</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={[styles.actionButton, styles.removeButton]}
-            onPress={() => onRemove?.(task)}
-          >
-            <Text style={styles.actionButtonText}>×</Text>
-          </TouchableOpacity>
-          {onReassign && (
-            <TouchableOpacity
-              style={[styles.actionButton, styles.reassignButton]}
-              onPress={() => onReassign?.(task)}
-            >
-              <Text style={styles.actionButtonText}>↻</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -185,7 +156,7 @@ const styles = StyleSheet.create({
     color: '#374151',
   },
   taskMember: {
-    marginLeft: 12,
+    // No longer needs marginLeft since it's in its own container
   },
   taskDescription: {
     fontSize: 14,
@@ -194,9 +165,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   modifiedBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
     backgroundColor: '#fbbf24',
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -207,31 +175,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#92400e',
   },
-  taskActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 12,
-    gap: 8,
-  },
-  actionButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
+  taskRight: {
+    flexDirection: 'column',
     alignItems: 'center',
-  },
-  editButton: {
-    backgroundColor: '#10b981',
-  },
-  removeButton: {
-    backgroundColor: '#ef4444',
-  },
-  reassignButton: {
-    backgroundColor: '#3b82f6',
-  },
-  actionButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+    gap: 4,
+    marginLeft: 12,
   },
 }); 
