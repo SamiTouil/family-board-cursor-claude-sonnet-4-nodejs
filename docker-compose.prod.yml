@@ -49,6 +49,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: production
     container_name: family-board-backend
     ports:
       - "3001:3001"

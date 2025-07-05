@@ -1,16 +1,37 @@
 # Multi-stage build for smaller final image
-FROM node:18-alpine AS builder
+FROM node:18-alpine AS base
 
 # Install build dependencies
-RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl curl
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
+# Development stage
+FROM base AS development
+
+# Install all dependencies (including dev)
+RUN npm install && npm cache clean --force
+
+# Copy source code
+COPY . .
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Expose port
+EXPOSE 3001
+
+# Start in development mode
+CMD ["npm", "run", "dev"]
+
+# Builder stage for production
+FROM base AS builder
+
 # Install dependencies (including dev dependencies for build)
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
 # Copy source code
 COPY . .
