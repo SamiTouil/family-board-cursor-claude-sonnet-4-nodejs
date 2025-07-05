@@ -49,9 +49,26 @@ else
     echo "✅ Swap space already configured"
 fi
 
-# Display memory status
+# Display memory status for monitoring
 echo "📊 Current memory status:"
 free -h
+
+# Check disk space and clean up if needed
+echo "💽 Checking disk space..."
+df -h
+
+# Clean up Docker aggressively if disk usage is high (>80%)
+DISK_USAGE=$(df / | tail -1 | awk '{print $5}' | sed 's/%//')
+if [ "$DISK_USAGE" -gt 80 ]; then
+  echo "⚠️  High disk usage detected (${DISK_USAGE}%), cleaning up Docker..."
+  docker system prune -af --volumes || true
+  echo "✅ Docker cleanup completed"
+  df -h
+else
+  echo "✅ Disk space is sufficient (${DISK_USAGE}% used)"
+  # Light cleanup to free some space
+  docker system prune -f || true
+fi
 
 # Install Docker if not present
 if ! command -v docker &> /dev/null; then
@@ -193,5 +210,13 @@ else
     echo "   docker-compose -f docker-compose.prod.yml logs"
     exit 1
 fi
+
+# Cleanup old images
+echo "🧹 Cleaning up old images..."
+docker image prune -f
+
+# Final disk space check
+echo "💽 Final disk space status:"
+df -h
 
 echo "🎉 Deployment completed successfully!" 
