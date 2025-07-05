@@ -150,3 +150,4 @@ npx act
 ---
 
 **Note**: This is a clone-and-go project. The setup script handles all initialization automatically. If you encounter issues in Cursor with Github CLI commands, please run this command : gh config set pager cat
+# Test auto-deployment fix
