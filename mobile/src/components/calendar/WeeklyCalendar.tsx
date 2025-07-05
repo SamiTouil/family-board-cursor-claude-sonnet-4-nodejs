@@ -27,6 +27,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [messageTimeout, setMessageTimeout] = useState<NodeJS.Timeout | null>(null);
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
   const [familyMembers, setFamilyMembers] = useState<User[]>([]);
 
@@ -41,6 +42,35 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   const daysToShow = isTablet ? 3 : 1;
 
   const isAdmin = currentFamily?.userRole === 'ADMIN';
+
+  // Helper function to set message with auto-dismiss
+  const setMessageWithAutoDismiss = (newMessage: { type: 'success' | 'error'; text: string } | null) => {
+    // Clear existing timeout
+    if (messageTimeout) {
+      clearTimeout(messageTimeout);
+      setMessageTimeout(null);
+    }
+
+    setMessage(newMessage);
+
+    // Set auto-dismiss for success messages (3 seconds) and error messages (5 seconds)
+    if (newMessage) {
+      const timeout = setTimeout(() => {
+        setMessage(null);
+        setMessageTimeout(null);
+      }, newMessage.type === 'success' ? 3000 : 5000);
+      setMessageTimeout(timeout);
+    }
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (messageTimeout) {
+        clearTimeout(messageTimeout);
+      }
+    };
+  }, [messageTimeout]);
 
   // Initialize with current week
   useEffect(() => {
@@ -255,7 +285,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     setSelectedTask(task);
     setTaskOverrideDate(date || '');
     setShowTaskOverrideModal(true);
-    setMessage(null);
+    setMessageWithAutoDismiss(null);
   };
 
   const handleCancelTaskOverride = () => {
@@ -278,10 +308,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
                         overrideData.action === 'REMOVE' ? 'removed' : 
                         overrideData.action === 'REASSIGN' ? 'reassigned' : 'modified';
       
-      setMessage({ type: 'success', text: `Task ${actionText} successfully` });
+      setMessageWithAutoDismiss({ type: 'success', text: `Task ${actionText} successfully` });
       loadWeekSchedule(currentWeekStart); // Reload to show changes
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to apply task override' });
+      setMessageWithAutoDismiss({ type: 'error', text: error.response?.data?.message || 'Failed to apply task override' });
     }
   };
 
