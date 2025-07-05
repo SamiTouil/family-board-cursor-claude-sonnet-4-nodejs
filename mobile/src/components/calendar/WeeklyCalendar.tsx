@@ -88,8 +88,16 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
           console.log(`WeeklyCalendar: Day ${index} (${day.date}):`, {
             date: day.date,
             tasksCount: day.tasks ? day.tasks.length : 0,
-            tasks: day.tasks
+            tasks: day.tasks,
+            tasksStringified: JSON.stringify(day.tasks, null, 2)
           });
+          
+          // Log each task individually if they exist
+          if (day.tasks && day.tasks.length > 0) {
+            day.tasks.forEach((task: any, taskIndex: number) => {
+              console.log(`WeeklyCalendar: Day ${index} Task ${taskIndex}:`, task);
+            });
+          }
         });
       }
       setWeekSchedule(scheduleData);

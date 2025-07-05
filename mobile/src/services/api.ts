@@ -110,6 +110,6 @@ export const weekScheduleApi = {
 // Task API
 export const taskApi = {
   async getFamilyTasks(familyId: string) {
-    return await apiClient.get(`/families/${familyId}/tasks`);
+    return await apiClient.get(`/tasks/family/${familyId}`);
   }
 }; 
