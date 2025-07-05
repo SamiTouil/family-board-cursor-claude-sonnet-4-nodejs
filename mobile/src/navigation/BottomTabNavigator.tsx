@@ -5,9 +5,11 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { FamilyScreen } from '../screens/FamilyScreen';
 import { TasksScreen } from '../screens/TasksScreen';
 import { RoutinesScreen } from '../screens/RoutinesScreen';
+import { NotificationScreen } from '../screens/NotificationScreen';
 import { HomeIcon, FamilyIcon, TasksIcon, RoutinesIcon } from '../components/ui/icons';
 import { UserAvatar, UserMenu, UserProfile } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotifications } from '../contexts/NotificationContext';
 
 const Tab = createBottomTabNavigator();
 
@@ -22,8 +24,10 @@ const UserTabScreen: React.FC = () => {
 
 export const BottomTabNavigator: React.FC = () => {
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
   const [isUserMenuVisible, setIsUserMenuVisible] = useState(false);
   const [isUserProfileVisible, setIsUserProfileVisible] = useState(false);
+  const [isNotificationScreenVisible, setIsNotificationScreenVisible] = useState(false);
 
   const handleUserMenuOpen = () => {
     setIsUserMenuVisible(true);
@@ -39,6 +43,14 @@ export const BottomTabNavigator: React.FC = () => {
 
   const handleUserProfileClose = () => {
     setIsUserProfileVisible(false);
+  };
+
+  const handleNotificationScreenOpen = () => {
+    setIsNotificationScreenVisible(true);
+  };
+
+  const handleNotificationScreenClose = () => {
+    setIsNotificationScreenVisible(false);
   };
 
   return (
@@ -67,16 +79,25 @@ export const BottomTabNavigator: React.FC = () => {
                 IconComponent = RoutinesIcon;
                 break;
               case 'User':
-                // Return user avatar for the user tab
+                // Return user avatar for the user tab with notification badge
                 return (
                   <View style={styles.tabIconContainer}>
                     {user && (
-                      <UserAvatar
-                        firstName={user.firstName}
-                        lastName={user.lastName}
-                        avatarUrl={user.avatarUrl}
-                        size="small"
-                      />
+                      <View style={styles.userAvatarContainer}>
+                        <UserAvatar
+                          firstName={user.firstName}
+                          lastName={user.lastName}
+                          avatarUrl={user.avatarUrl}
+                          size="small"
+                        />
+                        {unreadCount > 0 && (
+                          <View style={styles.notificationBadge}>
+                            <Text style={styles.notificationBadgeText}>
+                              {unreadCount > 99 ? '99+' : unreadCount}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                     )}
                   </View>
                 );
@@ -143,12 +164,19 @@ export const BottomTabNavigator: React.FC = () => {
         visible={isUserMenuVisible}
         onClose={handleUserMenuClose}
         onOpenSettings={handleUserProfileOpen}
+        onOpenNotifications={handleNotificationScreenOpen}
       />
 
       {/* User Profile Modal */}
       <UserProfile
         visible={isUserProfileVisible}
         onClose={handleUserProfileClose}
+      />
+
+      {/* Notification Screen Modal */}
+      <NotificationScreen
+        visible={isNotificationScreenVisible}
+        onClose={handleNotificationScreenClose}
       />
     </>
   );
@@ -181,5 +209,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 2,
+  },
+  userAvatarContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#ff4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  notificationBadgeText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 16,
   },
 }); 

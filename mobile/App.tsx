@@ -6,6 +6,7 @@ import { View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { FamilyProvider, useFamily } from './src/contexts/FamilyContext';
+import { NotificationProvider } from './src/contexts/NotificationContext';
 import { LoginScreen } from './src/screens/auth/LoginScreen';
 import { SignupScreen } from './src/screens/auth/SignupScreen';
 import { FamilyOnboardingScreen } from './src/screens/family/FamilyOnboardingScreen';
@@ -80,8 +81,10 @@ export default function App() {
     <NavigationContainer>
       <AuthProvider>
         <FamilyProvider>
-          <StatusBar style="light" />
-          <AppNavigator />
+          <NotificationProvider>
+            <StatusBar style="light" />
+            <AppNavigator />
+          </NotificationProvider>
         </FamilyProvider>
       </AuthProvider>
     </NavigationContainer>

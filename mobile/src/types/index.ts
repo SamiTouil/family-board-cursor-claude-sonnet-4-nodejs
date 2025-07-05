@@ -181,4 +181,28 @@ export interface WeekOverrideData {
   weekTemplateId?: string;
   taskOverrides: CreateTaskOverrideData[];
   replaceExisting: boolean;
+}
+
+// Notification types
+export interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  data?: any;
+  timestamp: Date;
+  read: boolean;
+  familyId?: string;
+}
+
+export interface NotificationContextType {
+  notifications: Notification[];
+  unreadCount: number;
+  isConnected: boolean;
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
+  markNotificationAsRead: (id: string) => void;
+  markAllNotificationsAsRead: () => void;
+  clearNotifications: () => void;
+  requestPermissions: () => Promise<boolean>;
+  registerForPushNotifications: () => Promise<string | null>;
 } 
