@@ -16,30 +16,51 @@ Notifications.setNotificationHandler({
 
 export class NotificationService {
   private static pushToken: string | null = null;
+  private static isInitialized: boolean = false;
 
   /**
-   * Request notification permissions from the user
+   * Initialize the notification service
+   */
+  static async initialize(): Promise<void> {
+    if (this.isInitialized) return;
+
+    try {
+      // Set up notification categories
+      await this.setNotificationCategories();
+      
+      // Request permissions
+      await this.requestPermissions();
+      
+      // Register for push notifications
+      await this.registerForPushNotifications();
+      
+      this.isInitialized = true;
+      console.log('NotificationService initialized successfully');
+    } catch (error) {
+      console.error('Error initializing NotificationService:', error);
+    }
+  }
+
+  /**
+   * Request notification permissions
    */
   static async requestPermissions(): Promise<boolean> {
     try {
-      if (!Device.isDevice) {
-        console.warn('Push notifications don\'t work on simulator/emulator');
-        return false;
-      }
-
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      
       let finalStatus = existingStatus;
-
+      
+      // Only ask if permissions have not already been determined
       if (existingStatus !== 'granted') {
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
       }
-
+      
       if (finalStatus !== 'granted') {
-        console.warn('Permission not granted for push notifications');
+        console.log('Notification permissions not granted');
         return false;
       }
-
+      
       return true;
     } catch (error) {
       console.error('Error requesting notification permissions:', error);
@@ -48,34 +69,22 @@ export class NotificationService {
   }
 
   /**
-   * Register for push notifications and get the push token
+   * Register for push notifications and get push token
    */
   static async registerForPushNotifications(): Promise<string | null> {
     try {
+      // Check if running on physical device
       if (!Device.isDevice) {
-        console.warn('Push notifications don\'t work on simulator/emulator');
+        console.log('Push notifications are not supported on simulator/emulator');
         return null;
       }
 
-      // Request permissions first
-      const hasPermission = await this.requestPermissions();
-      if (!hasPermission) {
-        return null;
-      }
-
-      // Get the push token
-      const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
-      
-      if (!projectId) {
-        console.warn('No project ID found for push notifications');
-        return null;
-      }
-
-      const pushTokenData = await Notifications.getExpoPushTokenAsync({
-        projectId,
+      // Get push token
+      const token = await Notifications.getExpoPushTokenAsync({
+        projectId: Constants.expoConfig?.extra?.eas?.projectId,
       });
 
-      this.pushToken = pushTokenData.data;
+      this.pushToken = token.data;
       console.log('Push token:', this.pushToken);
 
       // Configure notification channel for Android
@@ -146,6 +155,17 @@ export class NotificationService {
   }
 
   /**
+   * Show a notification (alias for showLocalNotification for compatibility)
+   */
+  static async showNotification(options: {
+    title: string;
+    body: string;
+    data?: any;
+  }): Promise<string> {
+    return this.showLocalNotification(options.title, options.body, options.data);
+  }
+
+  /**
    * Cancel a scheduled notification
    */
   static async cancelNotification(notificationId: string): Promise<void> {
@@ -179,6 +199,13 @@ export class NotificationService {
   }
 
   /**
+   * Update badge count (alias for setBadgeCount for compatibility)
+   */
+  static async updateBadgeCount(count: number): Promise<void> {
+    return this.setBadgeCount(count);
+  }
+
+  /**
    * Get the current app icon badge count
    */
   static async getBadgeCount(): Promise<number> {
@@ -198,6 +225,17 @@ export class NotificationService {
       await Notifications.setBadgeCountAsync(0);
     } catch (error) {
       console.error('Error clearing badge:', error);
+    }
+  }
+
+  /**
+   * Clear delivered notifications from notification center
+   */
+  static async clearDeliveredNotifications(): Promise<void> {
+    try {
+      await Notifications.dismissAllNotificationsAsync();
+    } catch (error) {
+      console.error('Error clearing delivered notifications:', error);
     }
   }
 
@@ -281,7 +319,7 @@ export class NotificationService {
         };
       case 'member-joined':
         return {
-          icon: '🎉',
+          icon: '👋',
           title: 'New Member Joined',
         };
       case 'family-updated':
@@ -302,17 +340,17 @@ export class NotificationService {
         };
       case 'task-unassigned':
         return {
-          icon: '📋',
+          icon: '❌',
           title: 'Task Unassigned',
         };
       case 'task-schedule-updated':
         return {
-          icon: '🔄',
+          icon: '📅',
           title: 'Schedule Updated',
         };
       default:
         return {
-          icon: '📢',
+          icon: '🔔',
           title: 'Notification',
         };
     }
@@ -324,13 +362,20 @@ export class NotificationService {
   static formatTimestamp(timestamp: Date): string {
     const now = new Date();
     const diff = now.getTime() - timestamp.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (minutes < 1) return 'just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
+    if (minutes < 1) {
+      return 'Just now';
+    } else if (minutes < 60) {
+      return `${minutes}m ago`;
+    } else if (hours < 24) {
+      return `${hours}h ago`;
+    } else if (days < 7) {
+      return `${days}d ago`;
+    } else {
+      return timestamp.toLocaleDateString();
+    }
   }
 } 

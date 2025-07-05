@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useFamily } from '../../contexts/FamilyContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { weekScheduleApi, taskApi, familyApi } from '../../services/api';
 import { LoadingSpinner, TaskOverrideCard, Button, UserAvatar } from '../ui';
 import { ShiftIndicator } from '../ui/ShiftIndicator';
@@ -21,6 +22,7 @@ interface WeeklyCalendarProps {
 
 export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   const { currentFamily } = useFamily();
+  const { on, off } = useNotifications();
   const [weekSchedule, setWeekSchedule] = useState<ResolvedWeekSchedule | null>(null);
   const [currentWeekStart, setCurrentWeekStart] = useState<string>('');
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(0);
@@ -71,6 +73,28 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
       }
     };
   }, [messageTimeout]);
+
+  // Set up WebSocket event listeners for real-time schedule updates
+  useEffect(() => {
+    if (!currentFamily) return;
+
+    // Handle task schedule updates
+    const handleTaskScheduleUpdated = (data: any) => {
+      console.log('WeeklyCalendar: Task schedule updated', data);
+      // Refresh the current week schedule to show changes
+      if (currentWeekStart) {
+        loadWeekSchedule(currentWeekStart);
+      }
+    };
+
+    // Register event listener
+    on('task-schedule-updated', handleTaskScheduleUpdated);
+
+    // Cleanup event listener
+    return () => {
+      off('task-schedule-updated', handleTaskScheduleUpdated);
+    };
+  }, [currentFamily, currentWeekStart, on, off]);
 
   // Initialize with current week
   useEffect(() => {

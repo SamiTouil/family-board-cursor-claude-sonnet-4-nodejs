@@ -27,7 +27,9 @@
     "sourceMap": true,
     "removeComments": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "typeRoots": ["./node_modules/@types", "../node_modules/@types"],
+    "types": ["jest"]
   },
   "include": [
     "src/**/*"
@@ -36,6 +38,9 @@
     "node_modules",
     "dist",
     "**/*.test.ts",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "../mobile",
+    "../node_modules/@react-native",
+    "../node_modules/react-native*"
   ]
 } 

@@ -80,12 +80,12 @@ export default function App() {
   return (
     <NavigationContainer>
       <AuthProvider>
-        <FamilyProvider>
-          <NotificationProvider>
+        <NotificationProvider>
+          <FamilyProvider>
             <StatusBar style="light" />
             <AppNavigator />
-          </NotificationProvider>
-        </FamilyProvider>
+          </FamilyProvider>
+        </NotificationProvider>
       </AuthProvider>
     </NavigationContainer>
   );

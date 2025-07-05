@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { familyApi } from '../services/api';
 import type { Family, CreateFamilyData, JoinFamilyData, FamilyJoinRequest } from '../types';
 import { useAuth } from './AuthContext';
+import { useNotifications } from './NotificationContext';
 
 interface FamilyContextType {
   families: Family[];
@@ -39,6 +40,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [pendingJoinRequests, setPendingJoinRequests] = useState<FamilyJoinRequest[]>([]);
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const { on, off } = useNotifications();
 
   // Load families and pending join requests when user is authenticated
   useEffect(() => {
@@ -59,6 +61,87 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
   useEffect(() => {
     setHasCompletedOnboarding(families.length > 0);
   }, [families, pendingJoinRequests]);
+
+  // Set up WebSocket event listeners for real-time updates
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // Handle join request approvals
+    const handleJoinRequestApproved = async (data: any) => {
+      // Remove from pending requests and add to families
+      setPendingJoinRequests(prev => prev.filter(r => r.family.id !== data.familyId));
+      
+      // Immediately set hasCompletedOnboarding to true to trigger redirect
+      setHasCompletedOnboarding(true);
+      
+      // Refresh families to include the newly joined family
+      try {
+        const response = await familyApi.getUserFamilies();
+        if (response.data.success) {
+          setFamilies(response.data.data);
+        }
+      } catch (error) {
+        console.error('Failed to refresh families after approval:', error);
+      }
+    };
+
+    // Handle join request rejections
+    const handleJoinRequestRejected = (data: any) => {
+      // Remove rejected requests from pending requests array
+      setPendingJoinRequests(prev => 
+        prev.filter(r => r.family.id !== data.familyId)
+      );
+    };
+
+    // Handle new member joining family (for admins)
+    const handleMemberJoined = async () => {
+      // Refresh families to update member count
+      try {
+        const response = await familyApi.getUserFamilies();
+        if (response.data.success) {
+          setFamilies(response.data.data);
+        }
+      } catch (error) {
+        console.error('Failed to refresh families after member joined:', error);
+      }
+    };
+
+    // Handle family updates
+    const handleFamilyUpdated = async () => {
+      // Refresh families to get latest data
+      try {
+        const response = await familyApi.getUserFamilies();
+        if (response.data.success) {
+          const updatedFamilies = response.data.data;
+          setFamilies(updatedFamilies);
+          
+          // Update current family if it exists
+          if (currentFamily) {
+            const updatedCurrentFamily = updatedFamilies.find((f: any) => f.id === currentFamily.id);
+            if (updatedCurrentFamily) {
+              setCurrentFamilyState(updatedCurrentFamily);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to refresh families after update:', error);
+      }
+    };
+
+    // Register event listeners
+    on('join-request-approved', handleJoinRequestApproved);
+    on('join-request-rejected', handleJoinRequestRejected);
+    on('member-joined', handleMemberJoined);
+    on('family-updated', handleFamilyUpdated);
+
+    // Cleanup event listeners
+    return () => {
+      off('join-request-approved', handleJoinRequestApproved);
+      off('join-request-rejected', handleJoinRequestRejected);
+      off('member-joined', handleMemberJoined);
+      off('family-updated', handleFamilyUpdated);
+    };
+  }, [isAuthenticated, on, off, currentFamily]);
 
   const refreshFamilies = useCallback(async (): Promise<void> => {
     if (!isAuthenticated) return;
