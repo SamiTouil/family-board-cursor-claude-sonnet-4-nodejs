@@ -14,9 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily } from '../contexts/FamilyContext';
 import { useNotifications } from '../contexts/NotificationContext';
 import { taskApi } from '../services/api';
-import { TaskCard, Button, LoadingSpinner } from '../components/ui';
+import { TaskOverrideCard, Button, LoadingSpinner } from '../components/ui';
 import { TaskFormModal } from '../components/forms/TaskFormModal';
-import type { Task, CreateTaskData, UpdateTaskData } from '../types';
+import type { Task, CreateTaskData, UpdateTaskData, ResolvedTask } from '../types';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -177,6 +177,35 @@ export const TasksScreen: React.FC = () => {
     return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
   };
 
+  // Convert Task to ResolvedTask format for display
+  const convertTaskToResolvedTask = (task: Task): ResolvedTask => {
+    return {
+      taskId: task.id,
+      memberId: null, // Tasks in management view don't have assigned members
+      overrideTime: null,
+      overrideDuration: null,
+      source: 'template',
+      task: task,
+      member: null,
+    };
+  };
+
+  // Handle task press - show edit/delete options for admins
+  const handleTaskPress = (resolvedTask: ResolvedTask) => {
+    if (!isAdmin) return;
+    
+    const task = resolvedTask.task;
+    Alert.alert(
+      'Task Actions',
+      `What would you like to do with "${task.name}"?`,
+      [
+        { text: 'Edit', onPress: () => handleEditTask(task) },
+        { text: 'Delete', onPress: () => handleDeleteTask(task), style: 'destructive' },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
+  };
+
   // Filter and sort tasks
   const filteredAndSortedTasks = tasks
     .filter(task => 
@@ -313,16 +342,18 @@ export const TasksScreen: React.FC = () => {
             )}
           </View>
         ) : (
-          <View style={styles.taskGrid}>
-            {filteredAndSortedTasks.map((task) => (
-              <TaskCard
+          <View style={styles.tasksList}>
+            {filteredAndSortedTasks.map((task, index) => (
+              <TaskOverrideCard
                 key={task.id}
-                task={task}
-                onEdit={isAdmin ? handleEditTask : undefined}
-                onDelete={isAdmin ? handleDeleteTask : undefined}
+                task={convertTaskToResolvedTask(task)}
+                taskIndex={index}
                 isAdmin={isAdmin}
+                onPress={isAdmin ? handleTaskPress : undefined}
                 formatTime={formatTime}
                 formatDuration={formatDuration}
+                showDescription={true}
+                compact={false}
               />
             ))}
           </View>
@@ -507,12 +538,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#ffffff',
   },
-  taskGrid: {
+  tasksList: {
     padding: 16,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: screenWidth > 768 ? 'flex-start' : 'center',
-    gap: 12,
   },
   errorContainer: {
     flex: 1,
