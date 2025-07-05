@@ -192,7 +192,6 @@ export interface Notification {
   data?: any;
   timestamp: Date;
   read: boolean;
-  familyId?: string;
 }
 
 export interface NotificationContextType {

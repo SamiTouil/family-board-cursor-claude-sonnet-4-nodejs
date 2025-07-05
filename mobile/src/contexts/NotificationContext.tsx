@@ -1,28 +1,47 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
-import * as Notifications from 'expo-notifications';
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
+import { AppState } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { io, Socket } from 'socket.io-client';
+import { useAuth } from './AuthContext';
 import { NotificationService } from '../services/NotificationService';
-import type { Notification, NotificationContextType } from '../types';
+import type { Notification } from '../types';
 
-interface NotificationProviderProps {
-  children: ReactNode;
+interface NotificationContextType {
+  notifications: Notification[];
+  unreadCount: number;
+  isConnected: boolean;
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
+  markNotificationAsRead: (id: string) => void;
+  markAllNotificationsAsRead: () => void;
+  clearNotifications: () => void;
+  emit: (event: string, data?: any) => void;
+  on: (event: string, callback: (data: any) => void) => void;
+  off: (event: string, callback?: (data: any) => void) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-export const useNotifications = (): NotificationContextType => {
+export const useNotifications = () => {
   const context = useContext(NotificationContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useNotifications must be used within a NotificationProvider');
   }
   return context;
 };
 
+interface NotificationProviderProps {
+  children: React.ReactNode;
+}
+
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
-  // State
+  const { isAuthenticated } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
+  const socketRef = useRef<Socket | null>(null);
+  const eventListeners = useRef<Record<string, ((data: any) => void)[]>>({});
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectAttempts = useRef(0);
+  const maxReconnectAttempts = 5;
 
   // Calculate unread notifications count
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -31,186 +50,299 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const generateId = () => Math.random().toString(36).substr(2, 9);
 
   // Add notification
-  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
+  const addNotification = useCallback(async (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     const newNotification: Notification = {
       ...notification,
       id: generateId(),
       timestamp: new Date(),
       read: false,
     };
-
-    setNotifications(prev => {
-      const updated = [newNotification, ...prev].slice(0, 50); // Keep only last 50 notifications
-      
-      // Update badge count
-      const newUnreadCount = updated.filter(n => !n.read).length;
-      NotificationService.setBadgeCount(newUnreadCount);
-      
-      return updated;
-    });
-
-    // Show local notification if app is in background or inactive
-    if (appState !== 'active') {
-      const config = NotificationService.getNotificationConfig(notification.type);
-      NotificationService.showLocalNotification(
-        config.title,
-        notification.message,
-        {
-          type: notification.type,
-          data: notification.data,
-          notificationId: newNotification.id,
-        }
-      );
+    
+    setNotifications(prev => [newNotification, ...prev].slice(0, 50)); // Keep only last 50 notifications
+    
+    // Update badge count
+    const newUnreadCount = notifications.filter(n => !n.read).length + 1;
+    await NotificationService.updateBadgeCount(newUnreadCount);
+    
+    // Show native notification if app is in background
+    if (AppState.currentState !== 'active') {
+      await NotificationService.showNotification({
+        title: notification.title,
+        body: notification.message,
+        data: notification.data,
+      });
     }
-  }, [appState]);
+  }, [notifications]);
 
   // Mark notification as read
-  const markNotificationAsRead = useCallback((id: string) => {
+  const markNotificationAsRead = useCallback(async (id: string) => {
     setNotifications(prev => {
       const updated = prev.map(n => n.id === id ? { ...n, read: true } : n);
-      
-      // Update badge count
       const newUnreadCount = updated.filter(n => !n.read).length;
-      NotificationService.setBadgeCount(newUnreadCount);
-      
+      NotificationService.updateBadgeCount(newUnreadCount);
       return updated;
     });
   }, []);
 
   // Mark all notifications as read
-  const markAllNotificationsAsRead = useCallback(() => {
-    setNotifications(prev => {
-      const updated = prev.map(n => ({ ...n, read: true }));
-      
-      // Clear badge
-      NotificationService.clearBadge();
-      
-      return updated;
-    });
+  const markAllNotificationsAsRead = useCallback(async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    await NotificationService.updateBadgeCount(0);
   }, []);
 
   // Clear all notifications
-  const clearNotifications = useCallback(() => {
+  const clearNotifications = useCallback(async () => {
     setNotifications([]);
-    NotificationService.clearBadge();
+    await NotificationService.updateBadgeCount(0);
   }, []);
 
-  // Request notification permissions
-  const requestPermissions = useCallback(async (): Promise<boolean> => {
-    return await NotificationService.requestPermissions();
-  }, []);
+  // Connect to WebSocket
+  const connect = useCallback(async () => {
+    const token = await AsyncStorage.getItem('authToken');
+    
+    if (!isAuthenticated || !token || socketRef.current?.connected) {
+      return;
+    }
 
-  // Register for push notifications
-  const registerForPushNotifications = useCallback(async (): Promise<string | null> => {
-    return await NotificationService.registerForPushNotifications();
-  }, []);
+    // Use same base URL as API client but without /api path for WebSocket
+    const baseUrl = 'http://192.168.1.24:3001';
+    
+    const newSocket = io(baseUrl, {
+      auth: {
+        token,
+      },
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      forceNew: true,
+    });
 
-  // Handle app state changes
-  useEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      setAppState(nextAppState);
+    // Connection event handlers
+    newSocket.on('connect', () => {
+      console.log('WebSocket connected');
+      setIsConnected(true);
+      reconnectAttempts.current = 0;
       
-      // Clear badge when app becomes active
+      // Clear any pending reconnect timeout
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+    });
+
+    newSocket.on('disconnect', (reason) => {
+      console.log('WebSocket disconnected:', reason);
+      setIsConnected(false);
+      
+      // Only try to reconnect if it wasn't a manual disconnect
+      if (reason !== 'io client disconnect' && reconnectAttempts.current < maxReconnectAttempts) {
+        scheduleReconnect();
+      }
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.log('WebSocket connection error:', error);
+      setIsConnected(false);
+      
+      if (reconnectAttempts.current < maxReconnectAttempts) {
+        scheduleReconnect();
+      }
+    });
+
+    // Real-time event handlers
+    newSocket.on('join-request-created', (data) => {
+      addNotification({
+        type: 'join-request-created',
+        title: 'New Join Request',
+        message: `New join request from ${data.joinRequest.user.firstName} ${data.joinRequest.user.lastName}`,
+        data,
+      });
+      // Forward the event to any registered listeners
+      eventListeners.current['join-request-created']?.forEach(callback => callback(data));
+    });
+
+    newSocket.on('join-request-approved', (data) => {
+      addNotification({
+        type: 'join-request-approved',
+        title: 'Join Request Approved',
+        message: data.message,
+        data,
+      });
+      // Forward the event to any registered listeners
+      eventListeners.current['join-request-approved']?.forEach(callback => callback(data));
+    });
+
+    newSocket.on('join-request-rejected', (data) => {
+      addNotification({
+        type: 'join-request-rejected',
+        title: 'Join Request Rejected',
+        message: data.message,
+        data,
+      });
+      // Forward the event to any registered listeners
+      eventListeners.current['join-request-rejected']?.forEach(callback => callback(data));
+    });
+
+    newSocket.on('member-joined', (data) => {
+      addNotification({
+        type: 'member-joined',
+        title: 'New Family Member',
+        message: 'A new member has joined your family',
+        data,
+      });
+      // Forward the event to any registered listeners
+      eventListeners.current['member-joined']?.forEach(callback => callback(data));
+    });
+
+    newSocket.on('family-updated', (data) => {
+      addNotification({
+        type: 'family-updated',
+        title: 'Family Updated',
+        message: 'Family information has been updated',
+        data,
+      });
+      // Forward the event to any registered listeners
+      eventListeners.current['family-updated']?.forEach(callback => callback(data));
+    });
+
+    newSocket.on('member-role-changed', (data) => {
+      addNotification({
+        type: 'member-role-changed',
+        title: 'Role Changed',
+        message: 'A member\'s role has been changed',
+        data,
+      });
+      // Forward the event to any registered listeners
+      eventListeners.current['member-role-changed']?.forEach(callback => callback(data));
+    });
+
+    // Task reassignment event handlers
+    newSocket.on('task-assigned', (data) => {
+      addNotification({
+        type: 'task-assigned',
+        title: 'Task Assigned',
+        message: data.message,
+        data,
+      });
+      // Forward the event to any registered listeners
+      eventListeners.current['task-assigned']?.forEach(callback => callback(data));
+    });
+
+    newSocket.on('task-unassigned', (data) => {
+      addNotification({
+        type: 'task-unassigned',
+        title: 'Task Unassigned',
+        message: data.message,
+        data,
+      });
+      // Forward the event to any registered listeners
+      eventListeners.current['task-unassigned']?.forEach(callback => callback(data));
+    });
+
+    newSocket.on('task-schedule-updated', (data) => {
+      // This event is used for updating the shift indicator and other components
+      // We don't add a notification for this, just forward to listeners
+      eventListeners.current['task-schedule-updated']?.forEach(callback => callback(data));
+    });
+
+    socketRef.current = newSocket;
+  }, [isAuthenticated, addNotification]);
+
+  // Schedule reconnection
+  const scheduleReconnect = useCallback(() => {
+    if (reconnectTimeoutRef.current) return;
+    
+    reconnectAttempts.current += 1;
+    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000); // Exponential backoff, max 30s
+    
+    console.log(`Scheduling reconnect attempt ${reconnectAttempts.current} in ${delay}ms`);
+    
+    reconnectTimeoutRef.current = setTimeout(() => {
+      reconnectTimeoutRef.current = null;
+      connect();
+    }, delay);
+  }, [connect]);
+
+  // Disconnect from WebSocket
+  const disconnect = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+    
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+      setIsConnected(false);
+    }
+  }, []);
+
+  // Socket event methods
+  const emit = useCallback((event: string, data?: any) => {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit(event, data);
+    }
+  }, []);
+
+  const on = useCallback((event: string, callback: (data: any) => void) => {
+    // Add to our event listeners registry
+    if (!eventListeners.current[event]) {
+      eventListeners.current[event] = [];
+    }
+    eventListeners.current[event].push(callback);
+  }, []);
+
+  const off = useCallback((event: string, callback?: (data: any) => void) => {
+    if (callback && eventListeners.current[event]) {
+      // Remove specific callback from registry
+      const index = eventListeners.current[event].indexOf(callback);
+      if (index > -1) {
+        eventListeners.current[event].splice(index, 1);
+      }
+    } else if (eventListeners.current[event]) {
+      // Remove all callbacks for this event
+      eventListeners.current[event] = [];
+    }
+  }, []);
+
+  // Handle authentication changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      connect();
+    } else {
+      disconnect();
+    }
+
+    return () => {
+      disconnect();
+    };
+  }, [isAuthenticated, connect, disconnect]);
+
+  // Handle app state changes for background notifications
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
       if (nextAppState === 'active') {
-        const currentUnreadCount = notifications.filter(n => !n.read).length;
-        NotificationService.setBadgeCount(currentUnreadCount);
+        // App came to foreground - clear any pending notifications
+        NotificationService.clearDeliveredNotifications();
       }
     };
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
-    
-    return () => {
-      subscription?.remove();
-    };
-  }, [notifications]);
+    return () => subscription?.remove();
+  }, []);
 
   // Initialize notification service
   useEffect(() => {
-    const initializeNotifications = async () => {
-      // Set up notification categories
-      await NotificationService.setNotificationCategories();
-      
-      // Request permissions
-      await requestPermissions();
-      await registerForPushNotifications();
-    };
+    NotificationService.initialize();
+  }, []);
 
-    initializeNotifications();
-  }, [requestPermissions, registerForPushNotifications]);
-
-  // Handle notification responses (when user taps on notification)
+  // Cleanup on unmount
   useEffect(() => {
-    const responseSubscription = NotificationService.addNotificationResponseListener((response) => {
-      const { notification } = response;
-      const { data } = notification.request.content;
-      
-      if (data?.notificationId && typeof data.notificationId === 'string') {
-        markNotificationAsRead(data.notificationId);
-      }
-      
-      // Handle notification actions
-      if (response.actionIdentifier) {
-        console.log('Notification action:', response.actionIdentifier);
-        // Handle specific actions like approve/reject
-      }
-    });
-
-    const receivedSubscription = NotificationService.addNotificationReceivedListener((notification) => {
-      // Handle foreground notifications
-      console.log('Notification received in foreground:', notification);
-    });
-
     return () => {
-      responseSubscription.remove();
-      receivedSubscription.remove();
+      disconnect();
     };
-  }, [markNotificationAsRead]);
+  }, [disconnect]);
 
-  // Update badge count when unread count changes
-  useEffect(() => {
-    NotificationService.setBadgeCount(unreadCount);
-  }, [unreadCount]);
-
-  // Demo function to add sample notifications for testing
-  const addDemoNotifications = useCallback(() => {
-    const demoNotifications = [
-      {
-        type: 'join-request-created',
-        title: 'New Join Request',
-        message: 'Sarah Johnson wants to join your family',
-        data: { userId: 'demo-1' },
-      },
-      {
-        type: 'task-assigned',
-        title: 'Task Assigned',
-        message: 'You have been assigned to "Take out trash" for tomorrow',
-        data: { taskId: 'demo-2' },
-      },
-      {
-        type: 'family-updated',
-        title: 'Family Updated',
-        message: 'Family information has been updated by John',
-        data: { familyId: 'demo-3' },
-      },
-    ];
-
-    demoNotifications.forEach((notification, index) => {
-      setTimeout(() => {
-        addNotification(notification);
-      }, index * 1000);
-    });
-  }, [addNotification]);
-
-  // Initialize with demo notifications for testing (remove in production)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      addDemoNotifications();
-    }, 3000); // Add demo notifications after 3 seconds
-
-    return () => clearTimeout(timer);
-  }, [addDemoNotifications]);
-
-  const contextValue: NotificationContextType = {
+  const value: NotificationContextType = {
     notifications,
     unreadCount,
     isConnected,
@@ -218,12 +350,13 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     markNotificationAsRead,
     markAllNotificationsAsRead,
     clearNotifications,
-    requestPermissions,
-    registerForPushNotifications,
+    emit,
+    on,
+    off,
   };
 
   return (
-    <NotificationContext.Provider value={contextValue}>
+    <NotificationContext.Provider value={value}>
       {children}
     </NotificationContext.Provider>
   );
