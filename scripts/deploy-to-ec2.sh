@@ -18,6 +18,41 @@ fi
 echo "📦 Updating system packages..."
 sudo apt update && sudo apt upgrade -y
 
+# Configure swap space for memory-constrained instances
+echo "💾 Configuring swap space for optimal performance..."
+SWAP_SIZE="2G"
+SWAP_FILE="/swapfile"
+
+# Check if swap is already configured
+if ! swapon --show | grep -q "$SWAP_FILE"; then
+    echo "🔧 Creating ${SWAP_SIZE} swap file..."
+    
+    # Create swap file
+    sudo fallocate -l $SWAP_SIZE $SWAP_FILE
+    
+    # Set correct permissions
+    sudo chmod 600 $SWAP_FILE
+    
+    # Set up swap space
+    sudo mkswap $SWAP_FILE
+    
+    # Enable swap
+    sudo swapon $SWAP_FILE
+    
+    # Make swap permanent
+    if ! grep -q "$SWAP_FILE" /etc/fstab; then
+        echo "$SWAP_FILE none swap sw 0 0" | sudo tee -a /etc/fstab
+    fi
+    
+    echo "✅ Swap space configured successfully!"
+else
+    echo "✅ Swap space already configured"
+fi
+
+# Display memory status
+echo "📊 Current memory status:"
+free -h
+
 # Install Docker if not present
 if ! command -v docker &> /dev/null; then
     echo "🐳 Installing Docker..."
