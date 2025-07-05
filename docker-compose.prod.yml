@@ -178,19 +178,18 @@ services:
       - ssl-setup
     command: certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos --no-eff-email -d mabt.eu -d www.mabt.eu
 
-  # Nginx reverse proxy (HTTP-only for initial deployment)
+  # Nginx reverse proxy with SSL support
   nginx:
     image: nginx:alpine
     container_name: family-board-nginx
     ports:
       - "80:80"
-      # - "443:443"  # Commented out until SSL is set up
+      - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      # SSL volumes commented out until SSL is set up
-      # - certbot-etc:/etc/letsencrypt:ro
-      # - certbot-var:/var/lib/letsencrypt:ro
-      # - web-root:/var/www/certbot:ro
+      - ./nginx/nginx-ssl.conf:/etc/nginx/nginx.conf:ro
+      - certbot-etc:/etc/letsencrypt:ro
+      - certbot-var:/var/lib/letsencrypt:ro
+      - web-root:/var/www/certbot:ro
     depends_on:
       - frontend
       - backend
