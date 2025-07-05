@@ -1,8 +1,9 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// API base URL for production
-const API_BASE_URL = 'https://mabt.eu/api';
+// API base URL for local development - use your machine's IP address instead of localhost
+// This allows real devices to connect to your development server
+const API_BASE_URL = 'http://192.168.1.24:3001/api';
 
 // Create axios instance
 const apiClient = axios.create({

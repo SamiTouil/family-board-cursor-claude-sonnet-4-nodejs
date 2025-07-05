@@ -4,11 +4,12 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
-import { Button } from '../components/ui';
+import { WeeklyCalendar } from '../components/calendar/WeeklyCalendar';
+import { UserAvatar } from '../components/ui';
 
 export const HomeScreen: React.FC = () => {
   const { user, logout } = useAuth();
@@ -20,11 +21,11 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Home</Text>
-          <Text style={styles.subtitle}>
-            Welcome {user?.firstName}! 📅
+      {/* Header with user info and logout */}
+      <View style={styles.header}>
+        <View style={styles.userInfo}>
+          <Text style={styles.welcomeText}>
+            Welcome, {user?.firstName}! 👋
           </Text>
           {currentFamily && (
             <Text style={styles.familyName}>
@@ -33,36 +34,28 @@ export const HomeScreen: React.FC = () => {
           )}
         </View>
         
-        <View style={styles.content}>
-          <View style={styles.placeholder}>
-            <Text style={styles.placeholderIcon}>🗓️</Text>
-            <Text style={styles.placeholderTitle}>Dashboard Coming Soon!</Text>
-            <Text style={styles.placeholderText}>
-              This is where you'll see your family board dashboard with weekly schedule, tasks, and assignments.
-            </Text>
-          </View>
+        <View style={styles.headerRight}>
+          {user && (
+            <UserAvatar
+              firstName={user.firstName}
+              lastName={user.lastName}
+              avatarUrl={user.avatarUrl}
+              size="medium"
+              style={styles.userAvatar}
+            />
+          )}
           
-          <View style={styles.features}>
-            <Text style={styles.featuresTitle}>Coming Features:</Text>
-            <View style={styles.featureList}>
-              <Text style={styles.featureItem}>📋 Weekly task assignments</Text>
-              <Text style={styles.featureItem}>🎯 Family goals and milestones</Text>
-              <Text style={styles.featureItem}>📅 Event planning and reminders</Text>
-              <Text style={styles.featureItem}>👥 Member availability tracking</Text>
-              <Text style={styles.featureItem}>📊 Progress tracking and reports</Text>
-            </View>
-          </View>
-        </View>
-        
-        <View style={styles.footer}>
-          <Button
-            title="Sign Out"
+          <TouchableOpacity
+            style={styles.logoutButton}
             onPress={handleLogout}
-            variant="secondary"
-            size="sm"
-          />
+          >
+            <Text style={styles.logoutButtonText}>Sign Out</Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
+      </View>
+      
+      {/* Weekly Calendar */}
+      <WeeklyCalendar style={styles.calendar} />
     </SafeAreaView>
   );
 };
@@ -70,91 +63,59 @@ export const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#667eea',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 24,
+    backgroundColor: '#f8f9fa',
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#e0e7ff',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  familyName: {
-    fontSize: 16,
-    color: '#c7d2fe',
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  content: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  placeholder: {
-    alignItems: 'center',
-    marginBottom: 32,
+  userInfo: {
+    flex: 1,
   },
-  placeholderIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  placeholderTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1a202c',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  placeholderText: {
-    fontSize: 16,
-    color: '#718096',
-    textAlign: 'center',
-    lineHeight: 24,
-    maxWidth: 300,
-  },
-  features: {
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-    paddingTop: 24,
-  },
-  featuresTitle: {
+  welcomeText: {
     fontSize: 18,
     fontWeight: '600',
     color: '#1a202c',
-    marginBottom: 16,
+    marginBottom: 4,
   },
-  featureList: {
-    gap: 12,
+  familyName: {
+    fontSize: 14,
+    color: '#6b7280',
+    fontWeight: '500',
   },
-  featureItem: {
-    fontSize: 16,
-    color: '#374151',
-    lineHeight: 24,
+  logoutButton: {
+    backgroundColor: '#ef4444',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
   },
-  footer: {
+  logoutButtonText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  calendar: {
+    flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
     alignItems: 'center',
+  },
+  userAvatar: {
+    marginRight: 8,
   },
 }); 
