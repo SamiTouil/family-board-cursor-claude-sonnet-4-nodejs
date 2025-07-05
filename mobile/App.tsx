@@ -10,7 +10,7 @@ import { LoginScreen } from './src/screens/auth/LoginScreen';
 import { SignupScreen } from './src/screens/auth/SignupScreen';
 import { FamilyOnboardingScreen } from './src/screens/family/FamilyOnboardingScreen';
 import { LoadingSpinner } from './src/components/ui';
-import { WeeklyScheduleScreen } from './src/screens/WeeklyScheduleScreen';
+import { BottomTabNavigator } from './src/navigation/BottomTabNavigator';
 import type { AuthStackParamList, RootStackParamList } from './src/types';
 
 const AuthStack = createStackNavigator<AuthStackParamList>();
@@ -30,9 +30,9 @@ const AuthNavigator = () => {
   );
 };
 
-// Main Home Screen
-const HomeScreen = () => {
-  return <WeeklyScheduleScreen />;
+// Main App Screen with Bottom Tab Navigation
+const MainAppScreen = () => {
+  return <BottomTabNavigator />;
 };
 
 // Main App Navigator
@@ -68,7 +68,7 @@ const AppNavigator = () => {
         <RootStack.Screen name="FamilyOnboarding" component={FamilyOnboardingScreen} />
       ) : (
         // User is authenticated and has completed onboarding - show main app
-        <RootStack.Screen name="Main" component={HomeScreen} />
+        <RootStack.Screen name="Main" component={MainAppScreen} />
       )}
     </RootStack.Navigator>
   );

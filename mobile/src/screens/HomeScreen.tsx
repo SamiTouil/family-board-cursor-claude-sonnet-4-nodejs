@@ -10,7 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { Button } from '../components/ui';
 
-export const WeeklyScheduleScreen: React.FC = () => {
+export const HomeScreen: React.FC = () => {
   const { user, logout } = useAuth();
   const { currentFamily } = useFamily();
 
@@ -22,7 +22,7 @@ export const WeeklyScheduleScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Weekly Schedule</Text>
+          <Text style={styles.title}>Home</Text>
           <Text style={styles.subtitle}>
             Welcome {user?.firstName}! 📅
           </Text>
@@ -36,9 +36,9 @@ export const WeeklyScheduleScreen: React.FC = () => {
         <View style={styles.content}>
           <View style={styles.placeholder}>
             <Text style={styles.placeholderIcon}>🗓️</Text>
-            <Text style={styles.placeholderTitle}>Weekly Schedule Coming Soon!</Text>
+            <Text style={styles.placeholderTitle}>Dashboard Coming Soon!</Text>
             <Text style={styles.placeholderText}>
-              This is where you'll see your family's weekly schedule with tasks, events, and assignments.
+              This is where you'll see your family board dashboard with weekly schedule, tasks, and assignments.
             </Text>
           </View>
           
