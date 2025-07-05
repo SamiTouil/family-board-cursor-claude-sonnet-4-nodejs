@@ -71,39 +71,15 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   const loadWeekSchedule = async (weekStartDate: string) => {
     if (!currentFamily) return;
     
-    console.log('WeeklyCalendar: Loading week schedule for family:', currentFamily.id, 'week:', weekStartDate);
     setIsLoading(true);
     setError(null);
     try {
       const response = await weekScheduleApi.getWeekSchedule(currentFamily.id, weekStartDate);
-      console.log('WeeklyCalendar: API response:', response.data);
       // Backend returns the ResolvedWeekSchedule directly (not wrapped in { success: true, data: ... })
       const scheduleData = response.data;
-      console.log('WeeklyCalendar: Extracted schedule data:', scheduleData);
-      console.log('WeeklyCalendar: Schedule data type:', typeof scheduleData);
-      console.log('WeeklyCalendar: Schedule data keys:', Object.keys(scheduleData || {}));
-      if (scheduleData && scheduleData.days) {
-        console.log('WeeklyCalendar: Days array length:', scheduleData.days.length);
-        scheduleData.days.forEach((day: any, index: number) => {
-          console.log(`WeeklyCalendar: Day ${index} (${day.date}):`, {
-            date: day.date,
-            tasksCount: day.tasks ? day.tasks.length : 0,
-            tasks: day.tasks,
-            tasksStringified: JSON.stringify(day.tasks, null, 2)
-          });
-          
-          // Log each task individually if they exist
-          if (day.tasks && day.tasks.length > 0) {
-            day.tasks.forEach((task: any, taskIndex: number) => {
-              console.log(`WeeklyCalendar: Day ${index} Task ${taskIndex}:`, task);
-            });
-          }
-        });
-      }
       setWeekSchedule(scheduleData);
     } catch (error: any) {
       console.error('WeeklyCalendar: Failed to load week schedule:', error);
-      console.error('WeeklyCalendar: Error response:', error.response?.data);
       setError(error.response?.data?.message || 'Failed to load week schedule');
     } finally {
       setIsLoading(false);
@@ -115,11 +91,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     
     try {
       const response = await taskApi.getFamilyTasks(currentFamily.id);
-      console.log('WeeklyCalendar: Tasks API response:', response.data);
       // Backend returns { success: true, data: [tasks array] }
-      // So we need response.data.data to get the actual tasks array
       const tasksData = response.data?.data || response.data;
-      console.log('WeeklyCalendar: Extracted tasks data:', tasksData);
       setAvailableTasks(Array.isArray(tasksData) ? tasksData : []);
     } catch (error) {
       console.error('WeeklyCalendar: Failed to load tasks:', error);
@@ -242,15 +215,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   };
 
   const getDayTasks = (day: ResolvedDay) => {
-    console.log('getDayTasks called with day:', day);
     if (!day || !day.tasks) {
-      console.log('getDayTasks: No day or no tasks, returning empty array');
       return [];
     }
-    console.log('getDayTasks: Found tasks:', day.tasks);
-    const sortedTasks = sortTasksByTime(day.tasks);
-    console.log('getDayTasks: Sorted tasks:', sortedTasks);
-    return sortedTasks;
+    return sortTasksByTime(day.tasks);
   };
 
   const isCurrentWeek = (): boolean => {
@@ -269,25 +237,16 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   };
 
   const getVisibleDays = (): ResolvedDay[] => {
-    console.log('getVisibleDays called, weekSchedule:', weekSchedule);
     if (!weekSchedule) {
-      console.log('getVisibleDays: No weekSchedule, returning empty array');
       return [];
     }
     
-    console.log('getVisibleDays: weekSchedule.days:', weekSchedule.days);
-    console.log('getVisibleDays: currentDayIndex:', currentDayIndex, 'daysToShow:', daysToShow);
-    
     if (daysToShow === 1) {
-      const visibleDay = weekSchedule.days[currentDayIndex];
-      console.log('getVisibleDays: Returning single day:', visibleDay);
-      return [visibleDay];
+      return [weekSchedule.days[currentDayIndex]];
     } else {
       // For tablet, show 3 days centered around current day
       const startIndex = Math.max(0, Math.min(currentDayIndex - 1, 4));
-      const visibleDays = weekSchedule.days.slice(startIndex, startIndex + 3);
-      console.log('getVisibleDays: Returning multiple days:', visibleDays);
-      return visibleDays;
+      return weekSchedule.days.slice(startIndex, startIndex + 3);
     }
   };
 
@@ -412,9 +371,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         <ScrollView style={styles.calendarContent} showsVerticalScrollIndicator={false}>
           <View style={styles.daysContainer}>
             {getVisibleDays().map((day, index) => {
-              console.log('Rendering day:', day.date, 'with day object:', day);
               const dayTasks = getDayTasks(day);
-              console.log('Day tasks for', day.date, ':', dayTasks);
               const isToday = new Date(day.date + 'T00:00:00.000Z').toDateString() === new Date().toDateString();
               
               return (

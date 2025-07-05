@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { WeeklyCalendar } from '../components/calendar/WeeklyCalendar';
+import { UserAvatar } from '../components/ui';
 
 export const HomeScreen: React.FC = () => {
   const { user, logout } = useAuth();
@@ -33,12 +34,24 @@ export const HomeScreen: React.FC = () => {
           )}
         </View>
         
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={handleLogout}
-        >
-          <Text style={styles.logoutButtonText}>Sign Out</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          {user && (
+            <UserAvatar
+              firstName={user.firstName}
+              lastName={user.lastName}
+              avatarUrl={user.avatarUrl}
+              size="medium"
+              style={styles.userAvatar}
+            />
+          )}
+          
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={handleLogout}
+          >
+            <Text style={styles.logoutButtonText}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       
       {/* Weekly Calendar */}
@@ -97,5 +110,12 @@ const styles = StyleSheet.create({
   },
   calendar: {
     flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  userAvatar: {
+    marginRight: 8,
   },
 }); 
