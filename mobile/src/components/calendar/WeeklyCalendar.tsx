@@ -8,6 +8,7 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
+import { PanGestureHandler, GestureHandlerRootView, State } from 'react-native-gesture-handler';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { weekScheduleApi, taskApi, familyApi } from '../../services/api';
@@ -211,6 +212,35 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     setCurrentDayIndex(newIndex);
   };
 
+  // Handle swipe gestures for day navigation
+  const handleSwipeGesture = (event: any) => {
+    const { nativeEvent } = event;
+    
+    // Only handle swipes on mobile (single day view)
+    if (daysToShow !== 1 || !weekSchedule) return;
+    
+    // Check if gesture is completed
+    if (nativeEvent.state === State.END) {
+      const { translationX, velocityX } = nativeEvent;
+      
+      // Minimum swipe distance and velocity thresholds
+      const minSwipeDistance = 50;
+      const minVelocity = 300;
+      
+      // Determine swipe direction
+      const isSwipeLeft = translationX < -minSwipeDistance && velocityX < -minVelocity;
+      const isSwipeRight = translationX > minSwipeDistance && velocityX > minVelocity;
+      
+      if (isSwipeLeft) {
+        // Swipe left = go to next day
+        navigateDay('next');
+      } else if (isSwipeRight) {
+        // Swipe right = go to previous day
+        navigateDay('prev');
+      }
+    }
+  };
+
   const goToCurrentWeek = () => {
     const today = new Date();
     const monday = getMonday(today);
@@ -362,7 +392,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   }
 
   return (
-    <View style={[styles.container, style]}>
+    <GestureHandlerRootView style={[styles.container, style]}>
       {/* Header */}
       <View style={styles.header}>
         {/* Line 1: Template Name + Modified Indicator */}
@@ -460,6 +490,13 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         </View>
       )}
 
+      {/* Swipe Hint for Mobile */}
+      {daysToShow === 1 && weekSchedule && (
+        <View style={styles.swipeHint}>
+          <Text style={styles.swipeHintText}>← Swipe to navigate days →</Text>
+        </View>
+      )}
+
       {/* Messages */}
       {message && (
         <View style={[styles.message, styles[`message${message.type}`]]}>
@@ -467,7 +504,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         </View>
       )}
 
-      {/* Calendar Content */}
+      {/* Calendar Content with Swipe Gesture Support */}
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <LoadingSpinner />
@@ -484,73 +521,82 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
           />
         </View>
       ) : weekSchedule ? (
-        <ScrollView style={styles.calendarContent} showsVerticalScrollIndicator={false}>
-          <View style={styles.daysContainer}>
-            {getVisibleDays().map((day, index) => {
-              const dayTasks = getDayTasks(day);
-              const isToday = new Date(day.date + 'T00:00:00.000Z').toDateString() === new Date().toDateString();
-              
-              return (
-                <View 
-                  key={day.date} 
-                  style={[
-                    styles.dayColumn,
-                    isToday && styles.todayColumn,
-                    daysToShow > 1 && styles.multiDayColumn
-                  ]}
-                >
-                  {/* Day Header */}
-                  <View style={[styles.dayHeader, isToday && styles.todayHeader]}>
-                    <View style={styles.dayInfo}>
-                      <Text style={[styles.dayName, isToday && styles.todayDayName]}>
-                        {formatDate(day.date)}
-                      </Text>
-                      <Text style={styles.taskCount}>
-                        {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
-                      </Text>
-                    </View>
-                  </View>
+        <PanGestureHandler
+          onGestureEvent={handleSwipeGesture}
+          onHandlerStateChange={handleSwipeGesture}
+          activeOffsetX={[-10, 10]}
+          failOffsetY={[-5, 5]}
+        >
+          <View style={styles.gestureContainer}>
+            <ScrollView style={styles.calendarContent} showsVerticalScrollIndicator={false}>
+              <View style={styles.daysContainer}>
+                {getVisibleDays().map((day, index) => {
+                  const dayTasks = getDayTasks(day);
+                  const isToday = new Date(day.date + 'T00:00:00.000Z').toDateString() === new Date().toDateString();
                   
-                  {/* Tasks */}
-                  <View style={styles.tasksContainer}>
-                    {dayTasks.length === 0 ? (
-                      <View style={styles.noTasks}>
-                        <Text style={styles.noTasksText}>No tasks</Text>
+                  return (
+                    <View 
+                      key={day.date} 
+                      style={[
+                        styles.dayColumn,
+                        isToday && styles.todayColumn,
+                        daysToShow > 1 && styles.multiDayColumn
+                      ]}
+                    >
+                      {/* Day Header */}
+                      <View style={[styles.dayHeader, isToday && styles.todayHeader]}>
+                        <View style={styles.dayInfo}>
+                          <Text style={[styles.dayName, isToday && styles.todayDayName]}>
+                            {formatDate(day.date)}
+                          </Text>
+                          <Text style={styles.taskCount}>
+                            {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
+                          </Text>
+                        </View>
                       </View>
-                    ) : (
-                      <View style={styles.tasksStack}>
-                        {dayTasks.map((task, taskIndex) => (
-                          <TaskOverrideCard
-                            key={`${task.taskId}-${task.memberId}-${taskIndex}`}
-                            task={task}
-                            taskIndex={taskIndex}
-                            isAdmin={isAdmin}
-                            onPress={(task) => handleTaskPress(task, day.date)}
-                            formatTime={formatTime}
-                            formatDuration={formatDuration}
-                            showDescription={false}
-                            compact={daysToShow > 1}
-                          />
-                        ))}
+                      
+                      {/* Tasks */}
+                      <View style={styles.tasksContainer}>
+                        {dayTasks.length === 0 ? (
+                          <View style={styles.noTasks}>
+                            <Text style={styles.noTasksText}>No tasks</Text>
+                          </View>
+                        ) : (
+                          <View style={styles.tasksStack}>
+                            {dayTasks.map((task, taskIndex) => (
+                              <TaskOverrideCard
+                                key={`${task.taskId}-${task.memberId}-${taskIndex}`}
+                                task={task}
+                                taskIndex={taskIndex}
+                                isAdmin={isAdmin}
+                                onPress={(task) => handleTaskPress(task, day.date)}
+                                formatTime={formatTime}
+                                formatDuration={formatDuration}
+                                showDescription={false}
+                                compact={daysToShow > 1}
+                              />
+                            ))}
+                          </View>
+                        )}
+                        
+                        {/* Add Task Button */}
+                        {isAdmin && (
+                          <TouchableOpacity
+                            style={styles.addTaskButton}
+                            onPress={() => handleTaskOverride('ADD', undefined, day.date)}
+                            disabled={isLoading || availableTasks.length === 0}
+                          >
+                            <Text style={styles.addTaskButtonText}>+ Add Task</Text>
+                          </TouchableOpacity>
+                        )}
                       </View>
-                    )}
-                    
-                    {/* Add Task Button */}
-                    {isAdmin && (
-                      <TouchableOpacity
-                        style={styles.addTaskButton}
-                        onPress={() => handleTaskOverride('ADD', undefined, day.date)}
-                        disabled={isLoading || availableTasks.length === 0}
-                      >
-                        <Text style={styles.addTaskButtonText}>+ Add Task</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </View>
-              );
-            })}
+                    </View>
+                  );
+                })}
+              </View>
+            </ScrollView>
           </View>
-        </ScrollView>
+        </PanGestureHandler>
       ) : (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>No schedule data available</Text>
@@ -569,7 +615,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         familyMembers={familyMembers}
         isLoading={isLoading}
       />
-    </View>
+    </GestureHandlerRootView>
   );
 };
 
@@ -699,6 +745,19 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '600',
   },
+  swipeHint: {
+    backgroundColor: '#f8f9fa',
+    paddingVertical: 4,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  swipeHintText: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
   message: {
     margin: 16,
     padding: 12,
@@ -741,6 +800,9 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     textAlign: 'center',
     marginBottom: 16,
+  },
+  gestureContainer: {
+    flex: 1,
   },
   calendarContent: {
     flex: 1,
