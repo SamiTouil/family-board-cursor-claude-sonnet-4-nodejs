@@ -16,22 +16,53 @@ export default {
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: IS_PRODUCTION ? "com.familyboard.app" : "com.familyboard.dev"
+      bundleIdentifier: IS_PRODUCTION ? "com.familyboard.app" : "com.familyboard.dev",
+      backgroundModes: ["background-fetch", "background-processing"],
+      infoPlist: {
+        UIBackgroundModes: ["background-fetch", "background-processing"],
+        NSUserNotificationUsageDescription: "This app uses notifications to keep you updated about family activities and schedules.",
+        NSNotificationUsageDescription: "This app uses notifications to keep you updated about family activities and schedules."
+      }
     },
+    notifications: {
+      icon: "./assets/icon.png",
+      color: "#3B82F6",
+      sounds: ["default"],
+      iosDisplayInForeground: true
+    },
+    plugins: [
+      [
+        "expo-notifications",
+        {
+          icon: "./assets/icon.png",
+          color: "#3B82F6",
+          sounds: ["default"],
+          iosDisplayInForeground: true
+        }
+      ]
+    ],
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
       },
       edgeToEdgeEnabled: true,
-      package: IS_PRODUCTION ? "com.familyboard.app" : "com.familyboard.dev"
+      package: IS_PRODUCTION ? "com.familyboard.app" : "com.familyboard.dev",
+      permissions: [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK"
+      ]
     },
     web: {
       favicon: "./assets/favicon.png"
     },
     extra: {
       apiUrl: IS_PRODUCTION ? "https://mabt.eu/api" : "http://192.168.1.24:3001/api",
-      environment: IS_PRODUCTION ? "production" : "development"
+      environment: IS_PRODUCTION ? "production" : "development",
+      eas: {
+        projectId: "83ccd68d-755d-4d43-99e8-afde30ef3cb6"
+      }
     }
   }
 }; 

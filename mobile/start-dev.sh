@@ -7,6 +7,7 @@ echo ""
 echo "📱 App Name: Family Board (Dev)"
 echo "🔗 API Server: http://192.168.1.24:3001/api (Local)"
 echo "🌐 Environment: Development"
+echo "🔔 Push Notifications: Enabled (Project ID: 83ccd68d-755d-4d43-99e8-afde30ef3cb6)"
 echo ""
 
 # Check if backend is running
@@ -42,8 +43,9 @@ echo ""
 export NODE_ENV=development
 export EXPO_PUBLIC_ENV=development
 
-# Start Expo
-npx expo start
+# Clear Expo cache to ensure fresh start
+echo "🧹 Clearing Expo cache..."
+npx expo start --clear
 
 echo ""
 echo "📱 DEVELOPMENT MODE FEATURES:"
@@ -51,4 +53,5 @@ echo "   • App name: 'Family Board (Dev)'"
 echo "   • Connects to local server (192.168.1.24:3001)"
 echo "   • Separate from production app"
 echo "   • Hot reload enabled"
-echo "   • Debug mode active" 
+echo "   • Debug mode active"
+echo "   • Push notifications configured" 
