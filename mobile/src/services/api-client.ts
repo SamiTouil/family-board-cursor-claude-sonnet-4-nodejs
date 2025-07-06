@@ -1,9 +1,12 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
-// API base URL for local development - use your machine's IP address instead of localhost
-// This allows real devices to connect to your development server
-const API_BASE_URL = 'http://192.168.1.24:3001/api';
+// Get API URL from app config based on environment
+const API_BASE_URL = Constants.expoConfig?.extra?.apiUrl || 'http://192.168.1.24:3001/api';
+
+console.log('🌐 API Environment:', Constants.expoConfig?.extra?.environment);
+console.log('🔗 API URL:', API_BASE_URL);
 
 // Create axios instance
 const apiClient = axios.create({
