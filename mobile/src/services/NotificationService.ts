@@ -3,15 +3,20 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
-// Configure notification behavior
+// Configure notification behavior for background and foreground
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
+  handleNotification: async (notification) => {
+    console.log('📱 Handling notification:', notification.request.content.title);
+    
+    // Always show notifications, especially when app is in background
+    return {
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    };
+  },
 });
 
 export class NotificationService {
@@ -25,45 +30,66 @@ export class NotificationService {
     if (this.isInitialized) return;
 
     try {
+      console.log('🔔 Initializing NotificationService...');
+      
       // Set up notification categories
       await this.setNotificationCategories();
       
-      // Request permissions
+      // Request permissions with enhanced options
       await this.requestPermissions();
       
       // Register for push notifications
       await this.registerForPushNotifications();
       
       this.isInitialized = true;
-      console.log('NotificationService initialized successfully');
+      console.log('✅ NotificationService initialized successfully');
     } catch (error) {
-      console.error('Error initializing NotificationService:', error);
+      console.error('❌ Error initializing NotificationService:', error);
     }
   }
 
   /**
-   * Request notification permissions
+   * Request notification permissions with enhanced iOS options
    */
   static async requestPermissions(): Promise<boolean> {
     try {
+      console.log('🔐 Requesting notification permissions...');
+      
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      console.log('📋 Current permission status:', existingStatus);
       
       let finalStatus = existingStatus;
       
       // Only ask if permissions have not already been determined
       if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
+        console.log('📝 Requesting new permissions...');
+        
+        // Request permissions with all iOS options
+        const { status } = await Notifications.requestPermissionsAsync({
+          ios: {
+            allowAlert: true,
+            allowBadge: true,
+            allowSound: true,
+            allowDisplayInCarPlay: true,
+            allowCriticalAlerts: true,
+            allowProvisional: false,
+          },
+        });
         finalStatus = status;
       }
       
+      console.log('📊 Final permission status:', finalStatus);
+      
       if (finalStatus !== 'granted') {
-        console.log('Notification permissions not granted');
+        console.log('❌ Notification permissions not granted');
+        console.log('💡 User needs to enable notifications in iPhone Settings');
         return false;
       }
       
+      console.log('✅ Notification permissions granted');
       return true;
     } catch (error) {
-      console.error('Error requesting notification permissions:', error);
+      console.error('❌ Error requesting notification permissions:', error);
       return false;
     }
   }
@@ -79,9 +105,20 @@ export class NotificationService {
         return null;
       }
 
+      // Get project ID from config
+      const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+      
+      if (!projectId) {
+        console.error('No Expo project ID found. Push notifications will not work.');
+        console.log('Make sure to set "extra.eas.projectId" in your app.config.js');
+        return null;
+      }
+
+      console.log('Using Expo project ID:', projectId);
+
       // Get push token
       const token = await Notifications.getExpoPushTokenAsync({
-        projectId: Constants.expoConfig?.extra?.eas?.projectId,
+        projectId: projectId,
       });
 
       this.pushToken = token.data;

@@ -7,6 +7,7 @@ echo ""
 echo "📱 App Name: Family Board"
 echo "🔗 API Server: https://mabt.eu/api (Production)"
 echo "🌐 Environment: Production"
+echo "🔔 Push Notifications: Enabled (Project ID: 83ccd68d-755d-4d43-99e8-afde30ef3cb6)"
 echo ""
 
 # Check if production server is running
@@ -33,8 +34,9 @@ echo ""
 export NODE_ENV=production
 export EXPO_PUBLIC_ENV=production
 
-# Start Expo
-npx expo start
+# Clear Expo cache to ensure fresh start
+echo "🧹 Clearing Expo cache..."
+npx expo start --clear
 
 echo ""
 echo "📱 PRODUCTION MODE FEATURES:"
@@ -42,4 +44,5 @@ echo "   • App name: 'Family Board'"
 echo "   • Connects to production server (mabt.eu)"
 echo "   • Separate from development app"
 echo "   • Production optimized"
-echo "   • Real user data" 
+echo "   • Real user data"
+echo "   • Push notifications configured" 
