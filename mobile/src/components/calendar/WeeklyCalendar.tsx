@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
+  Animated,
 } from 'react-native';
+import { PanGestureHandler, GestureHandlerRootView, State } from 'react-native-gesture-handler';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { weekScheduleApi, taskApi, familyApi } from '../../services/api';
@@ -38,6 +40,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   const [taskOverrideAction, setTaskOverrideAction] = useState<'ADD' | 'REMOVE' | 'REASSIGN'>('ADD');
   const [selectedTask, setSelectedTask] = useState<ResolvedTask | undefined>(undefined);
   const [taskOverrideDate, setTaskOverrideDate] = useState<string>('');
+
+  // Animation state for smooth transitions with prerendering
+  const [slideAnimation] = useState(new Animated.Value(0));
+  const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Prerendering state for smooth transitions
+  const [prevDayData, setPrevDayData] = useState<ResolvedDay | null>(null);
+  const [nextDayData, setNextDayData] = useState<ResolvedDay | null>(null);
 
   const { width: screenWidth } = Dimensions.get('window');
   const isTablet = screenWidth > 768;
@@ -117,6 +127,66 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
       console.log('WeeklyCalendar: No current family available');
     }
   }, [currentFamily]);
+
+  // Get prerendered day data for smooth transitions
+  const getPrerenderDayData = async (weekStart: string, dayIndex: number): Promise<ResolvedDay | null> => {
+    try {
+      if (!currentFamily) return null;
+      
+      const response = await weekScheduleApi.getWeekSchedule(currentFamily.id, weekStart);
+      const scheduleData = response.data;
+      
+      if (scheduleData && scheduleData.days && scheduleData.days[dayIndex]) {
+        return scheduleData.days[dayIndex];
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to prerender day data:', error);
+      return null;
+    }
+  };
+
+  // Update prerendered days when current day changes
+  useEffect(() => {
+    if (!weekSchedule || !currentFamily) return;
+
+    const updatePrerenderData = async () => {
+      // Calculate previous day
+      if (currentDayIndex === 0) {
+        // Previous day is Sunday of previous week
+        const currentDate = new Date(currentWeekStart + 'T00:00:00.000Z');
+        const prevWeekDate = new Date(currentDate);
+        prevWeekDate.setDate(currentDate.getDate() - 7);
+        const prevWeekStart = getMonday(prevWeekDate);
+        setPrevDayData(await getPrerenderDayData(prevWeekStart, 6));
+      } else {
+        // Previous day is in current week
+        setPrevDayData(weekSchedule.days[currentDayIndex - 1] || null);
+      }
+
+      // Calculate next day
+      if (currentDayIndex === 6) {
+        // Next day is Monday of next week
+        const currentDate = new Date(currentWeekStart + 'T00:00:00.000Z');
+        const nextWeekDate = new Date(currentDate);
+        nextWeekDate.setDate(currentDate.getDate() + 7);
+        const nextWeekStart = getMonday(nextWeekDate);
+        setNextDayData(await getPrerenderDayData(nextWeekStart, 0));
+      } else {
+        // Next day is in current week
+        setNextDayData(weekSchedule.days[currentDayIndex + 1] || null);
+      }
+    };
+
+    updatePrerenderData();
+  }, [currentDayIndex, currentWeekStart, weekSchedule, currentFamily]);
+
+  // Initialize slide animation to center position
+  useEffect(() => {
+    if (daysToShow === 1) {
+      slideAnimation.setValue(-screenWidth);
+    }
+  }, [daysToShow, screenWidth, slideAnimation]);
 
   const getMonday = (date: Date): string => {
     const d = new Date(date);
@@ -209,6 +279,110 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
       : Math.max(currentDayIndex - 1, 0);
     
     setCurrentDayIndex(newIndex);
+  };
+
+  // Handle swipe gestures with proper cross-week navigation
+  const handleSwipeGesture = (event: any) => {
+    const { nativeEvent } = event;
+    
+    // Only handle swipes on mobile (single day view)
+    if (daysToShow !== 1 || !weekSchedule) return;
+    
+    const { translationX, state } = nativeEvent;
+    
+    if (state === State.ACTIVE) {
+      // Follow finger movement in real-time
+      const baseOffset = -screenWidth;
+      slideAnimation.setValue(baseOffset + translationX);
+    } else if (state === State.END) {
+      const { velocityX } = nativeEvent;
+      
+      // Determine if gesture should trigger navigation
+      const swipeThreshold = screenWidth * 0.3;
+      const velocityThreshold = 500;
+      
+      const shouldNavigateNext = translationX < -swipeThreshold || velocityX < -velocityThreshold;
+      const shouldNavigatePrev = translationX > swipeThreshold || velocityX > velocityThreshold;
+      
+      if (shouldNavigateNext || shouldNavigatePrev) {
+        // Animate to completion first
+        const targetPosition = shouldNavigateNext ? -screenWidth * 2 : 0;
+        
+        Animated.timing(slideAnimation, {
+          toValue: targetPosition,
+          duration: 200,
+          useNativeDriver: true,
+        }).start(() => {
+          // After animation completes, update data and reset position
+          const direction = shouldNavigateNext ? 'next' : 'prev';
+          updateNavigationData(direction).then(() => {
+            // Reset to center after data is updated
+            slideAnimation.setValue(-screenWidth);
+          });
+        });
+      } else {
+        // Snap back to center position
+        Animated.spring(slideAnimation, {
+          toValue: -screenWidth,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        }).start(() => {
+          // After animation completes, update data and reset position
+          const direction = shouldNavigateNext ? 'next' : 'prev';
+          updateNavigationData(direction).then(() => {
+            // Small delay to ensure prerendered data is updated
+            setTimeout(() => {
+              slideAnimation.setValue(-screenWidth);
+            }, 50);
+          });
+        });
+      }
+    } else if (state === State.BEGAN) {
+      // Initialize animation to center position when gesture begins
+      slideAnimation.setValue(-screenWidth);
+    }
+  };
+
+  // Update navigation data without visual disruption
+  const updateNavigationData = async (direction: 'prev' | 'next') => {
+    if (!weekSchedule || isAnimating) return;
+
+    setIsAnimating(true);
+
+    try {
+      if (direction === 'next' && currentDayIndex === 6) {
+        // Sunday -> next Monday (next week)
+        const currentDate = new Date(currentWeekStart + 'T00:00:00.000Z');
+        const newDate = new Date(currentDate);
+        newDate.setDate(currentDate.getDate() + 7);
+        const newWeekStart = getMonday(newDate);
+        
+        setCurrentWeekStart(newWeekStart);
+        setCurrentDayIndex(0);
+        await loadWeekSchedule(newWeekStart);
+      } else if (direction === 'prev' && currentDayIndex === 0) {
+        // Monday -> previous Sunday (previous week)
+        const currentDate = new Date(currentWeekStart + 'T00:00:00.000Z');
+        const newDate = new Date(currentDate);
+        newDate.setDate(currentDate.getDate() - 7);
+        const newWeekStart = getMonday(newDate);
+        
+        setCurrentWeekStart(newWeekStart);
+        setCurrentDayIndex(6);
+        await loadWeekSchedule(newWeekStart);
+      } else {
+        // Regular day navigation within the week
+        const newIndex = direction === 'next' 
+          ? Math.min(currentDayIndex + 1, 6)
+          : Math.max(currentDayIndex - 1, 0);
+        setCurrentDayIndex(newIndex);
+      }
+    } catch (error) {
+      console.error('Navigation data update failed:', error);
+    } finally {
+      setIsAnimating(false);
+    }
   };
 
   const goToCurrentWeek = () => {
@@ -340,17 +514,86 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   };
 
   const getVisibleDays = (): ResolvedDay[] => {
-    if (!weekSchedule) {
-      return [];
-    }
+    if (!weekSchedule) return [];
     
     if (daysToShow === 1) {
+      // Mobile: show only current day
       return [weekSchedule.days[currentDayIndex]];
     } else {
-      // For tablet, show 3 days centered around current day
-      const startIndex = Math.max(0, Math.min(currentDayIndex - 1, 4));
-      return weekSchedule.days.slice(startIndex, startIndex + 3);
+      // Tablet: show multiple days
+      const startIndex = Math.max(0, currentDayIndex - 1);
+      const endIndex = Math.min(6, startIndex + daysToShow - 1);
+      return weekSchedule.days.slice(startIndex, endIndex + 1);
     }
+  };
+
+  // Helper function to render a day component
+  const renderDayComponent = (day: ResolvedDay | null, position: 'prev' | 'current' | 'next') => {
+    if (!day) return null;
+
+    const dayTasks = getDayTasks(day);
+    const isToday = new Date(day.date + 'T00:00:00.000Z').toDateString() === new Date().toDateString();
+    
+    return (
+      <View 
+        key={`${day.date}-${position}`}
+        style={[
+          styles.dayColumn,
+          isToday && styles.todayColumn,
+          styles.slidingDayColumn,
+          position === 'prev' && styles.prevDayColumn,
+          position === 'next' && styles.nextDayColumn,
+        ]}
+      >
+        {/* Day Header */}
+        <View style={[styles.dayHeader, isToday && styles.todayHeader]}>
+          <View style={styles.dayInfo}>
+            <Text style={[styles.dayName, isToday && styles.todayDayName]}>
+              {formatDate(day.date)}
+            </Text>
+            <Text style={styles.taskCount}>
+              {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
+            </Text>
+          </View>
+        </View>
+        
+        {/* Tasks */}
+        <View style={styles.tasksContainer}>
+          {dayTasks.length === 0 ? (
+            <View style={styles.noTasks}>
+              <Text style={styles.noTasksText}>No tasks</Text>
+            </View>
+          ) : (
+            <View style={styles.tasksStack}>
+              {dayTasks.map((task, taskIndex) => (
+                <TaskOverrideCard
+                  key={`${task.taskId}-${task.memberId}-${taskIndex}`}
+                  task={task}
+                  taskIndex={taskIndex}
+                  isAdmin={isAdmin}
+                  onPress={(task) => handleTaskPress(task, day.date)}
+                  formatTime={formatTime}
+                  formatDuration={formatDuration}
+                  showDescription={false}
+                  compact={false}
+                />
+              ))}
+            </View>
+          )}
+          
+          {/* Add Task Button */}
+          {isAdmin && (
+            <TouchableOpacity
+              style={styles.addTaskButton}
+              onPress={() => handleTaskOverride('ADD', undefined, day.date)}
+              disabled={isLoading || availableTasks.length === 0}
+            >
+              <Text style={styles.addTaskButtonText}>+ Add Task</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
   };
 
   if (!currentFamily) {
@@ -362,7 +605,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   }
 
   return (
-    <View style={[styles.container, style]}>
+    <GestureHandlerRootView style={[styles.container, style]}>
       {/* Header */}
       <View style={styles.header}>
         {/* Line 1: Template Name + Modified Indicator */}
@@ -423,9 +666,15 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
       {daysToShow === 1 && weekSchedule && (
         <View style={styles.dayNavigation}>
           <TouchableOpacity
-            style={[styles.dayNavButton, currentDayIndex === 0 && styles.dayNavButtonDisabled]}
-            onPress={() => navigateDay('prev')}
-            disabled={currentDayIndex === 0}
+            style={styles.dayNavButton}
+            onPress={() => updateNavigationData('prev')}
+          >
+            <Text style={styles.dayNavButtonText}>‹</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.dayNavButton}
+            onPress={() => updateNavigationData('prev')}
           >
             <Text style={styles.dayNavButtonText}>‹</Text>
           </TouchableOpacity>
@@ -451,9 +700,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
           </View>
           
           <TouchableOpacity
-            style={[styles.dayNavButton, currentDayIndex === 6 && styles.dayNavButtonDisabled]}
-            onPress={() => navigateDay('next')}
-            disabled={currentDayIndex === 6}
+            style={styles.dayNavButton}
+            onPress={() => updateNavigationData('next')}
           >
             <Text style={styles.dayNavButtonText}>›</Text>
           </TouchableOpacity>
@@ -467,7 +715,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         </View>
       )}
 
-      {/* Calendar Content */}
+      {/* Calendar Content with Swipe Gesture Support */}
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <LoadingSpinner />
@@ -484,73 +732,45 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
           />
         </View>
       ) : weekSchedule ? (
-        <ScrollView style={styles.calendarContent} showsVerticalScrollIndicator={false}>
-          <View style={styles.daysContainer}>
-            {getVisibleDays().map((day, index) => {
-              const dayTasks = getDayTasks(day);
-              const isToday = new Date(day.date + 'T00:00:00.000Z').toDateString() === new Date().toDateString();
-              
-              return (
-                <View 
-                  key={day.date} 
+        <PanGestureHandler
+          onGestureEvent={handleSwipeGesture}
+          onHandlerStateChange={handleSwipeGesture}
+          activeOffsetX={[-5, 5]}
+          failOffsetY={[-20, 20]}
+          shouldCancelWhenOutside={false}
+        >
+          <View style={styles.gestureContainer}>
+            <ScrollView style={styles.calendarContent} showsVerticalScrollIndicator={false}>
+              {daysToShow === 1 ? (
+                // Mobile: Three-day sliding view (prev, current, next)
+                <Animated.View 
                   style={[
-                    styles.dayColumn,
-                    isToday && styles.todayColumn,
-                    daysToShow > 1 && styles.multiDayColumn
+                    styles.slidingContainer,
+                    {
+                      transform: [{ translateX: slideAnimation }]
+                    }
                   ]}
                 >
-                  {/* Day Header */}
-                  <View style={[styles.dayHeader, isToday && styles.todayHeader]}>
-                    <View style={styles.dayInfo}>
-                      <Text style={[styles.dayName, isToday && styles.todayDayName]}>
-                        {formatDate(day.date)}
-                      </Text>
-                      <Text style={styles.taskCount}>
-                        {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
-                      </Text>
-                    </View>
-                  </View>
+                  {/* Previous Day */}
+                  {renderDayComponent(prevDayData, 'prev')}
                   
-                  {/* Tasks */}
-                  <View style={styles.tasksContainer}>
-                    {dayTasks.length === 0 ? (
-                      <View style={styles.noTasks}>
-                        <Text style={styles.noTasksText}>No tasks</Text>
-                      </View>
-                    ) : (
-                      <View style={styles.tasksStack}>
-                        {dayTasks.map((task, taskIndex) => (
-                          <TaskOverrideCard
-                            key={`${task.taskId}-${task.memberId}-${taskIndex}`}
-                            task={task}
-                            taskIndex={taskIndex}
-                            isAdmin={isAdmin}
-                            onPress={(task) => handleTaskPress(task, day.date)}
-                            formatTime={formatTime}
-                            formatDuration={formatDuration}
-                            showDescription={false}
-                            compact={daysToShow > 1}
-                          />
-                        ))}
-                      </View>
-                    )}
-                    
-                    {/* Add Task Button */}
-                    {isAdmin && (
-                      <TouchableOpacity
-                        style={styles.addTaskButton}
-                        onPress={() => handleTaskOverride('ADD', undefined, day.date)}
-                        disabled={isLoading || availableTasks.length === 0}
-                      >
-                        <Text style={styles.addTaskButtonText}>+ Add Task</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
+                  {/* Current Day */}
+                  {renderDayComponent(weekSchedule.days[currentDayIndex], 'current')}
+                  
+                  {/* Next Day */}
+                  {renderDayComponent(nextDayData, 'next')}
+                </Animated.View>
+              ) : (
+                // Tablet: Multi-day view
+                <View style={styles.daysContainer}>
+                  {getVisibleDays().map((day, index) => {
+                    return renderDayComponent(day, 'current');
+                  })}
                 </View>
-              );
-            })}
+              )}
+            </ScrollView>
           </View>
-        </ScrollView>
+        </PanGestureHandler>
       ) : (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>No schedule data available</Text>
@@ -569,7 +789,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         familyMembers={familyMembers}
         isLoading={isLoading}
       />
-    </View>
+    </GestureHandlerRootView>
   );
 };
 
@@ -699,6 +919,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '600',
   },
+
   message: {
     margin: 16,
     padding: 12,
@@ -742,6 +963,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
   },
+  gestureContainer: {
+    flex: 1,
+  },
   calendarContent: {
     flex: 1,
   },
@@ -762,6 +986,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  slidingDayColumn: {
+    width: '33.333%', // Each day takes 1/3 of the sliding container
+    marginHorizontal: 4,
+  },
+  prevDayColumn: {
+    // Previous day is positioned to the left
+  },
+  nextDayColumn: {
+    // Next day is positioned to the right
   },
   multiDayColumn: {
     marginHorizontal: 4,
@@ -829,5 +1063,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748b',
     fontWeight: '500',
+  },
+  slidingContainer: {
+    flexDirection: 'row',
+    width: '300%', // Three days side by side
+    paddingHorizontal: 16,
   },
 }); 
