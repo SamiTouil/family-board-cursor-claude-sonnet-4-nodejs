@@ -83,11 +83,31 @@ export class WeekScheduleService {
                             familyId: true,
                           },
                         },
+                        dayTemplate: {
+                          select: {
+                            id: true,
+                            name: true,
+                            description: true,
+                          },
+                        },
                       },
                       orderBy: {
                         sortOrder: 'asc',
                       },
                     },
+                    family: {
+                      select: {
+                        id: true,
+                        name: true,
+                      },
+                    },
+                  },
+                },
+                weekTemplate: {
+                  select: {
+                    id: true,
+                    name: true,
+                    description: true,
                   },
                 },
               },
@@ -149,7 +169,7 @@ export class WeekScheduleService {
       const daySchedule = await this.resolveDaySchedule(
         baseTemplate,
         currentDate,
-        weekOverride?.taskOverrides || []
+        (weekOverride?.taskOverrides || []) as TaskOverrideWithRelations[]
       );
       
       resolvedDays.push(daySchedule);
@@ -211,11 +231,11 @@ export class WeekScheduleService {
     if (data.replaceExisting) {
       // Check if this is a day-level override (all overrides for the same date)
       const isDayLevelOverride = validatedOverrides.length > 0 && 
-        validatedOverrides.every(override => override.assignedDate === validatedOverrides[0].assignedDate);
+        validatedOverrides.every(override => override.assignedDate === validatedOverrides[0]!.assignedDate);
 
       if (isDayLevelOverride && validatedOverrides.length > 0) {
         // For day-level overrides with replaceExisting=true, delete all existing overrides for the target date
-        const targetDateString = validatedOverrides[0].assignedDate;
+        const targetDateString = validatedOverrides[0]!.assignedDate;
         const targetDate = new Date(targetDateString + 'T00:00:00.000Z');
         
         // Delete all existing overrides for this date in one operation
@@ -342,9 +362,22 @@ export class WeekScheduleService {
                         familyId: true,
                       },
                     },
+                    dayTemplate: {
+                      select: {
+                        id: true,
+                        name: true,
+                        description: true,
+                      },
+                    },
                   },
                   orderBy: {
                     sortOrder: 'asc',
+                  },
+                },
+                family: {
+                  select: {
+                    id: true,
+                    name: true,
                   },
                 },
               },
@@ -520,10 +553,10 @@ export class WeekScheduleService {
         assignedDate,
         taskId: override.taskId,
         action: override.action,
-        originalMemberId: override.originalMemberId,
-        newMemberId: override.newMemberId,
-        overrideTime: override.overrideTime,
-        overrideDuration: override.overrideDuration,
+        originalMemberId: override.originalMemberId || null,
+        newMemberId: override.newMemberId || null,
+        overrideTime: override.overrideTime || null,
+        overrideDuration: override.overrideDuration || null,
       },
     });
   }

@@ -30,8 +30,8 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
         password: userData.password || null,
         avatarUrl: userData.avatarUrl || null,
         isVirtual: userData.isVirtual || false,
-        createdAt: userData.createdAt,
-        updatedAt: userData.updatedAt,
+        createdAt: userData.createdAt || new Date(),
+        updatedAt: userData.updatedAt || new Date(),
       }),
     });
   }
@@ -44,12 +44,12 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
       update: {},
       create: {
         id: familyData.id!,
-        name: familyData.name,
-        description: familyData.description,
-        avatarUrl: familyData.avatarUrl,
-        creatorId: familyData.creatorId,
-        createdAt: familyData.createdAt,
-        updatedAt: familyData.updatedAt,
+        name: familyData.name!,
+        description: familyData.description || null,
+        avatarUrl: familyData.avatarUrl || null,
+        creatorId: familyData.creatorId!,
+        createdAt: familyData.createdAt || new Date(),
+        updatedAt: familyData.updatedAt || new Date(),
       },
     });
   }
@@ -84,14 +84,14 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
       create: {
         id: inviteData.id!,
         code: inviteData.code!,
-        status: inviteData.status,
-        familyId: inviteData.familyId,
-        senderId: inviteData.senderId,
-        receiverId: inviteData.receiverId,
+        status: inviteData.status!,
+        familyId: inviteData.familyId!,
+        senderId: inviteData.senderId!,
+        receiverId: inviteData.receiverId || null,
         expiresAt: inviteData.expiresAt!,
-        createdAt: inviteData.createdAt,
-        updatedAt: inviteData.updatedAt,
-        respondedAt: inviteData.respondedAt,
+        createdAt: inviteData.createdAt || new Date(),
+        updatedAt: inviteData.updatedAt || new Date(),
+        respondedAt: inviteData.respondedAt || null,
       },
     });
   }
@@ -113,11 +113,11 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
         userId: requestData.userId!,
         familyId: requestData.familyId!,
         inviteId: requestData.inviteId!,
-        reviewerId: requestData.reviewerId,
-        message: requestData.message,
-        createdAt: requestData.createdAt,
-        updatedAt: requestData.updatedAt,
-        respondedAt: requestData.respondedAt,
+        reviewerId: requestData.reviewerId || null,
+        message: requestData.message || null,
+        createdAt: requestData.createdAt || new Date(),
+        updatedAt: requestData.updatedAt || new Date(),
+        respondedAt: requestData.respondedAt || null,
       },
     });
   }
@@ -132,15 +132,15 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
         create: {
           id: taskData.id!,
           name: taskData.name!,
-          description: taskData.description,
+          description: taskData.description || null,
           color: taskData.color!,
           icon: taskData.icon!,
           defaultStartTime: taskData.defaultStartTime!,
           defaultDuration: taskData.defaultDuration!,
-          isActive: taskData.isActive,
-          familyId: taskData.familyId,
-          createdAt: taskData.createdAt,
-          updatedAt: taskData.updatedAt,
+          isActive: taskData.isActive ?? true,
+          familyId: taskData.familyId!,
+          createdAt: taskData.createdAt || new Date(),
+          updatedAt: taskData.updatedAt || new Date(),
         },
       });
     }
@@ -163,10 +163,10 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
         create: {
           id: templateData.id!,
           name: templateData.name!,
-          description: templateData.description,
+          description: templateData.description || null,
           familyId: templateData.familyId!,
-          createdAt: templateData.createdAt,
-          updatedAt: templateData.updatedAt,
+          createdAt: templateData.createdAt || new Date(),
+          updatedAt: templateData.updatedAt || new Date(),
         },
       });
     }
@@ -178,25 +178,36 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   // Seed day template items (depend on day templates, tasks, and family members)
   if (exportData.dayTemplateItems && exportData.dayTemplateItems.length > 0) {
     for (const itemData of exportData.dayTemplateItems) {
+      // Handle memberId null case for compound key
+      const whereClause = itemData.memberId 
+        ? {
+            dayTemplateId_memberId_taskId: {
+              dayTemplateId: itemData.dayTemplateId!,
+              memberId: itemData.memberId,
+              taskId: itemData.taskId!
+            }
+          }
+        : {
+            dayTemplateId_memberId_taskId: {
+              dayTemplateId: itemData.dayTemplateId!,
+              memberId: null as any, // Force null for compound key
+              taskId: itemData.taskId!
+            }
+          };
+
       await prisma.dayTemplateItem.upsert({
-        where: { 
-          dayTemplateId_memberId_taskId: { 
-            dayTemplateId: itemData.dayTemplateId!, 
-            memberId: itemData.memberId || null, 
-            taskId: itemData.taskId! 
-          } 
-        },
+        where: whereClause,
         update: {},
         create: {
           id: itemData.id!,
           dayTemplateId: itemData.dayTemplateId!,
           taskId: itemData.taskId!,
-          memberId: itemData.memberId,
-          overrideTime: itemData.overrideTime,
-          overrideDuration: itemData.overrideDuration,
+          memberId: itemData.memberId || null,
+          overrideTime: itemData.overrideTime || null,
+          overrideDuration: itemData.overrideDuration || null,
           sortOrder: itemData.sortOrder || 0,
-          createdAt: itemData.createdAt,
-          updatedAt: itemData.updatedAt,
+          createdAt: itemData.createdAt || new Date(),
+          updatedAt: itemData.updatedAt || new Date(),
         },
       });
     }
@@ -219,14 +230,14 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
         create: {
           id: templateData.id!,
           name: templateData.name!,
-          description: templateData.description,
-          isActive: templateData.isActive,
-          isDefault: templateData.isDefault,
-          applyRule: templateData.applyRule,
-          priority: templateData.priority,
+          description: templateData.description || null,
+          isActive: templateData.isActive ?? true,
+          isDefault: templateData.isDefault ?? false,
+          applyRule: templateData.applyRule || null,
+          priority: templateData.priority ?? 0,
           familyId: templateData.familyId!,
-          createdAt: templateData.createdAt,
-          updatedAt: templateData.updatedAt,
+          createdAt: templateData.createdAt || new Date(),
+          updatedAt: templateData.updatedAt || new Date(),
         },
       });
     }
@@ -251,8 +262,8 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
           weekTemplateId: dayData.weekTemplateId!,
           dayOfWeek: dayData.dayOfWeek!,
           dayTemplateId: dayData.dayTemplateId!,
-          createdAt: dayData.createdAt,
-          updatedAt: dayData.updatedAt,
+          createdAt: dayData.createdAt || new Date(),
+          updatedAt: dayData.updatedAt || new Date(),
         },
       });
     }
@@ -275,10 +286,10 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
         create: {
           id: overrideData.id!,
           weekStartDate: overrideData.weekStartDate!,
-          weekTemplateId: overrideData.weekTemplateId,
+          weekTemplateId: overrideData.weekTemplateId || null,
           familyId: overrideData.familyId!,
-          createdAt: overrideData.createdAt,
-          updatedAt: overrideData.updatedAt,
+          createdAt: overrideData.createdAt || new Date(),
+          updatedAt: overrideData.updatedAt || new Date(),
         },
       });
     }
@@ -305,12 +316,12 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
           assignedDate: overrideData.assignedDate!,
           taskId: overrideData.taskId!,
           action: overrideData.action!,
-          originalMemberId: overrideData.originalMemberId,
-          newMemberId: overrideData.newMemberId,
-          overrideTime: overrideData.overrideTime,
-          overrideDuration: overrideData.overrideDuration,
-          createdAt: overrideData.createdAt,
-          updatedAt: overrideData.updatedAt,
+          originalMemberId: overrideData.originalMemberId || null,
+          newMemberId: overrideData.newMemberId || null,
+          overrideTime: overrideData.overrideTime || null,
+          overrideDuration: overrideData.overrideDuration || null,
+          createdAt: overrideData.createdAt || new Date(),
+          updatedAt: overrideData.updatedAt || new Date(),
         },
       });
     }

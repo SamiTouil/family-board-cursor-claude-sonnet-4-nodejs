@@ -1,7 +1,7 @@
 import { UserService } from '../services/user.service';
 import { UpdateUserSchema } from '../types/user.types';
 import { getMockUser } from './setup';
-import { UserAlreadyExistsError } from '../errors/UserErrors';
+import { UserAlreadyExistsError, UserNotFoundError } from '../errors/UserErrors';
 
 describe('UserService', () => {
   describe('createUser', () => {
@@ -65,7 +65,7 @@ describe('UserService', () => {
       await expect(UserService.login({
         email: mockUser.email,
         password: 'wrongpassword',
-      })).rejects.toThrow('Invalid credentials');
+      })).rejects.toThrow('Invalid email or password');
     });
   });
 
@@ -99,7 +99,7 @@ describe('UserService', () => {
         currentPassword: 'wrongPassword',
         newPassword: 'newPassword123',
         confirmPassword: 'newPassword123',
-      })).rejects.toThrow('Current password is incorrect');
+      })).rejects.toThrow('Invalid email or password');
     });
 
     it('should throw error if user not found', async () => {
@@ -107,7 +107,7 @@ describe('UserService', () => {
         currentPassword: 'password123',
         newPassword: 'newPassword123',
         confirmPassword: 'newPassword123',
-      })).rejects.toThrow('User not found');
+      })).rejects.toThrow(UserNotFoundError);
     });
   });
 
