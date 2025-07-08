@@ -1,5 +1,3 @@
-// @ts-nocheck
-import { PrismaClient } from '@prisma/client';
 import {
   WeekOverrideWithRelations,
   TaskOverrideWithRelations,
@@ -16,12 +14,14 @@ import {
   TaskOverrideAction,
 } from '../types/task.types';
 import { getWebSocketService } from './websocket.service';
+import { prisma } from '../lib/prisma';
+import { PrismaClient } from '@prisma/client';
 
 export class WeekScheduleService {
-  private prisma: PrismaClient;
+  private prisma;
 
   constructor(prismaClient?: PrismaClient) {
-    this.prisma = prismaClient || new PrismaClient();
+    this.prisma = prismaClient || prisma;
   }
   
   // ==================== WEEK SCHEDULE RESOLUTION ====================

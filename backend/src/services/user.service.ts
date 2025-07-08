@@ -1,9 +1,12 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { CreateUserInput, UpdateUserInput, LoginInput, ChangePasswordInput, UserResponse } from '../types/user.types';
-
-const prisma = new PrismaClient();
+import { UserAlreadyExistsError, UserNotFoundError, VirtualUserLoginError } from '../errors/UserErrors';
+import { InvalidCredentialsError } from '../errors/AuthErrors';
+import { NotFamilyAdminError } from '../errors/FamilyErrors';
+import { GoogleUser } from '../types/google-auth.types';
+import { Prisma } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 
 type User = {
   id: string;
@@ -35,7 +38,7 @@ export class UserService {
     });
 
     if (existingUser) {
-      throw new Error('Email already exists');
+      throw new UserAlreadyExistsError();
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 12);
@@ -65,7 +68,7 @@ export class UserService {
     return this.toUserResponse(user);
   }
 
-  static async signup(data: CreateUserInput): Promise<{ user: UserResponse; token: string }> {
+  static async signup(data: CreateUserInput): Promise<{ user: UserResponse; token: string; refreshToken: string }> {
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email },
       select: {
@@ -82,7 +85,7 @@ export class UserService {
     });
 
     if (existingUser) {
-      throw new Error('Email already exists');
+      throw new UserAlreadyExistsError();
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 12);
@@ -110,10 +113,12 @@ export class UserService {
     });
 
     const token = this.generateToken(user.id, user.email!);
+    const refreshToken = this.generateRefreshToken(user.id, user.email!);
 
     return {
       user: this.toUserResponse(user),
       token,
+      refreshToken,
     };
   }
 
@@ -170,14 +175,14 @@ export class UserService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new UserNotFoundError();
     }
 
     if (user.isVirtual) {
-      throw new Error('Cannot update virtual user profile');
+      throw new VirtualUserLoginError();
     }
 
-    const updateData: any = {};
+    const updateData: Prisma.UserUpdateInput = {};
     if (data.firstName !== undefined) updateData.firstName = data.firstName;
     if (data.lastName !== undefined) updateData.lastName = data.lastName;
     if (data.email !== undefined) updateData.email = data.email;
@@ -219,20 +224,20 @@ export class UserService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new UserNotFoundError();
     }
 
     if (user.isVirtual) {
-      throw new Error('Virtual users cannot change passwords');
+      throw new VirtualUserLoginError();
     }
 
     if (!user.password) {
-      throw new Error('User has no password set');
+      throw new InvalidCredentialsError();
     }
 
     const isCurrentPasswordValid = await bcrypt.compare(data.currentPassword, user.password);
     if (!isCurrentPasswordValid) {
-      throw new Error('Current password is incorrect');
+      throw new InvalidCredentialsError();
     }
 
     const hashedNewPassword = await bcrypt.hash(data.newPassword, 12);
@@ -262,26 +267,28 @@ export class UserService {
     });
   }
 
-  static async login(data: LoginInput): Promise<{ user: UserResponse; token: string }> {
+  static async login(data: LoginInput): Promise<{ user: UserResponse; token: string; refreshToken: string }> {
     const user = await this.getUserByEmail(data.email);
 
     if (!user || !user.password || !(await bcrypt.compare(data.password, user.password))) {
-      throw new Error('Invalid credentials');
+      throw new InvalidCredentialsError();
     }
 
     if (user.isVirtual) {
-      throw new Error('Cannot login as virtual user');
+      throw new VirtualUserLoginError();
     }
 
     const token = this.generateToken(user.id, user.email!);
+    const refreshToken = this.generateRefreshToken(user.id, user.email!);
 
     return {
       user: this.toUserResponse(user),
       token,
+      refreshToken,
     };
   }
 
-  static async refreshToken(userId: string): Promise<{ user: UserResponse; token: string }> {
+  static async refreshToken(userId: string): Promise<{ user: UserResponse; token: string; refreshToken: string }> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -298,22 +305,40 @@ export class UserService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new UserNotFoundError();
     }
 
     const token = this.generateToken(user.id, user.email!);
+    const refreshToken = this.generateRefreshToken(user.id, user.email!);
 
     return {
       user: this.toUserResponse(user),
       token,
+      refreshToken,
     };
+  }
+  
+  private static generateRefreshToken(userId: string, email: string): string {
+    const jwtSecret = process.env['JWT_SECRET'];
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET environment variable is not configured');
+    }
+    return jwt.sign(
+      { userId, email, type: 'refresh' },
+      jwtSecret,
+      { expiresIn: '30d' } // Refresh tokens last 30 days
+    );
   }
 
   private static generateToken(userId: string, email: string): string {
+    const jwtSecret = process.env['JWT_SECRET'];
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET environment variable is not configured');
+    }
     return jwt.sign(
       { userId, email },
-      process.env['JWT_SECRET'] || 'fallback-secret',
-      { expiresIn: '7d' }
+      jwtSecret,
+      { expiresIn: '1h' } // Reduced from 7 days to 1 hour
     );
   }
 
@@ -330,7 +355,7 @@ export class UserService {
     };
   }
 
-  static async loginWithGoogle(googleUser: any): Promise<{ user: UserResponse; token: string; isNewUser: boolean }> {
+  static async loginWithGoogle(googleUser: GoogleUser): Promise<{ user: UserResponse; token: string; refreshToken: string; isNewUser: boolean }> {
     let user = await prisma.user.findUnique({
       where: { email: googleUser.email },
       select: {
@@ -374,14 +399,16 @@ export class UserService {
     }
 
     if (user.isVirtual) {
-      throw new Error('Cannot login as virtual user');
+      throw new VirtualUserLoginError();
     }
 
     const token = this.generateToken(user.id, user.email!);
+    const refreshToken = this.generateRefreshToken(user.id, user.email!);
 
     return {
       user: this.toUserResponse(user),
       token,
+      refreshToken,
       isNewUser,
     };
   }

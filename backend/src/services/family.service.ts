@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import { 
   CreateFamilyData, 
   UpdateFamilyData, 
@@ -16,14 +15,8 @@ import {
 import { UpdateVirtualMemberInput } from '../types/user.types';
 import crypto from 'crypto';
 import { getWebSocketService } from './websocket.service';
-
-// Use a global instance like other services
-declare global {
-  var __prisma: PrismaClient | undefined;
-}
-
-const prisma = globalThis.__prisma || new PrismaClient();
-if (process.env['NODE_ENV'] !== 'production') globalThis.__prisma = prisma;
+import { prisma } from '../lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export class FamilyService {
   // Generate a unique invite code
@@ -97,7 +90,7 @@ export class FamilyService {
       },
     });
 
-    return memberships.map((membership: any) => ({
+    return memberships.map((membership) => ({
       id: membership.family.id,
       name: membership.family.name,
       description: membership.family.description || undefined,
@@ -173,7 +166,7 @@ export class FamilyService {
       throw new Error('Only family admins can update family details');
     }
 
-    const updateData: any = {};
+    const updateData: Prisma.FamilyUpdateInput = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.description !== undefined) updateData.description = data.description || null;
     if (data.avatarUrl !== undefined) updateData.avatarUrl = data.avatarUrl || null;
@@ -246,7 +239,7 @@ export class FamilyService {
       },
     });
 
-    return members.map((member: any) => ({
+    return members.map((member) => ({
       id: member.id,
       userId: member.userId,
       role: member.role,
@@ -639,7 +632,7 @@ export class FamilyService {
       },
     });
 
-    return joinRequests.map((request: any) => ({
+    return joinRequests.map((request) => ({
       id: request.id,
       status: request.status,
       message: request.message || undefined,
@@ -927,7 +920,7 @@ export class FamilyService {
       },
     });
 
-    return invites.map((invite: any) => ({
+    return invites.map((invite) => ({
       id: invite.id,
       code: invite.code,
       status: invite.status,
@@ -1023,7 +1016,7 @@ export class FamilyService {
       },
     });
 
-    return joinRequests.map((request: any) => ({
+    return joinRequests.map((request) => ({
       id: request.id,
       status: request.status,
       message: request.message || undefined,

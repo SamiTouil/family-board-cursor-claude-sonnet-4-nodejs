@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import { 
   Task,
   CreateTaskDto,
@@ -6,14 +5,8 @@ import {
   TaskResponseDto,
   TaskQueryParams
 } from '../types/task.types';
-
-// Use a global instance like other services
-declare global {
-  var __prisma: PrismaClient | undefined;
-}
-
-const prisma = globalThis.__prisma || new PrismaClient();
-if (process.env['NODE_ENV'] !== 'production') globalThis.__prisma = prisma;
+import { prisma } from '../lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export class TaskService {
   
@@ -102,7 +95,7 @@ export class TaskService {
     const { isActive = true, search, page = 1, limit = 50 } = params;
     
     // Build where clause
-    const where: any = {
+    const where: Prisma.TaskWhereInput = {
       familyId,
       isActive,
     };
@@ -168,7 +161,7 @@ export class TaskService {
     await this.checkFamilyAdmin(userId, existingTask.familyId);
 
     // Build update data
-    const updateData: any = {};
+    const updateData: Prisma.TaskUpdateInput = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.color !== undefined) updateData.color = data.color;

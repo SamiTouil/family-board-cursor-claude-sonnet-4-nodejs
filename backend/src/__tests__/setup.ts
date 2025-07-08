@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
 import { initI18n } from '../config/i18n';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma';
 
 beforeAll(async () => {
   // Initialize i18n for all tests

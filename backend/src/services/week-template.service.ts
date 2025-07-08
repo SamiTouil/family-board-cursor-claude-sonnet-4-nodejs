@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import {
   WeekTemplateWithRelations,
   WeekTemplateDayWithRelations,
@@ -14,8 +13,8 @@ import {
   UpdateWeekTemplateDaySchema,
 
 } from '../types/task.types';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export class WeekTemplateService {
   
@@ -245,7 +244,7 @@ export class WeekTemplateService {
     } = params;
 
     // Build where clause
-    const whereClause: any = {
+    const whereClause: Prisma.WeekTemplateWhereInput = {
       familyId: familyId,
     };
 
@@ -401,7 +400,7 @@ export class WeekTemplateService {
     }
 
     // Build update data object with only defined values
-    const updateData: any = {};
+    const updateData: Prisma.WeekTemplateUpdateInput = {};
     if (validatedData.name !== undefined) {
       updateData.name = validatedData.name;
     }
@@ -662,7 +661,7 @@ export class WeekTemplateService {
     }
 
     // Build update data object with only defined values
-    const updateData: any = {};
+    const updateData: Prisma.WeekTemplateDayUpdateInput = {};
     if (validatedData.dayTemplateId !== undefined) {
       updateData.dayTemplateId = validatedData.dayTemplateId;
     }

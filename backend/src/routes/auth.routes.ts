@@ -3,6 +3,9 @@ import { UserService } from '../services/user.service';
 import { CreateUserSchema, LoginSchema } from '../types/user.types';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.middleware';
 import { i18next } from '../config/i18n';
+import { TokenBlacklistService } from '../services/token-blacklist.service';
+import jwt from 'jsonwebtoken';
+import { JWTPayload } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -38,14 +41,29 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction): P
   }
 });
 
-// Logout (mainly for client-side token cleanup, could be extended for token blacklisting)
-router.post('/logout', authenticateToken, async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
-  // In a simple JWT implementation, logout is handled client-side by removing the token
-  // This endpoint can be used for logging purposes or future token blacklisting
-  res.json({
-    success: true,
-    message: i18next.t('success.logoutSuccessful'),
-  });
+// Logout with token blacklisting
+router.post('/logout', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    // Get the token from the Authorization header
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (token) {
+      // Blacklist the token
+      await TokenBlacklistService.blacklistToken(token);
+    }
+    
+    res.json({
+      success: true,
+      message: i18next.t('success.logoutSuccessful'),
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.json({
+      success: true,
+      message: i18next.t('success.logoutSuccessful'),
+    });
+  }
 });
 
 // Get current user
@@ -78,18 +96,42 @@ router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res: Resp
   }
 });
 
-// Refresh token
-router.post('/refresh', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+// Refresh token - using refresh token instead of access token
+router.post('/refresh', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    if (!req.user) {
+    const { refreshToken } = req.body;
+    
+    if (!refreshToken) {
       res.status(401).json({
         success: false,
-        message: i18next.t('errors.unauthorized'),
+        message: i18next.t('errors.tokenRequired'),
+      });
+      return;
+    }
+    
+    // Verify refresh token
+    const jwtSecret = process.env['JWT_SECRET'];
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET environment variable is not configured');
+    }
+    
+    let decoded: JWTPayload;
+    try {
+      decoded = jwt.verify(refreshToken, jwtSecret);
+      
+      // Check if it's a refresh token
+      if (decoded.type !== 'refresh') {
+        throw new Error('Invalid token type');
+      }
+    } catch (error) {
+      res.status(401).json({
+        success: false,
+        message: i18next.t('errors.invalidToken'),
       });
       return;
     }
 
-    const result = await UserService.refreshToken(req.user.userId);
+    const result = await UserService.refreshToken(decoded.userId);
     
     res.json({
       success: true,

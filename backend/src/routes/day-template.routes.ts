@@ -5,12 +5,11 @@ import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.midd
 import {
   DayTemplateResponseDto,
   DayTemplateItemResponseDto,
-
+  DayTemplateQueryParams,
 } from '../types/task.types';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Apply auth middleware to all routes
 router.use(authenticateToken);
@@ -164,7 +163,7 @@ router.get('/:familyId/day-templates', async (req: AuthenticatedRequest, res: Re
       limit = '50',
     } = req.query;
 
-    const queryParams: any = {
+    const queryParams: DayTemplateQueryParams = {
       page: parseInt(page as string, 10),
       limit: parseInt(limit as string, 10),
     };

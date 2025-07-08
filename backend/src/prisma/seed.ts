@@ -1,24 +1,7 @@
-import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
-
-const prisma = new PrismaClient();
-
-interface DbExport {
-  users: any[];
-  families: any[];
-  familyMembers: any[];
-  familyInvites: any[];
-  familyJoinRequests: any[];
-  tasks: any[];
-  dayTemplates: any[];
-  dayTemplateItems: any[];
-  weekTemplates?: any[];
-  weekTemplateDays?: any[];
-  weekOverrides?: any[];
-  taskOverrides?: any[];
-  exportedAt: string;
-}
+import { prisma } from '../lib/prisma';
+import { DbExport } from '../types/seed.types';
 
 async function seedFromExport(exportData: DbExport): Promise<void> {
   console.log('🔄 Seeding from exported data...');

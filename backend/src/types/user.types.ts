@@ -1,5 +1,14 @@
 import { z } from 'zod';
 
+// Password validation schema with strong requirements
+const passwordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .regex(/[0-9]/, 'Password must contain at least one number')
+  .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character');
+
 // Helper function to handle avatar URL validation
 const avatarUrlSchema = z
   .union([z.string(), z.undefined(), z.null()])
@@ -16,7 +25,7 @@ export const CreateUserSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Invalid email format'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: passwordSchema,
   avatarUrl: avatarUrlSchema,
 });
 
@@ -47,7 +56,7 @@ export const LoginSchema = z.object({
 
 export const ChangePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z.string().min(6, 'New password must be at least 6 characters'),
+  newPassword: passwordSchema,
   confirmPassword: z.string().min(1, 'Please confirm your new password'),
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: "Passwords don't match",

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { UserService } from '../services/user.service';
 import { i18next } from '../config/i18n';
+import { TokenBlacklistService } from '../services/token-blacklist.service';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -34,10 +35,22 @@ export async function authenticateToken(
       return;
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env['JWT_SECRET'] || 'fallback-secret'
-    ) as JWTPayload;
+    const jwtSecret = process.env['JWT_SECRET'];
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET environment variable is not configured');
+    }
+
+    // Check if token is blacklisted
+    const isBlacklisted = await TokenBlacklistService.isTokenBlacklisted(token);
+    if (isBlacklisted) {
+      res.status(401).json({
+        success: false,
+        message: i18next.t('errors.tokenRevoked'),
+      });
+      return;
+    }
+
+    const decoded = jwt.verify(token, jwtSecret) as JWTPayload;
 
     // Verify user still exists
     const user = await UserService.getUserById(decoded.userId);
@@ -79,11 +92,11 @@ export async function authenticateToken(
   }
 }
 
-export function optionalAuth(
+export async function optionalAuth(
   req: AuthenticatedRequest,
   _res: Response,
   next: NextFunction
-): void {
+): Promise<void> {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -93,10 +106,20 @@ export function optionalAuth(
   }
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env['JWT_SECRET'] || 'fallback-secret'
-    ) as JWTPayload;
+    const jwtSecret = process.env['JWT_SECRET'];
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET environment variable is not configured');
+    }
+
+    // Check if token is blacklisted for optional auth
+    const isBlacklisted = await TokenBlacklistService.isTokenBlacklisted(token);
+    if (isBlacklisted) {
+      // For optional auth, just skip setting the user
+      next();
+      return;
+    }
+
+    const decoded = jwt.verify(token, jwtSecret) as JWTPayload;
 
     req.user = {
       userId: decoded.userId,

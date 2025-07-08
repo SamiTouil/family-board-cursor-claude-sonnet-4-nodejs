@@ -1,15 +1,9 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
-
-// Use a global instance like other services
-declare global {
-  var __prisma: PrismaClient | undefined;
-}
-
-const prisma = globalThis.__prisma || new PrismaClient();
-if (process.env['NODE_ENV'] !== 'production') globalThis.__prisma = prisma;
+import { prisma } from '../lib/prisma';
+import { JoinRequestData, FamilyUpdateData, WebSocketEventData } from '../types/websocket.types';
+import { JWTPayload } from '../middleware/auth.middleware';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -87,7 +81,11 @@ export class WebSocketService {
         return next(new Error('No authentication token provided'));
       }
 
-      const decoded = jwt.verify(token, process.env['JWT_SECRET'] || 'fallback-secret') as any;
+      const jwtSecret = process.env['JWT_SECRET'];
+      if (!jwtSecret) {
+        throw new Error('JWT_SECRET environment variable is not configured');
+      }
+      const decoded = jwt.verify(token, jwtSecret) as JWTPayload;
       
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
@@ -165,7 +163,7 @@ export class WebSocketService {
   /**
    * Send event to a specific user
    */
-  public sendToUser(userId: string, event: string, data: any) {
+  public sendToUser(userId: string, event: string, data: WebSocketEventData | Record<string, unknown>) {
     const user = this.connectedUsers.get(userId);
     if (user) {
       this.io.to(user.socketId).emit(event, data);
@@ -176,7 +174,7 @@ export class WebSocketService {
   /**
    * Send event to all members of a family
    */
-  public sendToFamily(familyId: string, event: string, data: any) {
+  public sendToFamily(familyId: string, event: string, data: WebSocketEventData | Record<string, unknown>) {
     const roomName = `family:${familyId}`;
     this.io.to(roomName).emit(event, data);
     console.log(`Sent ${event} to family room ${roomName}`);
@@ -185,7 +183,7 @@ export class WebSocketService {
   /**
    * Send event to all family admins
    */
-  public async sendToFamilyAdmins(familyId: string, event: string, data: any) {
+  public async sendToFamilyAdmins(familyId: string, event: string, data: WebSocketEventData | Record<string, unknown>) {
     try {
       const admins = await prisma.familyMember.findMany({
         where: {
@@ -206,7 +204,7 @@ export class WebSocketService {
   /**
    * Notify about join request events
    */
-  public async notifyJoinRequestCreated(familyId: string, joinRequest: any) {
+  public async notifyJoinRequestCreated(familyId: string, joinRequest: JoinRequestData) {
     await this.sendToFamilyAdmins(familyId, 'join-request-created', {
       type: 'join-request-created',
       familyId,
@@ -242,7 +240,7 @@ export class WebSocketService {
   /**
    * Notify about family updates
    */
-  public notifyFamilyUpdated(familyId: string, updateType: string, data: any) {
+  public notifyFamilyUpdated(familyId: string, updateType: string, data: FamilyUpdateData | Record<string, unknown>) {
     this.sendToFamily(familyId, 'family-updated', {
       type: 'family-updated',
       updateType,

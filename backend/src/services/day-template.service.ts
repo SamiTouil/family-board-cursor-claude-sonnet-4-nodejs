@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import {
   DayTemplateWithRelations,
   DayTemplateItemWithRelations,
@@ -14,8 +13,8 @@ import {
   UpdateDayTemplateItemSchema,
 
 } from '../types/task.types';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export class DayTemplateService {
   
@@ -181,7 +180,7 @@ export class DayTemplateService {
     } = params;
 
     // Build where clause
-    const whereClause: any = {
+    const whereClause: Prisma.DayTemplateWhereInput = {
       familyId: familyId,
     };
 
@@ -299,7 +298,7 @@ export class DayTemplateService {
     }
 
     // Prepare update data, filtering out undefined values
-    const updateData: any = {};
+    const updateData: Prisma.DayTemplateUpdateInput = {};
     if (validatedData.name !== undefined) {
       updateData.name = validatedData.name;
     }
@@ -548,7 +547,7 @@ export class DayTemplateService {
     }
 
     // Prepare update data, filtering out undefined values
-    const updateItemData: any = {};
+    const updateItemData: Prisma.DayTemplateItemUpdateInput = {};
     if (validatedData.memberId !== undefined) {
       updateItemData.memberId = validatedData.memberId;
     }
