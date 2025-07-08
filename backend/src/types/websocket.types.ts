@@ -23,6 +23,7 @@ export interface JoinRequestData {
   message?: string | null;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: Date;
+  updatedAt: Date;
   family: {
     name: string;
   };

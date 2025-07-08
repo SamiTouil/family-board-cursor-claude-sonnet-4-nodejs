@@ -2,6 +2,9 @@ import { UserService } from '../services/user.service';
 import jwt from 'jsonwebtoken';
 import { getMockUser } from './setup';
 import { prisma } from '../lib/prisma';
+import { JWTPayload } from '../middleware/auth.middleware';
+import { UserAlreadyExistsError } from '../errors/UserErrors';
+import { InvalidCredentialsError, VirtualUserLoginError } from '../errors';
 
 describe('Authentication Service', () => {
   describe('signup', () => {
@@ -19,7 +22,7 @@ describe('Authentication Service', () => {
       expect(result.token).toBeDefined();
 
       // Verify token is valid
-      const decoded = jwt.verify(result.token, process.env['JWT_SECRET'] || 'fallback-secret') as any;
+      const decoded = jwt.verify(result.token, process.env['JWT_SECRET']!) as JWTPayload;
       expect(decoded.userId).toBe(result.user.id);
       expect(decoded.email).toBe(result.user.email);
     });
@@ -28,7 +31,7 @@ describe('Authentication Service', () => {
       const mockUser = getMockUser();
       await UserService.signup(mockUser);
 
-      await expect(UserService.signup(mockUser)).rejects.toThrow('Email already exists');
+      await expect(UserService.signup(mockUser)).rejects.toThrow(UserAlreadyExistsError);
     });
 
     it('should hash the password', async () => {
@@ -60,7 +63,7 @@ describe('Authentication Service', () => {
       expect(loginResult.token).toBeDefined();
 
       // Verify token is valid
-      const decoded = jwt.verify(loginResult.token, process.env['JWT_SECRET'] || 'fallback-secret') as any;
+      const decoded = jwt.verify(loginResult.token, process.env['JWT_SECRET']!) as JWTPayload;
       expect(decoded.userId).toBe(loginResult.user.id);
       expect(decoded.email).toBe(loginResult.user.email);
     });
@@ -72,7 +75,7 @@ describe('Authentication Service', () => {
       await expect(UserService.login({
         email: 'nonexistent@example.com',
         password: mockUser.password,
-      })).rejects.toThrow('Invalid credentials');
+      })).rejects.toThrow(InvalidCredentialsError);
     });
 
     it('should throw error with invalid password', async () => {
@@ -82,7 +85,7 @@ describe('Authentication Service', () => {
       await expect(UserService.login({
         email: mockUser.email,
         password: 'wrongpassword',
-      })).rejects.toThrow('Invalid credentials');
+      })).rejects.toThrow(InvalidCredentialsError);
     });
   });
 
@@ -102,7 +105,7 @@ describe('Authentication Service', () => {
       expect(refreshResult.token).not.toBe(signupResult.token);
 
       // Verify new token is valid
-      const decoded = jwt.verify(refreshResult.token, process.env['JWT_SECRET'] || 'fallback-secret') as any;
+      const decoded = jwt.verify(refreshResult.token, process.env['JWT_SECRET']!) as JWTPayload;
       expect(decoded.userId).toBe(refreshResult.user.id);
       expect(decoded.email).toBe(refreshResult.user.email);
     });

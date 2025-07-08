@@ -2,6 +2,10 @@ import { initI18n } from '../config/i18n';
 import { prisma } from '../lib/prisma';
 
 beforeAll(async () => {
+  // Set test environment variables
+  process.env['JWT_SECRET'] = 'test-jwt-secret-for-unit-tests';
+  process.env['NODE_ENV'] = 'test';
+  
   // Initialize i18n for all tests
   await initI18n();
 });
@@ -38,5 +42,5 @@ export const getMockUser = () => ({
   firstName: 'John',
   lastName: 'Doe',
   email: getUniqueTestEmail(),
-  password: 'password123',
+  password: 'Password123!',
 }); 

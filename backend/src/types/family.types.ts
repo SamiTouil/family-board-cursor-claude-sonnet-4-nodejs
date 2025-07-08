@@ -70,7 +70,7 @@ export interface FamilyResponse {
   id: string;
   name: string;
   description?: string | undefined;
-  avatarUrl?: string | undefined;
+  avatarUrl?: string | null | undefined;
   createdAt: Date;
   updatedAt: Date;
   creator: {

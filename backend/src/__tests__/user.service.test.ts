@@ -1,6 +1,7 @@
 import { UserService } from '../services/user.service';
 import { UpdateUserSchema } from '../types/user.types';
 import { getMockUser } from './setup';
+import { UserAlreadyExistsError } from '../errors/UserErrors';
 
 describe('UserService', () => {
   describe('createUser', () => {
@@ -21,7 +22,7 @@ describe('UserService', () => {
       const mockUser = getMockUser();
       await UserService.createUser(mockUser);
 
-      await expect(UserService.createUser(mockUser)).rejects.toThrow('Email already exists');
+      await expect(UserService.createUser(mockUser)).rejects.toThrow(UserAlreadyExistsError);
     });
   });
 

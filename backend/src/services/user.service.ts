@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import { CreateUserInput, UpdateUserInput, LoginInput, ChangePasswordInput, UserResponse } from '../types/user.types';
 import { UserAlreadyExistsError, UserNotFoundError, VirtualUserLoginError } from '../errors/UserErrors';
 import { InvalidCredentialsError } from '../errors/AuthErrors';
-import { NotFamilyAdminError } from '../errors/FamilyErrors';
 import { GoogleUser } from '../types/google-auth.types';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
