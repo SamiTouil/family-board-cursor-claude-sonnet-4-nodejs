@@ -10,7 +10,6 @@ import {
   CreateWeekOverrideSchema,
   CreateTaskOverrideSchema,
   WeekTemplateWithRelations,
-  TaskOverride,
   TaskOverrideAction,
 } from '../types/task.types';
 import { getWebSocketService } from './websocket.service';
@@ -197,9 +196,9 @@ export class WeekScheduleService {
         weekStartDate: weekStartDateObj,
         weekTemplateId: data.weekTemplateId || await this.getApplicableWeekTemplateId(familyId, weekStartDateObj),
       },
-      update: {
-        weekTemplateId: data.weekTemplateId !== undefined ? data.weekTemplateId : undefined,
-      },
+      update: data.weekTemplateId !== undefined ? {
+        weekTemplateId: data.weekTemplateId
+      } : {},
     });
 
     // Handle existing override replacement based on replaceExisting flag
@@ -283,15 +282,6 @@ export class WeekScheduleService {
 
   // ==================== PRIVATE HELPER METHODS ====================
 
-  /**
-   * Check if all overrides are for the same day (day-level override)
-   */
-  private isDayLevelOverride(overrides: CreateTaskOverrideDto[]): boolean {
-    if (overrides.length === 0) return false;
-    
-    const firstDate = overrides[0].assignedDate;
-    return overrides.every(override => override.assignedDate === firstDate);
-  }
 
   private parseAndValidateWeekStartDate(weekStartDate: string): Date {
     const date = new Date(weekStartDate + 'T00:00:00.000Z');
@@ -513,7 +503,7 @@ export class WeekScheduleService {
   private async applyTaskOverride(
     weekOverrideId: string,
     override: CreateTaskOverrideDto
-  ): Promise<TaskOverride> {
+  ): Promise<any> {
     const assignedDate = new Date(override.assignedDate + 'T00:00:00.000Z');
     
     // Since we delete all existing overrides for the date before calling this method,
@@ -698,6 +688,6 @@ export class WeekScheduleService {
       throw new Error('Week override not found');
     }
 
-    return weekOverride;
+    return weekOverride as unknown as WeekOverrideWithRelations;
   }
 } 

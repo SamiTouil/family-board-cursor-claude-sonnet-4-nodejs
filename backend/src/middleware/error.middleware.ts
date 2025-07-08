@@ -41,7 +41,7 @@ export function errorHandler(
   if (error instanceof PrismaClientKnownRequestError) {
     if (error.code === 'P2002') {
       // Unique constraint violation
-      const field = error.meta?.target as string[];
+      const field = error.meta && error.meta['target'] as string[];
       const message = field?.includes('email') 
         ? i18next.t('errors.emailAlreadyExists')
         : 'Resource already exists';

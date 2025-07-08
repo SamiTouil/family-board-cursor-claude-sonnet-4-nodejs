@@ -91,7 +91,7 @@ async function startServer(): Promise<void> {
     app.use('/api/auth/login', (_req, res, next) => {
       const originalJson = res.json;
       res.json = function(data: Record<string, unknown>) {
-        if (data?.success && data?.token) {
+        if (data && data['success'] && data['token']) {
           setCSRFCookie(res);
         }
         return originalJson.call(this, data);

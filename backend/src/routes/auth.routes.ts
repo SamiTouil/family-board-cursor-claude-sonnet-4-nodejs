@@ -117,7 +117,7 @@ router.post('/refresh', async (req: Request, res: Response, next: NextFunction):
     
     let decoded: JWTPayload;
     try {
-      decoded = jwt.verify(refreshToken, jwtSecret);
+      decoded = jwt.verify(refreshToken, jwtSecret) as JWTPayload;
       
       // Check if it's a refresh token
       if (decoded.type !== 'refresh') {

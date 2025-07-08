@@ -143,7 +143,7 @@ router.put('/:familyId', validateBody(updateFamilySchema), async (req: Authentic
     // Notify family members about the update via WebSocket
     const webSocketService = getWebSocketService();
     if (webSocketService) {
-      webSocketService.notifyFamilyUpdated(familyId, 'details', family);
+      webSocketService.notifyFamilyUpdated(familyId, 'details', { family, updatedBy: userId });
     }
     
     res.json({

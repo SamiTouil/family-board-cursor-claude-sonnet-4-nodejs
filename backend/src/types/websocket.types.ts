@@ -24,6 +24,7 @@ export interface JoinRequestData {
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: Date;
   updatedAt: Date;
+  respondedAt?: Date | null;
   family: {
     name: string;
   };

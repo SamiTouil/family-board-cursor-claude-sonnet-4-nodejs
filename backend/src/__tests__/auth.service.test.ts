@@ -4,7 +4,7 @@ import { getMockUser } from './setup';
 import { prisma } from '../lib/prisma';
 import { JWTPayload } from '../middleware/auth.middleware';
 import { UserAlreadyExistsError } from '../errors/UserErrors';
-import { InvalidCredentialsError, VirtualUserLoginError } from '../errors';
+import { InvalidCredentialsError } from '../errors';
 
 describe('Authentication Service', () => {
   describe('signup', () => {

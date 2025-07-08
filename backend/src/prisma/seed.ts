@@ -9,12 +9,12 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   // Seed users first (they have no dependencies)
   for (const userData of exportData.users) {
     await prisma.user.upsert({
-      where: { id: userData.id },
+      where: { id: userData.id! },
       update: {},
       create: {
-        id: userData.id,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
+        id: userData.id!,
+        firstName: userData.firstName!,
+        lastName: userData.lastName!,
         email: userData.email,
         password: userData.password, // Already hashed
         avatarUrl: userData.avatarUrl,
@@ -29,10 +29,10 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   // Seed families (depend on users)
   for (const familyData of exportData.families) {
     await prisma.family.upsert({
-      where: { id: familyData.id },
+      where: { id: familyData.id! },
       update: {},
       create: {
-        id: familyData.id,
+        id: familyData.id!,
         name: familyData.name,
         description: familyData.description,
         avatarUrl: familyData.avatarUrl,
@@ -47,14 +47,19 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   // Seed family members (depend on users and families)
   for (const memberData of exportData.familyMembers) {
     await prisma.familyMember.upsert({
-      where: { id: memberData.id },
+      where: { 
+        userId_familyId: { 
+          userId: memberData.userId!, 
+          familyId: memberData.familyId! 
+        } 
+      },
       update: {},
       create: {
-        id: memberData.id,
-        role: memberData.role,
-        userId: memberData.userId,
-        familyId: memberData.familyId,
-        joinedAt: memberData.joinedAt,
+        id: memberData.id!,
+        role: memberData.role!,
+        userId: memberData.userId!,
+        familyId: memberData.familyId!,
+        joinedAt: memberData.joinedAt!,
       },
     });
   }
@@ -63,16 +68,16 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   // Seed family invites (depend on users and families)
   for (const inviteData of exportData.familyInvites) {
     await prisma.familyInvite.upsert({
-      where: { id: inviteData.id },
+      where: { id: inviteData.id! },
       update: {},
       create: {
-        id: inviteData.id,
-        code: inviteData.code,
+        id: inviteData.id!,
+        code: inviteData.code!,
         status: inviteData.status,
         familyId: inviteData.familyId,
         senderId: inviteData.senderId,
         receiverId: inviteData.receiverId,
-        expiresAt: inviteData.expiresAt,
+        expiresAt: inviteData.expiresAt!,
         createdAt: inviteData.createdAt,
         updatedAt: inviteData.updatedAt,
         respondedAt: inviteData.respondedAt,
@@ -84,14 +89,19 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   // Seed join requests (depend on users, families, and invites)
   for (const requestData of exportData.familyJoinRequests) {
     await prisma.familyJoinRequest.upsert({
-      where: { id: requestData.id },
+      where: { 
+        userId_familyId: { 
+          userId: requestData.userId!, 
+          familyId: requestData.familyId! 
+        } 
+      },
       update: {},
       create: {
-        id: requestData.id,
-        status: requestData.status,
-        userId: requestData.userId,
-        familyId: requestData.familyId,
-        inviteId: requestData.inviteId,
+        id: requestData.id!,
+        status: requestData.status!,
+        userId: requestData.userId!,
+        familyId: requestData.familyId!,
+        inviteId: requestData.inviteId!,
         reviewerId: requestData.reviewerId,
         message: requestData.message,
         createdAt: requestData.createdAt,
@@ -106,16 +116,16 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   if (exportData.tasks && exportData.tasks.length > 0) {
     for (const taskData of exportData.tasks) {
       await prisma.task.upsert({
-        where: { id: taskData.id },
+        where: { id: taskData.id! },
         update: {},
         create: {
-          id: taskData.id,
-          name: taskData.name,
+          id: taskData.id!,
+          name: taskData.name!,
           description: taskData.description,
-          color: taskData.color,
-          icon: taskData.icon,
-          defaultStartTime: taskData.defaultStartTime,
-          defaultDuration: taskData.defaultDuration,
+          color: taskData.color!,
+          icon: taskData.icon!,
+          defaultStartTime: taskData.defaultStartTime!,
+          defaultDuration: taskData.defaultDuration!,
           isActive: taskData.isActive,
           familyId: taskData.familyId,
           createdAt: taskData.createdAt,
@@ -132,13 +142,18 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   if (exportData.dayTemplates && exportData.dayTemplates.length > 0) {
     for (const templateData of exportData.dayTemplates) {
       await prisma.dayTemplate.upsert({
-        where: { id: templateData.id },
+        where: { 
+          familyId_name: { 
+            familyId: templateData.familyId!, 
+            name: templateData.name! 
+          } 
+        },
         update: {},
         create: {
-          id: templateData.id,
-          name: templateData.name,
+          id: templateData.id!,
+          name: templateData.name!,
           description: templateData.description,
-          familyId: templateData.familyId,
+          familyId: templateData.familyId!,
           createdAt: templateData.createdAt,
           updatedAt: templateData.updatedAt,
         },
@@ -153,12 +168,18 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   if (exportData.dayTemplateItems && exportData.dayTemplateItems.length > 0) {
     for (const itemData of exportData.dayTemplateItems) {
       await prisma.dayTemplateItem.upsert({
-        where: { id: itemData.id },
+        where: { 
+          dayTemplateId_memberId_taskId: { 
+            dayTemplateId: itemData.dayTemplateId!, 
+            memberId: itemData.memberId || null, 
+            taskId: itemData.taskId! 
+          } 
+        },
         update: {},
         create: {
-          id: itemData.id,
-          dayTemplateId: itemData.dayTemplateId,
-          taskId: itemData.taskId,
+          id: itemData.id!,
+          dayTemplateId: itemData.dayTemplateId!,
+          taskId: itemData.taskId!,
           memberId: itemData.memberId,
           overrideTime: itemData.overrideTime,
           overrideDuration: itemData.overrideDuration,
@@ -177,17 +198,22 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   if (exportData.weekTemplates && exportData.weekTemplates.length > 0) {
     for (const templateData of exportData.weekTemplates) {
       await prisma.weekTemplate.upsert({
-        where: { id: templateData.id },
+        where: { 
+          familyId_name: { 
+            familyId: templateData.familyId!, 
+            name: templateData.name! 
+          } 
+        },
         update: {},
         create: {
-          id: templateData.id,
-          name: templateData.name,
+          id: templateData.id!,
+          name: templateData.name!,
           description: templateData.description,
           isActive: templateData.isActive,
           isDefault: templateData.isDefault,
           applyRule: templateData.applyRule,
           priority: templateData.priority,
-          familyId: templateData.familyId,
+          familyId: templateData.familyId!,
           createdAt: templateData.createdAt,
           updatedAt: templateData.updatedAt,
         },
@@ -202,13 +228,18 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   if (exportData.weekTemplateDays && exportData.weekTemplateDays.length > 0) {
     for (const dayData of exportData.weekTemplateDays) {
       await prisma.weekTemplateDay.upsert({
-        where: { id: dayData.id },
+        where: { 
+          weekTemplateId_dayOfWeek: { 
+            weekTemplateId: dayData.weekTemplateId!, 
+            dayOfWeek: dayData.dayOfWeek! 
+          } 
+        },
         update: {},
         create: {
-          id: dayData.id,
-          weekTemplateId: dayData.weekTemplateId,
-          dayOfWeek: dayData.dayOfWeek,
-          dayTemplateId: dayData.dayTemplateId,
+          id: dayData.id!,
+          weekTemplateId: dayData.weekTemplateId!,
+          dayOfWeek: dayData.dayOfWeek!,
+          dayTemplateId: dayData.dayTemplateId!,
           createdAt: dayData.createdAt,
           updatedAt: dayData.updatedAt,
         },
@@ -223,13 +254,18 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   if (exportData.weekOverrides && exportData.weekOverrides.length > 0) {
     for (const overrideData of exportData.weekOverrides) {
       await prisma.weekOverride.upsert({
-        where: { id: overrideData.id },
+        where: { 
+          familyId_weekStartDate: { 
+            familyId: overrideData.familyId!, 
+            weekStartDate: overrideData.weekStartDate! 
+          } 
+        },
         update: {},
         create: {
-          id: overrideData.id,
-          weekStartDate: overrideData.weekStartDate,
+          id: overrideData.id!,
+          weekStartDate: overrideData.weekStartDate!,
           weekTemplateId: overrideData.weekTemplateId,
-          familyId: overrideData.familyId,
+          familyId: overrideData.familyId!,
           createdAt: overrideData.createdAt,
           updatedAt: overrideData.updatedAt,
         },
@@ -244,14 +280,20 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
   if (exportData.taskOverrides && exportData.taskOverrides.length > 0) {
     for (const overrideData of exportData.taskOverrides) {
       await prisma.taskOverride.upsert({
-        where: { id: overrideData.id },
+        where: { 
+          weekOverrideId_assignedDate_taskId: { 
+            weekOverrideId: overrideData.weekOverrideId!, 
+            assignedDate: overrideData.assignedDate!, 
+            taskId: overrideData.taskId! 
+          } 
+        },
         update: {},
         create: {
-          id: overrideData.id,
-          weekOverrideId: overrideData.weekOverrideId,
-          assignedDate: overrideData.assignedDate,
-          taskId: overrideData.taskId,
-          action: overrideData.action,
+          id: overrideData.id!,
+          weekOverrideId: overrideData.weekOverrideId!,
+          assignedDate: overrideData.assignedDate!,
+          taskId: overrideData.taskId!,
+          action: overrideData.action!,
           originalMemberId: overrideData.originalMemberId,
           newMemberId: overrideData.newMemberId,
           overrideTime: overrideData.overrideTime,

@@ -547,15 +547,21 @@ export class FamilyService {
     if (webSocketService) {
       await webSocketService.notifyJoinRequestCreated(invite.familyId, {
         id: joinRequest.id,
+        familyId: invite.familyId,
+        userId: userId,
         status: joinRequest.status,
-        message: joinRequest.message || undefined,
+        message: joinRequest.message || null,
         createdAt: joinRequest.createdAt,
         updatedAt: joinRequest.updatedAt,
-        respondedAt: joinRequest.respondedAt || undefined,
-        user: joinRequest.user,
-        family: joinRequest.family,
-        invite: joinRequest.invite,
-        reviewer: joinRequest.reviewer || undefined,
+        respondedAt: joinRequest.respondedAt || null,
+        family: {
+          name: joinRequest.family.name
+        },
+        user: {
+          firstName: joinRequest.user.firstName,
+          lastName: joinRequest.user.lastName,
+          email: joinRequest.user.email
+        }
       });
     }
 

@@ -663,7 +663,9 @@ export class WeekTemplateService {
     // Build update data object with only defined values
     const updateData: Prisma.WeekTemplateDayUpdateInput = {};
     if (validatedData.dayTemplateId !== undefined) {
-      updateData.dayTemplateId = validatedData.dayTemplateId;
+      updateData.dayTemplate = {
+        connect: { id: validatedData.dayTemplateId }
+      };
     }
 
     // Update the week template day

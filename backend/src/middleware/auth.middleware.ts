@@ -14,6 +14,7 @@ export interface AuthenticatedRequest extends Request {
 export interface JWTPayload {
   userId: string;
   email: string;
+  type?: 'refresh';
   iat: number;
   exp: number;
 }

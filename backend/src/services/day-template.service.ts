@@ -549,7 +549,15 @@ export class DayTemplateService {
     // Prepare update data, filtering out undefined values
     const updateItemData: Prisma.DayTemplateItemUpdateInput = {};
     if (validatedData.memberId !== undefined) {
-      updateItemData.memberId = validatedData.memberId;
+      if (validatedData.memberId === null) {
+        updateItemData.member = {
+          disconnect: true
+        };
+      } else {
+        updateItemData.member = {
+          connect: { id: validatedData.memberId }
+        };
+      }
     }
     if (validatedData.overrideTime !== undefined) {
       updateItemData.overrideTime = validatedData.overrideTime;
