@@ -2,17 +2,17 @@ import request from 'supertest';
 import express from 'express';
 import { authRoutes } from '../../routes/auth.routes';
 import { errorHandler } from '../../middleware/error.middleware';
-import { getMockUser } from './setup';
-
-const app = express();
-
-beforeAll(async () => {
-  app.use(express.json());
-  app.use('/api/auth', authRoutes);
-  app.use(errorHandler);
-});
+import { getMockUser } from '../integration-setup';
 
 describe('Auth Routes', () => {
+  let app: express.Application;
+
+  beforeAll(async () => {
+    app = express();
+    app.use(express.json());
+    app.use('/api/auth', authRoutes);
+    app.use(errorHandler);
+  });
   describe('POST /api/auth/signup', () => {
     it('should create a new user and return user with token', async () => {
       const mockUser = getMockUser();
@@ -157,6 +157,7 @@ describe('Auth Routes', () => {
 
   describe('POST /api/auth/refresh', () => {
     let authToken: string;
+    let refreshToken: string;
     let userId: string;
 
     beforeEach(async () => {
@@ -166,21 +167,23 @@ describe('Auth Routes', () => {
         .send(mockUser);
       
       authToken = signupResponse.body.data.token;
+      refreshToken = signupResponse.body.data.refreshToken;
       userId = signupResponse.body.data.user.id;
     });
 
-    it('should refresh token with valid token', async () => {
+    it('should refresh token with valid refresh token', async () => {
       // Wait to ensure different timestamp
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       const response = await request(app)
         .post('/api/auth/refresh')
-        .set('Authorization', `Bearer ${authToken}`)
+        .send({ refreshToken })
         .expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.user.id).toBe(userId);
       expect(response.body.data.token).toBeDefined();
+      expect(response.body.data.refreshToken).toBeDefined();
       expect(response.body.data.token).not.toBe(authToken);
     });
 

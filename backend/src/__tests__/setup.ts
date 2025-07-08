@@ -1,46 +1,19 @@
-import { initI18n } from '../config/i18n';
-import { prisma } from '../lib/prisma';
+// General test setup that determines which specific setup to use
+const testFile = expect.getState().testPath || '';
 
-beforeAll(async () => {
-  // Set test environment variables
-  process.env['JWT_SECRET'] = 'test-jwt-secret-for-unit-tests';
-  process.env['NODE_ENV'] = 'test';
+if (testFile.includes('/unit/')) {
+  // Unit test setup - no database connection
+  require('./unit-setup');
+} else if (testFile.includes('/integration/')) {
+  // Integration test setup - with database connection
+  require('./integration-setup');
+} else {
+  // Default setup for any other tests
+  const { initI18n } = require('../config/i18n');
   
-  // Initialize i18n for all tests
-  await initI18n();
-});
-
-beforeEach(async () => {
-  // Clean database before each test, but handle connection errors gracefully
-  try {
-    await prisma.user.deleteMany();
-  } catch (error) {
-    // If database is not available, skip cleanup (for unit tests with mocks)
-    console.warn('Database not available for test cleanup, skipping...');
-  }
-});
-
-afterAll(async () => {
-  // Clean up and disconnect, but handle connection errors gracefully
-  try {
-    await prisma.user.deleteMany();
-    await prisma.$disconnect();
-  } catch (error) {
-    // If database is not available, skip cleanup (for unit tests with mocks)
-    console.warn('Database not available for test cleanup, skipping...');
-  }
-});
-
-// Global test counter to ensure unique emails across all test files
-let globalTestCounter = 0;
-
-export const getUniqueTestEmail = (): string => {
-  return `test.user.${++globalTestCounter}.${Date.now()}@example.com`;
-};
-
-export const getMockUser = () => ({
-  firstName: 'John',
-  lastName: 'Doe',
-  email: getUniqueTestEmail(),
-  password: 'Password123!',
-}); 
+  beforeAll(async () => {
+    process.env['JWT_SECRET'] = 'test-jwt-secret';
+    process.env['NODE_ENV'] = 'test';
+    await initI18n();
+  });
+} 

@@ -3,10 +3,6 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import familyRoutes from '../../routes/family.routes';
 
-const app = express();
-app.use(express.json());
-app.use('/api/families', familyRoutes);
-
 // Mock JWT
 jest.mock('jsonwebtoken', () => ({
   verify: jest.fn(),
@@ -42,9 +38,16 @@ jest.mock('../../services/user.service', () => ({
 }));
 
 describe('Family Routes', () => {
+  let app: express.Application;
   const userId = 'cmc3xvd5b0000arkqcapzcmen'; // Valid CUID
   const familyId = 'cmc3xvd5b0001arkqcapzcmeo'; // Valid CUID
   const validToken = 'valid-token';
+
+  beforeAll(() => {
+    app = express();
+    app.use(express.json());
+    app.use('/api/families', familyRoutes);
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();

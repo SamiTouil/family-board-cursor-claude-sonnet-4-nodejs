@@ -1,6 +1,9 @@
 import { WeekScheduleService } from '../../services/week-schedule.service';
 import { CreateTaskOverrideDto, TaskOverrideAction } from '../../types/task.types';
 
+// Mock the prisma instance
+jest.mock('../../lib/prisma');
+
 // Mock the PrismaClient with proper structure
 jest.mock('@prisma/client', () => ({
   PrismaClient: jest.fn().mockImplementation(() => ({

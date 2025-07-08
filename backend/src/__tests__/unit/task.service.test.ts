@@ -1,6 +1,9 @@
 import { TaskService } from '../../services/task.service';
 import { CreateTaskDto, UpdateTaskDto, TaskQueryParams } from '../../types/task.types';
 
+// Mock the prisma instance
+jest.mock('../../lib/prisma');
+
 // Mock Prisma Client completely
 jest.mock('@prisma/client', () => {
   const mockPrisma = {
@@ -29,6 +32,10 @@ jest.mock('@prisma/client', () => {
 
 // Get the mock instance
 const { __mockPrisma: mockPrisma } = require('@prisma/client');
+
+// Setup prisma mock
+const { prisma } = require('../../lib/prisma');
+Object.assign(prisma, mockPrisma);
 
 describe('TaskService', () => {
   beforeEach(() => {
@@ -147,7 +154,7 @@ describe('TaskService', () => {
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(mockMemberMembership);
 
       await expect(TaskService.createTask(userId, familyId, taskData)).rejects.toThrow(
-        'Access denied: Only family admins can perform this action'
+        'You must be an admin to perform this action'
       );
     });
 
@@ -166,7 +173,7 @@ describe('TaskService', () => {
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(null);
 
       await expect(TaskService.createTask(userId, familyId, taskData)).rejects.toThrow(
-        'Access denied: You are not a member of this family'
+        'You are not a member of this family'
       );
     });
 
@@ -350,7 +357,7 @@ describe('TaskService', () => {
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(null);
 
       await expect(TaskService.getFamilyTasks(userId, familyId)).rejects.toThrow(
-        'Access denied: You are not a member of this family'
+        'You are not a member of this family'
       );
     });
   });
@@ -410,7 +417,7 @@ describe('TaskService', () => {
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(null);
 
       await expect(TaskService.getTaskById(userId, taskId)).rejects.toThrow(
-        'Access denied: You are not a member of this family'
+        'You are not a member of this family'
       );
     });
   });
@@ -456,7 +463,7 @@ describe('TaskService', () => {
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(mockMemberMembership);
 
       await expect(TaskService.updateTask(userId, taskId, updateData)).rejects.toThrow(
-        'Access denied: Only family admins can perform this action'
+        'You must be an admin to perform this action'
       );
     });
 
@@ -498,7 +505,7 @@ describe('TaskService', () => {
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(mockMemberMembership);
 
       await expect(TaskService.deleteTask(userId, taskId)).rejects.toThrow(
-        'Access denied: Only family admins can perform this action'
+        'You must be an admin to perform this action'
       );
     });
   });

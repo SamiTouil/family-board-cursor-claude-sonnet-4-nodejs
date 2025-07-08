@@ -1,6 +1,9 @@
 import { FamilyService } from '../../services/family.service';
 import { CreateFamilyData, JoinFamilyData, CreateInviteData } from '../../types/family.types';
 
+// Mock the prisma instance
+jest.mock('../../lib/prisma');
+
 // Mock crypto first
 jest.mock('crypto', () => ({
   randomBytes: jest.fn().mockReturnValue({
@@ -64,6 +67,10 @@ jest.mock('@prisma/client', () => {
 
 // Get the mock instance
 const { __mockPrisma: mockPrisma } = require('@prisma/client');
+
+// Setup prisma mock
+const { prisma } = require('../../lib/prisma');
+Object.assign(prisma, mockPrisma);
 
 describe('FamilyService', () => {
   beforeEach(() => {

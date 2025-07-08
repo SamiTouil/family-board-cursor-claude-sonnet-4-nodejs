@@ -1,4 +1,5 @@
-// Default config that runs ALL tests (both unit and integration)
+// Default config that runs ALL tests sequentially
+// For parallel execution, use npm run test:unit and npm run test:integration separately
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
@@ -12,10 +13,9 @@ module.exports = {
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
-  projects: [
-    '<rootDir>/jest.unit.config.js',
-    '<rootDir>/jest.integration.config.js',
-  ],
+  // Run tests sequentially to avoid conflicts
+  maxWorkers: 1,
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
