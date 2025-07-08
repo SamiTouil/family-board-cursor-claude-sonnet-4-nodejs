@@ -1,5 +1,5 @@
-import { TaskService } from '../services/task.service';
-import { CreateTaskDto, UpdateTaskDto, TaskQueryParams } from '../types/task.types';
+import { TaskService } from '../../services/task.service';
+import { CreateTaskDto, UpdateTaskDto, TaskQueryParams } from '../../types/task.types';
 
 // Mock Prisma Client completely
 jest.mock('@prisma/client', () => {

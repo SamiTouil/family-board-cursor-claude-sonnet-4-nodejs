@@ -1,4 +1,4 @@
-import { CreateTaskOverrideSchema, TaskOverrideAction } from '../types/task.types';
+import { CreateTaskOverrideSchema, TaskOverrideAction } from '../../types/task.types';
 
 describe('CreateTaskOverrideSchema Validation', () => {
   describe('originalMemberId and newMemberId nullable fields', () => {

@@ -1,21 +1,17 @@
-// Default config that runs ALL tests (both unit and integration)
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
-  testMatch: ['**/__tests__/**/*.test.ts'],
+  testMatch: ['**/__tests__/unit/**/*.test.ts'],
   testPathIgnorePatterns: [
+    '<rootDir>/src/__tests__/integration/',
     '<rootDir>/src/__tests__/setup.ts',
     '<rootDir>/src/__tests__/unit-setup.ts',
-    '<rootDir>/src/__tests__/integration-setup.ts',
+    '<rootDir>/src/__tests__/integration-setup.ts'
   ],
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
-  projects: [
-    '<rootDir>/jest.unit.config.js',
-    '<rootDir>/jest.integration.config.js',
-  ],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
@@ -23,6 +19,11 @@ module.exports = {
     '!src/prisma/seed.ts',
     '!src/__tests__/**',
   ],
-  coverageDirectory: 'coverage',
+  coverageDirectory: 'coverage/unit',
   coverageReporters: ['text', 'lcov', 'html'],
-}; 
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/unit-setup.ts'],
+  testTimeout: 5000,
+  moduleNameMapper: {
+    '^.+/lib/prisma$': '<rootDir>/src/__tests__/unit/mocks/prisma.mock.ts',
+  },
+};

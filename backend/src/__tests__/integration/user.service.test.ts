@@ -1,7 +1,7 @@
-import { UserService } from '../services/user.service';
-import { UpdateUserSchema } from '../types/user.types';
+import { UserService } from '../../services/user.service';
+import { UpdateUserSchema } from '../../types/user.types';
 import { getMockUser } from './setup';
-import { UserAlreadyExistsError, UserNotFoundError } from '../errors/UserErrors';
+import { UserAlreadyExistsError, UserNotFoundError } from '../../errors/UserErrors';
 
 describe('UserService', () => {
   describe('createUser', () => {

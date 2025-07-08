@@ -79,8 +79,13 @@ jobs:
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/family_board_test
 
-    - name: Test backend
-      run: cd backend && npm test
+    - name: Test backend - Unit Tests
+      run: cd backend && npm run test:unit
+      env:
+        JWT_SECRET: test-jwt-secret-for-ci
+
+    - name: Test backend - Integration Tests
+      run: cd backend && npm run test:integration
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/family_board_test
         JWT_SECRET: test-jwt-secret-for-ci

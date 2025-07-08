@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import dayTemplateRoutes from '../routes/day-template.routes';
+import dayTemplateRoutes from '../../routes/day-template.routes';
 
 // Simple test to validate routes are registered correctly
 describe('DayTemplate Routes', () => {

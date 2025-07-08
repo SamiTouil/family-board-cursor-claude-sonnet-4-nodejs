@@ -1,9 +1,9 @@
-import { UserService } from '../services/user.service';
+import { UserService } from '../../services/user.service';
 import jwt from 'jsonwebtoken';
 import { getMockUser } from './setup';
 import { prisma } from '../lib/prisma';
-import { JWTPayload } from '../middleware/auth.middleware';
-import { UserAlreadyExistsError } from '../errors/UserErrors';
+import { JWTPayload } from '../../middleware/auth.middleware';
+import { UserAlreadyExistsError } from '../../errors/UserErrors';
 import { InvalidCredentialsError } from '../errors';
 
 describe('Authentication Service', () => {

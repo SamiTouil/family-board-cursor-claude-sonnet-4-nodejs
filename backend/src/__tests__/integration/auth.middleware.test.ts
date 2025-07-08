@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { authenticateToken, optionalAuth, AuthenticatedRequest } from '../middleware/auth.middleware';
-import { UserService } from '../services/user.service';
-import { getMockUser } from './setup';
+import { authenticateToken, optionalAuth, AuthenticatedRequest } from '../../../middleware/auth.middleware';
+import { UserService } from '../../../services/user.service';
+import { getMockUser } from '../integration-setup';
 
 // Mock response object
 const mockResponse = () => {
