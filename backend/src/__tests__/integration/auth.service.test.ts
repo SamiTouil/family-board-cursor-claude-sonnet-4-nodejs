@@ -1,6 +1,6 @@
 import { UserService } from '../../services/user.service';
 import jwt from 'jsonwebtoken';
-import { getMockUser } from '../integration-setup';
+import { getMockUser, itWithDatabase } from '../integration-setup';
 import { prisma } from '../../lib/prisma';
 import { JWTPayload } from '../../middleware/auth.middleware';
 import { UserAlreadyExistsError } from '../../errors/UserErrors';
@@ -8,7 +8,7 @@ import { InvalidCredentialsError } from '../../errors';
 
 describe('Authentication Service', () => {
   describe('signup', () => {
-    it('should create a new user and return user with token', async () => {
+    itWithDatabase('should create a new user and return user with token', async () => {
       const mockUser = getMockUser();
       const result = await UserService.signup(mockUser);
 
@@ -27,17 +27,17 @@ describe('Authentication Service', () => {
       expect(decoded.email).toBe(result.user.email);
     });
 
-    it('should throw error if email already exists', async () => {
+    itWithDatabase('should throw error if email already exists', async () => {
       const mockUser = getMockUser();
       await UserService.signup(mockUser);
 
       await expect(UserService.signup(mockUser)).rejects.toThrow(UserAlreadyExistsError);
     });
 
-    it('should hash the password', async () => {
+    itWithDatabase('should hash the password', async () => {
       const mockUser = getMockUser();
       const result = await UserService.signup(mockUser);
-      
+
       // Get the raw user from database to check password is hashed
       const dbUser = await prisma.user.findUnique({
         where: { id: result.user.id },

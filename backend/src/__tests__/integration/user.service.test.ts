@@ -1,11 +1,11 @@
 import { UserService } from '../../services/user.service';
 import { UpdateUserSchema } from '../../types/user.types';
-import { getMockUser } from '../integration-setup';
+import { getMockUser, itWithDatabase } from '../integration-setup';
 import { UserAlreadyExistsError, UserNotFoundError } from '../../errors/UserErrors';
 
 describe('UserService', () => {
   describe('createUser', () => {
-    it('should create a new user successfully', async () => {
+    itWithDatabase('should create a new user successfully', async () => {
       const mockUser = getMockUser();
       const user = await UserService.createUser(mockUser);
 
@@ -18,7 +18,7 @@ describe('UserService', () => {
       expect(user.createdAt).toBeDefined();
     });
 
-    it('should throw error if email already exists', async () => {
+    itWithDatabase('should throw error if email already exists', async () => {
       const mockUser = getMockUser();
       await UserService.createUser(mockUser);
 
@@ -27,7 +27,7 @@ describe('UserService', () => {
   });
 
   describe('getUserById', () => {
-    it('should return user if found', async () => {
+    itWithDatabase('should return user if found', async () => {
       const mockUser = getMockUser();
       const createdUser = await UserService.createUser(mockUser);
       const foundUser = await UserService.getUserById(createdUser.id);
@@ -38,17 +38,17 @@ describe('UserService', () => {
       });
     });
 
-    it('should return null if user not found', async () => {
+    itWithDatabase('should return null if user not found', async () => {
       const user = await UserService.getUserById('non-existent-id');
       expect(user).toBeNull();
     });
   });
 
   describe('login', () => {
-    it('should login successfully with correct credentials', async () => {
+    itWithDatabase('should login successfully with correct credentials', async () => {
       const mockUser = getMockUser();
       await UserService.createUser(mockUser);
-      
+
       const result = await UserService.login({
         email: mockUser.email,
         password: mockUser.password,
@@ -58,7 +58,7 @@ describe('UserService', () => {
       expect(result.token).toBeDefined();
     });
 
-    it('should throw error with invalid credentials', async () => {
+    itWithDatabase('should throw error with invalid credentials', async () => {
       const mockUser = getMockUser();
       await UserService.createUser(mockUser);
 
@@ -70,10 +70,10 @@ describe('UserService', () => {
   });
 
   describe('changePassword', () => {
-    it('should change password successfully with correct current password', async () => {
+    itWithDatabase('should change password successfully with correct current password', async () => {
       const mockUser = getMockUser();
       const createdUser = await UserService.createUser(mockUser);
-      
+
       const result = await UserService.changePassword(createdUser.id, {
         currentPassword: mockUser.password,
         newPassword: 'newPassword123',
@@ -91,7 +91,7 @@ describe('UserService', () => {
       expect(loginResult.user.id).toBe(createdUser.id);
     });
 
-    it('should throw error with incorrect current password', async () => {
+    itWithDatabase('should throw error with incorrect current password', async () => {
       const mockUser = getMockUser();
       const createdUser = await UserService.createUser(mockUser);
 
@@ -102,7 +102,7 @@ describe('UserService', () => {
       })).rejects.toThrow('Invalid email or password');
     });
 
-    it('should throw error if user not found', async () => {
+    itWithDatabase('should throw error if user not found', async () => {
       await expect(UserService.changePassword('non-existent-id', {
         currentPassword: 'password123',
         newPassword: 'newPassword123',
@@ -112,20 +112,20 @@ describe('UserService', () => {
   });
 
   describe('updateUser', () => {
-    it('should update user with empty avatar URL', async () => {
+    itWithDatabase('should update user with empty avatar URL', async () => {
       const mockUser = getMockUser();
       const user = await UserService.createUser(mockUser);
-      
+
       const rawUpdateData = {
         firstName: 'Updated',
         lastName: 'Name',
         avatarUrl: '', // Empty string should be handled properly
       };
-      
+
       // Validate through schema like the route does
       const validatedData = UpdateUserSchema.parse(rawUpdateData);
       const updatedUser = await UserService.updateUser(user.id, validatedData);
-      
+
       expect(updatedUser.firstName).toBe('Updated');
       expect(updatedUser.lastName).toBe('Name');
       // Since empty string gets transformed to undefined, and undefined fields aren't updated,
@@ -133,20 +133,20 @@ describe('UserService', () => {
       expect(updatedUser.avatarUrl).toBeNull();
     });
 
-    it('should update user with valid avatar URL', async () => {
+    itWithDatabase('should update user with valid avatar URL', async () => {
       const mockUser = getMockUser();
       const user = await UserService.createUser(mockUser);
-      
+
       const rawUpdateData = {
         firstName: 'Updated',
         lastName: 'Name',
         avatarUrl: 'https://example.com/avatar.jpg',
       };
-      
+
       // Validate through schema like the route does
       const validatedData = UpdateUserSchema.parse(rawUpdateData);
       const updatedUser = await UserService.updateUser(user.id, validatedData);
-      
+
       expect(updatedUser.firstName).toBe('Updated');
       expect(updatedUser.lastName).toBe('Name');
       expect(updatedUser.avatarUrl).toBe('https://example.com/avatar.jpg');
@@ -158,7 +158,7 @@ describe('UserService', () => {
         lastName: 'Name',
         avatarUrl: 'invalid-url',
       };
-      
+
       // Schema validation should reject invalid URL
       expect(() => UpdateUserSchema.parse(rawUpdateData)).toThrow();
     });

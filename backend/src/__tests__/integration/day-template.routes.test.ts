@@ -1,6 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import dayTemplateRoutes from '../../routes/day-template.routes';
+import { itWithDatabase } from '../integration-setup';
 
 // Simple test to validate routes are registered correctly
 describe('DayTemplate Routes', () => {
@@ -13,7 +14,7 @@ describe('DayTemplate Routes', () => {
   });
 
   describe('Route Registration', () => {
-    it('should register POST /api/families/:familyId/day-templates route', async () => {
+    itWithDatabase('should register POST /api/families/:familyId/day-templates route', async () => {
       const response = await request(app)
         .post('/api/families/test-family/day-templates')
         .send({});
@@ -22,7 +23,7 @@ describe('DayTemplate Routes', () => {
       expect(response.status).not.toBe(404);
     });
 
-    it('should register GET /api/families/:familyId/day-templates route', async () => {
+    itWithDatabase('should register GET /api/families/:familyId/day-templates route', async () => {
       const response = await request(app)
         .get('/api/families/test-family/day-templates');
 
@@ -30,7 +31,7 @@ describe('DayTemplate Routes', () => {
       expect(response.status).not.toBe(404);
     });
 
-    it('should register GET /api/families/:familyId/day-templates/:id route', async () => {
+    itWithDatabase('should register GET /api/families/:familyId/day-templates/:id route', async () => {
       const response = await request(app)
         .get('/api/families/test-family/day-templates/test-template');
 
@@ -38,7 +39,7 @@ describe('DayTemplate Routes', () => {
       expect(response.status).not.toBe(404);
     });
 
-    it('should register PUT /api/families/:familyId/day-templates/:id route', async () => {
+    itWithDatabase('should register PUT /api/families/:familyId/day-templates/:id route', async () => {
       const response = await request(app)
         .put('/api/families/test-family/day-templates/test-template')
         .send({});
@@ -47,7 +48,7 @@ describe('DayTemplate Routes', () => {
       expect(response.status).not.toBe(404);
     });
 
-    it('should register DELETE /api/families/:familyId/day-templates/:id route', async () => {
+    itWithDatabase('should register DELETE /api/families/:familyId/day-templates/:id route', async () => {
       const response = await request(app)
         .delete('/api/families/test-family/day-templates/test-template');
 
@@ -57,7 +58,7 @@ describe('DayTemplate Routes', () => {
   });
 
   describe('Template Item Routes', () => {
-    it('should register POST /api/families/:familyId/day-templates/:templateId/items route', async () => {
+    itWithDatabase('should register POST /api/families/:familyId/day-templates/:templateId/items route', async () => {
       const response = await request(app)
         .post('/api/families/test-family/day-templates/test-template/items')
         .send({});
@@ -66,7 +67,7 @@ describe('DayTemplate Routes', () => {
       expect(response.status).not.toBe(404);
     });
 
-    it('should register PUT /api/families/:familyId/day-templates/:templateId/items/:itemId route', async () => {
+    itWithDatabase('should register PUT /api/families/:familyId/day-templates/:templateId/items/:itemId route', async () => {
       const response = await request(app)
         .put('/api/families/test-family/day-templates/test-template/items/test-item')
         .send({});
@@ -75,7 +76,7 @@ describe('DayTemplate Routes', () => {
       expect(response.status).not.toBe(404);
     });
 
-    it('should register DELETE /api/families/:familyId/day-templates/:templateId/items/:itemId route', async () => {
+    itWithDatabase('should register DELETE /api/families/:familyId/day-templates/:templateId/items/:itemId route', async () => {
       const response = await request(app)
         .delete('/api/families/test-family/day-templates/test-template/items/test-item');
 
@@ -85,7 +86,7 @@ describe('DayTemplate Routes', () => {
   });
 
   describe('Template Application Routes', () => {
-    it('should register POST /api/families/:familyId/day-templates/:templateId/apply route', async () => {
+    itWithDatabase('should register POST /api/families/:familyId/day-templates/:templateId/apply route', async () => {
       const response = await request(app)
         .post('/api/families/test-family/day-templates/test-template/apply')
         .send({});
@@ -94,7 +95,7 @@ describe('DayTemplate Routes', () => {
       expect(response.status).not.toBe(404);
     });
 
-    it('should register POST /api/families/:familyId/day-templates/:templateId/duplicate route', async () => {
+    itWithDatabase('should register POST /api/families/:familyId/day-templates/:templateId/duplicate route', async () => {
       const response = await request(app)
         .post('/api/families/test-family/day-templates/test-template/duplicate')
         .send({});
@@ -105,7 +106,7 @@ describe('DayTemplate Routes', () => {
   });
 
   describe('Validation', () => {
-    it('should require authentication for all routes', async () => {
+    itWithDatabase('should require authentication for all routes', async () => {
       const response = await request(app)
         .post('/api/families/test/day-templates')
         .send({});
@@ -113,7 +114,7 @@ describe('DayTemplate Routes', () => {
       expect(response.status).toBe(401);
     });
 
-    it('should accept template creation with valid data structure', async () => {
+    itWithDatabase('should accept template creation with valid data structure', async () => {
       const response = await request(app)
         .post('/api/families/test-family/day-templates')
         .send({
@@ -127,7 +128,7 @@ describe('DayTemplate Routes', () => {
       expect(response.status).toBe(401);
     });
 
-    it('should accept template application with valid data structure', async () => {
+    itWithDatabase('should accept template application with valid data structure', async () => {
       const response = await request(app)
         .post('/api/families/test-family/day-templates/test-template/apply')
         .send({

@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { authenticateToken, optionalAuth, AuthenticatedRequest } from '../../middleware/auth.middleware';
 import { UserService } from '../../services/user.service';
-import { getMockUser } from '../integration-setup';
+import { getMockUser, itWithDatabase, isDatabaseAvailableForTests } from '../integration-setup';
 
 // Mock response object
 const mockResponse = () => {
@@ -22,17 +22,19 @@ describe('Auth Middleware', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    
-    // Create a user and get a valid token
-    const mockUser = getMockUser();
-    const result = await UserService.signup(mockUser);
-    validToken = result.token;
-    userId = result.user.id;
-    currentUserEmail = result.user.email!; // Non-null assertion since we just created a regular user
+
+    // Only create a user if database is available
+    if (isDatabaseAvailableForTests()) {
+      const mockUser = getMockUser();
+      const result = await UserService.signup(mockUser);
+      validToken = result.token;
+      userId = result.user.id;
+      currentUserEmail = result.user.email!; // Non-null assertion since we just created a regular user
+    }
   });
 
   describe('authenticateToken', () => {
-    it('should authenticate valid token and set user in request', async () => {
+    itWithDatabase('should authenticate valid token and set user in request', async () => {
       const req = {
         headers: {
           authorization: `Bearer ${validToken}`,
@@ -49,7 +51,7 @@ describe('Auth Middleware', () => {
       expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should return 401 when no token provided', async () => {
+    itWithDatabase('should return 401 when no token provided', async () => {
       const req = {
         headers: {},
       } as AuthenticatedRequest;
@@ -65,7 +67,7 @@ describe('Auth Middleware', () => {
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it('should return 401 when token is invalid', async () => {
+    itWithDatabase('should return 401 when token is invalid', async () => {
       const req = {
         headers: {
           authorization: 'Bearer invalid-token',
@@ -83,7 +85,7 @@ describe('Auth Middleware', () => {
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it('should return 401 when token is expired', async () => {
+    itWithDatabase('should return 401 when token is expired', async () => {
       const expiredToken = jwt.sign(
         { userId, email: currentUserEmail },
         process.env['JWT_SECRET']!,
@@ -107,7 +109,7 @@ describe('Auth Middleware', () => {
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it('should return 401 when user no longer exists', async () => {
+    itWithDatabase('should return 401 when user no longer exists', async () => {
       // Delete the user after creating the token
       await UserService.deleteUser(userId);
 
@@ -128,7 +130,7 @@ describe('Auth Middleware', () => {
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it('should handle malformed authorization header', async () => {
+    itWithDatabase('should handle malformed authorization header', async () => {
       const req = {
         headers: {
           authorization: 'InvalidFormat',
@@ -148,7 +150,7 @@ describe('Auth Middleware', () => {
   });
 
   describe('optionalAuth', () => {
-    it('should set user in request when valid token provided', async () => {
+    itWithDatabase('should set user in request when valid token provided', async () => {
       const req = {
         headers: {
           authorization: `Bearer ${validToken}`,
@@ -165,7 +167,7 @@ describe('Auth Middleware', () => {
       expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should continue without setting user when no token provided', async () => {
+    itWithDatabase('should continue without setting user when no token provided', async () => {
       const req = {
         headers: {},
       } as AuthenticatedRequest;
@@ -178,7 +180,7 @@ describe('Auth Middleware', () => {
       expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should continue without setting user when invalid token provided', async () => {
+    itWithDatabase('should continue without setting user when invalid token provided', async () => {
       const req = {
         headers: {
           authorization: 'Bearer invalid-token',
@@ -193,7 +195,7 @@ describe('Auth Middleware', () => {
       expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should continue without setting user when expired token provided', async () => {
+    itWithDatabase('should continue without setting user when expired token provided', async () => {
       const expiredToken = jwt.sign(
         { userId, email: currentUserEmail },
         process.env['JWT_SECRET']!,

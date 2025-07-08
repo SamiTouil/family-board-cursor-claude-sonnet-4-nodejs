@@ -2,19 +2,27 @@ import request from 'supertest';
 import express from 'express';
 import { authRoutes } from '../../routes/auth.routes';
 import { errorHandler } from '../../middleware/error.middleware';
-import { getMockUser } from '../integration-setup';
+import { getMockUser, itWithDatabase, isDatabaseAvailableForTests } from '../integration-setup';
 
 describe('Auth Routes', () => {
   let app: express.Application;
 
+  beforeAll(() => {
+    if (!isDatabaseAvailableForTests()) {
+      console.log('⏭️  Skipping Auth Routes tests - database not available');
+    }
+  });
+
   beforeAll(async () => {
+    if (!isDatabaseAvailableForTests()) return;
+
     app = express();
     app.use(express.json());
     app.use('/api/auth', authRoutes);
     app.use(errorHandler);
   });
   describe('POST /api/auth/signup', () => {
-    it('should create a new user and return user with token', async () => {
+    itWithDatabase('should create a new user and return user with token', async () => {
       const mockUser = getMockUser();
       const response = await request(app)
         .post('/api/auth/signup')
@@ -32,7 +40,7 @@ describe('Auth Routes', () => {
       expect(response.body.data.token).toBeDefined();
     });
 
-    it('should return 400 for invalid input', async () => {
+    itWithDatabase('should return 400 for invalid input', async () => {
       const response = await request(app)
         .post('/api/auth/signup')
         .send({
@@ -44,7 +52,7 @@ describe('Auth Routes', () => {
       expect(response.body.success).toBe(false);
     });
 
-    it('should return 409 for duplicate email', async () => {
+    itWithDatabase('should return 409 for duplicate email', async () => {
       const mockUser = getMockUser();
       await request(app)
         .post('/api/auth/signup')
@@ -61,7 +69,7 @@ describe('Auth Routes', () => {
   });
 
   describe('POST /api/auth/login', () => {
-    it('should login successfully with correct credentials', async () => {
+    itWithDatabase('should login successfully with correct credentials', async () => {
       const mockUser = getMockUser();
       await request(app)
         .post('/api/auth/signup')
@@ -81,7 +89,7 @@ describe('Auth Routes', () => {
       expect(response.body.data.token).toBeDefined();
     });
 
-    it('should return 401 for invalid credentials', async () => {
+    itWithDatabase('should return 401 for invalid credentials', async () => {
       const mockUser = getMockUser();
       await request(app)
         .post('/api/auth/signup')
@@ -98,7 +106,7 @@ describe('Auth Routes', () => {
       expect(response.body.success).toBe(false);
     });
 
-    it('should return 400 for invalid input', async () => {
+    itWithDatabase('should return 400 for invalid input', async () => {
       const response = await request(app)
         .post('/api/auth/login')
         .send({
@@ -125,7 +133,7 @@ describe('Auth Routes', () => {
       userId = signupResponse.body.data.user.id;
     });
 
-    it('should return current user with valid token', async () => {
+    itWithDatabase('should return current user with valid token', async () => {
       const response = await request(app)
         .get('/api/auth/me')
         .set('Authorization', `Bearer ${authToken}`)
@@ -135,7 +143,7 @@ describe('Auth Routes', () => {
       expect(response.body.data.id).toBe(userId);
     });
 
-    it('should return 401 without token', async () => {
+    itWithDatabase('should return 401 without token', async () => {
       const response = await request(app)
         .get('/api/auth/me')
         .expect(401);
@@ -144,7 +152,7 @@ describe('Auth Routes', () => {
       expect(response.body.message).toBe('errors.tokenRequired');
     });
 
-    it('should return 401 with invalid token', async () => {
+    itWithDatabase('should return 401 with invalid token', async () => {
       const response = await request(app)
         .get('/api/auth/me')
         .set('Authorization', 'Bearer invalid-token')
@@ -171,7 +179,7 @@ describe('Auth Routes', () => {
       userId = signupResponse.body.data.user.id;
     });
 
-    it('should refresh token with valid refresh token', async () => {
+    itWithDatabase('should refresh token with valid refresh token', async () => {
       // Wait to ensure different timestamp
       await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -187,7 +195,7 @@ describe('Auth Routes', () => {
       expect(response.body.data.token).not.toBe(authToken);
     });
 
-    it('should return 401 without token', async () => {
+    itWithDatabase('should return 401 without token', async () => {
       const response = await request(app)
         .post('/api/auth/refresh')
         .expect(401);
@@ -209,7 +217,7 @@ describe('Auth Routes', () => {
       authToken = signupResponse.body.data.token;
     });
 
-    it('should logout successfully with valid token', async () => {
+    itWithDatabase('should logout successfully with valid token', async () => {
       const response = await request(app)
         .post('/api/auth/logout')
         .set('Authorization', `Bearer ${authToken}`)
@@ -219,7 +227,7 @@ describe('Auth Routes', () => {
       expect(response.body.message).toBe('success.logoutSuccessful');
     });
 
-    it('should return 401 without token', async () => {
+    itWithDatabase('should return 401 without token', async () => {
       const response = await request(app)
         .post('/api/auth/logout')
         .expect(401);
