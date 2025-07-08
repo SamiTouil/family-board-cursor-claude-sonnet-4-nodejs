@@ -49,6 +49,12 @@ export class WeekScheduleService {
       include: {
         weekTemplate: {
           include: {
+            family: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
             days: {
               include: {
                 dayTemplate: {

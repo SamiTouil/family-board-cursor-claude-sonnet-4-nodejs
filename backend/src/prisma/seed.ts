@@ -3,6 +3,17 @@ import path from 'path';
 import { prisma } from '../lib/prisma';
 import { DbExport } from '../types/seed.types';
 
+// Helper to remove undefined values from objects
+function removeUndefined<T extends Record<string, any>>(obj: T): T {
+  const result = {} as T;
+  for (const key in obj) {
+    if (obj[key] !== undefined) {
+      result[key] = obj[key];
+    }
+  }
+  return result;
+}
+
 async function seedFromExport(exportData: DbExport): Promise<void> {
   console.log('🔄 Seeding from exported data...');
 
@@ -11,17 +22,17 @@ async function seedFromExport(exportData: DbExport): Promise<void> {
     await prisma.user.upsert({
       where: { id: userData.id! },
       update: {},
-      create: {
+      create: removeUndefined({
         id: userData.id!,
         firstName: userData.firstName!,
         lastName: userData.lastName!,
-        email: userData.email,
-        password: userData.password, // Already hashed
-        avatarUrl: userData.avatarUrl,
+        email: userData.email || null,
+        password: userData.password || null,
+        avatarUrl: userData.avatarUrl || null,
         isVirtual: userData.isVirtual || false,
         createdAt: userData.createdAt,
         updatedAt: userData.updatedAt,
-      },
+      }),
     });
   }
   console.log(`✅ Seeded ${exportData.users.length} users`);
