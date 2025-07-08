@@ -148,7 +148,7 @@ describe('Auth Middleware', () => {
   });
 
   describe('optionalAuth', () => {
-    it('should set user in request when valid token provided', () => {
+    it('should set user in request when valid token provided', async () => {
       const req = {
         headers: {
           authorization: `Bearer ${validToken}`,
@@ -156,7 +156,7 @@ describe('Auth Middleware', () => {
       } as AuthenticatedRequest;
       const res = mockResponse();
 
-      optionalAuth(req, res, mockNext);
+      await optionalAuth(req, res, mockNext);
 
       expect(req.user).toBeDefined();
       expect(req.user?.userId).toBe(userId);
@@ -165,20 +165,20 @@ describe('Auth Middleware', () => {
       expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should continue without setting user when no token provided', () => {
+    it('should continue without setting user when no token provided', async () => {
       const req = {
         headers: {},
       } as AuthenticatedRequest;
       const res = mockResponse();
 
-      optionalAuth(req, res, mockNext);
+      await optionalAuth(req, res, mockNext);
 
       expect(req.user).toBeUndefined();
       expect(mockNext).toHaveBeenCalled();
       expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should continue without setting user when invalid token provided', () => {
+    it('should continue without setting user when invalid token provided', async () => {
       const req = {
         headers: {
           authorization: 'Bearer invalid-token',
@@ -186,14 +186,14 @@ describe('Auth Middleware', () => {
       } as AuthenticatedRequest;
       const res = mockResponse();
 
-      optionalAuth(req, res, mockNext);
+      await optionalAuth(req, res, mockNext);
 
       expect(req.user).toBeUndefined();
       expect(mockNext).toHaveBeenCalled();
       expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should continue without setting user when expired token provided', () => {
+    it('should continue without setting user when expired token provided', async () => {
       const expiredToken = jwt.sign(
         { userId, email: currentUserEmail },
         process.env['JWT_SECRET']!,
@@ -207,7 +207,7 @@ describe('Auth Middleware', () => {
       } as AuthenticatedRequest;
       const res = mockResponse();
 
-      optionalAuth(req, res, mockNext);
+      await optionalAuth(req, res, mockNext);
 
       expect(req.user).toBeUndefined();
       expect(mockNext).toHaveBeenCalled();
