@@ -80,35 +80,41 @@ export class AppError extends Error {
 export class ValidationError extends AppError {
   constructor(message: string, details?: any) {
     super(ErrorCode.VALIDATION_ERROR, message, 400, true, details);
+    Object.setPrototypeOf(this, ValidationError.prototype);
   }
 }
 
 export class UnauthorizedError extends AppError {
   constructor(message: string = 'Unauthorized') {
     super(ErrorCode.UNAUTHORIZED, message, 401, true);
+    Object.setPrototypeOf(this, UnauthorizedError.prototype);
   }
 }
 
 export class ForbiddenError extends AppError {
   constructor(message: string = 'Forbidden') {
     super(ErrorCode.PERMISSION_DENIED, message, 403, true);
+    Object.setPrototypeOf(this, ForbiddenError.prototype);
   }
 }
 
 export class NotFoundError extends AppError {
   constructor(resource: string) {
     super(ErrorCode.RESOURCE_NOT_FOUND, `${resource} not found`, 404, true);
+    Object.setPrototypeOf(this, NotFoundError.prototype);
   }
 }
 
 export class ConflictError extends AppError {
   constructor(message: string) {
     super(ErrorCode.RESOURCE_ALREADY_EXISTS, message, 409, true);
+    Object.setPrototypeOf(this, ConflictError.prototype);
   }
 }
 
 export class InternalServerError extends AppError {
   constructor(message: string = 'Internal server error', details?: any) {
     super(ErrorCode.INTERNAL_SERVER_ERROR, message, 500, false, details);
+    Object.setPrototypeOf(this, InternalServerError.prototype);
   }
 }
