@@ -124,11 +124,13 @@ describe('Auth Routes', () => {
     let userId: string;
 
     beforeEach(async () => {
+      if (!isDatabaseAvailableForTests()) return;
+
       const mockUser = getMockUser();
       const signupResponse = await request(app)
         .post('/api/auth/signup')
         .send(mockUser);
-      
+
       authToken = signupResponse.body.data.token;
       userId = signupResponse.body.data.user.id;
     });
@@ -169,11 +171,13 @@ describe('Auth Routes', () => {
     let userId: string;
 
     beforeEach(async () => {
+      if (!isDatabaseAvailableForTests()) return;
+
       const mockUser = getMockUser();
       const signupResponse = await request(app)
         .post('/api/auth/signup')
         .send(mockUser);
-      
+
       authToken = signupResponse.body.data.token;
       refreshToken = signupResponse.body.data.refreshToken;
       userId = signupResponse.body.data.user.id;
@@ -209,11 +213,13 @@ describe('Auth Routes', () => {
     let authToken: string;
 
     beforeEach(async () => {
+      if (!isDatabaseAvailableForTests()) return;
+
       const mockUser = getMockUser();
       const signupResponse = await request(app)
         .post('/api/auth/signup')
         .send(mockUser);
-      
+
       authToken = signupResponse.body.data.token;
     });
 

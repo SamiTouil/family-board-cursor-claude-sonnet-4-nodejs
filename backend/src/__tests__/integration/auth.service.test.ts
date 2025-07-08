@@ -49,7 +49,7 @@ describe('Authentication Service', () => {
   });
 
   describe('login', () => {
-    it('should login successfully with correct credentials', async () => {
+    itWithDatabase('should login successfully with correct credentials', async () => {
       const mockUser = getMockUser();
       const signupResult = await UserService.signup(mockUser);
       
@@ -68,7 +68,7 @@ describe('Authentication Service', () => {
       expect(decoded.email).toBe(loginResult.user.email);
     });
 
-    it('should throw error with invalid email', async () => {
+    itWithDatabase('should throw error with invalid email', async () => {
       const mockUser = getMockUser();
       await UserService.signup(mockUser);
 
@@ -78,7 +78,7 @@ describe('Authentication Service', () => {
       })).rejects.toThrow(InvalidCredentialsError);
     });
 
-    it('should throw error with invalid password', async () => {
+    itWithDatabase('should throw error with invalid password', async () => {
       const mockUser = getMockUser();
       await UserService.signup(mockUser);
 
@@ -90,7 +90,7 @@ describe('Authentication Service', () => {
   });
 
   describe('refreshToken', () => {
-    it('should generate new token for existing user', async () => {
+    itWithDatabase('should generate new token for existing user', async () => {
       const mockUser = getMockUser();
       const signupResult = await UserService.signup(mockUser);
       
@@ -110,13 +110,13 @@ describe('Authentication Service', () => {
       expect(decoded.email).toBe(refreshResult.user.email);
     });
 
-    it('should throw error for non-existent user', async () => {
+    itWithDatabase('should throw error for non-existent user', async () => {
       await expect(UserService.refreshToken('non-existent-id')).rejects.toThrow('User not found');
     });
   });
 
   describe('getUserByEmail', () => {
-    it('should return user with password for existing email', async () => {
+    itWithDatabase('should return user with password for existing email', async () => {
       const mockUser = getMockUser();
       const signupResult = await UserService.signup(mockUser);
       
@@ -128,7 +128,7 @@ describe('Authentication Service', () => {
       expect(user?.password).toBeDefined(); // Should include password for login verification
     });
 
-    it('should return null for non-existent email', async () => {
+    itWithDatabase('should return null for non-existent email', async () => {
       const user = await UserService.getUserByEmail('nonexistent@example.com');
       expect(user).toBeNull();
     });
