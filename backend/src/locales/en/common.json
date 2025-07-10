@@ -8,7 +8,9 @@
     "tokenRequired": "Authentication token is required",
     "tokenExpired": "Authentication token has expired",
     "invalidToken": "Invalid authentication token",
-    "unauthorized": "Unauthorized access"
+    "unauthorized": "Unauthorized access",
+    "csrfTokenRequired": "CSRF token is required for this request",
+    "csrfTokenInvalid": "Invalid CSRF token"
   },
   "success": {
     "userCreated": "User created successfully",
