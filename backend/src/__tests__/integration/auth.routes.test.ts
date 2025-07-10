@@ -1,8 +1,8 @@
 import request from 'supertest';
 import express from 'express';
-import { authRoutes } from '../routes/auth.routes';
-import { errorHandler } from '../middleware/error.middleware';
-import { getMockUser } from './setup';
+import { authRoutes } from '../../routes/auth.routes';
+import { errorHandler } from '../../middleware/error.middleware';
+import { getMockUser } from '../integration-setup';
 
 const app = express();
 

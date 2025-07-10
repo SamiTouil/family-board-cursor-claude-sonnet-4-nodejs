@@ -1,7 +1,7 @@
-import { UserService } from '../services/user.service';
+import { UserService } from '../../services/user.service';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
-import { getMockUser } from './setup';
+import { getMockUser } from '../integration-setup';
 
 const prisma = new PrismaClient();
 

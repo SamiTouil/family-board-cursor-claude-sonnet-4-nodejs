@@ -1,4 +1,4 @@
-import { WeekTemplateService } from '../services/week-template.service';
+import { WeekTemplateService } from '../../services/week-template.service';
 
 // Mock Prisma Client completely
 jest.mock('@prisma/client', () => {
@@ -32,7 +32,7 @@ jest.mock('@prisma/client', () => {
 });
 
 // Mock the DayTemplateService
-jest.mock('../services/day-template.service');
+jest.mock('../../services/day-template.service');
 
 // Get the mock instance
 const { __mockPrisma: mockPrisma } = require('@prisma/client');

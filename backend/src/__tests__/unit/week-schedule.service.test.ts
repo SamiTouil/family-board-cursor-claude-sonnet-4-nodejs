@@ -1,5 +1,5 @@
-import { WeekScheduleService } from '../services/week-schedule.service';
-import { TaskOverrideAction } from '../types/task.types';
+import { WeekScheduleService } from '../../services/week-schedule.service';
+import { TaskOverrideAction } from '../../types/task.types';
 
 // Mock the PrismaClient with proper structure
 jest.mock('@prisma/client', () => ({
