@@ -41,6 +41,15 @@ jest.mock('../../services/user.service', () => ({
   },
 }));
 
+// Mock JWT config
+jest.mock('../../config/jwt.config', () => ({
+  getJwtSecret: jest.fn().mockReturnValue('test-jwt-secret-for-unit-tests-32-chars-long'),
+  JWT_CONFIG: {
+    EXPIRES_IN: '7d',
+    ALGORITHM: 'HS256',
+  },
+}));
+
 describe('Family Routes', () => {
   const userId = 'cmc3xvd5b0000arkqcapzcmen'; // Valid CUID
   const familyId = 'cmc3xvd5b0001arkqcapzcmeo'; // Valid CUID
