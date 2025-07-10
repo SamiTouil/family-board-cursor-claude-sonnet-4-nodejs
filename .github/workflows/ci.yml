@@ -199,7 +199,7 @@ jobs:
         BACKEND_PORT=3001
         FRONTEND_PORT=3000
         ADMINER_PORT=8080
-        JWT_SECRET=test-jwt-secret-for-e2e
+        JWT_SECRET=test-jwt-secret-for-e2e-tests-32-chars-minimum-length
         NODE_ENV=development
         VITE_API_URL=http://localhost:3001
         DATABASE_URL=postgresql://postgres:postgres@postgres:5432/family_board
