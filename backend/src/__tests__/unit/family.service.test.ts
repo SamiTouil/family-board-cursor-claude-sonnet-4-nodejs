@@ -1,5 +1,5 @@
-import { FamilyService } from '../services/family.service';
-import { CreateFamilyData, JoinFamilyData, CreateInviteData } from '../types/family.types';
+import { FamilyService } from '../../services/family.service';
+import { CreateFamilyData, JoinFamilyData, CreateInviteData } from '../../types/family.types';
 
 // Mock crypto first
 jest.mock('crypto', () => ({

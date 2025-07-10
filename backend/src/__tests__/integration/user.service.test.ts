@@ -1,6 +1,6 @@
-import { UserService } from '../services/user.service';
-import { UpdateUserSchema } from '../types/user.types';
-import { getMockUser } from './setup';
+import { UserService } from '../../services/user.service';
+import { UpdateUserSchema } from '../../types/user.types';
+import { getMockUser } from '../integration-setup';
 
 describe('UserService', () => {
   describe('createUser', () => {

@@ -1,7 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import familyRoutes from '../routes/family.routes';
+import familyRoutes from '../../routes/family.routes';
 
 const app = express();
 app.use(express.json());
@@ -14,7 +14,7 @@ jest.mock('jsonwebtoken', () => ({
 }));
 
 // Mock the FamilyService
-jest.mock('../services/family.service', () => ({
+jest.mock('../../services/family.service', () => ({
   FamilyService: {
     createFamily: jest.fn(),
     getUserFamilies: jest.fn(),
@@ -35,7 +35,7 @@ jest.mock('../services/family.service', () => ({
 }));
 
 // Mock UserService
-jest.mock('../services/user.service', () => ({
+jest.mock('../../services/user.service', () => ({
   UserService: {
     getUserById: jest.fn(),
   },
@@ -58,7 +58,7 @@ describe('Family Routes', () => {
     } as any);
 
     // Mock user exists
-    const { UserService } = require('../services/user.service');
+    const { UserService } = require('../../services/user.service');
     UserService.getUserById.mockResolvedValue({
       id: userId,
       email: 'test@example.com',
@@ -92,7 +92,7 @@ describe('Family Routes', () => {
         userRole: 'ADMIN',
       };
 
-      const { FamilyService } = require('../services/family.service');
+      const { FamilyService } = require('../../services/family.service');
       FamilyService.createFamily.mockResolvedValue(mockFamily);
 
       const response = await request(app)
@@ -119,7 +119,7 @@ describe('Family Routes', () => {
         },
       ];
 
-      const { FamilyService } = require('../services/family.service');
+      const { FamilyService } = require('../../services/family.service');
       FamilyService.getUserFamilies.mockResolvedValue(mockFamilies);
 
       const response = await request(app)
@@ -144,7 +144,7 @@ describe('Family Routes', () => {
         userRole: 'ADMIN',
       };
 
-      const { FamilyService } = require('../services/family.service');
+      const { FamilyService } = require('../../services/family.service');
       FamilyService.getFamilyById.mockResolvedValue(mockFamily);
 
       const response = await request(app)
@@ -174,7 +174,7 @@ describe('Family Routes', () => {
         expiresAt: new Date(),
       };
 
-      const { FamilyService } = require('../services/family.service');
+      const { FamilyService } = require('../../services/family.service');
       FamilyService.createInvite.mockResolvedValue(mockInvite);
 
       const response = await request(app)
@@ -218,7 +218,7 @@ describe('Family Routes', () => {
         },
       ];
 
-      const { FamilyService } = require('../services/family.service');
+      const { FamilyService } = require('../../services/family.service');
       FamilyService.getUserJoinRequests.mockResolvedValue(mockJoinRequests);
 
       const response = await request(app)
@@ -233,7 +233,7 @@ describe('Family Routes', () => {
     });
 
     it('should handle errors when fetching join requests', async () => {
-      const { FamilyService } = require('../services/family.service');
+      const { FamilyService } = require('../../services/family.service');
       FamilyService.getUserJoinRequests.mockRejectedValue(new Error('Database error'));
 
       const response = await request(app)
@@ -250,7 +250,7 @@ describe('Family Routes', () => {
     const requestId = 'request-1';
 
     it('should cancel user\'s own join request', async () => {
-      const { FamilyService } = require('../services/family.service');
+      const { FamilyService } = require('../../services/family.service');
       FamilyService.cancelJoinRequest.mockResolvedValue(undefined);
 
       const response = await request(app)
@@ -264,7 +264,7 @@ describe('Family Routes', () => {
     });
 
     it('should handle errors when cancelling join request', async () => {
-      const { FamilyService } = require('../services/family.service');
+      const { FamilyService } = require('../../services/family.service');
       FamilyService.cancelJoinRequest.mockRejectedValue(new Error('Request not found'));
 
       const response = await request(app)
