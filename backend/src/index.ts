@@ -1,11 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { PrismaClient } from '@prisma/client';
 import { initI18n } from './config/i18n';
 import { userRoutes } from './routes/user.routes';
 import { authRoutes } from './routes/auth.routes';
+import { csrfRoutes } from './routes/csrf.routes';
 import familyRoutes from './routes/family.routes';
 import taskRoutes from './routes/task.routes';
 
@@ -14,6 +16,7 @@ import weekTemplateRoutes from './routes/week-template.routes';
 import weekScheduleRoutes from './routes/week-schedule.routes';
 import healthRoutes from './routes/health.routes';
 import { errorHandler } from './middleware/error.middleware';
+import { generateCSRFToken, validateCSRFToken } from './middleware/csrf.middleware';
 import { initializeWebSocket } from './services/websocket.service';
 
 const app = express();
@@ -31,19 +34,29 @@ async function startServer(): Promise<void> {
 
     // Middleware
     app.use(helmet());
-    app.use(cors());
+    app.use(cors({
+      origin: process.env['FRONTEND_URL'] || 'http://localhost:3000',
+      credentials: true, // Allow cookies to be sent
+    }));
+    app.use(cookieParser());
     app.use(express.json());
+
+    // CSRF Protection - Generate tokens for all requests
+    app.use(generateCSRFToken);
 
     // Routes
     app.use('/api', healthRoutes);
+    app.use('/api/csrf', csrfRoutes);
     app.use('/api/auth', authRoutes);
-    app.use('/api/users', userRoutes);
-    app.use('/api/families', familyRoutes);
-    app.use('/api/tasks', taskRoutes);
-    
-    app.use('/api/families', dayTemplateRoutes);
-    app.use('/api/families', weekTemplateRoutes);
-    app.use('/api/families', weekScheduleRoutes);
+
+    // Apply CSRF validation to protected routes
+    app.use('/api/users', validateCSRFToken, userRoutes);
+    app.use('/api/families', validateCSRFToken, familyRoutes);
+    app.use('/api/tasks', validateCSRFToken, taskRoutes);
+
+    app.use('/api/families', validateCSRFToken, dayTemplateRoutes);
+    app.use('/api/families', validateCSRFToken, weekTemplateRoutes);
+    app.use('/api/families', validateCSRFToken, weekScheduleRoutes);
 
     // Error handling
     app.use(errorHandler);
