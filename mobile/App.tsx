@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { FamilyProvider, useFamily } from './src/contexts/FamilyContext';
 import { NotificationProvider } from './src/contexts/NotificationContext';
+import { CSRFProvider } from './src/contexts/CSRFContext';
 import { LoginScreen } from './src/screens/auth/LoginScreen';
 import { SignupScreen } from './src/screens/auth/SignupScreen';
 import { FamilyOnboardingScreen } from './src/screens/family/FamilyOnboardingScreen';
@@ -79,14 +80,16 @@ const AppNavigator = () => {
 export default function App() {
   return (
     <NavigationContainer>
-      <AuthProvider>
-        <NotificationProvider>
-          <FamilyProvider>
-            <StatusBar style="light" />
-            <AppNavigator />
-          </FamilyProvider>
-        </NotificationProvider>
-      </AuthProvider>
+      <CSRFProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <FamilyProvider>
+              <StatusBar style="light" />
+              <AppNavigator />
+            </FamilyProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </CSRFProvider>
     </NavigationContainer>
   );
 }
