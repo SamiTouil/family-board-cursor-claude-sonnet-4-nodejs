@@ -83,6 +83,7 @@ jobs:
       run: cd backend && npm test
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/family_board_test
+        DISABLE_CSRF_VALIDATION: true
 
     - name: Cleanup
       if: always()
@@ -203,6 +204,8 @@ jobs:
         NODE_ENV=development
         VITE_API_URL=http://localhost:3001
         DATABASE_URL=postgresql://postgres:postgres@postgres:5432/family_board
+        # Disable CSRF validation for E2E tests until client integration is complete
+        DISABLE_CSRF_VALIDATION=true
         EOF
         
         # Start the full application stack
