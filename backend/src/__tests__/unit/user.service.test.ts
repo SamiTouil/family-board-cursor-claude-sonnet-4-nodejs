@@ -37,6 +37,15 @@ jest.mock('jsonwebtoken', () => ({
 const { __mockPrisma: mockPrisma } = require('@prisma/client');
 const mockBcrypt = jest.mocked(bcrypt);
 
+// Mock JWT config
+jest.mock('../../config/jwt.config', () => ({
+  getJwtSecret: jest.fn().mockReturnValue('test-jwt-secret-for-unit-tests-32-chars-long'),
+  JWT_CONFIG: {
+    EXPIRES_IN: '7d',
+    ALGORITHM: 'HS256',
+  },
+}));
+
 describe('UserService - Unit Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -176,8 +185,8 @@ describe('UserService - Unit Tests', () => {
       expect(mockBcrypt.compare).toHaveBeenCalledWith('plainPassword', 'hashedPassword');
       expect(jwt.sign).toHaveBeenCalledWith(
         { userId: mockUserData.id, email: mockUserData.email },
-        expect.any(String),
-        { expiresIn: '7d' }
+        'test-jwt-secret-for-unit-tests-32-chars-long',
+        { expiresIn: '7d', algorithm: 'HS256' }
       );
       expect(result).toEqual({
         user: {

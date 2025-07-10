@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { getJwtSecret } from '../config/jwt.config';
 import { UserService } from '../services/user.service';
 import { i18next } from '../config/i18n';
 
@@ -36,7 +37,7 @@ export async function authenticateToken(
 
     const decoded = jwt.verify(
       token,
-      process.env['JWT_SECRET'] || 'fallback-secret'
+      getJwtSecret()
     ) as JWTPayload;
 
     // Verify user still exists
@@ -95,7 +96,7 @@ export function optionalAuth(
   try {
     const decoded = jwt.verify(
       token,
-      process.env['JWT_SECRET'] || 'fallback-secret'
+      getJwtSecret()
     ) as JWTPayload;
 
     req.user = {

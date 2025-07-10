@@ -1,6 +1,7 @@
 import { UserService } from '../../services/user.service';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { getJwtSecret } from '../../config/jwt.config';
 import { getMockUser } from '../integration-setup';
 
 const prisma = new PrismaClient();
@@ -21,7 +22,7 @@ describe('Authentication Service', () => {
       expect(result.token).toBeDefined();
 
       // Verify token is valid
-      const decoded = jwt.verify(result.token, process.env['JWT_SECRET'] || 'fallback-secret') as any;
+      const decoded = jwt.verify(result.token, getJwtSecret()) as any;
       expect(decoded.userId).toBe(result.user.id);
       expect(decoded.email).toBe(result.user.email);
     });
@@ -62,7 +63,7 @@ describe('Authentication Service', () => {
       expect(loginResult.token).toBeDefined();
 
       // Verify token is valid
-      const decoded = jwt.verify(loginResult.token, process.env['JWT_SECRET'] || 'fallback-secret') as any;
+      const decoded = jwt.verify(loginResult.token, getJwtSecret()) as any;
       expect(decoded.userId).toBe(loginResult.user.id);
       expect(decoded.email).toBe(loginResult.user.email);
     });
@@ -104,7 +105,7 @@ describe('Authentication Service', () => {
       expect(refreshResult.token).not.toBe(signupResult.token);
 
       // Verify new token is valid
-      const decoded = jwt.verify(refreshResult.token, process.env['JWT_SECRET'] || 'fallback-secret') as any;
+      const decoded = jwt.verify(refreshResult.token, getJwtSecret()) as any;
       expect(decoded.userId).toBe(refreshResult.user.id);
       expect(decoded.email).toBe(refreshResult.user.email);
     });

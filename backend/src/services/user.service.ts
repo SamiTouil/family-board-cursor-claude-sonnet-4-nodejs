@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { getJwtSecret, JWT_CONFIG } from '../config/jwt.config';
 import { CreateUserInput, UpdateUserInput, LoginInput, ChangePasswordInput, UserResponse } from '../types/user.types';
 
 const prisma = new PrismaClient();
@@ -312,8 +313,8 @@ export class UserService {
   private static generateToken(userId: string, email: string): string {
     return jwt.sign(
       { userId, email },
-      process.env['JWT_SECRET'] || 'fallback-secret',
-      { expiresIn: '7d' }
+      getJwtSecret(),
+      { expiresIn: JWT_CONFIG.EXPIRES_IN, algorithm: JWT_CONFIG.ALGORITHM }
     );
   }
 

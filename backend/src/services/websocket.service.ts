@@ -1,6 +1,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import jwt from 'jsonwebtoken';
+import { getJwtSecret } from '../config/jwt.config';
 import { PrismaClient } from '@prisma/client';
 
 // Use a global instance like other services
@@ -87,7 +88,7 @@ export class WebSocketService {
         return next(new Error('No authentication token provided'));
       }
 
-      const decoded = jwt.verify(token, process.env['JWT_SECRET'] || 'fallback-secret') as any;
+      const decoded = jwt.verify(token, getJwtSecret()) as any;
       
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },

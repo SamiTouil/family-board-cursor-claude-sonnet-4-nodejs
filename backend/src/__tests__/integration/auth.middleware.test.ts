@@ -1,5 +1,6 @@
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { getJwtSecret } from '../../config/jwt.config';
 import { authenticateToken, optionalAuth, AuthenticatedRequest } from '../../middleware/auth.middleware';
 import { UserService } from '../../services/user.service';
 import { getMockUser } from '../integration-setup';
@@ -86,7 +87,7 @@ describe('Auth Middleware', () => {
     it('should return 401 when token is expired', async () => {
       const expiredToken = jwt.sign(
         { userId, email: currentUserEmail },
-        process.env['JWT_SECRET'] || 'fallback-secret',
+        getJwtSecret(),
         { expiresIn: '-1h' } // Expired 1 hour ago
       );
 
@@ -196,7 +197,7 @@ describe('Auth Middleware', () => {
     it('should continue without setting user when expired token provided', () => {
       const expiredToken = jwt.sign(
         { userId, email: currentUserEmail },
-        process.env['JWT_SECRET'] || 'fallback-secret',
+        getJwtSecret(),
         { expiresIn: '-1h' }
       );
 
