@@ -24,8 +24,13 @@ describe('CSRF Middleware', () => {
   let mockReq: Partial<CSRFRequest>;
   let mockRes: Partial<Response>;
   let mockNext: NextFunction;
+  let originalEnv: string | undefined;
 
   beforeEach(() => {
+    // Save original environment variable
+    originalEnv = process.env['DISABLE_CSRF_VALIDATION'];
+    // Ensure CSRF validation is enabled for tests
+    delete process.env['DISABLE_CSRF_VALIDATION'];
     mockReq = {
       method: 'POST',
       cookies: {},
@@ -46,8 +51,17 @@ describe('CSRF Middleware', () => {
       json: jest.fn(),
       status: jest.fn().mockReturnThis(),
     };
-    
+
     mockNext = jest.fn();
+  });
+
+  afterEach(() => {
+    // Restore original environment variable
+    if (originalEnv !== undefined) {
+      process.env['DISABLE_CSRF_VALIDATION'] = originalEnv;
+    } else {
+      delete process.env['DISABLE_CSRF_VALIDATION'];
+    }
   });
 
   describe('generateCSRFToken', () => {
@@ -117,6 +131,15 @@ describe('CSRF Middleware', () => {
 
     beforeEach(() => {
       mockReq.cookies = { '__Host-csrf-token': validToken };
+    });
+
+    it('should skip validation when DISABLE_CSRF_VALIDATION is true', () => {
+      process.env['DISABLE_CSRF_VALIDATION'] = 'true';
+
+      validateCSRFToken(mockReq as CSRFRequest, mockRes as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalled();
+      expect(mockRes.status).not.toHaveBeenCalled();
     });
 
     it('should skip validation for safe HTTP methods', () => {

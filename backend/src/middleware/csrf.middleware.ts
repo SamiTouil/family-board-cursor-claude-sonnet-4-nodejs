@@ -99,6 +99,12 @@ export function validateCSRFToken(
   res: Response,
   next: NextFunction
 ): void {
+  // Feature flag to disable CSRF validation during client migration
+  if (process.env['DISABLE_CSRF_VALIDATION'] === 'true') {
+    next();
+    return;
+  }
+
   // Skip validation for safe methods
   if (!requiresCSRFProtection(req.method)) {
     next();
