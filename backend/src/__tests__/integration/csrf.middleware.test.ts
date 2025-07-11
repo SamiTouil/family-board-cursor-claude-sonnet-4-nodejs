@@ -1,7 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import { generateCSRFToken, validateCSRFToken, csrfProtection } from '../../middleware/csrf.middleware';
+import { generateCSRFToken, validateCSRFToken } from '../../middleware/csrf.middleware';
 import { csrfRoutes } from '../../routes/csrf.routes';
 
 const app = express();
@@ -15,22 +15,53 @@ beforeAll(async () => {
   app.use('/api/csrf', csrfRoutes);
   
   // Test protected route
-  app.post('/api/test/protected', validateCSRFToken, (req, res) => {
+  app.post('/api/test/protected', validateCSRFToken, (_req, res) => {
     res.json({ success: true, message: 'Protected route accessed' });
   });
-  
+
   // Test unprotected route (safe method)
-  app.get('/api/test/safe', validateCSRFToken, (req, res) => {
+  app.get('/api/test/safe', validateCSRFToken, (_req, res) => {
     res.json({ success: true, message: 'Safe route accessed' });
   });
-  
+
   // Test auth route (should be skipped)
-  app.post('/api/auth/login', validateCSRFToken, (req, res) => {
+  app.post('/api/auth/login', validateCSRFToken, (_req, res) => {
     res.json({ success: true, message: 'Auth route accessed' });
   });
 });
 
 describe('CSRF Integration Tests', () => {
+  describe('CSRF Status Endpoint', () => {
+    it('should return CSRF status when protection is disabled', async () => {
+      process.env['DISABLE_CSRF_VALIDATION'] = 'true';
+
+      const response = await request(app)
+        .get('/api/csrf/status')
+        .expect(200);
+
+      expect(response.body).toEqual({
+        enabled: false,
+        message: 'CSRF protection is disabled'
+      });
+    });
+
+    it('should return CSRF status when protection is enabled', async () => {
+      process.env['DISABLE_CSRF_VALIDATION'] = 'false';
+
+      const response = await request(app)
+        .get('/api/csrf/status')
+        .expect(200);
+
+      expect(response.body).toEqual({
+        enabled: true,
+        message: 'CSRF protection is enabled'
+      });
+
+      // Reset to disabled for other tests
+      process.env['DISABLE_CSRF_VALIDATION'] = 'true';
+    });
+  });
+
   describe('CSRF Token Generation', () => {
     it('should generate CSRF token on first request', async () => {
       const response = await request(app)
@@ -47,9 +78,9 @@ describe('CSRF Integration Tests', () => {
       // Check that cookie was set
       const cookies = response.headers['set-cookie'];
       expect(cookies).toBeDefined();
-      expect(cookies[0]).toMatch(/__Host-csrf-token=/);
-      expect(cookies[0]).toMatch(/HttpOnly=false/);
-      expect(cookies[0]).toMatch(/SameSite=Strict/);
+      expect(cookies?.[0]).toMatch(/__Host-csrf-token=/);
+      expect(cookies?.[0]).toMatch(/HttpOnly=false/);
+      expect(cookies?.[0]).toMatch(/SameSite=Strict/);
     });
 
     it('should reuse existing CSRF token', async () => {
@@ -80,12 +111,12 @@ describe('CSRF Integration Tests', () => {
         .expect(200);
 
       const firstToken = firstResponse.body.csrfToken;
-      const cookieHeader = firstResponse.headers['set-cookie'][0];
+      const cookieHeader = firstResponse.headers['set-cookie']?.[0];
 
       // Second request with refresh parameter
       const secondResponse = await request(app)
         .get('/api/csrf/token?refreshCSRF=true')
-        .set('Cookie', cookieHeader)
+        .set('Cookie', cookieHeader || '')
         .expect(200);
 
       expect(secondResponse.body.csrfToken).not.toBe(firstToken);
@@ -104,9 +135,9 @@ describe('CSRF Integration Tests', () => {
       const response = await request(app)
         .get('/api/csrf/token')
         .expect(200);
-      
+
       csrfToken = response.body.csrfToken;
-      cookieHeader = response.headers['set-cookie'][0];
+      cookieHeader = response.headers['set-cookie']?.[0] || '';
     });
 
     it('should allow safe HTTP methods without CSRF token', async () => {
