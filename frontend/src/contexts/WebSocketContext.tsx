@@ -122,7 +122,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     });
 
     newSocket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
+      // WebSocket connection error
       setIsConnected(false);
 
       if (reconnectAttempts.current < maxReconnectAttempts) {
@@ -131,7 +131,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     });
 
     newSocket.on('error', (error) => {
-      console.error('WebSocket error:', error);
+      // WebSocket error occurred
     });
 
     // Real-time event handlers
