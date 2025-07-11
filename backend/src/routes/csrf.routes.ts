@@ -10,7 +10,7 @@ const router = Router();
  * This endpoint allows client applications to check if CSRF protection
  * is currently enabled or disabled on the server.
  */
-router.get('/status', (req, res) => {
+router.get('/status', (_req, res) => {
   const isEnabled = process.env['DISABLE_CSRF_VALIDATION'] !== 'true';
 
   res.json({
