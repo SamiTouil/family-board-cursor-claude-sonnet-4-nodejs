@@ -39,7 +39,7 @@ export const useCSRF = (): UseCSRFReturn => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch CSRF token';
       setError(errorMessage);
-      console.error('CSRF token fetch error:', err);
+      // CSRF token fetch error
     } finally {
       setIsLoading(false);
     }
@@ -53,7 +53,7 @@ export const useCSRF = (): UseCSRFReturn => {
       const enabled = await csrfService.isCSRFEnabled();
       setIsEnabled(enabled);
     } catch (err) {
-      console.warn('Failed to check CSRF status:', err);
+      // Failed to check CSRF status
       setIsEnabled(false);
     }
   }, []);
@@ -123,7 +123,7 @@ export const useCSRFOperations = () => {
     try {
       return await csrfService.getToken();
     } catch (error) {
-      console.error('Failed to get CSRF token:', error);
+      // Failed to get CSRF token
       return null;
     } finally {
       setIsOperating(false);
@@ -135,7 +135,7 @@ export const useCSRFOperations = () => {
     try {
       return await csrfService.refreshToken();
     } catch (error) {
-      console.error('Failed to refresh CSRF token:', error);
+      // Failed to refresh CSRF token
       return null;
     } finally {
       setIsOperating(false);

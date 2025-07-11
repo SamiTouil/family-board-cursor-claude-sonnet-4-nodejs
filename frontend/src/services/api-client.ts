@@ -31,7 +31,7 @@ apiClient.interceptors.request.use(async (config) => {
         const csrfToken = await csrfService.getToken();
         config.headers['X-CSRF-Token'] = csrfToken;
       } catch (error) {
-        console.warn('Failed to get CSRF token:', error);
+        // Failed to get CSRF token - continue without token
         // Continue with request - server might have CSRF disabled
       }
     }
@@ -56,7 +56,7 @@ apiClient.interceptors.response.use(
     } else if (error.response?.status === 403 &&
                error.response?.data?.code === 'CSRF_TOKEN_INVALID') {
       // CSRF token is invalid, try to refresh and retry
-      console.warn('CSRF token invalid, attempting to refresh...');
+      // CSRF token invalid, attempting to refresh
 
       try {
         await csrfService.refreshToken();
@@ -70,7 +70,7 @@ apiClient.interceptors.response.use(
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
-        console.error('Failed to refresh CSRF token:', refreshError);
+        // Failed to refresh CSRF token
       }
     }
     return Promise.reject(error);

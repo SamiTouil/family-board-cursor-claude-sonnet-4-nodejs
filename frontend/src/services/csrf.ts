@@ -59,7 +59,7 @@ class CSRFService {
 
       return response.data.csrfToken;
     } catch (error) {
-      console.error('Failed to fetch CSRF token:', error);
+      // Failed to fetch CSRF token
       throw new Error('Unable to fetch CSRF token. Please try again.');
     }
   }

@@ -43,7 +43,7 @@ export const CSRFProvider: React.FC<CSRFProviderProps> = ({ children }) => {
       setIsEnabled(enabled);
       return enabled;
     } catch (err) {
-      console.warn('Failed to check CSRF status, assuming disabled:', err);
+      // Failed to check CSRF status, assuming disabled
       setIsEnabled(false);
       return false;
     }
@@ -63,11 +63,11 @@ export const CSRFProvider: React.FC<CSRFProviderProps> = ({ children }) => {
     try {
       const csrfToken = await csrfService.getToken(forceRefresh);
       setToken(csrfToken);
-      console.log('✅ CSRF token obtained successfully');
+      // CSRF token obtained successfully
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch CSRF token';
       setError(errorMessage);
-      console.error('❌ CSRF token fetch failed:', err);
+      // CSRF token fetch failed
     } finally {
       setIsLoading(false);
     }
@@ -81,19 +81,19 @@ export const CSRFProvider: React.FC<CSRFProviderProps> = ({ children }) => {
       return;
     }
 
-    console.log('🔒 Initializing CSRF protection...');
+    // Initializing CSRF protection
     
     try {
       const enabled = await checkCSRFStatus();
       
       if (enabled) {
-        console.log('🛡️ CSRF protection is enabled on server');
+        // CSRF protection is enabled on server
         await fetchToken();
       } else {
-        console.log('⚠️ CSRF protection is disabled on server');
+        // CSRF protection is disabled on server
       }
     } catch (err) {
-      console.error('Failed to initialize CSRF protection:', err);
+      // Failed to initialize CSRF protection
     } finally {
       setIsInitialized(true);
     }
@@ -103,7 +103,7 @@ export const CSRFProvider: React.FC<CSRFProviderProps> = ({ children }) => {
    * Refresh token manually
    */
   const refreshToken = useCallback(async (): Promise<void> => {
-    console.log('🔄 Refreshing CSRF token...');
+    // Refreshing CSRF token
     await fetchToken(true);
   }, [fetchToken]);
 
@@ -124,7 +124,7 @@ export const CSRFProvider: React.FC<CSRFProviderProps> = ({ children }) => {
 
     const refreshInterval = 22 * 60 * 60 * 1000; // 22 hours
     const intervalId = setInterval(() => {
-      console.log('⏰ Auto-refreshing CSRF token...');
+      // Auto-refreshing CSRF token
       refreshToken();
     }, refreshInterval);
 
