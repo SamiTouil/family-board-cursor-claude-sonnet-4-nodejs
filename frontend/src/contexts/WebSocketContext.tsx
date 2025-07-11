@@ -91,6 +91,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       transports: ['websocket', 'polling'],
       timeout: 20000,
       forceNew: true,
+      upgrade: true,
+      rememberUpgrade: true,
+      autoConnect: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
     });
 
     // Connection event handlers
@@ -115,11 +122,16 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     });
 
     newSocket.on('connect_error', () => {
+      // WebSocket connection error
       setIsConnected(false);
-      
+
       if (reconnectAttempts.current < maxReconnectAttempts) {
         scheduleReconnect();
       }
+    });
+
+    newSocket.on('error', () => {
+      // WebSocket error occurred
     });
 
     // Real-time event handlers

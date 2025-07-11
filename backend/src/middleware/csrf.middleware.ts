@@ -111,8 +111,8 @@ export function validateCSRFToken(
     return;
   }
 
-  // Skip validation for health check and auth endpoints that don't need CSRF
-  const skipPaths = ['/api/health', '/api/auth/login', '/api/auth/signup'];
+  // Skip validation for health check, auth endpoints, and WebSocket connections
+  const skipPaths = ['/api/health', '/api/auth/login', '/api/auth/signup', '/socket.io/'];
   if (skipPaths.some(path => req.path.startsWith(path))) {
     next();
     return;
