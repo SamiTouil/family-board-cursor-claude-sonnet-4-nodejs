@@ -2,16 +2,17 @@
  * CSRF Service Tests
  */
 
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { csrfService } from '../csrf';
 import { apiClient } from '../api-client';
 
 // Mock the API client
-jest.mock('../api-client');
-const mockedApiClient = apiClient as jest.Mocked<typeof apiClient>;
+vi.mock('../api-client');
+const mockedApiClient = vi.mocked(apiClient);
 
 describe('CSRF Service', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     csrfService.clearToken();
   });
 
