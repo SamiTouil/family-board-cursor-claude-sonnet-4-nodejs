@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { FamilyProvider, useFamily } from './contexts/FamilyContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
+import { CSRFProvider } from './contexts/CSRFContext';
 import { AuthPage } from './features/auth/components/AuthPage';
 import { FamilyOnboarding } from './features/family/components/FamilyOnboarding';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
@@ -50,13 +51,15 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <Router>
-      <AuthProvider>
-        <WebSocketProvider>
-          <FamilyProvider>
-            <AppContent />
-          </FamilyProvider>
-        </WebSocketProvider>
-      </AuthProvider>
+      <CSRFProvider>
+        <AuthProvider>
+          <WebSocketProvider>
+            <FamilyProvider>
+              <AppContent />
+            </FamilyProvider>
+          </WebSocketProvider>
+        </AuthProvider>
+      </CSRFProvider>
     </Router>
   );
 };
