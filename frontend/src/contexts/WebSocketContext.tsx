@@ -121,7 +121,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       }
     });
 
-    newSocket.on('connect_error', (error) => {
+    newSocket.on('connect_error', () => {
       // WebSocket connection error
       setIsConnected(false);
 
@@ -130,7 +130,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       }
     });
 
-    newSocket.on('error', (error) => {
+    newSocket.on('error', () => {
       // WebSocket error occurred
     });
 
