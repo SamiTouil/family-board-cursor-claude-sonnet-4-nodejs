@@ -834,19 +834,19 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                                   <div className="weekly-calendar-shift-actions">
                                     <Button
                                       variant="icon"
-                                      className="btn-icon-primary"
-                                      onClick={() => handleShiftReassign(shift.tasks, day.date)}
-                                      title="Reassign all tasks in this shift"
-                                    >
-                                      ↻
-                                    </Button>
-                                    <Button
-                                      variant="icon"
                                       className="btn-icon-danger"
                                       onClick={() => handleShiftRemove(shift.tasks, day.date)}
                                       title="Remove all tasks in this shift"
                                     >
                                       ×
+                                    </Button>
+                                    <Button
+                                      variant="icon"
+                                      className="btn-icon-primary"
+                                      onClick={() => handleShiftReassign(shift.tasks, day.date)}
+                                      title="Reassign all tasks in this shift"
+                                    >
+                                      ↻
                                     </Button>
                                   </div>
                                 )}
