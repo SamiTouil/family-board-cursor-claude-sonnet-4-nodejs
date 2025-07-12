@@ -3,7 +3,7 @@ import { useFamily } from '../../contexts/FamilyContext';
 import { weekScheduleApi, weekTemplateApi, dayTemplateApi, taskApi } from '../../services/api';
 import { apiClient } from '../../services/api-client';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { TaskOverrideCard, Button } from '../ui';
+import { TaskOverrideCard, Button, UserAvatar } from '../ui';
 import { TaskOverrideModal } from './TaskOverrideModal';
 import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate, DayTemplate, DayTemplateItem, Task, User, CreateTaskOverrideData } from '../../types';
 import './WeeklyCalendar.css';
@@ -508,6 +508,30 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     return sortTasksByTime(day.tasks);
   };
 
+  // Group sequential tasks by member into shifts
+  const groupTasksIntoShifts = (tasks: ResolvedTask[]): Array<{ memberId: string | null; tasks: ResolvedTask[] }> => {
+    if (tasks.length === 0) return [];
+    
+    const shifts: Array<{ memberId: string | null; tasks: ResolvedTask[] }> = [];
+    let currentShift: { memberId: string | null; tasks: ResolvedTask[] } | null = null;
+    
+    tasks.forEach((task) => {
+      if (!currentShift || currentShift.memberId !== task.memberId) {
+        // Start a new shift
+        currentShift = {
+          memberId: task.memberId,
+          tasks: [task]
+        };
+        shifts.push(currentShift);
+      } else {
+        // Add to current shift
+        currentShift.tasks.push(task);
+      }
+    });
+    
+    return shifts;
+  };
+
   const isCurrentWeek = (): boolean => {
     const today = new Date();
     const currentMonday = getMonday(today);
@@ -667,20 +691,48 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                     </div>
                   ) : (
                     <div className="weekly-calendar-tasks-stack">
-                      {dayTasks.map((task, taskIndex) => (
-                        <TaskOverrideCard
-                          key={`${task.taskId}-${task.memberId}-${taskIndex}`}
-                          task={task}
-                          taskIndex={taskIndex}
-                          isAdmin={isAdmin}
-                          onRemove={(task) => handleTaskOverride('REMOVE', task, day.date)}
-                          onReassign={(task) => handleTaskOverride('REASSIGN', task, day.date)}
-                          formatTime={formatTime}
-                          formatDuration={formatDuration}
-                          showDescription={false}
-                          compact={false}
-                        />
-                      ))}
+                      {groupTasksIntoShifts(dayTasks).map((shift, shiftIndex) => {
+                        const isMultiTaskShift = shift.tasks.length > 1;
+                        const shiftMember = shift.tasks[0]?.member;
+                        
+                        return (
+                          <div
+                            key={`shift-${shiftIndex}-${shift.memberId}`}
+                            className={`weekly-calendar-shift ${isMultiTaskShift ? 'is-multi-task' : ''}`}
+                          >
+                            {isMultiTaskShift && shiftMember && (
+                              <div className="weekly-calendar-shift-header">
+                                <UserAvatar
+                                  firstName={shiftMember.firstName}
+                                  lastName={shiftMember.lastName}
+                                  avatarUrl={shiftMember.avatarUrl}
+                                  size="extra-small"
+                                />
+                                <span className="weekly-calendar-shift-member-name">
+                                  {shiftMember.firstName}'s shift ({shift.tasks.length} tasks)
+                                </span>
+                              </div>
+                            )}
+                            <div className={`weekly-calendar-shift-tasks ${isMultiTaskShift ? 'grouped' : ''}`}>
+                              {shift.tasks.map((task, taskIndex) => (
+                                <TaskOverrideCard
+                                  key={`${task.taskId}-${task.memberId}-${taskIndex}`}
+                                  task={task}
+                                  taskIndex={taskIndex}
+                                  isAdmin={isAdmin}
+                                  onRemove={(task) => handleTaskOverride('REMOVE', task, day.date)}
+                                  onReassign={(task) => handleTaskOverride('REASSIGN', task, day.date)}
+                                  formatTime={formatTime}
+                                  formatDuration={formatDuration}
+                                  showDescription={false}
+                                  compact={false}
+                                  hideAvatar={isMultiTaskShift}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                   

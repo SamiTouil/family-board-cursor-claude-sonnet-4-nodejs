@@ -224,6 +224,95 @@
   gap: 0.75rem;
 }
 
+/* Shift Visualization */
+.weekly-calendar-shift {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.weekly-calendar-shift.is-multi-task {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  border-radius: 12px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.1);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.weekly-calendar-shift.is-multi-task::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  border-radius: 12px;
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.2s ease;
+}
+
+.weekly-calendar-shift.is-multi-task:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 8px rgba(99, 102, 241, 0.15);
+  transform: translateY(-1px);
+}
+
+.weekly-calendar-shift.is-multi-task:hover::before {
+  opacity: 0.1;
+}
+
+.weekly-calendar-shift-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px dashed rgba(99, 102, 241, 0.2);
+}
+
+.weekly-calendar-shift-member-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4c51bf;
+}
+
+.weekly-calendar-shift-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.weekly-calendar-shift-tasks.grouped .task-override-card {
+  margin: 0;
+  box-shadow: none;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.weekly-calendar-shift-tasks.grouped .task-override-card:not(:last-child) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-bottom: -1px;
+}
+
+.weekly-calendar-shift-tasks.grouped .task-override-card:not(:first-child) {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.weekly-calendar-shift-tasks.grouped .task-override-card-actions {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.weekly-calendar-shift:hover .task-override-card-actions {
+  opacity: 1;
+}
+
 /* Add Task Button */
 .weekly-calendar-day-add-task {
   width: 100%;
@@ -297,6 +386,18 @@
   
   .weekly-calendar-tasks-lane {
     padding: 0.75rem;
+  }
+  
+  .weekly-calendar-shift.is-multi-task {
+    padding: 0.5rem;
+  }
+  
+  .weekly-calendar-shift-header {
+    font-size: 0.8125rem;
+  }
+  
+  .weekly-calendar-shift-member-name {
+    font-size: 0.8125rem;
   }
   
   /* Task styles removed - now handled by TaskOverrideCard.css */

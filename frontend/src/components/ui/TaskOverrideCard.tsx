@@ -15,6 +15,7 @@ interface TaskOverrideCardProps {
   formatDuration: (minutes: number) => string;
   showDescription?: boolean;
   compact?: boolean;
+  hideAvatar?: boolean;
 }
 
 export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
@@ -27,7 +28,8 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
   formatTime,
   formatDuration,
   showDescription = true,
-  compact = false
+  compact = false,
+  hideAvatar = false
 }) => {
   const startTime = task.overrideTime || task.task.defaultStartTime;
   const duration = task.overrideDuration || task.task.defaultDuration;
@@ -57,7 +59,7 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
           </div>
         </div>
         
-        {task.member && (
+        {task.member && !hideAvatar && (
           <div className="task-override-card-member">
             <UserAvatar
               firstName={task.member.firstName}
