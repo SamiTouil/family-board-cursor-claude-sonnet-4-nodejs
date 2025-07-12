@@ -109,8 +109,8 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
         action,
         originalMemberId: action === 'REASSIGN' ? (task?.memberId || null) : null,
         newMemberId: action === 'ADD' || action === 'REASSIGN' ? selectedMemberId : null,
-        overrideTime: action === 'ADD' ? overrideTime : null,
-        overrideDuration: action === 'ADD' ? overrideDuration : null,
+        overrideTime: action === 'ADD' || action === 'REASSIGN' ? overrideTime : null,
+        overrideDuration: action === 'ADD' || action === 'REASSIGN' ? overrideDuration : null,
       };
 
       try {
@@ -253,6 +253,34 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
               <p className="no-members-message">No other family members available for reassignment.</p>
             )}
           </div>
+          
+          {/* Show time and duration fields only for single task reassignment */}
+          {bulkTasks.length === 0 && task && (
+            <div className="form-row">
+              <div className="form-group">
+                <label>Start Time:</label>
+                <input
+                  type="time"
+                  value={overrideTime}
+                  onChange={(e) => setOverrideTime(e.target.value)}
+                  className="form-input"
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div className="form-group">
+                <label>Duration (minutes):</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="1440"
+                  value={overrideDuration}
+                  onChange={(e) => setOverrideDuration(parseInt(e.target.value) || 30)}
+                  className="form-input"
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
     </>
