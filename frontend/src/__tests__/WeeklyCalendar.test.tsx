@@ -4,6 +4,7 @@ import { vi } from 'vitest';
 import { WeeklyCalendar } from '../components/calendar/WeeklyCalendar';
 import { FamilyProvider } from '../contexts/FamilyContext';
 import { AuthProvider } from '../contexts/AuthContext';
+import { CurrentWeekProvider } from '../contexts/CurrentWeekContext';
 import '@testing-library/jest-dom';
 
 // Mock the API
@@ -57,7 +58,9 @@ const mockUser = {
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <AuthProvider>
     <FamilyProvider>
-      {children}
+      <CurrentWeekProvider>
+        {children}
+      </CurrentWeekProvider>
     </FamilyProvider>
   </AuthProvider>
 );

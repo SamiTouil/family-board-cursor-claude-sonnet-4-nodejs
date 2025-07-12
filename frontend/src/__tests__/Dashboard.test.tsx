@@ -2,6 +2,7 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Dashboard } from '../components/layout/Dashboard'
+import { CurrentWeekProvider } from '../contexts/CurrentWeekContext'
 import type { User, Family } from '../types'
 
 // Mock the auth context
@@ -95,7 +96,11 @@ describe('Dashboard', () => {
   it('sets default document title when no current family', () => {
     mockFamilyContext.currentFamily = null
     
-    render(<Dashboard />)
+    render(
+      <CurrentWeekProvider>
+        <Dashboard />
+      </CurrentWeekProvider>
+    )
     
     expect(document.title).toBe('Family Board')
   })
@@ -120,7 +125,11 @@ describe('Dashboard', () => {
     
     mockFamilyContext.currentFamily = mockFamily
     
-    render(<Dashboard />)
+    render(
+      <CurrentWeekProvider>
+        <Dashboard />
+      </CurrentWeekProvider>
+    )
     
     expect(document.title).toBe('Smith Family Board')
   })
@@ -145,7 +154,11 @@ describe('Dashboard', () => {
     
     mockFamilyContext.currentFamily = mockFamily
     
-    render(<Dashboard />)
+    render(
+      <CurrentWeekProvider>
+        <Dashboard />
+      </CurrentWeekProvider>
+    )
     
     // Check that the WeeklyCalendar component is rendered
     expect(screen.getByText('Weekly Schedule')).toBeDefined()
@@ -154,7 +167,11 @@ describe('Dashboard', () => {
   it('shows family selection message when no family is selected', () => {
     mockFamilyContext.currentFamily = null
     
-    render(<Dashboard />)
+    render(
+      <CurrentWeekProvider>
+        <Dashboard />
+      </CurrentWeekProvider>
+    )
     
     // Check that the family selection message is shown
     expect(screen.getByText('Please select a family to view the calendar.')).toBeDefined()
