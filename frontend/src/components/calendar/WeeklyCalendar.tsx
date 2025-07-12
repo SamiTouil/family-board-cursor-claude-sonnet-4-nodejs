@@ -537,7 +537,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
     const dayNumber = date.getDate();
     
-    return isToday ? `${dayName} ${dayNumber} (Today)` : `${dayName} ${dayNumber}`;
+    return `${dayName} ${dayNumber}`;
   };
 
   const formatWeekRange = (weekStartDate: string): string => {
