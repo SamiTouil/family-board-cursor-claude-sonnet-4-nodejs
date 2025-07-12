@@ -49,17 +49,23 @@ export class AnalyticsService {
     let periodEnd: Date;
     
     if (referenceDate) {
-      // If reference date provided, calculate the end of that week (Sunday)
-      const refDate = new Date(referenceDate + 'T00:00:00.000Z');
+      // If reference date provided, calculate the end of that week (Sunday at 23:59:59)
+      const refDate = new Date(referenceDate + 'T00:00:00');
       const dayOfWeek = refDate.getDay();
-      const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
-      periodEnd = startOfDay(addDays(refDate, daysUntilSunday));
+      const daysUntilSunday = dayOfWeek === 0 ? 6 : (7 - dayOfWeek) % 7;
+      periodEnd = new Date(refDate);
+      periodEnd.setDate(refDate.getDate() + daysUntilSunday);
+      periodEnd.setHours(23, 59, 59, 999);
     } else {
       // Default to today
-      periodEnd = startOfDay(new Date());
+      periodEnd = new Date();
+      periodEnd.setHours(23, 59, 59, 999);
     }
     
-    const periodStart = startOfDay(subDays(periodEnd, periodDays - 1));
+    const periodStart = new Date(periodEnd);
+    periodStart.setDate(periodEnd.getDate() - periodDays + 1);
+    periodStart.setHours(0, 0, 0, 0);
+    
 
     // Get all task overrides in the period (both ADD/REASSIGN and REMOVE)
     const allTaskOverrides = await this.prisma.taskOverride.findMany({
@@ -122,7 +128,7 @@ export class AnalyticsService {
 
     // Process each day in the period
     let currentDate = new Date(periodStart);
-    while (currentDate < periodEnd) {
+    while (currentDate <= periodEnd) {
       const dateKey = currentDate.toISOString().split('T')[0]!;
       const dayOfWeek = currentDate.getDay();
       
@@ -132,9 +138,15 @@ export class AnalyticsService {
       weekStart.setDate(weekStart.getDate() - daysFromMonday);
       weekStart.setHours(0, 0, 0, 0);
       
+      // Format as local date string
+      const year = weekStart.getFullYear();
+      const month = String(weekStart.getMonth() + 1).padStart(2, '0');
+      const day = String(weekStart.getDate()).padStart(2, '0');
+      const weekStartStr = `${year}-${month}-${day}`;
+      
       // Get the week schedule for this date
       const weekSchedule = await this.weekScheduleService.getWeekSchedule(familyId, {
-        weekStartDate: weekStart.toISOString().split('T')[0]!
+        weekStartDate: weekStartStr
       });
       
       // Find the day schedule for the current date
@@ -204,6 +216,8 @@ export class AnalyticsService {
 
     // Calculate fairness score (only for real members)
     const realMemberMinutes = realMembers.map(([_, stats]) => stats.totalMinutes);
+    
+    
     const fairnessScore = this.calculateFairnessScore(
       realMemberMinutes,
       averageMinutesPerMember
@@ -243,6 +257,7 @@ export class AnalyticsService {
     // Using exponential decay: score = 100 * e^(-2 * CV)
     // This gives a nice curve where small variations still get high scores
     const fairnessScore = Math.max(0, Math.min(100, 100 * Math.exp(-2 * coefficientOfVariation)));
+
 
     return Math.round(fairnessScore);
   }
