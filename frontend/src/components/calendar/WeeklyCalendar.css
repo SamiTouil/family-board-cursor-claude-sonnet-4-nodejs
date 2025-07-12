@@ -563,11 +563,7 @@
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-/* Smooth transitions */
-.weekly-calendar-grid,
-.weekly-calendar-day {
-  transition: all 0.3s ease;
-}
+/* Smooth transitions removed for instant updates */
 
 /* Focus states for accessibility */
 .weekly-calendar-nav-btn:focus,
