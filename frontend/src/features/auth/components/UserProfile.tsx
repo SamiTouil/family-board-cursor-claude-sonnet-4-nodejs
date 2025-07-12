@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { authApi } from '../../../services/api';
 import Modal from '../../../components/ui/Modal';
+import { useMessage } from '../../../hooks';
 import type { ChangePasswordData } from '../../../types';
 import './UserProfile.css';
 
@@ -25,7 +26,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
   const { user, refreshUser } = useAuth();
   
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useMessage();
 
   // Profile form state
   const [profileData, setProfileData] = useState({

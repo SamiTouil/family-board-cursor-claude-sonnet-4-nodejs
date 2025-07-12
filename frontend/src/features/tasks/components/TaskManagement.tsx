@@ -5,6 +5,7 @@ import { useFamily } from '../../../contexts/FamilyContext';
 import { taskApi } from '../../../services/api';
 import type { Task, CreateTaskData } from '../../../types';
 import { TaskOverrideCard, Modal, Button } from '../../../components/ui';
+import { useMessage } from '../../../hooks';
 import './TaskManagement.css';
 
 export const TaskManagement: React.FC = () => {
@@ -14,7 +15,7 @@ export const TaskManagement: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useMessage();
 
   // Modal state
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);

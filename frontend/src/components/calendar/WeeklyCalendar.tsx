@@ -5,6 +5,7 @@ import { apiClient } from '../../services/api-client';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { TaskOverrideCard, Button, UserAvatar } from '../ui';
 import { TaskOverrideModal } from './TaskOverrideModal';
+import { useMessage } from '../../hooks';
 import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate, DayTemplate, DayTemplateItem, Task, User, CreateTaskOverrideData } from '../../types';
 import './WeeklyCalendar.css';
 
@@ -21,7 +22,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
   const [currentWeekStart, setCurrentWeekStart] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useMessage();
 
   // Week template application modal state
   const [showApplyTemplateModal, setShowApplyTemplateModal] = useState(false);

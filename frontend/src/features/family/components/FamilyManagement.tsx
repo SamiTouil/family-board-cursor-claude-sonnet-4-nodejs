@@ -5,6 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useWebSocket } from '../../../contexts/WebSocketContext';
 import { UserAvatar, RoleTag, CustomSelect, Modal, Button } from '../../../components/ui';
 import { familyApi } from '../../../services/api';
+import { useMessage } from '../../../hooks';
 import type { FamilyMember, FamilyJoinRequest, FamilyInvite, UpdateFamilyData, UpdateVirtualMemberData, CreateVirtualMemberData } from '../../../types';
 import './FamilyManagement.css';
 
@@ -29,7 +30,7 @@ export const FamilyManagement: React.FC = () => {
   const [invites, setInvites] = useState<FamilyInvite[]>([]);
   const [joinRequests, setJoinRequests] = useState<FamilyJoinRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useMessage();
 
   // Family editing form state
   const [familyData, setFamilyData] = useState({
