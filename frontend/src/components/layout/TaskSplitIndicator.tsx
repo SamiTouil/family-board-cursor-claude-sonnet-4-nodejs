@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useFamily } from '../../contexts/FamilyContext';
 import { analyticsApi } from '../../services/api';
 import type { TaskSplitAnalytics } from '../../types';
+import { UserAvatar } from '../ui/UserAvatar';
 import './TaskSplitIndicator.css';
 
 export const TaskSplitIndicator: React.FC = () => {
@@ -102,8 +103,16 @@ export const TaskSplitIndicator: React.FC = () => {
           <div className="task-split-members">
             {realMembers.map(member => (
               <div key={member.memberId} className="task-split-member">
-                <div className="task-split-member-name">
-                  {member.memberName}
+                <div className="task-split-member-info">
+                  <UserAvatar
+                    firstName={member.firstName}
+                    lastName={member.lastName}
+                    avatarUrl={member.avatarUrl ?? null}
+                    size="small"
+                  />
+                  <div className="task-split-member-name">
+                    {member.memberName}
+                  </div>
                 </div>
                 <div className="task-split-member-stats">
                   <div className="task-split-member-bar">

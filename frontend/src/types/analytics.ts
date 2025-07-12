@@ -1,6 +1,9 @@
 export interface MemberTaskStats {
   memberId: string;
   memberName: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string | null;
   isVirtual: boolean;
   totalMinutes: number;
   taskCount: number;

@@ -110,6 +110,12 @@
   gap: 0.5rem;
 }
 
+.task-split-member-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .task-split-member-name {
   font-weight: 500;
   color: #374151;

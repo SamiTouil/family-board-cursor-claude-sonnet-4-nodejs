@@ -4,6 +4,9 @@ import { startOfDay, subDays } from 'date-fns';
 export interface MemberTaskStats {
   memberId: string;
   memberName: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string | null;
   isVirtual: boolean;
   totalMinutes: number;
   taskCount: number;
@@ -99,6 +102,9 @@ export class AnalyticsService {
     // Aggregate task durations by member
     const memberTaskMap = new Map<string, {
       memberName: string;
+      firstName: string;
+      lastName: string;
+      avatarUrl?: string | null;
       isVirtual: boolean;
       totalMinutes: number;
       taskCount: number;
@@ -116,6 +122,9 @@ export class AnalyticsService {
       if (!memberTaskMap.has(memberId)) {
         memberTaskMap.set(memberId, {
           memberName: `${member.firstName} ${member.lastName}`,
+          firstName: member.firstName,
+          lastName: member.lastName,
+          avatarUrl: member.avatarUrl,
           isVirtual: member.isVirtual || false,
           totalMinutes: 0,
           taskCount: 0
@@ -150,6 +159,9 @@ export class AnalyticsService {
             if (!memberTaskMap.has(memberId)) {
               memberTaskMap.set(memberId, {
                 memberName: `${item.member.firstName} ${item.member.lastName}`,
+                firstName: item.member.firstName,
+                lastName: item.member.lastName,
+                avatarUrl: item.member.avatarUrl,
                 isVirtual: item.member.isVirtual || false,
                 totalMinutes: 0,
                 taskCount: 0
@@ -181,6 +193,9 @@ export class AnalyticsService {
       .map(([memberId, stats]) => ({
         memberId,
         memberName: stats.memberName,
+        firstName: stats.firstName,
+        lastName: stats.lastName,
+        avatarUrl: stats.avatarUrl ?? null,
         isVirtual: stats.isVirtual,
         totalMinutes: stats.totalMinutes,
         taskCount: stats.taskCount,
