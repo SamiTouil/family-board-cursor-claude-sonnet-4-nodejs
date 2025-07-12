@@ -31,9 +31,13 @@ export const authApi = {
 };
 
 export const analyticsApi = {
-  async getTaskSplit(familyId: string, periodDays?: number) {
+  async getTaskSplit(familyId: string, referenceDate?: string, periodDays?: number) {
+    const params: any = {};
+    if (referenceDate) params.referenceDate = referenceDate;
+    if (periodDays) params.periodDays = periodDays;
+    
     return await apiClient.get(`/families/${familyId}/analytics/task-split`, {
-      params: periodDays ? { periodDays } : undefined
+      params: Object.keys(params).length > 0 ? params : undefined
     });
   },
   

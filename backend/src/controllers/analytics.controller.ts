@@ -6,7 +6,8 @@ import { z } from 'zod';
 const analyticsService = new AnalyticsService(prisma);
 
 const getTaskSplitSchema = z.object({
-  periodDays: z.coerce.number().min(7).max(365).optional().default(28)
+  periodDays: z.coerce.number().min(7).max(365).optional().default(28),
+  referenceDate: z.string().optional() // ISO date string (YYYY-MM-DD) for the reference week
 });
 
 export const analyticsController = {
@@ -40,7 +41,8 @@ export const analyticsController = {
       // Calculate task split analytics
       const analytics = await analyticsService.calculateTaskSplit(
         familyId!,
-        query.periodDays
+        query.periodDays,
+        query.referenceDate
       );
 
       return res.json({

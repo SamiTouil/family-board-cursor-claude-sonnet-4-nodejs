@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useFamily } from '../../contexts/FamilyContext';
+import { useCurrentWeek } from '../../contexts/CurrentWeekContext';
 import { weekScheduleApi, weekTemplateApi, dayTemplateApi, taskApi } from '../../services/api';
 import { apiClient } from '../../services/api-client';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
@@ -15,11 +16,11 @@ interface WeeklyCalendarProps {
 
 export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => {
   const { currentFamily } = useFamily();
+  const { currentWeekStart, setCurrentWeekStart } = useCurrentWeek();
   
   const [weekSchedule, setWeekSchedule] = useState<ResolvedWeekSchedule | null>(null);
   const [weekTemplates, setWeekTemplates] = useState<WeekTemplate[]>([]);
   const [dayTemplates, setDayTemplates] = useState<DayTemplate[]>([]);
-  const [currentWeekStart, setCurrentWeekStart] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useMessage();
@@ -46,19 +47,22 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
 
   const isAdmin = currentFamily?.userRole === 'ADMIN';
 
-  // Initialize with current week
+  // Initialize and load data when family changes
   useEffect(() => {
     if (currentFamily) {
-      const today = new Date();
-      const monday = getMonday(today);
-      setCurrentWeekStart(monday);
-      loadWeekSchedule(monday);
       loadWeekTemplates();
       loadDayTemplates();
       loadAvailableTasks();
       loadFamilyMembers();
     }
   }, [currentFamily]);
+
+  // Load week schedule when currentWeekStart changes
+  useEffect(() => {
+    if (currentFamily && currentWeekStart) {
+      loadWeekSchedule(currentWeekStart);
+    }
+  }, [currentFamily, currentWeekStart]);
 
   const getMonday = (date: Date): string => {
     const d = new Date(date);

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useWebSocket } from '../../contexts/WebSocketContext';
+import { useCurrentWeek } from '../../contexts/CurrentWeekContext';
 import { analyticsApi } from '../../services/api';
 import type { TaskSplitAnalytics } from '../../types';
 import { UserAvatar } from '../ui/UserAvatar';
@@ -9,22 +10,23 @@ import './TaskSplitIndicator.css';
 export const TaskSplitIndicator: React.FC = () => {
   const { currentFamily } = useFamily();
   const { on, off } = useWebSocket();
+  const { currentWeekStart } = useCurrentWeek();
   const [analytics, setAnalytics] = useState<TaskSplitAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (currentFamily) {
+    if (currentFamily && currentWeekStart) {
       loadAnalytics();
     }
-  }, [currentFamily]);
+  }, [currentFamily, currentWeekStart]);
 
   // Listen for task schedule updates
   useEffect(() => {
     const handleTaskUpdate = () => {
       // Refresh analytics when tasks are modified
-      if (currentFamily) {
+      if (currentFamily && currentWeekStart) {
         loadAnalytics();
       }
     };
@@ -36,7 +38,7 @@ export const TaskSplitIndicator: React.FC = () => {
     return () => {
       off('task-schedule-updated', handleTaskUpdate);
     };
-  }, [currentFamily, on, off]);
+  }, [currentFamily, currentWeekStart, on, off]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -55,11 +57,11 @@ export const TaskSplitIndicator: React.FC = () => {
   }, [isExpanded]);
 
   const loadAnalytics = async () => {
-    if (!currentFamily) return;
+    if (!currentFamily || !currentWeekStart) return;
 
     try {
       setIsLoading(true);
-      const response = await analyticsApi.getTaskSplit(currentFamily.id);
+      const response = await analyticsApi.getTaskSplit(currentFamily.id, currentWeekStart);
       setAnalytics(response.data.data);
     } catch (error) {
       // Failed to load analytics - component will not render

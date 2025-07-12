@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { FamilyProvider, useFamily } from './contexts/FamilyContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
 import { CSRFProvider } from './contexts/CSRFContext';
+import { CurrentWeekProvider } from './contexts/CurrentWeekContext';
 import { AuthPage } from './features/auth/components/AuthPage';
 import { FamilyOnboarding } from './features/family/components/FamilyOnboarding';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
@@ -55,7 +56,9 @@ const App: React.FC = () => {
         <AuthProvider>
           <WebSocketProvider>
             <FamilyProvider>
-              <AppContent />
+              <CurrentWeekProvider>
+                <AppContent />
+              </CurrentWeekProvider>
             </FamilyProvider>
           </WebSocketProvider>
         </AuthProvider>
