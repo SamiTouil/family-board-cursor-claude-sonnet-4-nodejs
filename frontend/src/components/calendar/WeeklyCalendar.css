@@ -137,7 +137,7 @@
 
 /* Day Header */
 .weekly-calendar-day-header {
-  padding: 0.75rem;
+  padding: 0.5rem 0.375rem;
   margin: 0.5rem;
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
   border: 2px solid rgba(99, 102, 241, 0.2);
@@ -146,7 +146,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  min-height: 44px;
+  min-height: 36px;
   transition: all 0.2s ease;
   position: relative;
 }
@@ -193,7 +193,7 @@
 
 .weekly-calendar-day-name {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #374151;
   line-height: 1.2;
@@ -209,14 +209,14 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  margin-left: 0.5rem;
+  margin-left: 0.25rem;
 }
 
 .weekly-calendar-day-override-btn {
   background-color: rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(99, 102, 241, 0.2);
   color: #6366f1;
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 0 !important;
   margin: 0;
   font-size: 0;
@@ -226,12 +226,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px !important;
-  height: 28px !important;
-  min-width: 28px !important;
-  min-height: 28px !important;
-  max-width: 28px !important;
-  max-height: 28px !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  max-width: 24px !important;
+  max-height: 24px !important;
   flex-shrink: 0;
   flex-grow: 0;
   box-sizing: border-box;
@@ -240,8 +240,8 @@
 }
 
 .weekly-calendar-day-override-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
 .weekly-calendar-day-override-btn:hover:not(:disabled) {
@@ -428,9 +428,9 @@
 .weekly-calendar-shift-tasks.grouped .task-override-card {
   margin: 0;
   box-shadow: none;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  border-right: 1px solid rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: 1px solid #d1d5db;
+  border-right: 1px solid #d1d5db;
+  border-bottom: 1px solid #d1d5db;
 }
 
 .weekly-calendar-shift-tasks.grouped .task-override-card:not(:last-child) {
@@ -453,43 +453,6 @@
   opacity: 1;
 }
 
-/* Add Task Button */
-.weekly-calendar-day-add-task {
-  width: 100%;
-  margin-top: 0.75rem;
-  padding: 0.75rem 1rem;
-  background-color: #f8fafc;
-  border: 2px dashed #cbd5e1;
-  border-radius: 8px;
-  color: #64748b;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.weekly-calendar-day-add-task:hover:not(:disabled) {
-  background-color: #f1f5f9;
-  border-color: #94a3b8;
-  color: #475569;
-  transform: translateY(-1px);
-}
-
-.weekly-calendar-day-add-task:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.weekly-calendar-day-add-task:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
 
 /* Task Card styles moved to TaskOverrideCard.css */
 
@@ -592,26 +555,27 @@
   }
   
     .weekly-calendar-day-header {
-    padding: 0.5rem;
+    padding: 0.375rem 0.25rem;
     margin: 0.375rem;
     flex-direction: row;
     align-items: center;
-    gap: 0.5rem;
-    min-height: 40px;
+    gap: 0.25rem;
+    min-height: 32px;
   }
 
   .weekly-calendar-day-controls {
     margin-left: 0;
+    gap: 0.125rem;
     justify-content: flex-end;
   }
 
   .weekly-calendar-day-override-btn {
-    width: 24px;
-    height: 24px;
-    min-width: 24px;
-    min-height: 24px;
-    max-width: 24px;
-    max-height: 24px;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    max-width: 20px;
+    max-height: 20px;
   }
 
   .weekly-calendar-tasks-lane {
