@@ -10,6 +10,7 @@ interface TaskOverrideModalProps {
   onClose: () => void;
   onConfirm: (overrideData: CreateTaskOverrideData) => Promise<void>;
   task?: ResolvedTask | undefined;
+  bulkTasks?: ResolvedTask[];
   date: string;
   action: 'ADD' | 'REMOVE' | 'REASSIGN';
   availableTasks?: Task[];
@@ -22,6 +23,7 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
   onClose,
   onConfirm,
   task,
+  bulkTasks = [],
   date,
   action,
   availableTasks = [],
@@ -169,13 +171,26 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
         </div>
       )}
 
-      {action === 'REASSIGN' && task && (
+      {action === 'REASSIGN' && (task || bulkTasks.length > 0) && (
         <div className="task-override-form">
+          {bulkTasks.length > 0 && (
+            <div className="bulk-info">
+              <p>Reassigning {bulkTasks.length} tasks from this shift:</p>
+              <ul className="bulk-task-list">
+                {bulkTasks.map((t, index) => (
+                  <li key={`${t.taskId}-${index}`}>{t.task.name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div className="form-group">
             <label>Reassign to:</label>
             <div className="member-avatar-grid">
               {familyMembers
-                .filter(member => member.id !== task.memberId)
+                .filter(member => {
+                  const currentMemberId = task?.memberId || bulkTasks[0]?.memberId;
+                  return member.id !== currentMemberId;
+                })
                 .map(member => (
                   <div
                     key={member.id}
@@ -194,7 +209,10 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
                   </div>
                 ))}
             </div>
-            {familyMembers.filter(member => member.id !== task.memberId).length === 0 && (
+            {familyMembers.filter(member => {
+              const currentMemberId = task?.memberId || bulkTasks[0]?.memberId;
+              return member.id !== currentMemberId;
+            }).length === 0 && (
               <p className="no-members-message">No other family members available for reassignment.</p>
             )}
           </div>

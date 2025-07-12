@@ -273,6 +273,13 @@
   padding-bottom: 0.5rem;
   margin-bottom: 0.5rem;
   border-bottom: 1px dashed rgba(99, 102, 241, 0.2);
+  position: relative;
+}
+
+.weekly-calendar-shift-actions {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: auto;
 }
 
 .weekly-calendar-shift-tags {
@@ -381,6 +388,32 @@
 }
 
 /* Task Card styles moved to TaskOverrideCard.css */
+
+/* Bulk operation styles */
+.bulk-info {
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.bulk-info p {
+  margin: 0 0 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.bulk-task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bulk-task-list li {
+  padding: 0.25rem 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
 
 /* Responsive Design */
 @media (max-width: 1200px) {
