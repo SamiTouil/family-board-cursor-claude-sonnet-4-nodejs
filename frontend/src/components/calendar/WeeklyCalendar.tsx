@@ -726,6 +726,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                                   formatDuration={formatDuration}
                                   showDescription={false}
                                   compact={false}
+                                  hideAvatar={isMultiTaskShift}
                                 />
                               ))}
                             </div>
