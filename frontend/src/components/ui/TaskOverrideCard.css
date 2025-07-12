@@ -2,7 +2,7 @@
 .task-override-card {
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
-  border-left: 4px solid #3b82f6;
+  border-left: 6px solid #3b82f6;
   border-radius: 8px;
   padding: 0.75rem;
   transition: all 0.2s ease;
@@ -16,7 +16,7 @@
 
 .task-override-card.is-override {
   border-left-style: dashed;
-  border-left-width: 3px;
+  border-left-width: 6px;
 }
 
 .task-override-card-main {
