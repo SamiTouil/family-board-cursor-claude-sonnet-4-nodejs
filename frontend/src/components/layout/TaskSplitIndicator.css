@@ -1,6 +1,7 @@
 /* Task Split Indicator Styles */
 .task-split-indicator {
   position: relative;
+  margin-left: 1.5rem;
 }
 
 .task-split-indicator-button {
