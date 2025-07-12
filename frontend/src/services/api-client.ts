@@ -29,7 +29,7 @@ apiClient.interceptors.request.use(async (config) => {
     if (!isAuthEndpoint) {
       try {
         const csrfToken = await csrfService.getToken();
-        config.headers['X-CSRF-Token'] = csrfToken;
+        config.headers['x-csrf-token'] = csrfToken;
       } catch (error) {
         // Failed to get CSRF token - continue without token
         // Continue with request - server might have CSRF disabled
