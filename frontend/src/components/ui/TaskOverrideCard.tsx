@@ -57,9 +57,7 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
               {formatDuration(duration)}
             </span>
             {task.source === 'override' && (
-              <span className="task-override-card-tag modified-tag">
-                *
-              </span>
+              <span className="task-override-card-modified-indicator">⚡</span>
             )}
           </div>
         </div>
