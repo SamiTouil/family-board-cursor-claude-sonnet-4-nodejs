@@ -3,6 +3,7 @@ import { useFamily } from '../../../contexts/FamilyContext';
 import { weekScheduleApi } from '../../../services/api';
 import type { ResolvedWeekSchedule, ResolvedTask } from '../../../types';
 import { ResolvedTaskCard } from '../../tasks/components/TaskAssignmentCard';
+import { useMessage } from '../../../hooks';
 import './WeekScheduleView.css';
 
 export const WeekScheduleView: React.FC = () => {
@@ -12,7 +13,7 @@ export const WeekScheduleView: React.FC = () => {
 
   const [currentWeekStart, setCurrentWeekStart] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useMessage();
 
   // Override modal state
   const [showOverrideModal, setShowOverrideModal] = useState(false);

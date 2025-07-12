@@ -6,6 +6,7 @@ import type { Task, DayTemplate, DayTemplateItem, CreateDayTemplateData, FamilyM
 import { TaskOverrideCard } from '../../../components/ui/TaskOverrideCard';
 import { CustomSelect } from '../../../components/ui/CustomSelect';
 import Modal from '../../../components/ui/Modal';
+import { useMessage } from '../../../hooks';
 import './DayTemplateManagement.css';
 
 export const DayTemplateManagement: React.FC = () => {
@@ -14,7 +15,7 @@ export const DayTemplateManagement: React.FC = () => {
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useMessage();
 
   // DayTemplate state
   const [templates, setTemplates] = useState<DayTemplate[]>([]);

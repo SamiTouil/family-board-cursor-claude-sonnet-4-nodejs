@@ -5,6 +5,7 @@ import { weekTemplateApi, dayTemplateApi } from '../../../services/api';
 import { CustomSelect } from '../../../components/ui/CustomSelect';
 import { TaskOverrideCard } from '../../../components/ui/TaskOverrideCard';
 import Modal from '../../../components/ui/Modal';
+import { useMessage } from '../../../hooks';
 import type { WeekTemplate, DayTemplate, DayTemplateItem, CreateWeekTemplateData, UpdateWeekTemplateData, ResolvedTask, Task } from '../../../types';
 import './WeekTemplateManagement.css';
 
@@ -18,7 +19,7 @@ export const WeekTemplateManagement: React.FC = () => {
   const [expandedTemplates, setExpandedTemplates] = useState<Record<string, boolean>>({});
   const [loadingItems, setLoadingItems] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useMessage();
 
   // Week template form state - convert to modal
   const [isAddRoutineModalOpen, setIsAddRoutineModalOpen] = useState(false);
