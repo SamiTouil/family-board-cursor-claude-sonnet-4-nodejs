@@ -60,6 +60,12 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
   };
 
   const getModalTitle = (): string => {
+    if (bulkTasks.length > 0) {
+      switch (action) {
+        case 'REASSIGN': return `Reassign ${bulkTasks.length} Tasks`;
+        default: return 'Modify Tasks';
+      }
+    }
     switch (action) {
       case 'ADD': return 'Add Task';
       case 'REMOVE': return 'Remove Task';
@@ -69,24 +75,53 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
   };
 
   const handleSubmit = async () => {
-    const overrideData: CreateTaskOverrideData = {
-      assignedDate: date,
-      taskId: action === 'ADD' ? selectedTaskId : task!.taskId,
-      action,
-      originalMemberId: action === 'REASSIGN' ? (task?.memberId || null) : null,
-      newMemberId: action === 'ADD' || action === 'REASSIGN' ? selectedMemberId : null,
-      overrideTime: action === 'ADD' ? overrideTime : null,
-      overrideDuration: action === 'ADD' ? overrideDuration : null,
-    };
+    // Validate member selection for reassign actions
+    if (action === 'REASSIGN' && !selectedMemberId) {
+      return; // Don't submit if no member is selected
+    }
 
-    try {
-      setIsSubmitting(true);
-      await onConfirm(overrideData);
-      onClose();
-    } catch (error) {
-      // Error handling is done in parent component
-    } finally {
-      setIsSubmitting(false);
+    // For bulk operations, we pass a special marker in the override data
+    if (bulkTasks.length > 0 && action === 'REASSIGN') {
+      const overrideData: CreateTaskOverrideData = {
+        assignedDate: date,
+        taskId: '', // This will be handled in the parent component
+        action,
+        originalMemberId: null,
+        newMemberId: selectedMemberId,
+        overrideTime: null,
+        overrideDuration: null,
+      };
+
+      try {
+        setIsSubmitting(true);
+        await onConfirm(overrideData);
+        onClose();
+      } catch (error) {
+        // Error handling is done in parent component
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      // Single task operation
+      const overrideData: CreateTaskOverrideData = {
+        assignedDate: date,
+        taskId: action === 'ADD' ? selectedTaskId : task!.taskId,
+        action,
+        originalMemberId: action === 'REASSIGN' ? (task?.memberId || null) : null,
+        newMemberId: action === 'ADD' || action === 'REASSIGN' ? selectedMemberId : null,
+        overrideTime: action === 'ADD' ? overrideTime : null,
+        overrideDuration: action === 'ADD' ? overrideDuration : null,
+      };
+
+      try {
+        setIsSubmitting(true);
+        await onConfirm(overrideData);
+        onClose();
+      } catch (error) {
+        // Error handling is done in parent component
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -96,9 +131,11 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
 
   const renderContent = () => (
     <>
-      <p>{action === 'ADD' ? `Add a new task to ${formatDate(date)}` :
-          action === 'REMOVE' ? `Remove "${task?.task.name}" from ${formatDate(date)}` :
-          `Reassign "${task?.task.name}" on ${formatDate(date)}`}</p>
+      {bulkTasks.length === 0 && (
+        <p>{action === 'ADD' ? `Add a new task to ${formatDate(date)}` :
+            action === 'REMOVE' ? `Remove "${task?.task.name}" from ${formatDate(date)}` :
+            `Reassign "${task?.task.name}" on ${formatDate(date)}`}</p>
+      )}
 
       {action === 'ADD' && (
         <div className="task-override-form">
@@ -227,6 +264,11 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       onApply={handleSubmit}
+      applyDisabled={
+        isSubmitting || 
+        (action === 'REASSIGN' && !selectedMemberId) ||
+        (action === 'ADD' && (!selectedTaskId || !selectedMemberId))
+      }
     >
       {renderContent()}
     </Modal>
