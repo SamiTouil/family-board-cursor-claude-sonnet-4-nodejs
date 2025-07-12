@@ -42,7 +42,7 @@ export const TaskSplitIndicator: React.FC = () => {
       const response = await analyticsApi.getTaskSplit(currentFamily.id);
       setAnalytics(response.data.data);
     } catch (error) {
-      console.error('Failed to load task split analytics:', error);
+      // Failed to load analytics - component will not render
     } finally {
       setIsLoading(false);
     }
