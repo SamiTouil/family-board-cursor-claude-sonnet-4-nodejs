@@ -102,11 +102,13 @@
 }
 
 .task-override-card-tag.modified-tag {
-  background-color: #fef3c7;
-  border-color: #fcd34d;
+  background-color: #fbbf24;
+  border-color: #fbbf24;
   color: #92400e;
   font-weight: 600;
-  text-transform: lowercase;
+  font-size: 0.625rem;
+  padding: 0.125rem 0.375rem;
+  text-transform: uppercase;
 }
 
 .task-override-card-tag:hover {
@@ -125,8 +127,8 @@
 }
 
 .task-override-card-tag.modified-tag:hover {
-  background-color: #fde68a;
-  border-color: #fbbf24;
+  background-color: #f59e0b;
+  border-color: #f59e0b;
 }
 
 .task-override-card-description {
