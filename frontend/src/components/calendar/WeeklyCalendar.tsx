@@ -494,6 +494,11 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     return `${displayHour}:${minutes || '00'} ${ampm}`;
   };
 
+  const formatTime24 = (time: string): string => {
+    const [hours, minutes] = time.split(':');
+    return `${hours || '00'}:${minutes || '00'}`;
+  };
+
   const formatDuration = (minutes: number): string => {
     if (minutes < 60) {
       return `${minutes}m`;
@@ -695,6 +700,42 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                         const isMultiTaskShift = shift.tasks.length > 1;
                         const shiftMember = shift.tasks[0]?.member;
                         
+                        // Calculate shift time range and duration
+                        let shiftStartTime = '';
+                        let shiftEndTime = '';
+                        let totalDuration = 0;
+                        
+                        if (isMultiTaskShift && shift.tasks.length > 0) {
+                          // Get start time from first task
+                          const firstTask = shift.tasks[0];
+                          if (firstTask) {
+                            shiftStartTime = firstTask.overrideTime || firstTask.task.defaultStartTime;
+                            
+                            // Calculate end time from last task
+                            const lastTask = shift.tasks[shift.tasks.length - 1];
+                            if (lastTask) {
+                              const lastTaskStartTime = lastTask.overrideTime || lastTask.task.defaultStartTime;
+                              const lastTaskDuration = lastTask.overrideDuration || lastTask.task.defaultDuration;
+                              
+                              // Parse time and add duration
+                              const lastTimeParts = lastTaskStartTime.split(':').map(Number);
+                              const lastHours = lastTimeParts[0] || 0;
+                              const lastMinutes = lastTimeParts[1] || 0;
+                              const endMinutes = lastHours * 60 + lastMinutes + lastTaskDuration;
+                              const endHours = Math.floor(endMinutes / 60);
+                              const endMins = endMinutes % 60;
+                              shiftEndTime = `${String(endHours).padStart(2, '0')}:${String(endMins).padStart(2, '0')}`;
+                              
+                              // Calculate total duration from first task start to last task end
+                              const firstTimeParts = shiftStartTime.split(':').map(Number);
+                              const firstHours = firstTimeParts[0] || 0;
+                              const firstMinutes = firstTimeParts[1] || 0;
+                              const startTotalMinutes = firstHours * 60 + firstMinutes;
+                              totalDuration = endMinutes - startTotalMinutes;
+                            }
+                          }
+                        }
+                        
                         return (
                           <div
                             key={`shift-${shiftIndex}-${shift.memberId}`}
@@ -706,11 +747,16 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                                   firstName={shiftMember.firstName}
                                   lastName={shiftMember.lastName}
                                   avatarUrl={shiftMember.avatarUrl}
-                                  size="extra-small"
+                                  size="small"
                                 />
-                                <span className="weekly-calendar-shift-member-name">
-                                  {shiftMember.firstName}'s shift ({shift.tasks.length} tasks)
-                                </span>
+                                <div className="weekly-calendar-shift-tags">
+                                  <span className="weekly-calendar-shift-tag time-tag">
+                                    {formatTime24(shiftStartTime)} - {formatTime24(shiftEndTime)}
+                                  </span>
+                                  <span className="weekly-calendar-shift-tag duration-tag">
+                                    {formatDuration(totalDuration)}
+                                  </span>
+                                </div>
                               </div>
                             )}
                             <div className={`weekly-calendar-shift-tasks ${isMultiTaskShift ? 'grouped' : ''}`}>
