@@ -562,4 +562,13 @@ router.put('/:familyId/virtual-members/:userId', validateBody(UpdateVirtualMembe
   }
 });
 
+// Analytics routes
+import { analyticsController } from '../controllers/analytics.controller';
+
+// Get task split analytics
+router.get('/:familyId/analytics/task-split', analyticsController.getTaskSplit);
+
+// Get fairness history
+router.get('/:familyId/analytics/fairness-history', analyticsController.getFairnessHistory);
+
 export default router; 

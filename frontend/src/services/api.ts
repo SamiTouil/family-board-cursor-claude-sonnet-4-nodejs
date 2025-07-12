@@ -30,6 +30,20 @@ export const authApi = {
   }
 };
 
+export const analyticsApi = {
+  async getTaskSplit(familyId: string, periodDays?: number) {
+    return await apiClient.get(`/families/${familyId}/analytics/task-split`, {
+      params: periodDays ? { periodDays } : undefined
+    });
+  },
+  
+  async getFairnessHistory(familyId: string, weeks?: number) {
+    return await apiClient.get(`/families/${familyId}/analytics/fairness-history`, {
+      params: weeks ? { weeks } : undefined
+    });
+  }
+};
+
 export const familyApi = {
   async getUserFamilies() {
     return await apiClient.get('/families');

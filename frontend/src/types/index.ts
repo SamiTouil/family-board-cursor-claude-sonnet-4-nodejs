@@ -410,4 +410,7 @@ export interface ApplyWeekTemplateData {
 
 export interface DuplicateWeekTemplateData {
   name: string;
-} 
+}
+
+// Export analytics types
+export * from './analytics'; 
