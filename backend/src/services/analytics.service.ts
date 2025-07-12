@@ -167,8 +167,10 @@ export class AnalyticsService {
       .filter(([_, stats]) => !stats.isVirtual);
 
     const realMemberCount = realMembers.length;
+    const realMemberTotalMinutes = realMembers
+      .reduce((sum, [_, stats]) => sum + stats.totalMinutes, 0);
     const averageMinutesPerMember = realMemberCount > 0 
-      ? totalMinutes / realMemberCount 
+      ? realMemberTotalMinutes / realMemberCount 
       : 0;
 
     // Create member stats array
@@ -187,8 +189,23 @@ export class AnalyticsService {
       .sort((a, b) => b.totalMinutes - a.totalMinutes);
 
     // Calculate fairness score (only for real members)
+    const realMemberMinutes = realMembers.map(([_, stats]) => stats.totalMinutes);
+    
+    // Debug logging
+    console.log('Task Split Analytics Debug:', {
+      realMembers: realMembers.map(([_, stats]) => ({
+        name: stats.memberName,
+        minutes: stats.totalMinutes,
+        hours: Math.floor(stats.totalMinutes / 60)
+      })),
+      realMemberTotalMinutes,
+      realMemberCount,
+      averageMinutesPerMember,
+      averageHoursPerMember: Math.floor(averageMinutesPerMember / 60)
+    });
+    
     const fairnessScore = this.calculateFairnessScore(
-      realMembers.map(([_, stats]) => stats.totalMinutes),
+      realMemberMinutes,
       averageMinutesPerMember
     );
 
@@ -226,6 +243,17 @@ export class AnalyticsService {
     // Using exponential decay: score = 100 * e^(-2 * CV)
     // This gives a nice curve where small variations still get high scores
     const fairnessScore = Math.max(0, Math.min(100, 100 * Math.exp(-2 * coefficientOfVariation)));
+
+    console.log('Fairness Calculation Debug:', {
+      memberMinutes,
+      average,
+      squaredDifferences,
+      variance,
+      standardDeviation,
+      coefficientOfVariation,
+      rawFairnessScore: 100 * Math.exp(-2 * coefficientOfVariation),
+      finalFairnessScore: Math.round(fairnessScore)
+    });
 
     return Math.round(fairnessScore);
   }
