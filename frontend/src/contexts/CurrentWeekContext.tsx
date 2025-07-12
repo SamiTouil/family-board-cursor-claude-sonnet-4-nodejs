@@ -27,8 +27,12 @@ export const CurrentWeekProvider: React.FC<CurrentWeekProviderProps> = ({ childr
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
     d.setDate(diff);
-    d.setHours(0, 0, 0, 0);
-    return d.toISOString().split('T')[0]!;
+    
+    // Use local date formatting to avoid timezone issues
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const dayOfMonth = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${dayOfMonth}`;
   };
 
   const [currentWeekStart, setCurrentWeekStart] = useState<string>(() => {
