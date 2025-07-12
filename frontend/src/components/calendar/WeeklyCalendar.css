@@ -317,7 +317,9 @@
 .weekly-calendar-shift-tasks.grouped .task-override-card {
   margin: 0;
   box-shadow: none;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .weekly-calendar-shift-tasks.grouped .task-override-card:not(:last-child) {
