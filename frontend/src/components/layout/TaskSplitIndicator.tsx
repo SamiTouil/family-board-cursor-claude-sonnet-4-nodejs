@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useFamily } from '../../contexts/FamilyContext';
+import { useWebSocket } from '../../contexts/WebSocketContext';
 import { analyticsApi } from '../../services/api';
 import type { TaskSplitAnalytics } from '../../types';
 import { UserAvatar } from '../ui/UserAvatar';
@@ -7,6 +8,7 @@ import './TaskSplitIndicator.css';
 
 export const TaskSplitIndicator: React.FC = () => {
   const { currentFamily } = useFamily();
+  const { on, off } = useWebSocket();
   const [analytics, setAnalytics] = useState<TaskSplitAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -17,6 +19,24 @@ export const TaskSplitIndicator: React.FC = () => {
       loadAnalytics();
     }
   }, [currentFamily]);
+
+  // Listen for task schedule updates
+  useEffect(() => {
+    const handleTaskUpdate = () => {
+      // Refresh analytics when tasks are modified
+      if (currentFamily) {
+        loadAnalytics();
+      }
+    };
+
+    // Register WebSocket listener
+    on('task-schedule-updated', handleTaskUpdate);
+
+    // Cleanup
+    return () => {
+      off('task-schedule-updated', handleTaskUpdate);
+    };
+  }, [currentFamily, on, off]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
