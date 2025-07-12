@@ -76,7 +76,7 @@ describe('TaskOverrideCard', () => {
       />
     );
 
-    expect(screen.getByText('Modified')).toBeInTheDocument();
+    expect(screen.getByText('mod')).toBeInTheDocument();
   });
 
   it('shows admin action buttons when user is admin', () => {

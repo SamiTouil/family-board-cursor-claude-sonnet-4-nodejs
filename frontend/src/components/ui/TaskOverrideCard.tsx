@@ -56,6 +56,11 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
             <span className="task-override-card-tag duration-tag">
               {formatDuration(duration)}
             </span>
+            {task.source === 'override' && (
+              <span className="task-override-card-tag modified-tag">
+                mod
+              </span>
+            )}
           </div>
         </div>
         
@@ -74,12 +79,6 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
       {showDescription && task.task.description && (
         <div className="task-override-card-description">
           {task.task.description}
-        </div>
-      )}
-      
-      {task.source === 'override' && (
-        <div className="task-override-card-source">
-          Modified
         </div>
       )}
       
