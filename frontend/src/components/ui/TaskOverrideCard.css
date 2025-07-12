@@ -15,7 +15,7 @@
 }
 
 .task-override-card.is-override {
-  border-left-style: dashed;
+  border-left-style: dotted;
   border-left-width: 6px;
 }
 
