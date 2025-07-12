@@ -23,12 +23,12 @@ const Layout: React.FC = () => {
         <div className="layout-header-container">
           <div className="layout-header-left">
             <Logo />
+            <ShiftIndicator />
+            <TaskSplitIndicator />
           </div>
           
           <div className="layout-header-center">
             <Navigation />
-            <TaskSplitIndicator />
-            <ShiftIndicator />
           </div>
           
           <div className="layout-header-right">

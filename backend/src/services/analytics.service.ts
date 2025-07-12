@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import { startOfDay, subDays } from 'date-fns';
+import { startOfDay, subDays, addDays } from 'date-fns';
+import { WeekScheduleService } from './week-schedule.service';
 
 export interface MemberTaskStats {
   memberId: string;
@@ -25,9 +26,11 @@ export interface TaskSplitAnalytics {
 
 export class AnalyticsService {
   private prisma: PrismaClient;
+  private weekScheduleService: WeekScheduleService;
 
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
+    this.weekScheduleService = new WeekScheduleService(prisma);
   }
 
   /**
@@ -44,8 +47,8 @@ export class AnalyticsService {
     const periodEnd = startOfDay(new Date());
     const periodStart = startOfDay(subDays(periodEnd, periodDays));
 
-    // Get all task overrides in the period
-    const taskOverrides = await this.prisma.taskOverride.findMany({
+    // Get all task overrides in the period (both ADD/REASSIGN and REMOVE)
+    const allTaskOverrides = await this.prisma.taskOverride.findMany({
       where: {
         task: {
           familyId: familyId
@@ -53,9 +56,6 @@ export class AnalyticsService {
         assignedDate: {
           gte: periodStart,
           lt: periodEnd
-        },
-        action: {
-          not: 'REMOVE'
         }
       },
       include: {
@@ -65,38 +65,12 @@ export class AnalyticsService {
       }
     });
 
-    // Get all week overrides with day template assignments in the period
-    const weekOverrides = await this.prisma.weekOverride.findMany({
-      where: {
-        familyId: familyId,
-        weekStartDate: {
-          gte: periodStart,
-          lt: periodEnd
-        },
-        weekTemplateId: {
-          not: null
-        }
-      },
-      include: {
-        weekTemplate: {
-          include: {
-            days: {
-              include: {
-                dayTemplate: {
-                  include: {
-                    items: {
-                      include: {
-                        task: true,
-                        member: true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+    // Create a map of task overrides by date for quick lookup
+    const overridesByDate = new Map<string, typeof allTaskOverrides[0][]>();
+    allTaskOverrides.forEach(override => {
+      const dateKey = override.assignedDate.toISOString().split('T')[0]!;
+      const existing = overridesByDate.get(dateKey) || [];
+      overridesByDate.set(dateKey, [...existing, override]);
     });
 
     // Aggregate task durations by member
@@ -110,15 +84,11 @@ export class AnalyticsService {
       taskCount: number;
     }>();
 
-    // Process task overrides
-    taskOverrides.forEach(override => {
-      // Use newMember for ADD and REASSIGN actions
-      const member = override.newMember;
+    // Helper function to add task time to a member
+    const addTaskToMember = (member: any, duration: number) => {
       if (!member) return;
-
-      const memberId = member.id;
-      const duration = override.overrideDuration || override.task.defaultDuration;
       
+      const memberId = member.id;
       if (!memberTaskMap.has(memberId)) {
         memberTaskMap.set(memberId, {
           memberName: `${member.firstName} ${member.lastName}`,
@@ -130,51 +100,64 @@ export class AnalyticsService {
           taskCount: 0
         });
       }
-
+      
       const stats = memberTaskMap.get(memberId)!;
       stats.totalMinutes += duration;
       stats.taskCount += 1;
-    });
+    };
 
-    // Process week template assignments
-    weekOverrides.forEach(weekOverride => {
-      if (!weekOverride.weekTemplate) return;
+    // Process each day in the period
+    let currentDate = new Date(periodStart);
+    while (currentDate < periodEnd) {
+      const dateKey = currentDate.toISOString().split('T')[0]!;
+      const dayOfWeek = currentDate.getDay();
       
-      weekOverride.weekTemplate.days.forEach(day => {
-        if (!day.dayTemplate) return;
-        
-        // Calculate which actual date this day corresponds to
-        const weekStart = new Date(weekOverride.weekStartDate);
-        const dayDate = new Date(weekStart);
-        dayDate.setDate(weekStart.getDate() + day.dayOfWeek);
-        
-        // Only process if the day falls within our period
-        if (dayDate >= periodStart && dayDate < periodEnd) {
-          day.dayTemplate.items.forEach(item => {
-            if (!item.member) return;
-            
-            const memberId = item.member.id;
-            const duration = item.overrideDuration || item.task.defaultDuration;
-            
-            if (!memberTaskMap.has(memberId)) {
-              memberTaskMap.set(memberId, {
-                memberName: `${item.member.firstName} ${item.member.lastName}`,
-                firstName: item.member.firstName,
-                lastName: item.member.lastName,
-                avatarUrl: item.member.avatarUrl,
-                isVirtual: item.member.isVirtual || false,
-                totalMinutes: 0,
-                taskCount: 0
-              });
-            }
-            
-            const stats = memberTaskMap.get(memberId)!;
-            stats.totalMinutes += duration;
-            stats.taskCount += 1;
-          });
-        }
+      // Find the Monday of this week
+      const weekStart = new Date(currentDate);
+      const daysFromMonday = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+      weekStart.setDate(weekStart.getDate() - daysFromMonday);
+      weekStart.setHours(0, 0, 0, 0);
+      
+      // Get the week schedule for this date
+      const weekSchedule = await this.weekScheduleService.getWeekSchedule(familyId, {
+        weekStartDate: weekStart.toISOString().split('T')[0]!
       });
-    });
+      
+      // Find the day schedule for the current date
+      const daySchedule = weekSchedule.days.find(day => {
+        const dayDate = new Date(day.date);
+        return dayDate.toISOString().split('T')[0]! === dateKey;
+      });
+      
+      if (daySchedule) {
+        // Process each task in the day
+        daySchedule.tasks.forEach(task => {
+          // Check if this task has been removed by an override
+          const taskOverrides = overridesByDate.get(dateKey) || [];
+          const removeOverride = taskOverrides.find(
+            o => o.taskId === task.taskId && o.action === 'REMOVE'
+          );
+          
+          if (!removeOverride && task.member) {
+            // Task is not removed and has an assigned member, count it
+            const duration = task.overrideDuration || task.task.defaultDuration;
+            addTaskToMember(task.member, duration);
+          }
+        });
+      }
+      
+      // Process ADD overrides for this date
+      const addOverrides = (overridesByDate.get(dateKey) || [])
+        .filter(o => o.action === 'ADD');
+      
+      addOverrides.forEach(override => {
+        const duration = override.overrideDuration || override.task.defaultDuration;
+        addTaskToMember(override.newMember, duration);
+      });
+      
+      // Move to next day
+      currentDate = addDays(currentDate, 1);
+    }
 
     // Calculate totals and percentages
     const totalMinutes = Array.from(memberTaskMap.values())
@@ -184,8 +167,10 @@ export class AnalyticsService {
       .filter(([_, stats]) => !stats.isVirtual);
 
     const realMemberCount = realMembers.length;
+    const realMemberTotalMinutes = realMembers
+      .reduce((sum, [_, stats]) => sum + stats.totalMinutes, 0);
     const averageMinutesPerMember = realMemberCount > 0 
-      ? totalMinutes / realMemberCount 
+      ? realMemberTotalMinutes / realMemberCount 
       : 0;
 
     // Create member stats array
@@ -204,8 +189,9 @@ export class AnalyticsService {
       .sort((a, b) => b.totalMinutes - a.totalMinutes);
 
     // Calculate fairness score (only for real members)
+    const realMemberMinutes = realMembers.map(([_, stats]) => stats.totalMinutes);
     const fairnessScore = this.calculateFairnessScore(
-      realMembers.map(([_, stats]) => stats.totalMinutes),
+      realMemberMinutes,
       averageMinutesPerMember
     );
 
