@@ -12,6 +12,7 @@ interface BaseModalProps {
 interface StandardModalProps extends BaseModalProps {
   variant?: 'standard';
   onApply: () => void;
+  applyDisabled?: boolean;
 }
 
 interface SettingsModalProps extends BaseModalProps {
@@ -21,7 +22,8 @@ interface SettingsModalProps extends BaseModalProps {
 
 type ModalProps = StandardModalProps | SettingsModalProps;
 
-const Modal: React.FC<ModalProps> = ({ title, isOpen, onClose, onApply, children, variant = 'standard' }) => {
+const Modal: React.FC<ModalProps> = (props) => {
+  const { title, isOpen, onClose, children, variant = 'standard' } = props;
   if (!isOpen) {
     return null;
   }
@@ -36,12 +38,12 @@ const Modal: React.FC<ModalProps> = ({ title, isOpen, onClose, onApply, children
           </button>
         </div>
         <div className="modal-content">{children}</div>
-        {variant === 'standard' && (
+        {variant === 'standard' && 'onApply' in props && (
           <div className="modal-footer">
             <Button variant="secondary" onClick={onClose}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={onApply}>
+            <Button variant="primary" onClick={props.onApply} disabled={(props as StandardModalProps).applyDisabled}>
               Apply
             </Button>
           </div>

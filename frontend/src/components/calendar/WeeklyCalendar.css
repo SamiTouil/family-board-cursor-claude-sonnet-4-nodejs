@@ -273,6 +273,49 @@
   padding-bottom: 0.5rem;
   margin-bottom: 0.5rem;
   border-bottom: 1px dashed rgba(99, 102, 241, 0.2);
+  position: relative;
+}
+
+.weekly-calendar-shift-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+
+.weekly-calendar-shift:hover .weekly-calendar-shift-actions {
+  opacity: 1;
+}
+
+/* Style shift action buttons like task buttons */
+.weekly-calendar-shift-actions .btn-icon {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  font-size: 12px;
+  padding: 0;
+}
+
+/* Mobile: Always show shift actions */
+@media (max-width: 768px) {
+  .weekly-calendar-shift-actions {
+    position: static;
+    opacity: 1;
+    margin-left: auto;
+  }
+
+  .weekly-calendar-shift-actions .btn-icon {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    font-size: 14px;
+  }
 }
 
 .weekly-calendar-shift-tags {
@@ -381,6 +424,32 @@
 }
 
 /* Task Card styles moved to TaskOverrideCard.css */
+
+/* Bulk operation styles */
+.bulk-info {
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.bulk-info p {
+  margin: 0 0 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.bulk-task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bulk-task-list li {
+  padding: 0.25rem 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
 
 /* Responsive Design */
 @media (max-width: 1200px) {

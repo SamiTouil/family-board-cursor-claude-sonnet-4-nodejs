@@ -39,6 +39,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
   const [showTaskOverrideModal, setShowTaskOverrideModal] = useState(false);
   const [taskOverrideAction, setTaskOverrideAction] = useState<'ADD' | 'REMOVE' | 'REASSIGN'>('ADD');
   const [selectedTask, setSelectedTask] = useState<ResolvedTask | undefined>(undefined);
+  const [selectedShiftTasks, setSelectedShiftTasks] = useState<ResolvedTask[]>([]);
   const [taskOverrideDate, setTaskOverrideDate] = useState<string>('');
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
   const [familyMembers, setFamilyMembers] = useState<User[]>([]);
@@ -428,25 +429,96 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
   const handleCancelTaskOverride = () => {
     setShowTaskOverrideModal(false);
     setSelectedTask(undefined);
+    setSelectedShiftTasks([]);
     setTaskOverrideDate('');
+  };
+
+  // Shift bulk operation handlers
+  const handleShiftRemove = async (tasks: ResolvedTask[], date: string) => {
+    if (!currentFamily || !weekSchedule) return;
+    
+    const confirmMessage = `Are you sure you want to remove all ${tasks.length} tasks in this shift?`;
+    if (!window.confirm(confirmMessage)) return;
+
+    setIsLoading(true);
+    setMessage(null);
+
+    try {
+      // Create REMOVE overrides for all tasks in the shift
+      const removeOverrides = tasks.map(task => ({
+        assignedDate: date,
+        taskId: task.taskId,
+        action: 'REMOVE' as const,
+        originalMemberId: task.memberId || null,
+        newMemberId: null,
+        overrideTime: null,
+        overrideDuration: null,
+      }));
+
+      await weekScheduleApi.applyWeekOverride(currentFamily.id, {
+        weekStartDate: currentWeekStart,
+        taskOverrides: removeOverrides,
+        replaceExisting: false
+      });
+      
+      // Reload the week schedule
+      await loadWeekSchedule(currentWeekStart);
+      setMessage({ type: 'success', text: `Successfully removed ${tasks.length} tasks from the shift` });
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || `Failed to remove tasks from shift`;
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleShiftReassign = (tasks: ResolvedTask[], date: string) => {
+    // For reassignment, we'll show the modal with a special flag
+    // to indicate this is a bulk operation
+    setSelectedShiftTasks(tasks);
+    setTaskOverrideAction('REASSIGN');
+    setTaskOverrideDate(date);
+    setShowTaskOverrideModal(true);
+    setMessage(null);
   };
 
   const handleConfirmTaskOverride = async (overrideData: CreateTaskOverrideData) => {
     if (!currentFamily) return;
 
     try {
-      await weekScheduleApi.applyWeekOverride(currentFamily.id, {
-        weekStartDate: currentWeekStart,
-        taskOverrides: [overrideData],
-        replaceExisting: false // Individual task overrides should be cumulative
-      });
+      // Check if this is a bulk operation
+      if (selectedShiftTasks.length > 0 && overrideData.action === 'REASSIGN') {
+        // Create overrides for all tasks in the shift
+        const bulkOverrides = selectedShiftTasks.map(task => ({
+          ...overrideData,
+          taskId: task.taskId,
+          originalMemberId: task.memberId || null,
+        }));
 
-      const actionText = overrideData.action === 'ADD' ? 'added' : 
-                        overrideData.action === 'REMOVE' ? 'removed' : 
-                        overrideData.action === 'REASSIGN' ? 'reassigned' : 'modified';
+        await weekScheduleApi.applyWeekOverride(currentFamily.id, {
+          weekStartDate: currentWeekStart,
+          taskOverrides: bulkOverrides,
+          replaceExisting: false
+        });
+
+        setMessage({ type: 'success', text: `Successfully reassigned ${selectedShiftTasks.length} tasks in the shift` });
+      } else {
+        // Single task operation
+        await weekScheduleApi.applyWeekOverride(currentFamily.id, {
+          weekStartDate: currentWeekStart,
+          taskOverrides: [overrideData],
+          replaceExisting: false // Individual task overrides should be cumulative
+        });
+
+        const actionText = overrideData.action === 'ADD' ? 'added' : 
+                          overrideData.action === 'REMOVE' ? 'removed' : 
+                          overrideData.action === 'REASSIGN' ? 'reassigned' : 'modified';
+        
+        setMessage({ type: 'success', text: `Task ${actionText} successfully` });
+      }
       
-      setMessage({ type: 'success', text: `Task ${actionText} successfully` });
       loadWeekSchedule(currentWeekStart); // Reload to show changes
+      setSelectedShiftTasks([]); // Clear bulk selection
     } catch (error: any) {
       setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to apply task override' });
     }
@@ -758,6 +830,26 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                                     {formatDuration(totalDuration)}
                                   </span>
                                 </div>
+                                {isAdmin && (
+                                  <div className="weekly-calendar-shift-actions">
+                                    <Button
+                                      variant="icon"
+                                      className="btn-icon-danger"
+                                      onClick={() => handleShiftRemove(shift.tasks, day.date)}
+                                      title="Remove all tasks in this shift"
+                                    >
+                                      ×
+                                    </Button>
+                                    <Button
+                                      variant="icon"
+                                      className="btn-icon-primary"
+                                      onClick={() => handleShiftReassign(shift.tasks, day.date)}
+                                      title="Reassign all tasks in this shift"
+                                    >
+                                      ↻
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                             )}
                             <div className={`weekly-calendar-shift-tasks ${isMultiTaskShift ? 'grouped' : ''}`}>
@@ -969,6 +1061,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
         onClose={handleCancelTaskOverride}
         onConfirm={handleConfirmTaskOverride}
         task={selectedTask}
+        bulkTasks={selectedShiftTasks}
         date={taskOverrideDate}
         action={taskOverrideAction}
         availableTasks={availableTasks}
