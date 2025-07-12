@@ -37,15 +37,29 @@ export class AnalyticsService {
    * Calculate task split analytics for a family over a rolling period
    * @param familyId - The family ID to analyze
    * @param periodDays - Number of days to analyze (default: 28 days / 4 weeks)
+   * @param referenceDate - Optional reference date (defaults to today). Period ends at end of reference week.
    * @returns Task split analytics including fairness score
    */
   async calculateTaskSplit(
     familyId: string,
-    periodDays: number = 28
+    periodDays: number = 28,
+    referenceDate?: string
   ): Promise<TaskSplitAnalytics> {
     // Calculate period boundaries
-    const periodEnd = startOfDay(new Date());
-    const periodStart = startOfDay(subDays(periodEnd, periodDays));
+    let periodEnd: Date;
+    
+    if (referenceDate) {
+      // If reference date provided, calculate the end of that week (Sunday)
+      const refDate = new Date(referenceDate + 'T00:00:00.000Z');
+      const dayOfWeek = refDate.getDay();
+      const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+      periodEnd = startOfDay(addDays(refDate, daysUntilSunday));
+    } else {
+      // Default to today
+      periodEnd = startOfDay(new Date());
+    }
+    
+    const periodStart = startOfDay(subDays(periodEnd, periodDays - 1));
 
     // Get all task overrides in the period (both ADD/REASSIGN and REMOVE)
     const allTaskOverrides = await this.prisma.taskOverride.findMany({
