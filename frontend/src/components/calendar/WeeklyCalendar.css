@@ -421,7 +421,7 @@
 .weekly-calendar-shift-tasks {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
 }
 
 .weekly-calendar-shift-tasks.grouped .task-override-card {
