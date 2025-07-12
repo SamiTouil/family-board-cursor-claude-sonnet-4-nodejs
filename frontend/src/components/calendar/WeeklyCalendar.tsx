@@ -708,24 +708,32 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                         if (isMultiTaskShift && shift.tasks.length > 0) {
                           // Get start time from first task
                           const firstTask = shift.tasks[0];
-                          shiftStartTime = firstTask.overrideTime || firstTask.task.defaultStartTime;
-                          
-                          // Calculate end time from last task
-                          const lastTask = shift.tasks[shift.tasks.length - 1];
-                          const lastTaskStartTime = lastTask.overrideTime || lastTask.task.defaultStartTime;
-                          const lastTaskDuration = lastTask.overrideDuration || lastTask.task.defaultDuration;
-                          
-                          // Parse time and add duration
-                          const [lastHours, lastMinutes] = lastTaskStartTime.split(':').map(Number);
-                          const endMinutes = lastHours * 60 + lastMinutes + lastTaskDuration;
-                          const endHours = Math.floor(endMinutes / 60);
-                          const endMins = endMinutes % 60;
-                          shiftEndTime = `${String(endHours).padStart(2, '0')}:${String(endMins).padStart(2, '0')}`;
-                          
-                          // Calculate total duration from first task start to last task end
-                          const [firstHours, firstMinutes] = shiftStartTime.split(':').map(Number);
-                          const startTotalMinutes = firstHours * 60 + firstMinutes;
-                          totalDuration = endMinutes - startTotalMinutes;
+                          if (firstTask) {
+                            shiftStartTime = firstTask.overrideTime || firstTask.task.defaultStartTime;
+                            
+                            // Calculate end time from last task
+                            const lastTask = shift.tasks[shift.tasks.length - 1];
+                            if (lastTask) {
+                              const lastTaskStartTime = lastTask.overrideTime || lastTask.task.defaultStartTime;
+                              const lastTaskDuration = lastTask.overrideDuration || lastTask.task.defaultDuration;
+                              
+                              // Parse time and add duration
+                              const lastTimeParts = lastTaskStartTime.split(':').map(Number);
+                              const lastHours = lastTimeParts[0] || 0;
+                              const lastMinutes = lastTimeParts[1] || 0;
+                              const endMinutes = lastHours * 60 + lastMinutes + lastTaskDuration;
+                              const endHours = Math.floor(endMinutes / 60);
+                              const endMins = endMinutes % 60;
+                              shiftEndTime = `${String(endHours).padStart(2, '0')}:${String(endMins).padStart(2, '0')}`;
+                              
+                              // Calculate total duration from first task start to last task end
+                              const firstTimeParts = shiftStartTime.split(':').map(Number);
+                              const firstHours = firstTimeParts[0] || 0;
+                              const firstMinutes = firstTimeParts[1] || 0;
+                              const startTotalMinutes = firstHours * 60 + firstMinutes;
+                              totalDuration = endMinutes - startTotalMinutes;
+                            }
+                          }
                         }
                         
                         return (
