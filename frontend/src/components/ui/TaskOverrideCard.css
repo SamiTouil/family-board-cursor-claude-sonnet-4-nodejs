@@ -101,13 +101,12 @@
   color: #166534;
 }
 
-.task-override-card-modified-indicator {
-  font-size: 0.875rem;
-  margin-left: 0.125rem;
-  color: #dc2626;
-  vertical-align: middle;
-  line-height: 1;
-  font-weight: 700;
+.task-override-card-tag.modified-tag {
+  background-color: #fef3c7;
+  border-color: #fcd34d;
+  color: #92400e;
+  font-weight: 600;
+  text-transform: lowercase;
 }
 
 .task-override-card-tag:hover {
@@ -123,6 +122,11 @@
 .task-override-card-tag.duration-tag:hover {
   background-color: #dcfce7;
   border-color: #86efac;
+}
+
+.task-override-card-tag.modified-tag:hover {
+  background-color: #fde68a;
+  border-color: #fbbf24;
 }
 
 .task-override-card-description {
@@ -251,10 +255,6 @@
   line-height: 1;
 }
 
-.task-override-card.compact .task-override-card-modified-indicator {
-  font-size: 0.75rem;
-  margin-left: 0.0625rem;
-}
 
 .task-override-card.compact .task-override-card-description {
   font-size: 0.625rem;
