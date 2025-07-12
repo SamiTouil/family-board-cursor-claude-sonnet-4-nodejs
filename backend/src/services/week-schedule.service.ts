@@ -497,6 +497,13 @@ export class WeekScheduleService {
             taskToReassign.memberId = override.newMemberId;
             taskToReassign.member = override.newMember || null;
             taskToReassign.source = 'override';
+            // Apply time and duration overrides if provided
+            if (override.overrideTime !== null) {
+              taskToReassign.overrideTime = override.overrideTime;
+            }
+            if (override.overrideDuration !== null) {
+              taskToReassign.overrideDuration = override.overrideDuration;
+            }
           }
           break;
         }
