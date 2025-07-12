@@ -107,8 +107,7 @@
 .weekly-calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
-  background-color: #e5e7eb;
+  gap: 0;
   margin: 0;
 }
 
@@ -127,12 +126,13 @@
 
 /* Day Header */
 .weekly-calendar-day-header {
-  padding: 1rem 1rem 0.75rem 1rem;
+  padding: 0.5rem;
   border-bottom: 1px solid #f3f4f6;
   background-color: #fafafa;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  min-height: 44px;
 }
 
 .weekly-calendar-day.is-today .weekly-calendar-day-header {
@@ -144,10 +144,11 @@
 }
 
 .weekly-calendar-day-name {
-  margin: 0 0 0.25rem 0;
+  margin: 0;
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
+  line-height: 1.2;
 }
 
 .weekly-calendar-day.is-today .weekly-calendar-day-name {
@@ -162,24 +163,40 @@
 }
 
 .weekly-calendar-day-override-btn {
-  background-color: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  color: #6366f1;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #000000;
   border-radius: 6px;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
+  padding: 0 !important;
+  margin: 0;
+  font-size: 0;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.2s ease;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
-  height: 28px;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  max-width: 28px !important;
+  max-height: 28px !important;
+  flex-shrink: 0;
+  flex-grow: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.weekly-calendar-day-override-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 .weekly-calendar-day-override-btn:hover:not(:disabled) {
-  background-color: rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.3);
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
   transform: translateY(-1px);
 }
 
@@ -190,20 +207,20 @@
 }
 
 .weekly-calendar-day.is-today .weekly-calendar-day-override-btn {
-  background-color: rgba(29, 78, 216, 0.1);
-  border-color: rgba(29, 78, 216, 0.2);
-  color: #1d4ed8;
+  background-color: #ffffff;
+  border-color: #e5e7eb;
+  color: #000000;
 }
 
 .weekly-calendar-day.is-today .weekly-calendar-day-override-btn:hover:not(:disabled) {
-  background-color: rgba(29, 78, 216, 0.15);
-  border-color: rgba(29, 78, 216, 0.3);
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
 }
 
 /* Tasks Lane */
 .weekly-calendar-tasks-lane {
   flex: 1;
-  padding: 1rem;
+  padding: 0.5rem;
   overflow-y: auto;
 }
 
@@ -236,7 +253,7 @@
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.02) 0%, rgba(168, 85, 247, 0.02) 100%);
   border: 2px solid rgba(99, 102, 241, 0.15);
   border-radius: 12px;
-  padding: 0.75rem;
+  padding: 0.5rem;
   box-shadow: 0 2px 4px rgba(99, 102, 241, 0.05);
   transition: all 0.2s ease;
   position: relative;
@@ -458,7 +475,7 @@
   }
   
   .weekly-calendar-day:nth-child(n+5) {
-    margin-top: 1px;
+    margin-top: 0;
   }
 }
 
@@ -483,7 +500,7 @@
   }
   
   .weekly-calendar-tasks-lane {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
   
   .weekly-calendar-shift.is-multi-task {
@@ -524,10 +541,11 @@
   }
   
     .weekly-calendar-day-header {
-    padding: 0.75rem;
-    flex-direction: column;
-    align-items: stretch;
+    padding: 0.5rem;
+    flex-direction: row;
+    align-items: center;
     gap: 0.5rem;
+    min-height: 40px;
   }
 
   .weekly-calendar-day-controls {
@@ -536,14 +554,16 @@
   }
 
   .weekly-calendar-day-override-btn {
-    font-size: 0.75rem;
-    min-width: 24px;
+    width: 24px;
     height: 24px;
-    padding: 0.125rem 0.25rem;
+    min-width: 24px;
+    min-height: 24px;
+    max-width: 24px;
+    max-height: 24px;
   }
 
   .weekly-calendar-tasks-lane {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
   
   /* Task styles removed - now handled by TaskOverrideCard.css */

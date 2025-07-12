@@ -5,6 +5,7 @@ import { weekScheduleApi, weekTemplateApi, dayTemplateApi, taskApi } from '../..
 import { apiClient } from '../../services/api-client';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { TaskOverrideCard, Button, UserAvatar } from '../ui';
+import RoutinesIcon from '../ui/icons/RoutinesIcon';
 import { TaskOverrideModal } from './TaskOverrideModal';
 import { useMessage } from '../../hooks';
 import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate, DayTemplate, DayTemplateItem, Task, User, CreateTaskOverrideData } from '../../types';
@@ -533,7 +534,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     const today = new Date();
     const isToday = date.toDateString() === today.toDateString();
     
-    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
     const dayNumber = date.getDate();
     
     return isToday ? `${dayName} ${dayNumber} (Today)` : `${dayName} ${dayNumber}`;
@@ -747,19 +748,17 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                     <h3 className="weekly-calendar-day-name">
                       {formatDate(day.date)}
                     </h3>
-                    <span className="weekly-calendar-task-count">
-                      {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
-                    </span>
                   </div>
                   {isAdmin && (
                     <div className="weekly-calendar-day-controls">
                       <Button
                         variant="icon"
+                        className="weekly-calendar-day-override-btn"
                         onClick={() => handleApplyDayTemplate(day.date)}
                         disabled={isLoading || dayTemplates.length === 0}
                         title={dayTemplates.length === 0 ? 'No day routines available' : 'Apply a daily routine to this day'}
                       >
-                        📅
+                        <RoutinesIcon size={16} />
                       </Button>
                     </div>
                   )}
