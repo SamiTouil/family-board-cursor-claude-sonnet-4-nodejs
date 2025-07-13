@@ -55,6 +55,7 @@ const Navigation: React.FC = () => {
             onClick={() => !active && navigate(item.path)}
             disabled={active}
             title={item.label}
+            data-testid={`nav-${item.label.toLowerCase()}`}
           >
             <div className="navigation-icon">
               <IconComponent size={28} />
