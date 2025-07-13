@@ -1,3 +1,4 @@
+import { waitForNetworkIdle } from './helpers/test-utils';
 import { test, expect } from '@playwright/test';
 
 test.describe('Task Management - Comprehensive Test Suite', () => {
@@ -26,7 +27,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       // Navigate to Tasks page
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Test task creation
       await page.getByRole('button', { name: 'Create Your First Task' }).click();
@@ -91,7 +92,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Test empty task name validation
       await page.getByRole('button', { name: 'Create Your First Task' }).click();
@@ -139,7 +140,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Create multiple tasks with different times
       const tasks = [
@@ -155,7 +156,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByLabel('Default Start Time').fill(tasks[0].time);
       await page.getByLabel('Default Duration (minutes)').fill(tasks[0].duration);
       await page.getByRole('button', { name: 'Apply' }).click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
 
       // Create remaining tasks
       for (let i = 1; i < tasks.length; i++) {
@@ -165,7 +166,8 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
         await page.getByLabel('Default Start Time').fill(task.time);
         await page.getByLabel('Default Duration (minutes)').fill(task.duration);
         await page.getByRole('button', { name: 'Apply' }).click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState('domcontentloaded');
+
       }
 
       // Verify all tasks are created and visible
@@ -204,24 +206,25 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       
       // First create some tasks to use in routines
       await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
+
       await page.getByRole('button', { name: 'Create Your First Task' }).click();
       await page.getByLabel('Task Name').fill('Wake Up');
       await page.getByLabel('Default Start Time').fill('07:00');
       await page.getByLabel('Default Duration (minutes)').fill('5');
       await page.getByRole('button', { name: 'Apply' }).click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
 
       await page.getByRole('button', { name: 'Create Task' }).click();
       await page.getByLabel('Task Name').fill('Brush Teeth');
       await page.getByLabel('Default Start Time').fill('07:05');
       await page.getByLabel('Default Duration (minutes)').fill('3');
       await page.getByRole('button', { name: 'Apply' }).click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
 
       // Navigate to Routines page for routine management
       await page.getByRole('button', { name: 'Routines' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Test routine creation
       await page.getByRole('button', { name: 'Add Routine' }).click();
@@ -272,43 +275,48 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       
       // Create some tasks first
       await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
+
       await page.getByRole('button', { name: 'Create Your First Task' }).click();
       await page.getByLabel('Task Name').fill('Morning Jog');
       await page.getByLabel('Default Start Time').fill('06:00');
       await page.getByLabel('Default Duration (minutes)').fill('30');
       await page.getByRole('button', { name: 'Apply' }).click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
 
       await page.getByRole('button', { name: 'Create Task' }).click();
       await page.getByLabel('Task Name').fill('Shower');
       await page.getByLabel('Default Start Time').fill('06:30');
       await page.getByLabel('Default Duration (minutes)').fill('15');
       await page.getByRole('button', { name: 'Apply' }).click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
 
       // Navigate to Routines page for routine management
       await page.getByRole('button', { name: 'Routines' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Create a routine
       await page.getByRole('button', { name: 'Add Routine' }).click();
       await page.getByLabel('Routine Name').fill('Morning Routine');
       await page.getByLabel('Description').fill('Complete morning routine template');
       await page.getByRole('button', { name: 'Apply' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Add task to routine with default settings
       await page.getByRole('button', { name: 'Add Task to Routine' }).click();
-      await page.waitForTimeout(1000); // Wait for dropdown to populate
+      await page.waitForLoadState('domcontentloaded'); // Wait for dropdown to populate
+      // Ensure modal is fully rendered
+      await expect(page.locator('.modal-overlay')).toBeVisible();
       
       // Click on CustomSelect to open dropdown
-      await page.locator('.modal-form-group').filter({ hasText: 'Task *' }).locator('.custom-select').click();
-      await page.waitForTimeout(500); // Wait for dropdown to open
+      const customSelect = page.locator('.modal-form-group').filter({ hasText: 'Task *' }).locator('.custom-select');
+      await customSelect.click();
+      // Wait for dropdown options to be fully visible
+      await expect(page.locator('.custom-select-option').first()).toBeVisible({ timeout: 10000 });
       
       // Select first available task from dropdown
       await page.locator('.custom-select-option').nth(1).click(); // Skip the placeholder option
-      await page.waitForTimeout(1000); // Wait for form to update after selection
+      await page.waitForLoadState('domcontentloaded'); // Wait for form to update after selection
       
       // Use Apply button for modal
       await page.getByRole('button', { name: 'Apply' }).click();
@@ -319,20 +327,22 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await expect(page.locator('.task-override-card .duration-tag')).toContainText('30m');
 
       // Wait for the form to close and state to reset before adding another task
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Add task with time override - click directly without waiting for enabled state
       // (there's a component bug where button stays disabled, but clicking works)
       await page.getByRole('button', { name: 'Add Task to Routine' }).click({ force: true });
-      await page.waitForTimeout(1000); // Wait for dropdown to populate
+      await page.waitForLoadState('domcontentloaded'); // Wait for dropdown to populate
       
       // Click on CustomSelect to open dropdown
-      await page.locator('.modal-form-group').filter({ hasText: 'Task *' }).locator('.custom-select').click();
-      await page.waitForTimeout(500); // Wait for dropdown to open
+      const taskSelect = page.locator('.modal-form-group').filter({ hasText: 'Task *' }).locator('.custom-select');
+      await taskSelect.click();
+      // Wait for dropdown options to be fully visible
+      await expect(page.locator('.custom-select-option').first()).toBeVisible({ timeout: 10000 });
       
       // Select second available task from dropdown
       await page.locator('.custom-select-option').nth(2).click(); // Skip the placeholder option
-      await page.waitForTimeout(1000); // Wait for form to update after selection
+      await page.waitForLoadState('domcontentloaded'); // Wait for form to update after selection
       
       await page.getByLabel('Override Time (Optional)').fill('07:00');
       await page.getByRole('button', { name: 'Apply' }).click();
@@ -363,7 +373,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Test concurrent form opening and cancellation
       await page.getByRole('button', { name: 'Create Your First Task' }).click();
@@ -377,7 +387,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       // Navigate to Routines page for routine management
       await page.getByRole('button', { name: 'Routines' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Start creating a routine while task form was cancelled
       await page.getByRole('button', { name: 'Add Routine' }).click();
@@ -391,7 +401,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       // Navigate back to Tasks page for task creation
       await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Test successful creation after cancellations
       await page.getByRole('button', { name: 'Create Your First Task' }).click();
@@ -425,7 +435,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Test edge case: midnight time (00:00)
       await page.getByRole('button', { name: 'Create Your First Task' }).click();

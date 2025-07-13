@@ -58,3 +58,23 @@ Before committing changes, always run:
 - Backend: `cd backend && npm run lint && npm run typecheck`
 
 If these commands are not available, ask the user for the correct commands and update this file.
+
+## Git Branch Management
+
+### Clean Up After PR Merge
+When the user tells you they have merged a PR, ALWAYS clean up both local and remote branches:
+
+1. **Switch to main branch**: `git checkout main`
+2. **Pull latest changes**: `git pull origin main`
+3. **Delete local feature branch**: `git branch -d <branch-name>`
+4. **Delete remote feature branch**: `git push origin --delete <branch-name>`
+
+Example workflow after PR merge:
+```bash
+git checkout main
+git pull origin main
+git branch -d feat/dropdown-menu-and-ui-improvements
+git push origin --delete feat/dropdown-menu-and-ui-improvements
+```
+
+This keeps the repository clean and prevents accumulation of stale branches.

@@ -108,8 +108,8 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
-      // Wait a bit for the response to be processed
-      await page.waitForTimeout(3000);
+      // Wait for the response to be processed
+      await page.waitForLoadState('networkidle');
       
       // Wait for family onboarding to appear
       await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 15000 });
@@ -135,8 +135,8 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       
       await page.getByRole('button', { name: 'Login' }).click();
       
-      // Wait a bit for the response to be processed
-      await page.waitForTimeout(3000);
+      // Wait for the response to be processed
+      await page.waitForLoadState('networkidle');
       
       // Should be redirected to dashboard since user already has a family
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
@@ -272,7 +272,8 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
       
       // Should now access dashboard - check for WeeklyCalendar elements
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
+
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await expect(page.locator('.weekly-calendar')).toBeVisible();
     });
@@ -320,7 +321,8 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
       
       // Wait for dashboard to load
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
+
     });
 
     test('should display weekly calendar in dashboard', async ({ page }) => {
