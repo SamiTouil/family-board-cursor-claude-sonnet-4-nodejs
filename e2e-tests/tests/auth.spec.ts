@@ -1,3 +1,4 @@
+import { waitForNetworkIdle } from './helpers/test-utils';
 import { test, expect } from '@playwright/test';
 
 // Test data
@@ -272,7 +273,8 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
       
       // Should now access dashboard - check for WeeklyCalendar elements
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
+
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await expect(page.locator('.weekly-calendar')).toBeVisible();
     });
@@ -320,7 +322,8 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
       
       // Wait for dashboard to load
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
+
     });
 
     test('should display weekly calendar in dashboard', async ({ page }) => {

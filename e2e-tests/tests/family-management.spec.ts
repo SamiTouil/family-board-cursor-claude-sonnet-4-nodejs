@@ -1,3 +1,4 @@
+import { waitForNetworkIdle } from './helpers/test-utils';
 import { test, expect } from '@playwright/test';
 
 test.describe('Family Management - Advanced Scenarios', () => {
@@ -28,7 +29,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       // Go to family management - verify admin can see admin controls
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Verify admin controls are visible
       await expect(page.getByRole('button', { name: 'Generate Invite' })).toBeVisible();
@@ -60,7 +61,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       // Go to family management
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Family creator should only see themselves, so no Remove buttons for others
       await expect(page.getByText('Remove')).not.toBeVisible();
@@ -93,7 +94,8 @@ test.describe('Family Management - Advanced Scenarios', () => {
       // Create invite and verify workflow exists
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
+
       await page.getByRole('button', { name: 'Generate Invite' }).click();
       
       // Verify invite code is generated
@@ -126,8 +128,8 @@ test.describe('Family Management - Advanced Scenarios', () => {
       // Verify family management functionality
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
-      await page.waitForTimeout(2000);
-      
+      await page.waitForLoadState('networkidle');
+
       // Verify family management interface is working - use more specific selectors to avoid strict mode violations
       await expect(page.getByRole('button', { name: 'Generate Invite' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Edit Family' })).toBeVisible();
@@ -155,8 +157,8 @@ test.describe('Family Management - Advanced Scenarios', () => {
       // Go to family management and add virtual member
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
-      await page.waitForTimeout(2000);
-      
+      await page.waitForLoadState('networkidle');
+
       await page.getByRole('button', { name: 'Add Virtual Member' }).click();
       
       // Wait for modal to open
@@ -192,8 +194,8 @@ test.describe('Family Management - Advanced Scenarios', () => {
       // Go to family management and add virtual member
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
-      await page.waitForTimeout(2000);
-      
+      await page.waitForLoadState('networkidle');
+
       await page.getByRole('button', { name: 'Add Virtual Member' }).click();
       
       // Wait for modal to open
@@ -239,8 +241,8 @@ test.describe('Family Management - Advanced Scenarios', () => {
       // Go to family management and add virtual member
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
-      await page.waitForTimeout(2000);
-      
+      await page.waitForLoadState('networkidle');
+
       await page.getByRole('button', { name: 'Add Virtual Member' }).click();
       
       // Wait for modal to open
@@ -286,8 +288,8 @@ test.describe('Family Management - Advanced Scenarios', () => {
 
       // Go to family management and edit family details
       await page.getByRole('button', { name: 'Family' }).click();
-      await page.waitForTimeout(2000);
-      
+      await page.waitForLoadState('networkidle');
+
       await page.getByRole('button', { name: 'Edit Family' }).click();
       
       // Wait for modal to open
@@ -306,7 +308,7 @@ test.describe('Family Management - Advanced Scenarios', () => {
       
       // Go back to dashboard to check title refresh
       await page.getByRole('button', { name: 'Home' }).click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
 
       // Verify dashboard shows updated family information - wait for the WebSocket update to propagate
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 15000 });
@@ -335,8 +337,8 @@ test.describe('Family Management - Advanced Scenarios', () => {
       // Go to family management and try to edit with invalid data
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
-      await page.waitForTimeout(2000);
-      
+      await page.waitForLoadState('networkidle');
+
       await page.getByRole('button', { name: 'Edit Family' }).click();
       
       // Wait for modal to open
@@ -378,8 +380,8 @@ test.describe('Family Management - Advanced Scenarios', () => {
       // Go to family management and start editing
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
-      await page.waitForTimeout(2000);
-      
+      await page.waitForLoadState('networkidle');
+
       await page.getByRole('button', { name: 'Edit Family' }).click();
       
       // Wait for modal to open
@@ -421,8 +423,8 @@ test.describe('Family Management - Advanced Scenarios', () => {
       // Verify role management UI exists
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
-      await page.waitForTimeout(2000);
-      
+      await page.waitForLoadState('networkidle');
+
       // Verify admin sees their own admin role - use more specific selector within family management section
       await expect(page.locator('.family-management-member-name')).toContainText('Admin Roles');
       await expect(page.locator('.family-management-members-list .role-tag-admin')).toBeVisible();
@@ -451,8 +453,8 @@ test.describe('Family Management - Advanced Scenarios', () => {
       // Verify real-time update infrastructure exists
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       await page.getByRole('button', { name: 'Family' }).click();
-      await page.waitForTimeout(2000);
-      
+      await page.waitForLoadState('networkidle');
+
       // Verify the family management interface supports real-time updates
       // Check that the admin can see their own name and basic interface is working - use more specific selector
       await expect(page.locator('.family-management-member-name')).toContainText('Admin Realtime');
