@@ -461,6 +461,30 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     return sortTasksByTime(day.tasks);
   };
 
+  // Group sequential tasks by member into shifts
+  const groupTasksIntoShifts = (tasks: ResolvedTask[]): Array<{ memberId: string | null; tasks: ResolvedTask[] }> => {
+    if (tasks.length === 0) return [];
+    
+    const shifts: Array<{ memberId: string | null; tasks: ResolvedTask[] }> = [];
+    let currentShift: { memberId: string | null; tasks: ResolvedTask[] } | null = null;
+    
+    tasks.forEach((task) => {
+      if (!currentShift || currentShift.memberId !== task.memberId) {
+        // Start a new shift
+        currentShift = {
+          memberId: task.memberId,
+          tasks: [task]
+        };
+        shifts.push(currentShift);
+      } else {
+        // Add to current shift
+        currentShift.tasks.push(task);
+      }
+    });
+    
+    return shifts;
+  };
+
   const isCurrentWeek = (): boolean => {
     const today = new Date();
     const currentMonday = getMonday(today);
@@ -543,22 +567,34 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         key={`${day.date}-${position}`}
         style={[
           styles.dayColumn,
-          isToday && styles.todayColumn,
           styles.slidingDayColumn,
           position === 'prev' && styles.prevDayColumn,
           position === 'next' && styles.nextDayColumn,
         ]}
       >
         {/* Day Header */}
-        <View style={[styles.dayHeader, isToday && styles.todayHeader]}>
-          <View style={styles.dayInfo}>
-            <Text style={[styles.dayName, isToday && styles.todayDayName]}>
-              {formatDate(day.date)}
-            </Text>
-            <Text style={styles.taskCount}>
-              {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
-            </Text>
-          </View>
+        <View style={styles.dayHeader}>
+          <Text style={styles.dayName}>
+            {formatDate(day.date)}
+          </Text>
+          {isAdmin && (
+            <View style={styles.dayActions}>
+              <TouchableOpacity
+                style={styles.dayActionButton}
+                onPress={() => handleTaskOverride('ADD', undefined, day.date)}
+                disabled={isLoading || availableTasks.length === 0}
+              >
+                <Text style={styles.dayActionButtonText}>+ Add Task</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.dayActionButton}
+                onPress={() => Alert.alert('Apply Daily Routine', 'This feature is coming soon!')}
+                disabled={isLoading}
+              >
+                <Text style={styles.dayActionButtonText}>Apply Routine</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
         
         {/* Tasks */}
@@ -569,31 +605,68 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
             </View>
           ) : (
             <View style={styles.tasksStack}>
-              {dayTasks.map((task, taskIndex) => (
-                <TaskOverrideCard
-                  key={`${task.taskId}-${task.memberId}-${taskIndex}`}
-                  task={task}
-                  taskIndex={taskIndex}
-                  isAdmin={isAdmin}
-                  onPress={(task) => handleTaskPress(task, day.date)}
-                  formatTime={formatTime}
-                  formatDuration={formatDuration}
-                  showDescription={false}
-                  compact={false}
-                />
-              ))}
+              {groupTasksIntoShifts(dayTasks).map((shift, shiftIndex) => {
+                const isMultiTaskShift = shift.tasks.length > 1;
+                const shiftMember = shift.memberId ? familyMembers.find(m => m.id === shift.memberId) : null;
+                
+                // Calculate shift time range and duration
+                const shiftStartTime = shift.tasks[0].overrideTime || shift.tasks[0].task.defaultStartTime;
+                const lastTask = shift.tasks[shift.tasks.length - 1];
+                const lastTaskDuration = lastTask.overrideDuration ?? lastTask.task.defaultDuration;
+                const lastTaskStartTime = lastTask.overrideTime || lastTask.task.defaultStartTime;
+                const [hours, minutes] = lastTaskStartTime.split(':').map(Number);
+                const endDate = new Date();
+                endDate.setHours(hours, minutes + lastTaskDuration, 0, 0);
+                const shiftEndTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+                const totalDuration = shift.tasks.reduce((sum, task) => sum + (task.overrideDuration ?? task.task.defaultDuration), 0);
+                
+                return (
+                  <View
+                    key={`shift-${shiftIndex}-${shift.memberId}`}
+                    style={[styles.shift, isMultiTaskShift && styles.multiTaskShift]}
+                  >
+                    {isMultiTaskShift && shiftMember && (
+                      <View style={styles.shiftHeader}>
+                        <UserAvatar
+                          firstName={shiftMember.firstName}
+                          lastName={shiftMember.lastName}
+                          avatarUrl={shiftMember.avatarUrl}
+                          size={32}
+                        />
+                        <View style={styles.shiftTags}>
+                          <View style={styles.shiftTag}>
+                            <Text style={styles.shiftTagText}>
+                              {formatTime(shiftStartTime)} - {formatTime(shiftEndTime)}
+                            </Text>
+                          </View>
+                          <View style={[styles.shiftTag, styles.durationTag]}>
+                            <Text style={styles.shiftTagText}>
+                              {formatDuration(totalDuration)}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    )}
+                    <View style={[styles.shiftTasks, isMultiTaskShift && styles.groupedTasks]}>
+                      {shift.tasks.map((task, taskIndex) => (
+                        <TaskOverrideCard
+                          key={`${task.taskId}-${task.memberId}-${taskIndex}`}
+                          task={task}
+                          taskIndex={taskIndex}
+                          isAdmin={isAdmin}
+                          onPress={(task) => handleTaskPress(task, day.date)}
+                          formatTime={formatTime}
+                          formatDuration={formatDuration}
+                          showDescription={false}
+                          compact={false}
+                          hideAvatar={isMultiTaskShift}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                );
+              })}
             </View>
-          )}
-          
-          {/* Add Task Button */}
-          {isAdmin && (
-            <TouchableOpacity
-              style={styles.addTaskButton}
-              onPress={() => handleTaskOverride('ADD', undefined, day.date)}
-              disabled={isLoading || availableTasks.length === 0}
-            >
-              <Text style={styles.addTaskButtonText}>+ Add Task</Text>
-            </TouchableOpacity>
           )}
         </View>
       </View>
@@ -667,7 +740,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
       </LinearGradient>
 
       <GestureHandlerRootView style={styles.contentContainer}>
-
       {/* Messages */}
       {message && (
         <View style={[styles.message, styles[`message${message.type}`]]}>
@@ -757,7 +829,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   gradientBackground: {
     marginTop: -10, // Extend gradient above the container
@@ -777,6 +848,50 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
+  },
+  dayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 8,
+    margin: 8,
+    backgroundColor: 'rgba(99, 102, 241, 0.08)',
+    borderWidth: 2,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+    borderRadius: 12,
+    shadowColor: '#6366f1',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    minHeight: 36,
+  },
+  dayName: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#374151',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  dayActions: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  dayActionButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+  },
+  dayActionButtonText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#6366f1',
   },
   templateRow: {
     flexDirection: 'row',
@@ -813,10 +928,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-  },
-  dateRange: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
   },
   controls: {
     flexDirection: 'row',
@@ -928,21 +1039,12 @@ const styles = StyleSheet.create({
   },
   daysContainer: {
     flexDirection: 'row',
-    padding: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 16,
   },
   dayColumn: {
     flex: 1,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
     marginHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   slidingDayColumn: {
     width: '33.333%', // Each day takes 1/3 of the sliding container
@@ -957,40 +1059,8 @@ const styles = StyleSheet.create({
   multiDayColumn: {
     marginHorizontal: 4,
   },
-  todayColumn: {
-    borderTopWidth: 3,
-    borderTopColor: '#3b82f6',
-  },
-  dayHeader: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-    backgroundColor: '#fafafa',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-  },
-  todayHeader: {
-    backgroundColor: '#dbeafe',
-  },
-  dayInfo: {
-    alignItems: 'center',
-  },
-  dayName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 4,
-  },
-  todayDayName: {
-    color: '#1d4ed8',
-  },
-  taskCount: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
   tasksContainer: {
-    padding: 16,
-    minHeight: 200,
+    flex: 1,
   },
   noTasks: {
     flex: 1,
@@ -1004,21 +1074,77 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   tasksStack: {
+    gap: 8,
+  },
+  shift: {
+    marginBottom: 8,
+  },
+  multiTaskShift: {
+    backgroundColor: 'rgba(99, 102, 241, 0.02)',
+    borderWidth: 2,
+    borderColor: 'rgba(99, 102, 241, 0.15)',
+    borderRadius: 12,
+    padding: 12,
+    shadowColor: '#6366f1',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  shiftHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
+    paddingBottom: 8,
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(99, 102, 241, 0.1)',
+  },
+  shiftTags: {
+    flex: 1,
+    gap: 6,
+  },
+  shiftTag: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+  },
+  durationTag: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
+  },
+  shiftTagText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#1e40af',
+  },
+  shiftTasks: {
+    gap: 4,
+  },
+  groupedTasks: {
+    gap: 0,
+    marginHorizontal: -4,
   },
   addTaskButton: {
-    marginTop: 12,
-    padding: 12,
-    backgroundColor: '#f8fafc',
-    borderWidth: 2,
-    borderColor: '#cbd5e1',
+    marginTop: 8,
+    padding: 10,
+    backgroundColor: 'rgba(248, 250, 252, 0.5)',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
     borderStyle: 'dashed',
-    borderRadius: 8,
+    borderRadius: 6,
     alignItems: 'center',
   },
   addTaskButtonText: {
-    fontSize: 14,
-    color: '#64748b',
+    fontSize: 12,
+    color: '#94a3b8',
     fontWeight: '500',
   },
   slidingContainer: {
