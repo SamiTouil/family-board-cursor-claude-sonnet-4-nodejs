@@ -343,26 +343,6 @@ export const TaskManagement: React.FC = () => {
 
         {/* Tasks Section */}
         <div className="task-management-subsection">
-          <div className="task-management-subsection-header">
-            <h4 className="task-management-subsection-title">
-              {t('tasks.currentTasks')}
-              {sortedActiveTasks.length > 0 && (
-                <span className="task-management-count-badge">{sortedActiveTasks.length}</span>
-              )}
-            </h4>
-            {isAdmin && (
-              <div className="task-management-button-group">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleAddTask}
-                  disabled={isLoading}
-                >
-                  {t('tasks.createTask')}
-                </Button>
-              </div>
-            )}
-          </div>
 
 
 
