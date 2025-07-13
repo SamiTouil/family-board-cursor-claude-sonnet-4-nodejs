@@ -135,7 +135,7 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Select Task</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.taskSelector}>
-        {availableTasks.map((availableTask) => (
+        {(availableTasks || []).map((availableTask) => (
           <TouchableOpacity
             key={availableTask.id}
             style={[
@@ -169,7 +169,7 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
         {action === 'ADD' ? 'Assign to' : 'Reassign to'}
       </Text>
       <View style={styles.memberGrid}>
-        {familyMembers
+        {(familyMembers || [])
           .filter(member => action === 'ADD' || member.id !== task?.memberId)
           .map(member => (
             <TouchableOpacity
@@ -201,7 +201,7 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
             </TouchableOpacity>
           ))}
       </View>
-      {familyMembers.filter(member => action === 'ADD' || member.id !== task?.memberId).length === 0 && (
+      {(familyMembers || []).filter(member => action === 'ADD' || member.id !== task?.memberId).length === 0 && (
         <Text style={styles.noMembersText}>
           No other family members available for assignment.
         </Text>
