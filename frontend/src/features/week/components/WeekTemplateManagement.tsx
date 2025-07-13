@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../../contexts/FamilyContext';
 import { weekTemplateApi, dayTemplateApi } from '../../../services/api';
@@ -9,7 +9,7 @@ import { useMessage } from '../../../hooks';
 import type { WeekTemplate, DayTemplate, DayTemplateItem, CreateWeekTemplateData, UpdateWeekTemplateData, ResolvedTask, Task } from '../../../types';
 import './WeekTemplateManagement.css';
 
-export const WeekTemplateManagement = forwardRef((_, ref) => {
+export const WeekTemplateManagement: React.FC = () => {
   const { t } = useTranslation();
   const { currentFamily } = useFamily();
   
@@ -40,11 +40,6 @@ export const WeekTemplateManagement = forwardRef((_, ref) => {
   const [selectedDayTemplates, setSelectedDayTemplates] = useState<Record<number, string>>({});
 
   const isAdmin = currentFamily?.userRole === 'ADMIN';
-
-  // Expose handleAddTemplate method to parent component
-  useImperativeHandle(ref, () => ({
-    handleAddTemplate
-  }));
 
   useEffect(() => {
     if (currentFamily) {
@@ -479,6 +474,20 @@ export const WeekTemplateManagement = forwardRef((_, ref) => {
     <div className="week-template-management">
       <div className="week-template-management-header">
         <h2 className="week-template-management-title">{t('weeklyRoutines.title')}</h2>
+        {isAdmin && (
+          <button
+            onClick={handleAddTemplate}
+            className="week-template-management-header-button"
+            disabled={isLoading}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+            {t('weeklyRoutines.routines.add')}
+          </button>
+        )}
       </div>
       
       <div className="week-template-management-content">
@@ -815,6 +824,4 @@ export const WeekTemplateManagement = forwardRef((_, ref) => {
       </Modal>
     </div>
   );
-});
-
-WeekTemplateManagement.displayName = 'WeekTemplateManagement'; 
+}; 

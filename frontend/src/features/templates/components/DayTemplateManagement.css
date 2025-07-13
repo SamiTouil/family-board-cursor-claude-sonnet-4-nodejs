@@ -14,6 +14,7 @@
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 1.5rem;
   gap: 12px;
 }
@@ -24,6 +25,35 @@
   margin: 0;
   color: white;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Button - matching Analytics style */
+.day-template-management-header-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+
+.day-template-management-header-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.day-template-management-header-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .day-template-management-content {

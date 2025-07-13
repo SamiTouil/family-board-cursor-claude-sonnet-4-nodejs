@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../../contexts/FamilyContext';
 import { taskApi, familyApi, dayTemplateApi } from '../../../services/api';
@@ -9,7 +9,7 @@ import Modal from '../../../components/ui/Modal';
 import { useMessage } from '../../../hooks';
 import './DayTemplateManagement.css';
 
-export const DayTemplateManagement = forwardRef((_, ref) => {
+export const DayTemplateManagement: React.FC = () => {
   const { t } = useTranslation();
   const { currentFamily } = useFamily();
   
@@ -47,11 +47,6 @@ export const DayTemplateManagement = forwardRef((_, ref) => {
 
   // Check if user is admin (can create/manage templates)
   const isAdmin = currentFamily?.userRole === 'ADMIN';
-
-  // Expose handleAddTemplate method to parent component
-  useImperativeHandle(ref, () => ({
-    handleAddTemplate
-  }));
 
   useEffect(() => {
     if (currentFamily) {
@@ -593,6 +588,20 @@ export const DayTemplateManagement = forwardRef((_, ref) => {
     <div className="day-template-management">
       <div className="day-template-management-header">
         <h2 className="day-template-management-title">{t('dailyRoutines.title')}</h2>
+        {isAdmin && (
+          <button
+            onClick={handleAddTemplate}
+            className="day-template-management-header-button"
+            disabled={isLoading}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+            {t('dailyRoutines.routines.add')}
+          </button>
+        )}
       </div>
       
       <div className="day-template-management-content">
@@ -883,6 +892,4 @@ export const DayTemplateManagement = forwardRef((_, ref) => {
       </Modal>
     </div>
   );
-});
-
-DayTemplateManagement.displayName = 'DayTemplateManagement';
+};
