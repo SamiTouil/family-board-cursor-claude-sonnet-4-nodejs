@@ -10,10 +10,12 @@ import {
   Animated,
 } from 'react-native';
 import { PanGestureHandler, GestureHandlerRootView, State } from 'react-native-gesture-handler';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { weekScheduleApi, taskApi, familyApi } from '../../services/api';
-import { LoadingSpinner, TaskOverrideCard, Button, UserAvatar } from '../ui';
+import { LoadingSpinner, TaskOverrideCard, Button, UserAvatar, TaskSplitIndicator } from '../ui';
 import { ShiftIndicator } from '../ui/ShiftIndicator';
 import { TaskOverrideModal, CreateTaskOverrideData } from './TaskOverrideModal';
 import type { ResolvedWeekSchedule, ResolvedTask, ResolvedDay, Task, User } from '../../types';
@@ -25,6 +27,7 @@ interface WeeklyCalendarProps {
 export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   const { currentFamily } = useFamily();
   const { on, off } = useNotifications();
+  const insets = useSafeAreaInsets();
   const [weekSchedule, setWeekSchedule] = useState<ResolvedWeekSchedule | null>(null);
   const [currentWeekStart, setCurrentWeekStart] = useState<string>('');
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(0);
@@ -260,6 +263,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
       setFamilyMembers([]);
     }
   };
+
 
   const navigateWeek = (direction: 'prev' | 'next') => {
     const currentDate = new Date(currentWeekStart + 'T00:00:00.000Z');
@@ -605,9 +609,15 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   }
 
   return (
-    <GestureHandlerRootView style={[styles.container, style]}>
-      {/* Header */}
-      <View style={styles.header}>
+    <View style={[styles.container, style]}>
+      {/* Gradient Background that extends to top */}
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.gradientBackground, { paddingTop: insets.top }]}>
+        {/* Header */}
+        <View style={styles.header}>
         {/* Line 1: Template Name + Modified Indicator */}
         <View style={styles.templateRow}>
           {weekSchedule?.baseTemplate ? (
@@ -622,91 +632,41 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
           )}
         </View>
         
-        {/* Line 2: Shift Indicator */}
+        {/* Line 2: Shift Indicator + Task Split Indicator */}
         <View style={styles.shiftRow}>
           <ShiftIndicator />
+          <View style={styles.indicatorSpacer} />
+          <TaskSplitIndicator currentWeekStart={currentWeekStart} />
         </View>
         
-        {/* Line 3: Date Range + Navigation Controls */}
-        <View style={styles.dateRow}>
-          <View style={styles.dateAndControls}>
-            <Text style={styles.dateRange}>
-              {formatWeekRange(currentWeekStart)}
-            </Text>
-            
-            <View style={styles.controls}>
+        {/* Line 3: Admin Controls */}
+        {isAdmin && (
+          <View style={styles.adminRow}>
+            <View style={styles.adminControls}>
               <TouchableOpacity
-                style={styles.navButton}
-                onPress={() => navigateWeek('prev')}
+                style={styles.adminButton}
+                onPress={() => Alert.alert('Apply Routine', 'This feature is coming soon!')}
+                disabled={isLoading}
               >
-                <Text style={styles.navButtonText}>←</Text>
+                <Text style={styles.adminButtonText}>Apply Routine</Text>
               </TouchableOpacity>
               
-              {!isCurrentWeek() && (
+              {weekSchedule?.hasOverrides && (
                 <TouchableOpacity
-                  style={[styles.navButton, styles.todayButton]}
-                  onPress={goToCurrentWeek}
+                  style={styles.adminButton}
+                  onPress={() => Alert.alert('Revert', 'This feature is coming soon!')}
+                  disabled={isLoading}
                 >
-                  <Text style={styles.todayButtonText}>Today</Text>
+                  <Text style={styles.adminButtonText}>Revert</Text>
                 </TouchableOpacity>
               )}
-              
-              <TouchableOpacity
-                style={styles.navButton}
-                onPress={() => navigateWeek('next')}
-              >
-                <Text style={styles.navButtonText}>→</Text>
-              </TouchableOpacity>
             </View>
           </View>
+        )}
         </View>
-      </View>
+      </LinearGradient>
 
-      {/* Day Navigation for Mobile */}
-      {daysToShow === 1 && weekSchedule && (
-        <View style={styles.dayNavigation}>
-          <TouchableOpacity
-            style={styles.dayNavButton}
-            onPress={() => updateNavigationData('prev')}
-          >
-            <Text style={styles.dayNavButtonText}>‹</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.dayNavButton}
-            onPress={() => updateNavigationData('prev')}
-          >
-            <Text style={styles.dayNavButtonText}>‹</Text>
-          </TouchableOpacity>
-          
-          <View style={styles.dayIndicators}>
-            {weekSchedule.days.map((day, index) => (
-              <TouchableOpacity
-                key={day.date}
-                style={[
-                  styles.dayIndicator,
-                  index === currentDayIndex && styles.dayIndicatorActive
-                ]}
-                onPress={() => setCurrentDayIndex(index)}
-              >
-                <Text style={[
-                  styles.dayIndicatorText,
-                  index === currentDayIndex && styles.dayIndicatorTextActive
-                ]}>
-                  {formatDate(day.date).split(' ')[0]}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          
-          <TouchableOpacity
-            style={styles.dayNavButton}
-            onPress={() => updateNavigationData('next')}
-          >
-            <Text style={styles.dayNavButtonText}>›</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <GestureHandlerRootView style={styles.contentContainer}>
 
       {/* Messages */}
       {message && (
@@ -789,7 +749,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         familyMembers={familyMembers}
         isLoading={isLoading}
       />
-    </GestureHandlerRootView>
+      </GestureHandlerRootView>
+    </View>
   );
 };
 
@@ -798,19 +759,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
-  header: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+  gradientBackground: {
+    marginTop: -10, // Extend gradient above the container
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  header: {
+    padding: 16,
+    paddingTop: 8,
+    borderBottomWidth: 0,
+  },
+  contentContainer: {
+    flex: 1,
   },
   templateRow: {
     flexDirection: 'row',
@@ -824,20 +790,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
+  indicatorSpacer: {
+    flex: 1,
+  },
   templateInfo: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1f2937',
+    color: '#ffffff',
   },
   modifiedIndicator: {
-    color: '#fbbf24',
+    color: '#fde68a',
     fontWeight: '600',
   },
   dateRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 0,
+    width: '100%',
   },
   dateAndControls: {
     flexDirection: 'row',
@@ -846,7 +816,7 @@ const styles = StyleSheet.create({
   },
   dateRange: {
     fontSize: 16,
-    color: '#6b7280',
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   controls: {
     flexDirection: 'row',
@@ -854,70 +824,57 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   navButton: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
     minWidth: 44,
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   navButtonText: {
     fontSize: 18,
-    color: '#374151',
+    color: '#ffffff',
     fontWeight: '600',
   },
   todayButton: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    paddingHorizontal: 16,
+    minWidth: 60,
   },
   todayButtonText: {
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
   },
-  dayNavigation: {
+  adminRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  adminControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    gap: 8,
   },
-  dayNavButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#f3f4f6',
-  },
-  dayNavButtonDisabled: {
-    opacity: 0.5,
-  },
-  dayNavButtonText: {
-    fontSize: 20,
-    color: '#374151',
-    fontWeight: '600',
-  },
-  dayIndicators: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginHorizontal: 16,
-  },
-  dayIndicator: {
-    paddingHorizontal: 8,
+  adminButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  dayIndicatorActive: {
-    backgroundColor: '#3b82f6',
-  },
-  dayIndicatorText: {
-    fontSize: 12,
-    color: '#6b7280',
-    fontWeight: '500',
-  },
-  dayIndicatorTextActive: {
+  adminButtonText: {
     color: '#ffffff',
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
   },
 
   message: {

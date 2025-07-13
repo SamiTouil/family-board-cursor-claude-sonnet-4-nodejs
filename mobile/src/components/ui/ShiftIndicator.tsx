@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   },
   singleLineText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '500',
   },
   statusText: {
@@ -374,14 +374,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   currentShift: {
-    color: '#059669', // Green for current shift
+    color: '#86efac', // Light green for current shift
   },
   nextShift: {
-    color: '#0369a1', // Blue for next shift
+    color: '#93c5fd', // Light blue for next shift
   },
   timeText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '500',
   },
 }); 
