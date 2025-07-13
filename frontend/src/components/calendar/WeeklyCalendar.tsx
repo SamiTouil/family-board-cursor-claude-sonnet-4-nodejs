@@ -8,6 +8,7 @@ import { TaskOverrideCard, Button, UserAvatar, DropdownMenu } from '../ui';
 import type { DropdownMenuItem } from '../ui';
 import RoutinesIcon from '../ui/icons/RoutinesIcon';
 import { TaskOverrideModal } from './TaskOverrideModal';
+import { TaskSplitIndicator } from '../layout/TaskSplitIndicator';
 import { useMessage } from '../../hooks';
 import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate, DayTemplate, DayTemplateItem, Task, User, CreateTaskOverrideData } from '../../types';
 import './WeeklyCalendar.css';
@@ -648,6 +649,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
             </span>
           )}
         </div>
+        
+        <TaskSplitIndicator />
         
         <div className="weekly-calendar-controls">
           <button

@@ -4,6 +4,12 @@
   margin-left: 1.5rem;
 }
 
+/* When inside WeeklyCalendar header */
+.weekly-calendar-header .task-split-indicator {
+  margin-left: auto;
+  margin-right: 1rem;
+}
+
 .task-split-indicator-button {
   display: flex;
   align-items: center;
@@ -21,10 +27,29 @@
   transform: translateY(-1px);
 }
 
+/* When inside WeeklyCalendar header */
+.weekly-calendar-header .task-split-indicator-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.weekly-calendar-header .task-split-indicator-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
 .task-split-indicator-content {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* When inside WeeklyCalendar header */
+.weekly-calendar-header .task-split-indicator-content {
+  gap: 0.75rem;
 }
 
 .task-split-indicator-score {
@@ -35,6 +60,20 @@
 .task-split-indicator-label {
   font-size: 0.875rem;
   color: #6b7280;
+  font-weight: 500;
+}
+
+/* When inside WeeklyCalendar header */
+.weekly-calendar-header .task-split-indicator-score {
+  color: white !important;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.weekly-calendar-header .task-split-indicator-label {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
@@ -202,6 +241,25 @@
   font-weight: 600;
 }
 
+/* Tablet responsiveness */
+@media (max-width: 1024px) {
+  .weekly-calendar-header .task-split-indicator {
+    margin-right: 0.5rem;
+  }
+  
+  .weekly-calendar-header .task-split-indicator-button {
+    padding: 6px 10px;
+  }
+  
+  .weekly-calendar-header .task-split-indicator-score {
+    font-size: 0.8125rem;
+  }
+  
+  .weekly-calendar-header .task-split-indicator-label {
+    font-size: 0.6875rem;
+  }
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .task-split-indicator-button {
@@ -214,6 +272,11 @@
 
   .task-split-indicator-label {
     font-size: 0.75rem;
+  }
+
+  /* Hide on mobile when in WeeklyCalendar header to save space */
+  .weekly-calendar-header .task-split-indicator {
+    display: none;
   }
 
   .task-split-dropdown {
