@@ -461,6 +461,30 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     return sortTasksByTime(day.tasks);
   };
 
+  // Group sequential tasks by member into shifts
+  const groupTasksIntoShifts = (tasks: ResolvedTask[]): Array<{ memberId: string | null; tasks: ResolvedTask[] }> => {
+    if (tasks.length === 0) return [];
+    
+    const shifts: Array<{ memberId: string | null; tasks: ResolvedTask[] }> = [];
+    let currentShift: { memberId: string | null; tasks: ResolvedTask[] } | null = null;
+    
+    tasks.forEach((task) => {
+      if (!currentShift || currentShift.memberId !== task.memberId) {
+        // Start a new shift
+        currentShift = {
+          memberId: task.memberId,
+          tasks: [task]
+        };
+        shifts.push(currentShift);
+      } else {
+        // Add to current shift
+        currentShift.tasks.push(task);
+      }
+    });
+    
+    return shifts;
+  };
+
   const isCurrentWeek = (): boolean => {
     const today = new Date();
     const currentMonday = getMonday(today);
@@ -569,19 +593,67 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
             </View>
           ) : (
             <View style={styles.tasksStack}>
-              {dayTasks.map((task, taskIndex) => (
-                <TaskOverrideCard
-                  key={`${task.taskId}-${task.memberId}-${taskIndex}`}
-                  task={task}
-                  taskIndex={taskIndex}
-                  isAdmin={isAdmin}
-                  onPress={(task) => handleTaskPress(task, day.date)}
-                  formatTime={formatTime}
-                  formatDuration={formatDuration}
-                  showDescription={false}
-                  compact={false}
-                />
-              ))}
+              {groupTasksIntoShifts(dayTasks).map((shift, shiftIndex) => {
+                const isMultiTaskShift = shift.tasks.length > 1;
+                const shiftMember = shift.memberId ? familyMembers.find(m => m.id === shift.memberId) : null;
+                
+                // Calculate shift time range and duration
+                const shiftStartTime = shift.tasks[0].overrideTime || shift.tasks[0].task.defaultStartTime;
+                const lastTask = shift.tasks[shift.tasks.length - 1];
+                const lastTaskDuration = lastTask.overrideDuration ?? lastTask.task.defaultDuration;
+                const lastTaskStartTime = lastTask.overrideTime || lastTask.task.defaultStartTime;
+                const [hours, minutes] = lastTaskStartTime.split(':').map(Number);
+                const endDate = new Date();
+                endDate.setHours(hours, minutes + lastTaskDuration, 0, 0);
+                const shiftEndTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+                const totalDuration = shift.tasks.reduce((sum, task) => sum + (task.overrideDuration ?? task.task.defaultDuration), 0);
+                
+                return (
+                  <View
+                    key={`shift-${shiftIndex}-${shift.memberId}`}
+                    style={[styles.shift, isMultiTaskShift && styles.multiTaskShift]}
+                  >
+                    {isMultiTaskShift && shiftMember && (
+                      <View style={styles.shiftHeader}>
+                        <UserAvatar
+                          firstName={shiftMember.firstName}
+                          lastName={shiftMember.lastName}
+                          avatarUrl={shiftMember.avatarUrl}
+                          size={32}
+                        />
+                        <View style={styles.shiftTags}>
+                          <View style={styles.shiftTag}>
+                            <Text style={styles.shiftTagText}>
+                              {formatTime(shiftStartTime)} - {formatTime(shiftEndTime)}
+                            </Text>
+                          </View>
+                          <View style={[styles.shiftTag, styles.durationTag]}>
+                            <Text style={styles.shiftTagText}>
+                              {formatDuration(totalDuration)}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    )}
+                    <View style={[styles.shiftTasks, isMultiTaskShift && styles.groupedTasks]}>
+                      {shift.tasks.map((task, taskIndex) => (
+                        <TaskOverrideCard
+                          key={`${task.taskId}-${task.memberId}-${taskIndex}`}
+                          task={task}
+                          taskIndex={taskIndex}
+                          isAdmin={isAdmin}
+                          onPress={(task) => handleTaskPress(task, day.date)}
+                          formatTime={formatTime}
+                          formatDuration={formatDuration}
+                          showDescription={false}
+                          compact={false}
+                          hideAvatar={isMultiTaskShift}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                );
+              })}
             </View>
           )}
           
@@ -962,27 +1034,41 @@ const styles = StyleSheet.create({
     borderTopColor: '#3b82f6',
   },
   dayHeader: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-    backgroundColor: '#fafafa',
+    padding: 12,
+    borderBottomWidth: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: 'rgba(99, 102, 241, 0.1)',
+    shadowColor: '#6366f1',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   todayHeader: {
-    backgroundColor: '#dbeafe',
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    borderColor: 'rgba(59, 130, 246, 0.2)',
   },
   dayInfo: {
     alignItems: 'center',
   },
   dayName: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
     color: '#374151',
-    marginBottom: 4,
+    marginBottom: 2,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   todayDayName: {
-    color: '#1d4ed8',
+    color: '#2563eb',
+    fontWeight: '800',
   },
   taskCount: {
     fontSize: 12,
@@ -1005,6 +1091,62 @@ const styles = StyleSheet.create({
   },
   tasksStack: {
     gap: 12,
+  },
+  shift: {
+    marginBottom: 12,
+  },
+  multiTaskShift: {
+    backgroundColor: 'rgba(99, 102, 241, 0.02)',
+    borderWidth: 2,
+    borderColor: 'rgba(99, 102, 241, 0.15)',
+    borderRadius: 12,
+    padding: 12,
+    shadowColor: '#6366f1',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  shiftHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingBottom: 8,
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(99, 102, 241, 0.1)',
+  },
+  shiftTags: {
+    flex: 1,
+    gap: 6,
+  },
+  shiftTag: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+  },
+  durationTag: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
+  },
+  shiftTagText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#1e40af',
+  },
+  shiftTasks: {
+    gap: 4,
+  },
+  groupedTasks: {
+    gap: 0,
+    marginHorizontal: -4,
   },
   addTaskButton: {
     marginTop: 12,
