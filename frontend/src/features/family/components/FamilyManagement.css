@@ -14,28 +14,9 @@
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 1.5rem;
   gap: 12px;
-}
-
-.family-management-avatar {
-  flex-shrink: 0;
-}
-
-.family-management-avatar .user-avatar {
-  border: 3px solid #ffffff;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  width: 42px;
-  height: 42px;
-}
-
-.family-management-avatar .user-avatar-initials,
-.family-management-avatar .user-avatar-image {
-  width: 42px;
-  height: 42px;
-  font-size: 1.125rem;
-  font-weight: 700;
 }
 
 .family-management-title {
@@ -44,6 +25,41 @@
   margin: 0;
   color: white;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Buttons Container */
+.family-management-header-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* Header Button - matching Analytics style */
+.family-management-header-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+
+.family-management-header-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.family-management-header-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .family-management-content {
@@ -229,6 +245,7 @@
 /* Subsections */
 .family-management-subsection {
   padding: 24px;
+  padding-top: 24px; /* Consistent padding since no header */
   border-bottom: 1px solid #f3f4f6;
 }
 
@@ -496,6 +513,22 @@
 @media (max-width: 768px) {
   .family-management-header {
     padding: 0 1rem;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 57px;
+  }
+  
+  .family-management-header-buttons {
+    width: 100%;
+    margin-top: 8px;
+    gap: 6px;
+  }
+  
+  .family-management-header-button {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.8125rem;
+    padding: 6px 10px;
   }
   
   .family-management-content {

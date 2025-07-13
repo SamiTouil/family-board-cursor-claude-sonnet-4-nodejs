@@ -104,11 +104,16 @@ describe('FamilyManagement', () => {
   });
 
   it('shows admin controls when user is admin', async () => {
-    render(<FamilyManagement />);
+    const { container } = render(<FamilyManagement />);
     
     await waitFor(() => {
-      expect(screen.getByText('family.editButton')).toBeInTheDocument();
-      expect(screen.getByText('family.createVirtualMember')).toBeInTheDocument();
+      // Look for buttons containing the text
+      const buttons = container.querySelectorAll('button');
+      const editButton = Array.from(buttons).find(btn => btn.textContent?.includes('family.editButton'));
+      const addVirtualButton = Array.from(buttons).find(btn => btn.textContent?.includes('family.createVirtualMember'));
+      
+      expect(editButton).toBeInTheDocument();
+      expect(addVirtualButton).toBeInTheDocument();
     });
   });
 
@@ -118,20 +123,26 @@ describe('FamilyManagement', () => {
       refreshFamilies: vi.fn(),
     });
 
-    render(<FamilyManagement />);
+    const { container } = render(<FamilyManagement />);
     
     await waitFor(() => {
-      expect(screen.queryByText('family.editButton')).not.toBeInTheDocument();
-      expect(screen.queryByText('family.createVirtualMember')).not.toBeInTheDocument();
+      const buttons = container.querySelectorAll('button');
+      const editButton = Array.from(buttons).find(btn => btn.textContent?.includes('family.editButton'));
+      const addVirtualButton = Array.from(buttons).find(btn => btn.textContent?.includes('family.createVirtualMember'));
+      
+      expect(editButton).toBeUndefined();
+      expect(addVirtualButton).toBeUndefined();
     });
   });
 
   it('shows family edit form when edit button is clicked', async () => {
-    render(<FamilyManagement />);
+    const { container } = render(<FamilyManagement />);
     
     await waitFor(() => {
-      const editButton = screen.getByText('family.editButton');
-      fireEvent.click(editButton);
+      const buttons = container.querySelectorAll('button');
+      const editButton = Array.from(buttons).find(btn => btn.textContent?.includes('family.editButton'));
+      expect(editButton).toBeInTheDocument();
+      fireEvent.click(editButton!);
     });
 
     expect(screen.getByText('family.edit.title')).toBeInTheDocument();
@@ -139,11 +150,13 @@ describe('FamilyManagement', () => {
   });
 
   it('shows virtual member creation form when create button is clicked', async () => {
-    render(<FamilyManagement />);
+    const { container } = render(<FamilyManagement />);
     
     await waitFor(() => {
-      const createButton = screen.getByText('family.createVirtualMember');
-      fireEvent.click(createButton);
+      const buttons = container.querySelectorAll('button');
+      const createButton = Array.from(buttons).find(btn => btn.textContent?.includes('family.createVirtualMember'));
+      expect(createButton).toBeInTheDocument();
+      fireEvent.click(createButton!);
     });
 
     expect(screen.getByLabelText('user.firstName')).toBeInTheDocument();
@@ -184,8 +197,8 @@ describe('FamilyManagement', () => {
     const container = document.querySelector('.family-management');
     expect(container).toBeInTheDocument();
     
-    // Check for members section
-    expect(screen.getByText('family.members')).toBeInTheDocument();
+    // Check that the family name is displayed in header
+    expect(screen.getByText('Test Family Family')).toBeInTheDocument();
   });
 
   it('handles API errors gracefully', async () => {
@@ -203,12 +216,14 @@ describe('FamilyManagement', () => {
       data: { success: true, data: mockFamily },
     });
 
-    render(<FamilyManagement />);
+    const { container } = render(<FamilyManagement />);
     
     // Open edit form
     await waitFor(() => {
-      const editButton = screen.getByText('family.editButton');
-      fireEvent.click(editButton);
+      const buttons = container.querySelectorAll('button');
+      const editButton = Array.from(buttons).find(btn => btn.textContent?.includes('family.editButton'));
+      expect(editButton).toBeInTheDocument();
+      fireEvent.click(editButton!);
     });
 
     // Update family name
@@ -232,12 +247,14 @@ describe('FamilyManagement', () => {
       data: { success: true, data: {} },
     });
 
-    render(<FamilyManagement />);
+    const { container } = render(<FamilyManagement />);
     
     // Open create virtual member form
     await waitFor(() => {
-      const createButton = screen.getByText('family.createVirtualMember');
-      fireEvent.click(createButton);
+      const buttons = container.querySelectorAll('button');
+      const createButton = Array.from(buttons).find(btn => btn.textContent?.includes('family.createVirtualMember'));
+      expect(createButton).toBeInTheDocument();
+      fireEvent.click(createButton!);
     });
 
     // Fill form

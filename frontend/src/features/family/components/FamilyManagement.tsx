@@ -39,7 +39,6 @@ export const FamilyManagement: React.FC = () => {
     avatarUrl: currentFamily?.avatarUrl || '',
   });
   const [familyErrors, setFamilyErrors] = useState<Record<string, string>>({});
-  const [editingFamily, setEditingFamily] = useState(false);
 
   // Virtual member form state
   const [virtualMemberData, setVirtualMemberData] = useState({
@@ -48,7 +47,6 @@ export const FamilyManagement: React.FC = () => {
     avatarUrl: '',
   });
   const [virtualMemberErrors, setVirtualMemberErrors] = useState<Record<string, string>>({});
-  const [addingVirtualMember, setAddingVirtualMember] = useState(false);
 
   // Virtual member editing state
   const [editingVirtualMember, setEditingVirtualMember] = useState<FamilyMember | null>(null);
@@ -179,13 +177,11 @@ export const FamilyManagement: React.FC = () => {
   };
 
   const handleEditFamily = () => {
-    setEditingFamily(true);
     setFamilyErrors({});
     setIsEditFamilyModalOpen(true);
   };
 
   const handleCancelEditFamily = () => {
-    setEditingFamily(false);
     setFamilyErrors({});
     setIsEditFamilyModalOpen(false);
     // Reset form data to current family data
@@ -228,7 +224,6 @@ export const FamilyManagement: React.FC = () => {
       const response = await familyApi.update(currentFamily.id, updateData);
       if (response.data.success) {
         setMessage({ type: 'success', text: t('family.updateSuccess') });
-        setEditingFamily(false);
         setIsEditFamilyModalOpen(false);
         await refreshFamilies();
       } else {
@@ -262,7 +257,6 @@ export const FamilyManagement: React.FC = () => {
   };
 
   const handleAddVirtualMember = () => {
-    setAddingVirtualMember(true);
     setVirtualMemberData({
       firstName: '',
       lastName: '',
@@ -273,7 +267,6 @@ export const FamilyManagement: React.FC = () => {
   };
 
   const handleCancelAddVirtualMember = () => {
-    setAddingVirtualMember(false);
     setVirtualMemberData({
       firstName: '',
       lastName: '',
@@ -314,7 +307,6 @@ export const FamilyManagement: React.FC = () => {
       const response = await familyApi.createVirtualMember(currentFamily.id, createData);
       if (response.data.success) {
         setMessage({ type: 'success', text: t('family.virtualMemberCreated') });
-        setAddingVirtualMember(false);
         setIsAddVirtualMemberModalOpen(false);
         setVirtualMemberData({
           firstName: '',
@@ -500,15 +492,35 @@ export const FamilyManagement: React.FC = () => {
   return (
     <div className="family-management">
       <div className="family-management-header">
-        <div className="family-management-avatar">
-          <UserAvatar
-            firstName={currentFamily.name}
-            lastName=""
-            avatarUrl={currentFamily.avatarUrl || null}
-            size="large"
-          />
-        </div>
         <h2 className="family-management-title">{currentFamily.name} Family</h2>
+        {isAdmin && (
+          <div className="family-management-header-buttons">
+            <button
+              onClick={handleEditFamily}
+              className="family-management-header-button"
+              disabled={isLoading}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              {t('family.editButton')}
+            </button>
+            <button
+              onClick={handleAddVirtualMember}
+              className="family-management-header-button"
+              disabled={isLoading}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <line x1="20" y1="9" x2="20" y2="15"></line>
+                <line x1="17" y1="12" x2="23" y2="12"></line>
+              </svg>
+              {t('family.createVirtualMember')}
+            </button>
+          </div>
+        )}
       </div>
       
       <div className="family-management-content">
@@ -526,29 +538,6 @@ export const FamilyManagement: React.FC = () => {
 
       {/* Family Members */}
       <div className="family-management-subsection">
-        <div className="family-management-subsection-header">
-          <h4 className="family-management-subsection-title">{t('family.members')}</h4>
-          {isAdmin && (
-            <div className="family-management-button-group">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={editingFamily ? handleCancelEditFamily : handleEditFamily}
-                disabled={isLoading}
-              >
-                {editingFamily ? t('common.cancel') : t('family.editButton')}
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={addingVirtualMember ? handleCancelAddVirtualMember : handleAddVirtualMember}
-                disabled={isLoading}
-              >
-                {addingVirtualMember ? t('common.cancel') : t('family.createVirtualMember')}
-              </Button>
-            </div>
-          )}
-        </div>
 
 
 
