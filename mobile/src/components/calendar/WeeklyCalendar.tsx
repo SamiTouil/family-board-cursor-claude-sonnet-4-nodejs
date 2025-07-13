@@ -278,22 +278,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
   };
   
-  const formatWeekRange = (weekStartDate: string): string => {
-    if (!weekStartDate) return '';
-    const startDate = new Date(weekStartDate + 'T00:00:00.000Z');
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 6);
-    
-    const startMonth = startDate.toLocaleDateString('en-US', { month: 'short' });
-    const endMonth = endDate.toLocaleDateString('en-US', { month: 'short' });
-    const year = startDate.getFullYear();
-    
-    if (startMonth === endMonth) {
-      return `${startMonth} ${startDate.getDate()}-${endDate.getDate()}, ${year}`;
-    } else {
-      return `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}, ${year}`;
-    }
-  };
   
   const groupTasksIntoShifts = (tasks: ResolvedTask[]): Array<{ memberId: string | null; tasks: ResolvedTask[] }> => {
     if (tasks.length === 0) return [];
@@ -364,15 +348,19 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         <ScrollView style={styles.tasksLane} showsVerticalScrollIndicator={false}>
           {day.tasks.length > 0 ? (
             <View style={styles.tasksStack}>
-              {groupTasksIntoShifts(day.tasks).map((shift, shiftIndex) => (
-                <View
-                  key={`shift-${shiftIndex}`}
-                  style={[
-                    styles.shift,
-                    shift.tasks.length > 1 && styles.multiTaskShift
-                  ]}
-                >
-                  {shift.tasks.length > 1 && shift.memberId && (() => {
+              {groupTasksIntoShifts(day.tasks).map((shift, shiftIndex) => {
+                const isMultiTaskShift = shift.tasks.length > 1;
+                const shiftMember = shift.tasks[0]?.member;
+                
+                return (
+                  <View
+                    key={`shift-${shiftIndex}`}
+                    style={[
+                      styles.shift,
+                      isMultiTaskShift && styles.multiTaskShift
+                    ]}
+                  >
+                    {isMultiTaskShift && shiftMember && (() => {
                     // Calculate shift timing info
                     const startTime = shift.tasks[0].overrideTime || shift.tasks[0].task.defaultStartTime;
                     const lastTask = shift.tasks[shift.tasks.length - 1];
@@ -424,7 +412,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
                         isAdmin={isAdmin}
                         formatTime={formatTime}
                         formatDuration={formatDuration}
-                        hideAvatar={shift.tasks.length > 1}
+                        hideAvatar={isMultiTaskShift}
                         onPress={(task) => {
                           if (isAdmin) {
                             setTaskOverrideAction('REASSIGN');
@@ -437,7 +425,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
                     ))}
                   </View>
                 </View>
-              ))}
+                );
+              })}
             </View>
           ) : (
             <View style={styles.noTasks}>
@@ -511,7 +500,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
               contentOffset={{ x: screenWidth * centerIndex, y: 0 }}
               scrollEventThrottle={16}
             >
-              {scrollDays.map((dayData, index) => (
+              {scrollDays.map((dayData) => (
                 <View key={`${dayData.weekStart}-${dayData.dayIndex}`} style={{ width: screenWidth }}>
                   {renderDayComponent(dayData.day)}
                 </View>
