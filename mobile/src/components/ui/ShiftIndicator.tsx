@@ -18,6 +18,7 @@ export const ShiftIndicator: React.FC = () => {
   const { currentFamily } = useFamily();
   const [shiftInfo, setShiftInfo] = useState<ShiftInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
 
   const getCurrentWeekStart = (): string => {
     const today = new Date();
@@ -37,10 +38,14 @@ export const ShiftIndicator: React.FC = () => {
     return `${year}-${month}-${dayOfMonth}`;
   };
 
-  const loadShiftInfo = useCallback(async () => {
+  const loadShiftInfo = useCallback(async (forceRefresh = false) => {
     if (!currentFamily || !user) return;
 
-    setIsLoading(true);
+    // Only show loading state for initial load or forced refresh
+    if (forceRefresh || !shiftInfo) {
+      setIsLoading(true);
+    }
+    
     try {
       const weekStart = getCurrentWeekStart();
       const response = await weekScheduleApi.getWeekSchedule(currentFamily.id, weekStart);
@@ -48,23 +53,50 @@ export const ShiftIndicator: React.FC = () => {
       
       const shiftData = await calculateShiftInfo(weekSchedule);
       setShiftInfo(shiftData);
+      setLastUpdateTime(new Date());
     } catch (error) {
       // Silently handle errors - user will see no shift info
-      setShiftInfo(null);
+      if (!shiftInfo) {
+        setShiftInfo(null);
+      }
+      // Don't clear existing shiftInfo on error to prevent flicker
     } finally {
       setIsLoading(false);
     }
-  }, [currentFamily, user]);
+  }, [currentFamily, user, shiftInfo]);
+
+  // Separate function to update time displays without API calls
+  const updateTimeDisplays = useCallback(() => {
+    if (!shiftInfo) return;
+    
+    const now = new Date();
+    
+    if (shiftInfo.type === 'current' && shiftInfo.endTime) {
+      const timeRemaining = formatTimeRemaining(shiftInfo.endTime.getTime() - now.getTime());
+      setShiftInfo(prev => prev ? { ...prev, timeRemaining } : null);
+    } else if (shiftInfo.type === 'next' && shiftInfo.startTime) {
+      const timeUntilStart = formatTimeRemaining(shiftInfo.startTime.getTime() - now.getTime());
+      setShiftInfo(prev => prev ? { ...prev, timeUntilStart } : null);
+    }
+  }, [shiftInfo]);
 
   useEffect(() => {
     if (currentFamily && user) {
-      loadShiftInfo();
-      // Update every minute
-      const interval = setInterval(loadShiftInfo, 60000);
-      return () => clearInterval(interval);
+      loadShiftInfo(true); // Force refresh on mount
+      
+      // Update time displays every minute without API calls
+      const timeInterval = setInterval(updateTimeDisplays, 60000);
+      
+      // Refresh data from API every 5 minutes
+      const dataInterval = setInterval(() => loadShiftInfo(false), 5 * 60000);
+      
+      return () => {
+        clearInterval(timeInterval);
+        clearInterval(dataInterval);
+      };
     }
     return undefined;
-  }, [currentFamily, user, loadShiftInfo]);
+  }, [currentFamily, user, loadShiftInfo, updateTimeDisplays]);
 
   const calculateShiftInfo = async (weekSchedule: ResolvedWeekSchedule): Promise<ShiftInfo | null> => {
     if (!user) return null;
@@ -324,21 +356,18 @@ export const ShiftIndicator: React.FC = () => {
     }
   };
 
-  if (!currentFamily || !user || isLoading) {
-    return null;
-  }
-
-  if (!shiftInfo) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.singleLineText}>No shifts scheduled</Text>
-      </View>
-    );
-  }
-
+  // Always render the container to prevent layout shifts
   return (
     <View style={styles.container}>
-      {shiftInfo.type === 'current' ? (
+      {(!currentFamily || !user) ? (
+        // Don't show anything if no family/user context
+        <View style={styles.placeholder} />
+      ) : isLoading && !shiftInfo ? (
+        // Only show loading on initial load
+        <Text style={styles.singleLineText}>Loading shifts...</Text>
+      ) : !shiftInfo ? (
+        <Text style={styles.singleLineText}>No shifts scheduled</Text>
+      ) : shiftInfo.type === 'current' ? (
         <Text style={styles.singleLineText}>
           <Text style={[styles.statusText, styles.currentShift]}>Shift ends </Text>
           <Text style={styles.timeText}>
@@ -361,17 +390,25 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 20, // Ensure consistent height
+    justifyContent: 'flex-start',
+  },
+  placeholder: {
+    width: 0,
+    height: 20, // Match minHeight for consistency
   },
   singleLineText: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '500',
+    lineHeight: 20, // Consistent line height
   },
   statusText: {
     fontWeight: '600',
     fontSize: 14,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    lineHeight: 20,
   },
   currentShift: {
     color: '#86efac', // Light green for current shift
@@ -383,5 +420,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '500',
+    lineHeight: 20,
   },
 }); 

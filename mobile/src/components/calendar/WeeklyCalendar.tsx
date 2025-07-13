@@ -44,6 +44,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   const [showTaskOverrideModal, setShowTaskOverrideModal] = useState(false);
   const [taskOverrideAction, setTaskOverrideAction] = useState<'ADD' | 'REMOVE' | 'REASSIGN'>('ADD');
   const [selectedTask, setSelectedTask] = useState<ResolvedTask | undefined>(undefined);
+  const [selectedTasks, setSelectedTasks] = useState<ResolvedTask[]>([]);
   const [taskOverrideDate, setTaskOverrideDate] = useState<string>('');
   
   const isAdmin = currentFamily?.userRole === 'ADMIN';
@@ -325,6 +326,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
               onPress={() => {
                 setTaskOverrideAction('ADD');
                 setSelectedTask(undefined);
+                setSelectedTasks([]); // Clear bulk selection
                 setTaskOverrideDate(day.date);
                 setShowTaskOverrideModal(true);
               }}
@@ -384,7 +386,24 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
                     const shiftDuration = endTimeMinutes - startTimeMinutes;
                     
                     return (
-                      <View style={styles.shiftHeader}>
+                      <TouchableOpacity
+                        style={styles.shiftHeader}
+                        onPress={() => {
+                          if (isAdmin) {
+                            console.log('WeeklyCalendar - Opening bulk reassign modal for shift:', {
+                              shiftTasks: shift.tasks,
+                              familyMembersCount: familyMembers.length,
+                              familyMembers
+                            });
+                            setTaskOverrideAction('REASSIGN');
+                            setSelectedTask(undefined);
+                            setSelectedTasks(shift.tasks);
+                            setTaskOverrideDate(day.date);
+                            setShowTaskOverrideModal(true);
+                          }
+                        }}
+                        disabled={!isAdmin}
+                      >
                         <UserAvatar
                           firstName={shift.tasks[0].member?.firstName || ''}
                           lastName={shift.tasks[0].member?.lastName || ''}
@@ -403,7 +422,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
                             </Text>
                           </View>
                         </View>
-                      </View>
+                      </TouchableOpacity>
                     );
                   })()}
                   
@@ -426,6 +445,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
                             });
                             setTaskOverrideAction('REASSIGN');
                             setSelectedTask(task);
+                            setSelectedTasks([]); // Clear bulk selection
                             setTaskOverrideDate(day.date);
                             setShowTaskOverrideModal(true);
                           }
@@ -447,14 +467,17 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     );
   };
   
-  const handleConfirmTaskOverride = async (data: CreateTaskOverrideData) => {
+  const handleConfirmTaskOverride = async (data: CreateTaskOverrideData | CreateTaskOverrideData[]) => {
     if (!currentFamily) return;
     
     try {
+      // Handle both single and bulk operations
+      const taskOverrides = Array.isArray(data) ? data : [data];
+      
       // Prepare the week override data for the API
       const weekOverrideData = {
         weekStartDate: currentWeekStart,
-        taskOverrides: [data],
+        taskOverrides: taskOverrides,
         replaceExisting: false
       };
       
@@ -465,8 +488,10 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
       
       console.log('WeeklyCalendar - Task override applied successfully');
       
-      // Close modal
+      // Close modal and reset state
       setShowTaskOverrideModal(false);
+      setSelectedTask(undefined);
+      setSelectedTasks([]);
       
       // Reload current week after override
       await loadWeekSchedule(currentWeekStart, false);
@@ -557,6 +582,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         onClose={() => setShowTaskOverrideModal(false)}
         onConfirm={handleConfirmTaskOverride}
         task={selectedTask}
+        tasks={selectedTasks.length > 0 ? selectedTasks : undefined}
         date={taskOverrideDate}
         action={taskOverrideAction}
         availableTasks={availableTasks}
