@@ -92,7 +92,7 @@ const Analytics: React.FC = () => {
       const response = await analyticsApi.getFairnessHistory(currentFamily.id, weeks);
       setFairnessHistory(response.data.data);
     } catch (err) {
-      console.error('Failed to fetch fairness history:', err);
+      // Silently fail for fairness history - it's optional data
     }
   };
 
