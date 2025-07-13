@@ -152,11 +152,23 @@ test.describe('Mandatory Family Access Control', () => {
     // Should be at family onboarding
     await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
     
-    // Try to navigate directly to dashboard (if it existed)
-    await page.goto('/dashboard');
+    // Wait for navigation to be ready before trying to navigate away
+    await page.waitForLoadState('networkidle');
+    
+    // Try to navigate directly to analytics page
+    await page.goto('/analytics');
     
     // Should be redirected back to family onboarding
     await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('Create New Family')).toBeVisible();
+    
+    // Wait before next navigation attempt
+    await page.waitForLoadState('networkidle');
+    
+    // Also try the home page
+    await page.goto('/');
+    
+    // Should still be at family onboarding
+    await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 5000 });
   });
 }); 

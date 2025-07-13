@@ -19,11 +19,14 @@ export async function quickSetup(page: Page, prefix: string = 'test') {
   
   // Create family quickly
   await page.waitForLoadState('networkidle');
+  await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 10000 });
   await page.getByText('Create New Family').click();
   await page.getByLabel('Family Name').fill(`${prefix} Family`);
   await page.getByRole('button', { name: 'Create Family' }).click();
   
   await page.waitForLoadState('networkidle');
+  // Ensure we're actually on the dashboard before returning
+  await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
   
   return { email, familyName: `${prefix} Family` };
 }
@@ -32,6 +35,9 @@ export async function quickSetup(page: Page, prefix: string = 'test') {
  * Navigate to a page and wait for it to be ready
  */
 export async function navigateAndWaitReady(page: Page, linkText: string) {
+  // Wait for navigation to be ready first
+  await page.waitForSelector('.navigation-item', { timeout: 10000 });
+  
   await Promise.all([
     page.waitForLoadState('networkidle'),
     page.locator('.navigation-item').filter({ hasText: linkText }).click()

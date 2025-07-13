@@ -44,7 +44,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Apply' }).click();
       
       // Verify task appears in list with correct details
-      await expect(page.getByText('Morning Routine')).toBeVisible();
+      await expect(page.locator('.task-override-card').filter({ hasText: 'Morning Routine' })).toBeVisible();
       await expect(page.getByText('07:00')).toBeVisible();
       await expect(page.getByText('45m')).toBeVisible();
       await expect(page.getByText('Complete morning routine tasks')).toBeVisible();
@@ -59,7 +59,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Apply' }).click();
 
       // Verify updates
-      await expect(page.getByText('Updated Morning Routine')).toBeVisible();
+      await expect(page.locator('.task-override-card').filter({ hasText: 'Updated Morning Routine' })).toBeVisible();
       await expect(page.getByText('06:30')).toBeVisible();
       await expect(page.getByText('1h')).toBeVisible();
       await expect(page.getByText('Updated morning routine description')).toBeVisible();
@@ -171,10 +171,10 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       }
 
       // Verify all tasks are created and visible
-      await expect(page.getByText('Morning Exercise')).toBeVisible();
-      await expect(page.getByText('Breakfast')).toBeVisible();  
-      await expect(page.getByText('Work Start')).toBeVisible();
-      await expect(page.getByText('Lunch Break')).toBeVisible();
+      await expect(page.locator('.task-override-card').filter({ hasText: 'Morning Exercise' })).toBeVisible();
+      await expect(page.locator('.task-override-card').filter({ hasText: 'Breakfast' })).toBeVisible();  
+      await expect(page.locator('.task-override-card').filter({ hasText: 'Work Start' })).toBeVisible();
+      await expect(page.locator('.task-override-card').filter({ hasText: 'Lunch Break' })).toBeVisible();
 
       // Verify time display formats correctly
       await expect(page.getByText('06:00')).toBeVisible();

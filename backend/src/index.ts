@@ -15,6 +15,7 @@ import dayTemplateRoutes from './routes/day-template.routes';
 import weekTemplateRoutes from './routes/week-template.routes';
 import weekScheduleRoutes from './routes/week-schedule.routes';
 import healthRoutes from './routes/health.routes';
+import analyticsRoutes from './routes/analytics.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { generateCSRFToken, validateCSRFToken } from './middleware/csrf.middleware';
 import { initializeWebSocket } from './services/websocket.service';
@@ -57,6 +58,7 @@ async function startServer(): Promise<void> {
     app.use('/api/families', validateCSRFToken, dayTemplateRoutes);
     app.use('/api/families', validateCSRFToken, weekTemplateRoutes);
     app.use('/api/families', validateCSRFToken, weekScheduleRoutes);
+    app.use('/api/analytics', validateCSRFToken, analyticsRoutes);
 
     // Error handling
     app.use(errorHandler);
