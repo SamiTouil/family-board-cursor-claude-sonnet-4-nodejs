@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   StyleSheet,
-  SafeAreaView,
+  View,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
@@ -12,10 +12,10 @@ export const HomeScreen: React.FC = () => {
   const { currentFamily } = useFamily();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Weekly Calendar */}
       <WeeklyCalendar style={styles.calendar} />
-    </SafeAreaView>
+    </View>
   );
 };
 
