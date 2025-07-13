@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { weekScheduleApi, taskApi, familyApi } from '../../services/api';
-import { LoadingSpinner, TaskOverrideCard, Button, UserAvatar, TaskSplitIndicator } from '../ui';
+import { LoadingSpinner, TaskOverrideCard, Button, UserAvatar, TaskSplitIndicator, LogoReversed } from '../ui';
 import { ShiftIndicator } from '../ui/ShiftIndicator';
 import { TaskOverrideModal, CreateTaskOverrideData } from './TaskOverrideModal';
 import type { ResolvedWeekSchedule, ResolvedTask, ResolvedDay, Task, User } from '../../types';
@@ -233,6 +233,40 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
       setCurrentDayIndex(selectedDay.dayIndex);
     }
   };
+
+  const navigateToToday = () => {
+    const today = new Date();
+    const todayMonday = getMonday(today);
+    const todayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1; // Convert to Monday-based index
+    
+    console.log('WeeklyCalendar - Navigating to today:', {
+      today: today.toISOString(),
+      todayMonday,
+      todayIndex,
+      currentWeekStart,
+      currentDayIndex
+    });
+
+    // Simple approach: just scroll directly without state updates to avoid loops
+    if (todayMonday === currentWeekStart && scrollDays.length > 0) {
+      // Same week - just scroll to the correct position
+      const targetIndex = 7 + todayIndex; // 7 is the offset for current week in scrollDays
+      if (scrollViewRef.current && targetIndex < scrollDays.length) {
+        scrollViewRef.current.scrollTo({ 
+          x: screenWidth * targetIndex, 
+          animated: true 
+        });
+      }
+    } else {
+      // Different week - reload the component with today's week
+      const todayDate = new Date();
+      const mondayDate = getMonday(todayDate);
+      setCurrentWeekStart(mondayDate);
+      setCurrentDayIndex(todayIndex);
+      loadWeekSchedule(mondayDate);
+      preloadAdjacentWeeks(mondayDate);
+    }
+  };
   
   const loadAvailableTasks = async () => {
     if (!currentFamily) return;
@@ -313,12 +347,17 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     const dayDate = new Date(day.date + 'T00:00:00.000Z');
     const isToday = dayDate.toDateString() === today.toDateString();
     const dayName = dayDate.toLocaleDateString('en-US', { weekday: 'long' });
+    const dateString = dayDate.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
     
     return (
       <View style={[styles.dayColumn, { width: screenWidth }]}>
         <View style={[styles.dayHeader, isToday && styles.todayHeader]}>
           <View style={styles.dayInfo}>
             <Text style={[styles.dayName, isToday && styles.todayName]}>{dayName}</Text>
+            <Text style={[styles.dateText, isToday && styles.todayDate]}>{dateString}</Text>
           </View>
           <View style={styles.dayActions}>
             <TouchableOpacity
@@ -523,15 +562,26 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         style={[styles.gradientBackground, { paddingTop: insets.top + 10 }]}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>
-            {weekSchedule?.baseTemplate?.name || 'Weekly Schedule'}
-            {weekSchedule?.hasOverrides && (
-              <Text style={styles.modifiedIndicator}> • modified</Text>
-            )}
-          </Text>
-          <View style={styles.indicatorsRow}>
-            <ShiftIndicator />
-            <TaskSplitIndicator currentWeekStart={currentWeekStart} />
+          <View style={styles.headerContent}>
+            <TouchableOpacity 
+              onPress={navigateToToday}
+              style={styles.logoButton}
+              activeOpacity={0.7}
+            >
+              <LogoReversed size={48} style={styles.logo} />
+            </TouchableOpacity>
+            <View style={styles.headerText}>
+              <Text style={styles.title}>
+                {weekSchedule?.baseTemplate?.name || 'Weekly Schedule'}
+                {weekSchedule?.hasOverrides && (
+                  <Text style={styles.modifiedIndicator}> • modified</Text>
+                )}
+              </Text>
+              <View style={styles.indicatorsRow}>
+                <ShiftIndicator />
+                <TaskSplitIndicator currentWeekStart={currentWeekStart} />
+              </View>
+            </View>
           </View>
         </View>
       </LinearGradient>
@@ -612,10 +662,27 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 8,
   },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  logoButton: {
+    alignSelf: 'center',
+    borderRadius: 8,
+    padding: 4,
+  },
+  logo: {
+    alignSelf: 'center',
+  },
+  headerText: {
+    flex: 1,
+  },
   indicatorsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 2,
   },
   title: {
     fontSize: 24,
@@ -703,9 +770,20 @@ const styles = StyleSheet.create({
     color: '#374151',
     lineHeight: 14,
   },
+  dateText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#6b7280',
+    lineHeight: 13,
+    marginTop: 1,
+  },
   todayName: {
     color: '#2563eb',
     fontWeight: '800',
+  },
+  todayDate: {
+    color: '#2563eb',
+    fontWeight: '600',
   },
   dayActions: {
     flexDirection: 'row',
