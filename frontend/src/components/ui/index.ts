@@ -5,4 +5,6 @@ export { RoleTag } from './RoleTag';
 export { CustomSelect } from './CustomSelect';
 export { LoadingSpinner } from './LoadingSpinner';
 export { default as Modal } from './Modal';
+export { DropdownMenu } from './DropdownMenu';
+export type { DropdownMenuItem } from './DropdownMenu';
 export * from './icons'; 

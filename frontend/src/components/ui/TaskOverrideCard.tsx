@@ -1,6 +1,7 @@
 import React from 'react';
 import { UserAvatar } from './UserAvatar';
-import { Button } from './Button';
+import { DropdownMenu } from './DropdownMenu';
+import type { DropdownMenuItem } from './DropdownMenu';
 import type { ResolvedTask } from '../../types';
 import './TaskOverrideCard.css';
 
@@ -44,6 +45,17 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
       }}
     >
       <div className="task-override-card-main">
+        {task.member && !hideAvatar && (
+          <div className="task-override-card-member">
+            <UserAvatar
+              firstName={task.member.firstName}
+              lastName={task.member.lastName}
+              avatarUrl={task.member.avatarUrl}
+              size={compact ? "extra-small" : "small"}
+            />
+          </div>
+        )}
+        
         <div className="task-override-card-info">
           <h4 className="task-override-card-name">
             <span className="task-override-card-icon">{task.task.icon || '✅'}</span>
@@ -63,17 +75,6 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
             )}
           </div>
         </div>
-        
-        {task.member && !hideAvatar && (
-          <div className="task-override-card-member">
-            <UserAvatar
-              firstName={task.member.firstName}
-              lastName={task.member.lastName}
-              avatarUrl={task.member.avatarUrl}
-              size={compact ? "extra-small" : "small"}
-            />
-          </div>
-        )}
       </div>
       
       {showDescription && task.task.description && (
@@ -82,37 +83,35 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
         </div>
       )}
       
-      {/* Task Action Buttons */}
-      {isAdmin && (
+      {/* Task Action Menu */}
+      {isAdmin && (onEdit || onRemove || onReassign) && (
         <div className="task-override-card-actions">
-          {onEdit && (
-            <Button
-              variant="icon"
-              className="btn-icon-success"
-              onClick={() => onEdit(task)}
-              title="Edit task"
-            >
-              ✏️
-            </Button>
-          )}
-          <Button
-            variant="icon"
-            className="btn-icon-danger"
-            onClick={() => onRemove?.(task)}
-            title="Remove task"
-          >
-            ×
-          </Button>
-          {onReassign && (
-            <Button
-              variant="icon"
-              className="btn-icon-primary"
-              onClick={() => onReassign?.(task)}
-              title="Reassign task"
-            >
-              ↻
-            </Button>
-          )}
+          <DropdownMenu
+            items={[
+              ...(onEdit ? [{
+                id: 'edit',
+                label: 'Edit task',
+                icon: '✏️',
+                onClick: () => onEdit(task),
+                variant: 'success' as const
+              }] : []),
+              ...(onReassign ? [{
+                id: 'reassign',
+                label: 'Reassign task',
+                icon: '↻',
+                onClick: () => onReassign(task),
+                variant: 'primary' as const
+              }] : []),
+              ...(onRemove ? [{
+                id: 'remove',
+                label: 'Remove task',
+                icon: '×',
+                onClick: () => onRemove(task),
+                variant: 'danger' as const
+              }] : [])
+            ] as DropdownMenuItem[]}
+            align="right"
+          />
         </div>
       )}
     </div>

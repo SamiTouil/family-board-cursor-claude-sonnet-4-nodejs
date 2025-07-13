@@ -79,7 +79,7 @@ describe('TaskOverrideCard', () => {
     expect(screen.getByText('mod')).toBeInTheDocument();
   });
 
-  it('shows admin action buttons when user is admin', () => {
+  it('shows admin action dropdown when user is admin', () => {
     const onRemove = vi.fn();
     const onReassign = vi.fn();
 
@@ -95,20 +95,30 @@ describe('TaskOverrideCard', () => {
       />
     );
 
-    const removeButton = screen.getByTitle('Remove task');
-    const reassignButton = screen.getByTitle('Reassign task');
+    // Find and click the dropdown trigger
+    const dropdownTrigger = screen.getByText('⋮');
+    expect(dropdownTrigger).toBeInTheDocument();
+    
+    fireEvent.click(dropdownTrigger);
 
-    expect(removeButton).toBeInTheDocument();
-    expect(reassignButton).toBeInTheDocument();
+    // Check that menu items are shown
+    const removeMenuItem = screen.getByText('Remove task');
+    const reassignMenuItem = screen.getByText('Reassign task');
 
-    fireEvent.click(removeButton);
+    expect(removeMenuItem).toBeInTheDocument();
+    expect(reassignMenuItem).toBeInTheDocument();
+
+    // Test clicking menu items
+    fireEvent.click(removeMenuItem);
     expect(onRemove).toHaveBeenCalledWith(mockTask);
 
-    fireEvent.click(reassignButton);
+    // Click dropdown again to open menu
+    fireEvent.click(dropdownTrigger);
+    fireEvent.click(screen.getByText('Reassign task'));
     expect(onReassign).toHaveBeenCalledWith(mockTask);
   });
 
-  it('does not show admin action buttons when user is not admin', () => {
+  it('does not show admin action dropdown when user is not admin', () => {
     render(
       <TaskOverrideCard
         task={mockTask}
@@ -119,8 +129,7 @@ describe('TaskOverrideCard', () => {
       />
     );
 
-    expect(screen.queryByTitle('Remove task')).not.toBeInTheDocument();
-    expect(screen.queryByTitle('Reassign task')).not.toBeInTheDocument();
+    expect(screen.queryByText('⋮')).not.toBeInTheDocument();
   });
 
   it('uses override time and duration when available', () => {
@@ -198,7 +207,7 @@ describe('TaskOverrideCard', () => {
     expect(durationTag).toHaveClass('task-override-card-tag', 'duration-tag');
   });
 
-  it('shows edit button when onEdit prop is provided and admin is true', () => {
+  it('shows edit option in dropdown when onEdit prop is provided and admin is true', () => {
     const onEdit = vi.fn();
 
     render(
@@ -212,15 +221,19 @@ describe('TaskOverrideCard', () => {
       />
     );
 
-    const editButton = screen.getByTitle('Edit task');
-    expect(editButton).toBeInTheDocument();
-    expect(editButton).toHaveClass('btn', 'btn-icon', 'btn-md', 'btn-icon-success');
+    // Open dropdown menu
+    const dropdownTrigger = screen.getByText('⋮');
+    fireEvent.click(dropdownTrigger);
 
-    fireEvent.click(editButton);
+    // Check edit option exists and click it
+    const editMenuItem = screen.getByText('Edit task');
+    expect(editMenuItem).toBeInTheDocument();
+
+    fireEvent.click(editMenuItem);
     expect(onEdit).toHaveBeenCalledWith(mockTask);
   });
 
-  it('does not show edit button when onEdit prop is not provided', () => {
+  it('does not show dropdown when no actions are available', () => {
     render(
       <TaskOverrideCard
         task={mockTask}
@@ -231,8 +244,8 @@ describe('TaskOverrideCard', () => {
       />
     );
 
-    const editButton = screen.queryByTitle('Edit task');
-    expect(editButton).not.toBeInTheDocument();
+    // Dropdown should not exist when no action callbacks are provided
+    expect(screen.queryByText('⋮')).not.toBeInTheDocument();
   });
 
   it('hides description when showDescription is false', () => {

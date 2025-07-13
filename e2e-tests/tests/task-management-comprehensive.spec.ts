@@ -25,7 +25,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       // Navigate to Tasks page
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
-      await page.getByRole('button', { name: 'Tasks' }).click();
+      await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
       await page.waitForTimeout(2000);
 
       // Test task creation
@@ -48,8 +48,9 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await expect(page.getByText('45m')).toBeVisible();
       await expect(page.getByText('Complete morning routine tasks')).toBeVisible();
 
-      // Test task editing - click the edit button (✏️) instead of heading
-      await page.locator('.btn-icon-success').first().click();
+      // Test task editing - click dropdown menu and then edit option
+      await page.locator('.dropdown-menu-trigger').first().click();
+      await page.getByText('Edit task').click();
       await page.getByLabel('Task Name').fill('Updated Morning Routine');
       await page.getByLabel('Description (Optional)').fill('Updated morning routine description');
       await page.getByLabel('Default Start Time').fill('06:30');
@@ -64,7 +65,8 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       // Test task deletion with confirmation
       page.on('dialog', dialog => dialog.accept());
-      await page.locator('.btn-icon-danger').click();
+      await page.locator('.dropdown-menu-trigger').first().click();
+      await page.getByText('Remove task').click();
       
       // Verify task is removed
       await expect(page.getByRole('heading', { name: 'Updated Morning Routine' })).not.toBeVisible();
@@ -88,7 +90,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
-      await page.getByRole('button', { name: 'Tasks' }).click();
+      await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
       await page.waitForTimeout(2000);
 
       // Test empty task name validation
@@ -136,7 +138,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
-      await page.getByRole('button', { name: 'Tasks' }).click();
+      await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
       await page.waitForTimeout(2000);
 
       // Create multiple tasks with different times
@@ -201,7 +203,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       
       // First create some tasks to use in routines
-      await page.getByRole('button', { name: 'Tasks' }).click();
+      await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
       await page.waitForTimeout(2000);
       await page.getByRole('button', { name: 'Create Your First Task' }).click();
       await page.getByLabel('Task Name').fill('Wake Up');
@@ -269,7 +271,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
       
       // Create some tasks first
-      await page.getByRole('button', { name: 'Tasks' }).click();
+      await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
       await page.waitForTimeout(2000);
       await page.getByRole('button', { name: 'Create Your First Task' }).click();
       await page.getByLabel('Task Name').fill('Morning Jog');
@@ -360,7 +362,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
-      await page.getByRole('button', { name: 'Tasks' }).click();
+      await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
       await page.waitForTimeout(2000);
 
       // Test concurrent form opening and cancellation
@@ -388,7 +390,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await expect(page.getByLabel('Routine Name')).not.toBeVisible();
 
       // Navigate back to Tasks page for task creation
-      await page.getByRole('button', { name: 'Tasks' }).click();
+      await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
       await page.waitForTimeout(2000);
 
       // Test successful creation after cancellations
@@ -422,7 +424,7 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.getByRole('button', { name: 'Create Family' }).click();
 
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });
-      await page.getByRole('button', { name: 'Tasks' }).click();
+      await page.locator('.navigation-item').filter({ hasText: 'Tasks' }).click();
       await page.waitForTimeout(2000);
 
       // Test edge case: midnight time (00:00)

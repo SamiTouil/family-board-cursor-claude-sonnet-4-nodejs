@@ -4,7 +4,8 @@ import { useCurrentWeek } from '../../contexts/CurrentWeekContext';
 import { weekScheduleApi, weekTemplateApi, dayTemplateApi, taskApi } from '../../services/api';
 import { apiClient } from '../../services/api-client';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { TaskOverrideCard, Button, UserAvatar } from '../ui';
+import { TaskOverrideCard, Button, UserAvatar, DropdownMenu } from '../ui';
+import type { DropdownMenuItem } from '../ui';
 import RoutinesIcon from '../ui/icons/RoutinesIcon';
 import { TaskOverrideModal } from './TaskOverrideModal';
 import { useMessage } from '../../hooks';
@@ -845,22 +846,25 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                                 </div>
                                 {isAdmin && (
                                   <div className="weekly-calendar-shift-actions">
-                                    <Button
-                                      variant="icon"
-                                      className="btn-icon-danger"
-                                      onClick={() => handleShiftRemove(shift.tasks, day.date)}
-                                      title="Remove all tasks in this shift"
-                                    >
-                                      ×
-                                    </Button>
-                                    <Button
-                                      variant="icon"
-                                      className="btn-icon-primary"
-                                      onClick={() => handleShiftReassign(shift.tasks, day.date)}
-                                      title="Reassign all tasks in this shift"
-                                    >
-                                      ↻
-                                    </Button>
+                                    <DropdownMenu
+                                      items={[
+                                        {
+                                          id: 'reassign-shift',
+                                          label: 'Reassign all tasks',
+                                          icon: '↻',
+                                          onClick: () => handleShiftReassign(shift.tasks, day.date),
+                                          variant: 'primary'
+                                        },
+                                        {
+                                          id: 'remove-shift',
+                                          label: 'Remove all tasks',
+                                          icon: '×',
+                                          onClick: () => handleShiftRemove(shift.tasks, day.date),
+                                          variant: 'danger'
+                                        }
+                                      ] as DropdownMenuItem[]}
+                                      align="right"
+                                    />
                                   </div>
                                 )}
                               </div>
