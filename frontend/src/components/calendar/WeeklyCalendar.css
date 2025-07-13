@@ -63,7 +63,41 @@
   gap: 0.5rem;
 }
 
-/* Old button styles removed - now using Button component */
+/* Header Button Styles - matching Analytics and other management pages */
+.weekly-calendar-header-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.weekly-calendar-header-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.weekly-calendar-header-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.weekly-calendar-header-button.active {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
 
 /* Loading and Error States */
 .weekly-calendar-loading {
@@ -385,6 +419,23 @@
     opacity: 0.8;
     background-color: rgba(255, 255, 255, 0.9);
   }
+
+  /* Header button mobile adjustments */
+  .weekly-calendar-header-button {
+    padding: 4px 8px;
+    font-size: 0.8125rem;
+    min-width: 32px;
+  }
+
+  .weekly-calendar-controls {
+    gap: 6px;
+  }
+
+  .weekly-calendar-admin-controls {
+    gap: 6px;
+    margin-left: 0.5rem;
+    padding-left: 0.5rem;
+  }
 }
 
 .weekly-calendar-shift-tags {
@@ -621,13 +672,11 @@
 .weekly-calendar-admin-controls {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
   margin-left: 0.75rem;
   padding-left: 0.75rem;
   border-left: 1px solid rgba(255, 255, 255, 0.3);
 }
-
-/* Old admin button styles removed - now using Button component */
 
 /* Messages */
 .weekly-calendar-message {

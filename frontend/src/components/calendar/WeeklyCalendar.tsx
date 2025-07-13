@@ -650,56 +650,61 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
         </div>
         
         <div className="weekly-calendar-controls">
-          <Button
-            variant="secondary"
-            size="sm"
+          <button
+            className="weekly-calendar-header-button"
             onClick={() => navigateWeek('prev')}
             title="Previous week"
           >
             ←
-          </Button>
+          </button>
           
           {!isCurrentWeek() && (
-            <Button
-              variant="primary"
-              size="sm"
+            <button
+              className="weekly-calendar-header-button active"
               onClick={goToCurrentWeek}
               title="Go to current week"
             >
               Today
-            </Button>
+            </button>
           )}
           
-          <Button
-            variant="secondary"
-            size="sm"
+          <button
+            className="weekly-calendar-header-button"
             onClick={() => navigateWeek('next')}
             title="Next week"
           >
             →
-          </Button>
+          </button>
 
           {isAdmin && (
             <div className="weekly-calendar-admin-controls">
-              <Button
-                variant="secondary"
-                size="sm"
+              <button
+                className="weekly-calendar-header-button"
                 onClick={handleApplyTemplate}
                 disabled={isLoading || weekTemplates.length === 0}
                 title={weekTemplates.length === 0 ? 'No week templates available' : 'Apply a weekly routine to this week'}
               >
-                📋 Apply Routine
-              </Button>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <polyline points="12,6 12,12 8,12"></polyline>
+                </svg>
+                Apply Routine
+              </button>
               {weekSchedule?.hasOverrides && (
-                <Button
-                  variant="secondary"
-                  size="sm"
+                <button
+                  className="weekly-calendar-header-button"
                   onClick={handleRemoveOverrides}
                   disabled={isLoading}
                   title="Revert to template"
                 >
-                  🔄 Revert
-                </Button>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10"></path>
+                    <path d="M3.51 15a9 9 0 0 0 14.85 3.36L23 14"></path>
+                  </svg>
+                  Revert
+                </button>
               )}
             </div>
           )}
