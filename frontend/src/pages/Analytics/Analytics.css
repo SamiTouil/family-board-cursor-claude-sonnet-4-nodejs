@@ -82,20 +82,23 @@
     max-width: calc(100% - 120px);
   }
   
-  .analytics-timeframe-dropdown {
+  .analytics-timeframe-dropdown,
+  .analytics-member-dropdown {
     left: 0;
     right: 0;
     min-width: unset;
     width: calc(100vw - 2rem);
     max-width: 320px;
   }
+  
+  .analytics-filter-button {
+    flex: 1;
+    max-width: calc(50% - 6px);
+  }
 }
 
-/* Modern Timeframe Selector */
-.analytics-timeframe-selector {
-  position: relative;
-}
-
+/* Filter Buttons Base Styles */
+.analytics-filter-button,
 .analytics-timeframe-button {
   display: flex;
   align-items: center;
@@ -113,15 +116,143 @@
   white-space: nowrap;
 }
 
+.analytics-filter-button:hover,
 .analytics-timeframe-button:hover {
   background: rgba(255, 255, 255, 0.3);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
+.analytics-filter-button.active,
 .analytics-timeframe-button.active {
   background: rgba(255, 255, 255, 0.3);
   border-color: rgba(255, 255, 255, 0.5);
 }
+
+/* Member Filter */
+.analytics-member-filter {
+  position: relative;
+}
+
+.analytics-filter-chevron {
+  transition: transform 0.2s ease;
+}
+
+.analytics-filter-button:hover .analytics-filter-chevron {
+  transform: translateY(1px);
+}
+
+/* Member Dropdown */
+.analytics-member-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  min-width: 280px;
+  max-width: 320px;
+  z-index: 50;
+  overflow: hidden;
+  animation: dropdownFade 0.15s ease-out;
+}
+
+.analytics-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.analytics-dropdown-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.analytics-dropdown-clear {
+  font-size: 0.75rem;
+  color: #6366f1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.analytics-dropdown-clear:hover {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.analytics-member-list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.analytics-member-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.analytics-member-option:hover {
+  background: #f3f4f6;
+}
+
+.analytics-member-checkbox {
+  width: 16px;
+  height: 16px;
+  margin-right: 12px;
+  cursor: pointer;
+  accent-color: #6366f1;
+}
+
+.analytics-member-name {
+  font-size: 0.875rem;
+  color: #374151;
+  flex: 1;
+}
+
+.analytics-member-virtual {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-left: 6px;
+}
+
+.analytics-dropdown-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.analytics-dropdown-apply {
+  width: 100%;
+  padding: 8px 16px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.analytics-dropdown-apply:hover {
+  background: #5558e5;
+}
+
+/* Modern Timeframe Selector */
+.analytics-timeframe-selector {
+  position: relative;
+}
+
 
 .analytics-timeframe-button.loading {
   opacity: 0.7;
