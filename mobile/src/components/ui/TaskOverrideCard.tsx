@@ -42,50 +42,40 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
       onPress={() => onPress?.(task)}
       activeOpacity={0.7}
     >
-      <View style={styles.taskMain}>
+      <View style={[styles.taskMain, !hideAvatar && styles.taskMainWithAvatar]}>
+        {task.member && !hideAvatar && (
+          <View style={styles.taskLeft}>
+            <UserAvatar
+              firstName={task.member.firstName}
+              lastName={task.member.lastName}
+              avatarUrl={task.member.avatarUrl}
+              size={compact ? "extra-small" : "small"}
+            />
+          </View>
+        )}
+        
         <View style={styles.taskInfo}>
           <View style={styles.taskHeader}>
             <Text style={styles.taskIcon}>{task.task.icon || '✅'}</Text>
             <Text style={[styles.taskName, compact && styles.taskNameCompact]}>
               {task.task.name}
             </Text>
+            <View style={styles.taskTags}>
+              <View style={styles.timeTag}>
+                <Text style={styles.tagText}>{formatTime(startTime)}</Text>
+              </View>
+              <View style={styles.durationTag}>
+                <Text style={styles.tagText}>{formatDuration(duration)}</Text>
+              </View>
+              {task.source === 'override' && (
+                <View style={styles.modifiedBadge}>
+                  <Text style={styles.modifiedText}>MOD</Text>
+                </View>
+              )}
+            </View>
           </View>
-          
-          <View style={styles.taskTags}>
-            <View style={styles.timeTag}>
-              <Text style={styles.tagText}>{formatTime(startTime)}</Text>
-            </View>
-            <View style={styles.durationTag}>
-              <Text style={styles.tagText}>{formatDuration(duration)}</Text>
-            </View>
-          </View>
-        </View>
-        
-        <View style={styles.taskRight}>
-          {task.member && !hideAvatar && (
-            <View style={styles.taskMember}>
-              <UserAvatar
-                firstName={task.member.firstName}
-                lastName={task.member.lastName}
-                avatarUrl={task.member.avatarUrl}
-                size={compact ? "extra-small" : "small"}
-              />
-            </View>
-          )}
-          
-          {task.source === 'override' && (
-            <View style={styles.modifiedBadge}>
-              <Text style={styles.modifiedText}>MOD</Text>
-            </View>
-          )}
         </View>
       </View>
-      
-      {showDescription && task.task.description && (
-        <Text style={styles.taskDescription}>
-          {task.task.description}
-        </Text>
-      )}
     </TouchableOpacity>
   );
 };
@@ -97,8 +87,8 @@ const styles = StyleSheet.create({
     borderLeftWidth: 6,
     borderWidth: 1,
     borderColor: '#d1d5db',
-    padding: 12,
-    marginBottom: 8,
+    padding: 10,
+    marginBottom: 4,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -109,21 +99,24 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   compact: {
-    padding: 12,
-    marginBottom: 8,
+    padding: 10,
+    marginBottom: 4,
   },
   taskMain: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+  },
+  taskMainWithAvatar: {
+    alignItems: 'center',
   },
   taskInfo: {
     flex: 1,
+    justifyContent: 'center',
   },
   taskHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    flexWrap: 'wrap',
   },
   taskIcon: {
     fontSize: 16,
@@ -142,7 +135,7 @@ const styles = StyleSheet.create({
   taskTags: {
     flexDirection: 'row',
     gap: 4,
-    marginTop: 4,
+    marginLeft: 'auto',
   },
   timeTag: {
     backgroundColor: '#eff6ff',
@@ -166,9 +159,6 @@ const styles = StyleSheet.create({
     color: '#1e40af',
     lineHeight: 12,
   },
-  taskMember: {
-    // No longer needs marginLeft since it's in its own container
-  },
   taskDescription: {
     fontSize: 14,
     color: '#6b7280',
@@ -190,10 +180,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  taskRight: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 4,
-    marginLeft: 12,
+  taskLeft: {
+    marginRight: 12,
   },
 }); 

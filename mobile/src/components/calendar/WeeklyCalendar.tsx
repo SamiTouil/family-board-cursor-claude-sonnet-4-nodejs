@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,10 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
-  Alert,
-  Animated,
 } from 'react-native';
-import { PanGestureHandler, GestureHandlerRootView, State } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFamily } from '../../contexts/FamilyContext';
@@ -20,177 +17,39 @@ import { ShiftIndicator } from '../ui/ShiftIndicator';
 import { TaskOverrideModal, CreateTaskOverrideData } from './TaskOverrideModal';
 import type { ResolvedWeekSchedule, ResolvedTask, ResolvedDay, Task, User } from '../../types';
 
+const { width: screenWidth } = Dimensions.get('window');
+
 interface WeeklyCalendarProps {
   style?: any;
 }
 
 export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   const { currentFamily } = useFamily();
-  const { on, off } = useNotifications();
+  const { } = useNotifications();
   const insets = useSafeAreaInsets();
+  const scrollViewRef = useRef<ScrollView>(null);
+  
   const [weekSchedule, setWeekSchedule] = useState<ResolvedWeekSchedule | null>(null);
   const [currentWeekStart, setCurrentWeekStart] = useState<string>('');
   const [currentDayIndex, setCurrentDayIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [messageTimeout, setMessageTimeout] = useState<NodeJS.Timeout | null>(null);
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
   const [familyMembers, setFamilyMembers] = useState<User[]>([]);
-
+  
+  // Cache for adjacent weeks
+  const [weekCache, setWeekCache] = useState<Map<string, ResolvedWeekSchedule>>(new Map());
+  
   // Task override modal state
   const [showTaskOverrideModal, setShowTaskOverrideModal] = useState(false);
   const [taskOverrideAction, setTaskOverrideAction] = useState<'ADD' | 'REMOVE' | 'REASSIGN'>('ADD');
   const [selectedTask, setSelectedTask] = useState<ResolvedTask | undefined>(undefined);
   const [taskOverrideDate, setTaskOverrideDate] = useState<string>('');
-
-  // Animation state for smooth transitions with prerendering
-  const [slideAnimation] = useState(new Animated.Value(0));
-  const [isAnimating, setIsAnimating] = useState(false);
   
-  // Prerendering state for smooth transitions
-  const [prevDayData, setPrevDayData] = useState<ResolvedDay | null>(null);
-  const [nextDayData, setNextDayData] = useState<ResolvedDay | null>(null);
-
-  const { width: screenWidth } = Dimensions.get('window');
+  const isAdmin = currentFamily?.userRole === 'ADMIN';
   const isTablet = screenWidth > 768;
   const daysToShow = isTablet ? 3 : 1;
-
-  const isAdmin = currentFamily?.userRole === 'ADMIN';
-
-  // Helper function to set message with auto-dismiss
-  const setMessageWithAutoDismiss = (newMessage: { type: 'success' | 'error'; text: string } | null) => {
-    // Clear existing timeout
-    if (messageTimeout) {
-      clearTimeout(messageTimeout);
-      setMessageTimeout(null);
-    }
-
-    setMessage(newMessage);
-
-    // Set auto-dismiss for success messages (3 seconds) and error messages (5 seconds)
-    if (newMessage) {
-      const timeout = setTimeout(() => {
-        setMessage(null);
-        setMessageTimeout(null);
-      }, newMessage.type === 'success' ? 3000 : 5000);
-      setMessageTimeout(timeout);
-    }
-  };
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (messageTimeout) {
-        clearTimeout(messageTimeout);
-      }
-    };
-  }, [messageTimeout]);
-
-  // Set up WebSocket event listeners for real-time schedule updates
-  useEffect(() => {
-    if (!currentFamily) return;
-
-    // Handle task schedule updates
-    const handleTaskScheduleUpdated = (data: any) => {
-      console.log('WeeklyCalendar: Task schedule updated', data);
-      // Refresh the current week schedule to show changes
-      if (currentWeekStart) {
-        loadWeekSchedule(currentWeekStart);
-      }
-    };
-
-    // Register event listener
-    on('task-schedule-updated', handleTaskScheduleUpdated);
-
-    // Cleanup event listener
-    return () => {
-      off('task-schedule-updated', handleTaskScheduleUpdated);
-    };
-  }, [currentFamily, currentWeekStart, on, off]);
-
-  // Initialize with current week
-  useEffect(() => {
-    if (currentFamily) {
-      console.log('WeeklyCalendar: Initializing with family:', currentFamily.name);
-      const today = new Date();
-      const monday = getMonday(today);
-      console.log('WeeklyCalendar: Calculated Monday:', monday);
-      setCurrentWeekStart(monday);
-      
-      // Set current day index to today
-      const todayIndex = new Date().getDay();
-      const mondayBasedIndex = todayIndex === 0 ? 6 : todayIndex - 1; // Convert Sunday=0 to Monday=0 based
-      setCurrentDayIndex(mondayBasedIndex);
-      
-      loadWeekSchedule(monday);
-      loadAvailableTasks();
-      loadFamilyMembers();
-    } else {
-      console.log('WeeklyCalendar: No current family available');
-    }
-  }, [currentFamily]);
-
-  // Get prerendered day data for smooth transitions
-  const getPrerenderDayData = async (weekStart: string, dayIndex: number): Promise<ResolvedDay | null> => {
-    try {
-      if (!currentFamily) return null;
-      
-      const response = await weekScheduleApi.getWeekSchedule(currentFamily.id, weekStart);
-      const scheduleData = response.data;
-      
-      if (scheduleData && scheduleData.days && scheduleData.days[dayIndex]) {
-        return scheduleData.days[dayIndex];
-      }
-      return null;
-    } catch (error) {
-      console.error('Failed to prerender day data:', error);
-      return null;
-    }
-  };
-
-  // Update prerendered days when current day changes
-  useEffect(() => {
-    if (!weekSchedule || !currentFamily) return;
-
-    const updatePrerenderData = async () => {
-      // Calculate previous day
-      if (currentDayIndex === 0) {
-        // Previous day is Sunday of previous week
-        const currentDate = new Date(currentWeekStart + 'T00:00:00.000Z');
-        const prevWeekDate = new Date(currentDate);
-        prevWeekDate.setDate(currentDate.getDate() - 7);
-        const prevWeekStart = getMonday(prevWeekDate);
-        setPrevDayData(await getPrerenderDayData(prevWeekStart, 6));
-      } else {
-        // Previous day is in current week
-        setPrevDayData(weekSchedule.days[currentDayIndex - 1] || null);
-      }
-
-      // Calculate next day
-      if (currentDayIndex === 6) {
-        // Next day is Monday of next week
-        const currentDate = new Date(currentWeekStart + 'T00:00:00.000Z');
-        const nextWeekDate = new Date(currentDate);
-        nextWeekDate.setDate(currentDate.getDate() + 7);
-        const nextWeekStart = getMonday(nextWeekDate);
-        setNextDayData(await getPrerenderDayData(nextWeekStart, 0));
-      } else {
-        // Next day is in current week
-        setNextDayData(weekSchedule.days[currentDayIndex + 1] || null);
-      }
-    };
-
-    updatePrerenderData();
-  }, [currentDayIndex, currentWeekStart, weekSchedule, currentFamily]);
-
-  // Initialize slide animation to center position
-  useEffect(() => {
-    if (daysToShow === 1) {
-      slideAnimation.setValue(-screenWidth);
-    }
-  }, [daysToShow, screenWidth, slideAnimation]);
-
+  
   const getMonday = (date: Date): string => {
     const d = new Date(date);
     const day = d.getDay();
@@ -202,218 +61,225 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     const dayOfMonth = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${dayOfMonth}`;
   };
-
-  const loadWeekSchedule = async (weekStartDate: string) => {
+  
+  const loadWeekSchedule = async (weekStartDate: string, useCache = true) => {
     if (!currentFamily) return;
+    
+    // Check cache first
+    if (useCache && weekCache.has(weekStartDate)) {
+      const cached = weekCache.get(weekStartDate);
+      if (cached) {
+        setWeekSchedule(cached);
+        return;
+      }
+    }
     
     setIsLoading(true);
     setError(null);
     try {
       const response = await weekScheduleApi.getWeekSchedule(currentFamily.id, weekStartDate);
-      // Backend returns the ResolvedWeekSchedule directly (not wrapped in { success: true, data: ... })
       const scheduleData = response.data;
       setWeekSchedule(scheduleData);
+      
+      // Update cache
+      setWeekCache(prev => new Map(prev).set(weekStartDate, scheduleData));
     } catch (error: any) {
-      console.error('WeeklyCalendar: Failed to load week schedule:', error);
+      console.error('Failed to load week schedule:', error);
       setError(error.response?.data?.message || 'Failed to load week schedule');
     } finally {
       setIsLoading(false);
     }
   };
-
+  
+  // Preload adjacent weeks
+  const preloadAdjacentWeeks = async (weekStartDate: string) => {
+    if (!currentFamily) return;
+    
+    const currentDate = new Date(weekStartDate + 'T00:00:00.000Z');
+    const prevWeek = new Date(currentDate);
+    prevWeek.setDate(currentDate.getDate() - 7);
+    const nextWeek = new Date(currentDate);
+    nextWeek.setDate(currentDate.getDate() + 7);
+    
+    const prevWeekStart = getMonday(prevWeek);
+    const nextWeekStart = getMonday(nextWeek);
+    
+    // Load in background without showing loader
+    try {
+      const [prevResponse, nextResponse] = await Promise.all([
+        weekScheduleApi.getWeekSchedule(currentFamily.id, prevWeekStart),
+        weekScheduleApi.getWeekSchedule(currentFamily.id, nextWeekStart),
+      ]);
+      
+      setWeekCache(prev => {
+        const newCache = new Map(prev);
+        newCache.set(prevWeekStart, prevResponse.data);
+        newCache.set(nextWeekStart, nextResponse.data);
+        return newCache;
+      });
+    } catch (error) {
+      console.error('Failed to preload adjacent weeks:', error);
+    }
+  };
+  
+  // Initialize
+  useEffect(() => {
+    if (currentFamily) {
+      const today = new Date();
+      const monday = getMonday(today);
+      setCurrentWeekStart(monday);
+      
+      const todayIndex = new Date().getDay();
+      const mondayBasedIndex = todayIndex === 0 ? 6 : todayIndex - 1;
+      setCurrentDayIndex(mondayBasedIndex);
+      
+      loadWeekSchedule(monday);
+      preloadAdjacentWeeks(monday);
+      loadAvailableTasks();
+      loadFamilyMembers();
+    }
+  }, [currentFamily]);
+  
+  // State for virtual scrolling
+  const [scrollDays, setScrollDays] = useState<Array<{day: ResolvedDay | null; weekStart: string; dayIndex: number}>>([]);
+  const [centerIndex, setCenterIndex] = useState(7); // Start at center of 21 days
+  
+  // Build array of days for scrolling (3 weeks: previous, current, next)
+  useEffect(() => {
+    if (!weekSchedule || !currentWeekStart) return;
+    
+    const days = [];
+    
+    // Previous week
+    const prevWeek = new Date(currentWeekStart + 'T00:00:00.000Z');
+    prevWeek.setDate(prevWeek.getDate() - 7);
+    const prevWeekStart = getMonday(prevWeek);
+    const prevWeekData = weekCache.get(prevWeekStart);
+    
+    for (let i = 0; i < 7; i++) {
+      days.push({
+        day: prevWeekData?.days?.[i] || null,
+        weekStart: prevWeekStart,
+        dayIndex: i
+      });
+    }
+    
+    // Current week
+    for (let i = 0; i < 7; i++) {
+      days.push({
+        day: weekSchedule.days[i],
+        weekStart: currentWeekStart,
+        dayIndex: i
+      });
+    }
+    
+    // Next week
+    const nextWeek = new Date(currentWeekStart + 'T00:00:00.000Z');
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    const nextWeekStart = getMonday(nextWeek);
+    const nextWeekData = weekCache.get(nextWeekStart);
+    
+    for (let i = 0; i < 7; i++) {
+      days.push({
+        day: nextWeekData?.days?.[i] || null,
+        weekStart: nextWeekStart,
+        dayIndex: i
+      });
+    }
+    
+    setScrollDays(days);
+    setCenterIndex(7 + currentDayIndex);
+  }, [weekSchedule, currentWeekStart, currentDayIndex, weekCache]);
+  
+  // Scroll to center when days are loaded
+  useEffect(() => {
+    if (scrollDays.length > 0 && scrollViewRef.current) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ x: screenWidth * centerIndex, animated: false });
+      }, 100);
+    }
+  }, [centerIndex, scrollDays.length]);
+  
+  // Handle scroll end
+  const handleScroll = (event: any) => {
+    if (daysToShow !== 1) return;
+    
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const pageIndex = Math.round(offsetX / screenWidth);
+    
+    if (pageIndex < 0 || pageIndex >= scrollDays.length) return;
+    
+    const selectedDay = scrollDays[pageIndex];
+    if (!selectedDay) return;
+    
+    // Check if we moved to a different week
+    if (selectedDay.weekStart !== currentWeekStart) {
+      // Use cached data if available
+      if (weekCache.has(selectedDay.weekStart)) {
+        setWeekSchedule(weekCache.get(selectedDay.weekStart)!);
+      }
+      
+      setCurrentWeekStart(selectedDay.weekStart);
+      setCurrentDayIndex(selectedDay.dayIndex);
+      
+      // Load in background if not cached
+      if (!weekCache.has(selectedDay.weekStart)) {
+        loadWeekSchedule(selectedDay.weekStart);
+      }
+      preloadAdjacentWeeks(selectedDay.weekStart);
+    } else if (selectedDay.dayIndex !== currentDayIndex) {
+      // Same week, different day
+      setCurrentDayIndex(selectedDay.dayIndex);
+    }
+  };
+  
   const loadAvailableTasks = async () => {
     if (!currentFamily) return;
     
     try {
       const response = await taskApi.getFamilyTasks(currentFamily.id);
-      // Backend returns { success: true, data: [tasks array] }
-      const tasksData = response.data?.data || response.data;
-      setAvailableTasks(Array.isArray(tasksData) ? tasksData : []);
+      const tasks = response.data || [];
+      console.log('Loaded tasks:', tasks);
+      setAvailableTasks(Array.isArray(tasks) ? tasks : []);
     } catch (error) {
-      console.error('WeeklyCalendar: Failed to load tasks:', error);
+      console.error('Failed to load available tasks:', error);
       setAvailableTasks([]);
     }
   };
-
+  
   const loadFamilyMembers = async () => {
     if (!currentFamily) return;
     
     try {
       const response = await familyApi.getMembers(currentFamily.id);
+      const membersList = response.data || [];
+      console.log('Loaded members:', membersList);
       
-      // Backend returns: { success: true, data: [FamilyMemberResponse array] }
-      const membersData = response.data?.data || [];
-      
-      if (Array.isArray(membersData)) {
-        // Backend returns FamilyMemberResponse objects with nested user data
-        const members = membersData.map((member: any) => ({
-          id: member.user.id,
-          firstName: member.user.firstName,
-          lastName: member.user.lastName,
-          email: member.user.email,
-          avatarUrl: member.user.avatarUrl,
-          isVirtual: member.user.isVirtual || false,
-          createdAt: member.user.createdAt || new Date().toISOString(),
-          updatedAt: member.user.updatedAt || new Date().toISOString()
-        }));
-        setFamilyMembers(members);
-      }
+      // Ensure we have an array of members
+      setFamilyMembers(Array.isArray(membersList) ? membersList : []);
     } catch (error) {
       console.error('Failed to load family members:', error);
       setFamilyMembers([]);
     }
   };
-
-
-  const navigateWeek = (direction: 'prev' | 'next') => {
-    const currentDate = new Date(currentWeekStart + 'T00:00:00.000Z');
-    const newDate = new Date(currentDate);
-    newDate.setDate(currentDate.getDate() + (direction === 'next' ? 7 : -7));
-    
-    const newWeekStart = getMonday(newDate);
-    setCurrentWeekStart(newWeekStart);
-    loadWeekSchedule(newWeekStart);
+  
+  const formatTime = (time: string): string => {
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
   };
-
-  const navigateDay = (direction: 'prev' | 'next') => {
-    if (!weekSchedule) return;
-    
-    const newIndex = direction === 'next' 
-      ? Math.min(currentDayIndex + 1, 6)
-      : Math.max(currentDayIndex - 1, 0);
-    
-    setCurrentDayIndex(newIndex);
+  
+  const formatDuration = (minutes: number): string => {
+    if (minutes < 60) return `${minutes}min`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
   };
-
-  // Handle swipe gestures with proper cross-week navigation
-  const handleSwipeGesture = (event: any) => {
-    const { nativeEvent } = event;
-    
-    // Only handle swipes on mobile (single day view)
-    if (daysToShow !== 1 || !weekSchedule) return;
-    
-    const { translationX, state } = nativeEvent;
-    
-    if (state === State.ACTIVE) {
-      // Follow finger movement in real-time
-      const baseOffset = -screenWidth;
-      slideAnimation.setValue(baseOffset + translationX);
-    } else if (state === State.END) {
-      const { velocityX } = nativeEvent;
-      
-      // Determine if gesture should trigger navigation
-      const swipeThreshold = screenWidth * 0.3;
-      const velocityThreshold = 500;
-      
-      const shouldNavigateNext = translationX < -swipeThreshold || velocityX < -velocityThreshold;
-      const shouldNavigatePrev = translationX > swipeThreshold || velocityX > velocityThreshold;
-      
-      if (shouldNavigateNext || shouldNavigatePrev) {
-        // Animate to completion first
-        const targetPosition = shouldNavigateNext ? -screenWidth * 2 : 0;
-        
-        Animated.timing(slideAnimation, {
-          toValue: targetPosition,
-          duration: 200,
-          useNativeDriver: true,
-        }).start(() => {
-          // After animation completes, update data and reset position
-          const direction = shouldNavigateNext ? 'next' : 'prev';
-          updateNavigationData(direction).then(() => {
-            // Reset to center after data is updated
-            slideAnimation.setValue(-screenWidth);
-          });
-        });
-      } else {
-        // Snap back to center position
-        Animated.spring(slideAnimation, {
-          toValue: -screenWidth,
-          tension: 100,
-          friction: 8,
-          useNativeDriver: true,
-        }).start(() => {
-          // After animation completes, update data and reset position
-          const direction = shouldNavigateNext ? 'next' : 'prev';
-          updateNavigationData(direction).then(() => {
-            // Small delay to ensure prerendered data is updated
-            setTimeout(() => {
-              slideAnimation.setValue(-screenWidth);
-            }, 50);
-          });
-        });
-      }
-    } else if (state === State.BEGAN) {
-      // Initialize animation to center position when gesture begins
-      slideAnimation.setValue(-screenWidth);
-    }
-  };
-
-  // Update navigation data without visual disruption
-  const updateNavigationData = async (direction: 'prev' | 'next') => {
-    if (!weekSchedule || isAnimating) return;
-
-    setIsAnimating(true);
-
-    try {
-      if (direction === 'next' && currentDayIndex === 6) {
-        // Sunday -> next Monday (next week)
-        const currentDate = new Date(currentWeekStart + 'T00:00:00.000Z');
-        const newDate = new Date(currentDate);
-        newDate.setDate(currentDate.getDate() + 7);
-        const newWeekStart = getMonday(newDate);
-        
-        setCurrentWeekStart(newWeekStart);
-        setCurrentDayIndex(0);
-        await loadWeekSchedule(newWeekStart);
-      } else if (direction === 'prev' && currentDayIndex === 0) {
-        // Monday -> previous Sunday (previous week)
-        const currentDate = new Date(currentWeekStart + 'T00:00:00.000Z');
-        const newDate = new Date(currentDate);
-        newDate.setDate(currentDate.getDate() - 7);
-        const newWeekStart = getMonday(newDate);
-        
-        setCurrentWeekStart(newWeekStart);
-        setCurrentDayIndex(6);
-        await loadWeekSchedule(newWeekStart);
-      } else {
-        // Regular day navigation within the week
-        const newIndex = direction === 'next' 
-          ? Math.min(currentDayIndex + 1, 6)
-          : Math.max(currentDayIndex - 1, 0);
-        setCurrentDayIndex(newIndex);
-      }
-    } catch (error) {
-      console.error('Navigation data update failed:', error);
-    } finally {
-      setIsAnimating(false);
-    }
-  };
-
-  const goToCurrentWeek = () => {
-    const today = new Date();
-    const monday = getMonday(today);
-    setCurrentWeekStart(monday);
-    
-    const todayIndex = new Date().getDay();
-    const mondayBasedIndex = todayIndex === 0 ? 6 : todayIndex - 1;
-    setCurrentDayIndex(mondayBasedIndex);
-    
-    loadWeekSchedule(monday);
-  };
-
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString + 'T00:00:00.000Z');
-    const today = new Date();
-    const isToday = date.toDateString() === today.toDateString();
-    
-    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-    const dayNumber = date.getDate();
-    const month = date.toLocaleDateString('en-US', { month: 'short' });
-    
-    return isToday ? `${dayName} ${dayNumber} (Today)` : `${dayName} ${dayNumber}`;
-  };
-
+  
   const formatWeekRange = (weekStartDate: string): string => {
+    if (!weekStartDate) return '';
     const startDate = new Date(weekStartDate + 'T00:00:00.000Z');
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 6);
@@ -428,40 +294,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
       return `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}, ${year}`;
     }
   };
-
-  const sortTasksByTime = (tasks: ResolvedTask[]): ResolvedTask[] => {
-    return [...tasks].sort((a, b) => {
-      const timeA = a.overrideTime || a.task.defaultStartTime;
-      const timeB = b.overrideTime || b.task.defaultStartTime;
-      return timeA.localeCompare(timeB);
-    });
-  };
-
-  const formatTime = (time: string): string => {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours || '0', 10);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${minutes || '00'} ${ampm}`;
-  };
-
-  const formatDuration = (minutes: number): string => {
-    if (minutes < 60) {
-      return `${minutes}m`;
-    }
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
-  };
-
-  const getDayTasks = (day: ResolvedDay) => {
-    if (!day || !day.tasks) {
-      return [];
-    }
-    return sortTasksByTime(day.tasks);
-  };
-
-  // Group sequential tasks by member into shifts
+  
   const groupTasksIntoShifts = (tasks: ResolvedTask[]): Array<{ memberId: string | null; tasks: ResolvedTask[] }> => {
     if (tasks.length === 0) return [];
     
@@ -469,291 +302,191 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     let currentShift: { memberId: string | null; tasks: ResolvedTask[] } | null = null;
     
     tasks.forEach((task) => {
-      if (!currentShift || currentShift.memberId !== task.memberId) {
-        // Start a new shift
-        currentShift = {
-          memberId: task.memberId,
-          tasks: [task]
-        };
+      const memberId = task.member?.id || null;
+      
+      if (!currentShift || currentShift.memberId !== memberId) {
+        currentShift = { memberId, tasks: [task] };
         shifts.push(currentShift);
       } else {
-        // Add to current shift
         currentShift.tasks.push(task);
       }
     });
     
     return shifts;
   };
-
-  const isCurrentWeek = (): boolean => {
+  
+  const renderDayComponent = (day: ResolvedDay | null) => {
+    if (!day) {
+      return <View style={styles.dayColumn} />;
+    }
+    
     const today = new Date();
-    const currentMonday = getMonday(today);
-    return currentWeekStart === currentMonday;
-  };
-
-  const handleTaskPress = (task: ResolvedTask, date: string) => {
-    if (!isAdmin) return;
-    
-    // Show action menu for task (placeholder for now - will show alert)
-    Alert.alert(
-      'Task Actions',
-      `What would you like to do with "${task.task.name}"?`,
-      [
-        { text: 'Edit', onPress: () => handleTaskOverride('REASSIGN', task, date) },
-        { text: 'Remove', onPress: () => handleTaskOverride('REMOVE', task, date), style: 'destructive' },
-        { text: 'Cancel', style: 'cancel' }
-      ]
-    );
-  };
-
-  const handleTaskOverride = (action: 'ADD' | 'REMOVE' | 'REASSIGN', task?: ResolvedTask, date?: string) => {
-    setTaskOverrideAction(action);
-    setSelectedTask(task);
-    setTaskOverrideDate(date || '');
-    setShowTaskOverrideModal(true);
-    setMessageWithAutoDismiss(null);
-  };
-
-  const handleCancelTaskOverride = () => {
-    setShowTaskOverrideModal(false);
-    setSelectedTask(undefined);
-    setTaskOverrideDate('');
-  };
-
-  const handleConfirmTaskOverride = async (overrideData: CreateTaskOverrideData) => {
-    if (!currentFamily) return;
-
-    try {
-      await weekScheduleApi.applyWeekOverride(currentFamily.id, {
-        weekStartDate: currentWeekStart,
-        taskOverrides: [overrideData],
-        replaceExisting: false // Individual task overrides should be cumulative
-      });
-
-      const actionText = overrideData.action === 'ADD' ? 'added' : 
-                        overrideData.action === 'REMOVE' ? 'removed' : 
-                        overrideData.action === 'REASSIGN' ? 'reassigned' : 'modified';
-      
-      setMessageWithAutoDismiss({ type: 'success', text: `Task ${actionText} successfully` });
-      loadWeekSchedule(currentWeekStart); // Reload to show changes
-    } catch (error: any) {
-      setMessageWithAutoDismiss({ type: 'error', text: error.response?.data?.message || 'Failed to apply task override' });
-    }
-  };
-
-  const getVisibleDays = (): ResolvedDay[] => {
-    if (!weekSchedule) return [];
-    
-    if (daysToShow === 1) {
-      // Mobile: show only current day
-      return [weekSchedule.days[currentDayIndex]];
-    } else {
-      // Tablet: show multiple days
-      const startIndex = Math.max(0, currentDayIndex - 1);
-      const endIndex = Math.min(6, startIndex + daysToShow - 1);
-      return weekSchedule.days.slice(startIndex, endIndex + 1);
-    }
-  };
-
-  // Helper function to render a day component
-  const renderDayComponent = (day: ResolvedDay | null, position: 'prev' | 'current' | 'next') => {
-    if (!day) return null;
-
-    const dayTasks = getDayTasks(day);
-    const isToday = new Date(day.date + 'T00:00:00.000Z').toDateString() === new Date().toDateString();
+    const dayDate = new Date(day.date + 'T00:00:00.000Z');
+    const isToday = dayDate.toDateString() === today.toDateString();
+    const dayName = dayDate.toLocaleDateString('en-US', { weekday: 'long' });
     
     return (
-      <View 
-        key={`${day.date}-${position}`}
-        style={[
-          styles.dayColumn,
-          styles.slidingDayColumn,
-          position === 'prev' && styles.prevDayColumn,
-          position === 'next' && styles.nextDayColumn,
-        ]}
-      >
-        {/* Day Header */}
-        <View style={styles.dayHeader}>
-          <Text style={styles.dayName}>
-            {formatDate(day.date)}
-          </Text>
-          {isAdmin && (
-            <View style={styles.dayActions}>
-              <TouchableOpacity
-                style={styles.dayActionButton}
-                onPress={() => handleTaskOverride('ADD', undefined, day.date)}
-                disabled={isLoading || availableTasks.length === 0}
-              >
-                <Text style={styles.dayActionButtonText}>+ Add Task</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.dayActionButton}
-                onPress={() => Alert.alert('Apply Daily Routine', 'This feature is coming soon!')}
-                disabled={isLoading}
-              >
-                <Text style={styles.dayActionButtonText}>Apply Routine</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+      <View style={[styles.dayColumn, { width: screenWidth }]}>
+        <View style={[styles.dayHeader, isToday && styles.todayHeader]}>
+          <View style={styles.dayInfo}>
+            <Text style={[styles.dayName, isToday && styles.todayName]}>{dayName}</Text>
+          </View>
+          <View style={styles.dayActions}>
+            <TouchableOpacity
+              style={styles.dayActionButton}
+              onPress={() => {
+                setTaskOverrideAction('ADD');
+                setSelectedTask(undefined);
+                setTaskOverrideDate(day.date);
+                setShowTaskOverrideModal(true);
+              }}
+              disabled={!isAdmin}
+            >
+              <Text style={styles.actionButtonText}>+</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.dayActionButton}
+              onPress={() => {
+                // TODO: Implement daily routine application
+                console.log('Apply daily routine');
+              }}
+              disabled={!isAdmin}
+            >
+              <View style={styles.routinesIcon}>
+                <View style={styles.routinesCircle} />
+                <View style={styles.routinesCircle} />
+                <View style={styles.routinesCircle} />
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
         
-        {/* Tasks */}
-        <View style={styles.tasksContainer}>
-          {dayTasks.length === 0 ? (
-            <View style={styles.noTasks}>
-              <Text style={styles.noTasksText}>No tasks</Text>
-            </View>
-          ) : (
+        <ScrollView style={styles.tasksLane} showsVerticalScrollIndicator={false}>
+          {day.tasks.length > 0 ? (
             <View style={styles.tasksStack}>
-              {groupTasksIntoShifts(dayTasks).map((shift, shiftIndex) => {
-                const isMultiTaskShift = shift.tasks.length > 1;
-                const shiftMember = shift.memberId ? familyMembers.find(m => m.id === shift.memberId) : null;
-                
-                // Calculate shift time range and duration
-                const shiftStartTime = shift.tasks[0].overrideTime || shift.tasks[0].task.defaultStartTime;
-                const lastTask = shift.tasks[shift.tasks.length - 1];
-                const lastTaskDuration = lastTask.overrideDuration ?? lastTask.task.defaultDuration;
-                const lastTaskStartTime = lastTask.overrideTime || lastTask.task.defaultStartTime;
-                const [hours, minutes] = lastTaskStartTime.split(':').map(Number);
-                const endDate = new Date();
-                endDate.setHours(hours, minutes + lastTaskDuration, 0, 0);
-                const shiftEndTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
-                const totalDuration = shift.tasks.reduce((sum, task) => sum + (task.overrideDuration ?? task.task.defaultDuration), 0);
-                
-                return (
-                  <View
-                    key={`shift-${shiftIndex}-${shift.memberId}`}
-                    style={[styles.shift, isMultiTaskShift && styles.multiTaskShift]}
-                  >
-                    {isMultiTaskShift && shiftMember && (
+              {groupTasksIntoShifts(day.tasks).map((shift, shiftIndex) => (
+                <View
+                  key={`shift-${shiftIndex}`}
+                  style={[
+                    styles.shift,
+                    shift.tasks.length > 1 && styles.multiTaskShift
+                  ]}
+                >
+                  {shift.tasks.length > 1 && shift.memberId && (() => {
+                    // Calculate shift timing info
+                    const startTime = shift.tasks[0].overrideTime || shift.tasks[0].task.defaultStartTime;
+                    const lastTask = shift.tasks[shift.tasks.length - 1];
+                    const lastStartTime = lastTask.overrideTime || lastTask.task.defaultStartTime;
+                    const lastDuration = lastTask.overrideDuration || lastTask.task.defaultDuration;
+                    
+                    // Calculate end time
+                    const [lastHours, lastMinutes] = lastStartTime.split(':').map(Number);
+                    const endTimeMinutes = (lastHours * 60) + lastMinutes + lastDuration;
+                    const endHours = Math.floor(endTimeMinutes / 60);
+                    const endMins = endTimeMinutes % 60;
+                    const endTime = `${String(endHours).padStart(2, '0')}:${String(endMins).padStart(2, '0')}`;
+                    
+                    // Calculate shift duration (time difference between start and end)
+                    const [startHours, startMinutes] = startTime.split(':').map(Number);
+                    const startTimeMinutes = (startHours * 60) + startMinutes;
+                    const shiftDuration = endTimeMinutes - startTimeMinutes;
+                    
+                    return (
                       <View style={styles.shiftHeader}>
                         <UserAvatar
-                          firstName={shiftMember.firstName}
-                          lastName={shiftMember.lastName}
-                          avatarUrl={shiftMember.avatarUrl}
-                          size={32}
+                          firstName={shift.tasks[0].member?.firstName || ''}
+                          lastName={shift.tasks[0].member?.lastName || ''}
+                          avatarUrl={shift.tasks[0].member?.avatarUrl}
+                          size="small"
                         />
                         <View style={styles.shiftTags}>
-                          <View style={styles.shiftTag}>
-                            <Text style={styles.shiftTagText}>
-                              {formatTime(shiftStartTime)} - {formatTime(shiftEndTime)}
+                          <View style={styles.shiftTimeTag}>
+                            <Text style={styles.shiftTimeTagText}>
+                              {startTime} - {endTime}
                             </Text>
                           </View>
-                          <View style={[styles.shiftTag, styles.durationTag]}>
-                            <Text style={styles.shiftTagText}>
-                              {formatDuration(totalDuration)}
+                          <View style={styles.shiftDurationTag}>
+                            <Text style={styles.shiftDurationTagText}>
+                              {formatDuration(shiftDuration)}
                             </Text>
                           </View>
                         </View>
                       </View>
-                    )}
-                    <View style={[styles.shiftTasks, isMultiTaskShift && styles.groupedTasks]}>
-                      {shift.tasks.map((task, taskIndex) => (
-                        <TaskOverrideCard
-                          key={`${task.taskId}-${task.memberId}-${taskIndex}`}
-                          task={task}
-                          taskIndex={taskIndex}
-                          isAdmin={isAdmin}
-                          onPress={(task) => handleTaskPress(task, day.date)}
-                          formatTime={formatTime}
-                          formatDuration={formatDuration}
-                          showDescription={false}
-                          compact={false}
-                          hideAvatar={isMultiTaskShift}
-                        />
-                      ))}
-                    </View>
+                    );
+                  })()}
+                  
+                  <View style={styles.shiftTasks}>
+                    {shift.tasks.map((task, taskIndex) => (
+                      <TaskOverrideCard
+                        key={`task-${taskIndex}-${task.taskId}`}
+                        task={task}
+                        taskIndex={taskIndex}
+                        isAdmin={isAdmin}
+                        formatTime={formatTime}
+                        formatDuration={formatDuration}
+                        hideAvatar={shift.tasks.length > 1}
+                        onPress={(task) => {
+                          if (isAdmin) {
+                            setTaskOverrideAction('REASSIGN');
+                            setSelectedTask(task);
+                            setTaskOverrideDate(day.date);
+                            setShowTaskOverrideModal(true);
+                          }
+                        }}
+                      />
+                    ))}
                   </View>
-                );
-              })}
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.noTasks}>
+              <Text style={styles.noTasksText}>No tasks scheduled</Text>
             </View>
           )}
-        </View>
+        </ScrollView>
       </View>
     );
   };
-
-  if (!currentFamily) {
+  
+  const handleConfirmTaskOverride = async (_data: CreateTaskOverrideData) => {
+    setShowTaskOverrideModal(false);
+    // Reload current week after override
+    await loadWeekSchedule(currentWeekStart, false);
+  };
+  
+  if (isLoading && !weekSchedule) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Please select a family to view the calendar.</Text>
+      <View style={styles.loadingContainer}>
+        <LoadingSpinner />
+        <Text style={styles.loadingText}>Loading schedule...</Text>
       </View>
     );
   }
-
+  
   return (
     <View style={[styles.container, style]}>
-      {/* Gradient Background that extends to top */}
       <LinearGradient
         colors={['#667eea', '#764ba2']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.gradientBackground, { paddingTop: insets.top }]}>
-        {/* Header */}
+        style={[styles.gradientBackground, { paddingTop: insets.top + 10 }]}
+      >
         <View style={styles.header}>
-        {/* Line 1: Template Name + Modified Indicator */}
-        <View style={styles.templateRow}>
-          {weekSchedule?.baseTemplate ? (
-            <Text style={styles.templateInfo}>
-              {weekSchedule.baseTemplate.name}
-              {weekSchedule.hasOverrides && (
-                <Text style={styles.modifiedIndicator}> • modified</Text>
-              )}
-            </Text>
-          ) : (
-            <Text style={styles.templateInfo}>Schedule</Text>
-          )}
-        </View>
-        
-        {/* Line 2: Shift Indicator + Task Split Indicator */}
-        <View style={styles.shiftRow}>
-          <ShiftIndicator />
-          <View style={styles.indicatorSpacer} />
-          <TaskSplitIndicator currentWeekStart={currentWeekStart} />
-        </View>
-        
-        {/* Line 3: Admin Controls */}
-        {isAdmin && (
-          <View style={styles.adminRow}>
-            <View style={styles.adminControls}>
-              <TouchableOpacity
-                style={styles.adminButton}
-                onPress={() => Alert.alert('Apply Routine', 'This feature is coming soon!')}
-                disabled={isLoading}
-              >
-                <Text style={styles.adminButtonText}>Apply Routine</Text>
-              </TouchableOpacity>
-              
-              {weekSchedule?.hasOverrides && (
-                <TouchableOpacity
-                  style={styles.adminButton}
-                  onPress={() => Alert.alert('Revert', 'This feature is coming soon!')}
-                  disabled={isLoading}
-                >
-                  <Text style={styles.adminButtonText}>Revert</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+          <Text style={styles.title}>
+            {weekSchedule?.baseTemplate?.name || 'Weekly Schedule'}
+            {weekSchedule?.hasOverrides && (
+              <Text style={styles.modifiedIndicator}> • modified</Text>
+            )}
+          </Text>
+          <View style={styles.indicatorsRow}>
+            <ShiftIndicator />
+            <TaskSplitIndicator currentWeekStart={currentWeekStart} />
           </View>
-        )}
         </View>
       </LinearGradient>
-
-      <GestureHandlerRootView style={styles.contentContainer}>
-      {/* Messages */}
-      {message && (
-        <View style={[styles.message, styles[`message${message.type}`]]}>
-          <Text style={styles.messageText}>{message.text}</Text>
-        </View>
-      )}
-
-      {/* Calendar Content with Swipe Gesture Support */}
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <LoadingSpinner />
-          <Text style={styles.loadingText}>Loading schedule...</Text>
-        </View>
-      ) : error ? (
+      
+      {error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>⚠️ {error}</Text>
           <Button
@@ -764,64 +497,47 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
           />
         </View>
       ) : weekSchedule ? (
-        <PanGestureHandler
-          onGestureEvent={handleSwipeGesture}
-          onHandlerStateChange={handleSwipeGesture}
-          activeOffsetX={[-5, 5]}
-          failOffsetY={[-20, 20]}
-          shouldCancelWhenOutside={false}
-        >
-          <View style={styles.gestureContainer}>
-            <ScrollView style={styles.calendarContent} showsVerticalScrollIndicator={false}>
-              {daysToShow === 1 ? (
-                // Mobile: Three-day sliding view (prev, current, next)
-                <Animated.View 
-                  style={[
-                    styles.slidingContainer,
-                    {
-                      transform: [{ translateX: slideAnimation }]
-                    }
-                  ]}
-                >
-                  {/* Previous Day */}
-                  {renderDayComponent(prevDayData, 'prev')}
-                  
-                  {/* Current Day */}
-                  {renderDayComponent(weekSchedule.days[currentDayIndex], 'current')}
-                  
-                  {/* Next Day */}
-                  {renderDayComponent(nextDayData, 'next')}
-                </Animated.View>
-              ) : (
-                // Tablet: Multi-day view
-                <View style={styles.daysContainer}>
-                  {getVisibleDays().map((day, index) => {
-                    return renderDayComponent(day, 'current');
-                  })}
+        <View style={styles.calendarContainer}>
+          {daysToShow === 1 ? (
+            <ScrollView
+              ref={scrollViewRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={handleScroll}
+              snapToInterval={screenWidth}
+              decelerationRate="fast"
+              style={styles.scrollView}
+              contentOffset={{ x: screenWidth * centerIndex, y: 0 }}
+              scrollEventThrottle={16}
+            >
+              {scrollDays.map((dayData, index) => (
+                <View key={`${dayData.weekStart}-${dayData.dayIndex}`} style={{ width: screenWidth }}>
+                  {renderDayComponent(dayData.day)}
                 </View>
-              )}
+              ))}
             </ScrollView>
-          </View>
-        </PanGestureHandler>
-      ) : (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>No schedule data available</Text>
+          ) : (
+            <ScrollView style={styles.calendarContent} showsVerticalScrollIndicator={false}>
+              <View style={styles.daysContainer}>
+                {weekSchedule.days.slice(0, daysToShow).map((day) => renderDayComponent(day))}
+              </View>
+            </ScrollView>
+          )}
         </View>
-      )}
+      ) : null}
       
-      {/* Task Override Modal */}
       <TaskOverrideModal
         visible={showTaskOverrideModal}
-        onClose={handleCancelTaskOverride}
+        onClose={() => setShowTaskOverrideModal(false)}
         onConfirm={handleConfirmTaskOverride}
         task={selectedTask}
         date={taskOverrideDate}
         action={taskOverrideAction}
         availableTasks={availableTasks}
         familyMembers={familyMembers}
-        isLoading={isLoading}
+        isLoading={false}
       />
-      </GestureHandlerRootView>
     </View>
   );
 };
@@ -831,7 +547,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gradientBackground: {
-    marginTop: -10, // Extend gradient above the container
+    marginTop: -10,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -844,194 +560,54 @@ const styles = StyleSheet.create({
   header: {
     padding: 16,
     paddingTop: 8,
-    borderBottomWidth: 0,
   },
-  contentContainer: {
-    flex: 1,
-  },
-  dayHeader: {
+  indicatorsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 8,
-    margin: 8,
-    backgroundColor: 'rgba(99, 102, 241, 0.08)',
-    borderWidth: 2,
-    borderColor: 'rgba(99, 102, 241, 0.2)',
-    borderRadius: 12,
-    shadowColor: '#6366f1',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    minHeight: 36,
   },
-  dayName: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#374151',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  dayActions: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  dayActionButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.2)',
-  },
-  dayActionButtonText: {
-    fontSize: 11,
+  title: {
+    fontSize: 24,
     fontWeight: '600',
-    color: '#6366f1',
-  },
-  templateRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  shiftRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  indicatorSpacer: {
-    flex: 1,
-  },
-  templateInfo: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#ffffff',
+    color: 'white',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   modifiedIndicator: {
-    color: '#fde68a',
+    color: '#fbbf24',
     fontWeight: '600',
-  },
-  dateRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 0,
-    width: '100%',
-  },
-  dateAndControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  controls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  navButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    minWidth: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  navButtonText: {
-    fontSize: 18,
-    color: '#ffffff',
-    fontWeight: '600',
-  },
-  todayButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    paddingHorizontal: 16,
-    minWidth: 60,
-  },
-  todayButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  adminRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
-  adminControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  adminButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  adminButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-
-  message: {
-    margin: 16,
-    padding: 12,
-    borderRadius: 8,
-  },
-  messagesuccess: {
-    backgroundColor: '#d1fae5',
-    borderColor: '#a7f3d0',
-    borderWidth: 1,
-  },
-  messageerror: {
-    backgroundColor: '#fee2e2',
-    borderColor: '#fca5a5',
-    borderWidth: 1,
-  },
-  messageText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
+    marginTop: 10,
     color: '#6b7280',
   },
   errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
+    margin: 16,
+    padding: 16,
+    backgroundColor: '#fef2f2',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fecaca',
     alignItems: 'center',
-    padding: 32,
   },
   errorText: {
-    fontSize: 16,
-    color: '#ef4444',
+    color: '#dc2626',
+    marginBottom: 12,
     textAlign: 'center',
-    marginBottom: 16,
   },
-  gestureContainer: {
+  calendarContainer: {
+    flex: 1,
+  },
+  scrollView: {
     flex: 1,
   },
   calendarContent: {
@@ -1039,117 +615,145 @@ const styles = StyleSheet.create({
   },
   daysContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 8,
-    paddingVertical: 16,
   },
   dayColumn: {
     flex: 1,
-    marginHorizontal: 4,
+    backgroundColor: '#ffffff',
   },
-  slidingDayColumn: {
-    width: '33.333%', // Each day takes 1/3 of the sliding container
-    marginHorizontal: 4,
+  dayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 8,
+    marginHorizontal: 8,
+    marginTop: 8,
+    backgroundColor: 'rgba(99, 102, 241, 0.08)',
+    borderWidth: 2,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+    borderRadius: 12,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  prevDayColumn: {
-    // Previous day is positioned to the left
+  todayHeader: {
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    borderColor: 'rgba(59, 130, 246, 0.2)',
+    shadowColor: '#3b82f6',
   },
-  nextDayColumn: {
-    // Next day is positioned to the right
-  },
-  multiDayColumn: {
-    marginHorizontal: 4,
-  },
-  tasksContainer: {
+  dayInfo: {
     flex: 1,
   },
-  noTasks: {
-    flex: 1,
+  dayName: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#374151',
+    lineHeight: 14,
+  },
+  todayName: {
+    color: '#2563eb',
+    fontWeight: '800',
+  },
+  dayActions: {
+    flexDirection: 'row',
+    gap: 4,
+    marginLeft: 4,
+  },
+  dayActionButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: 150,
   },
-  noTasksText: {
+  actionButtonText: {
+    color: '#6366f1',
     fontSize: 14,
-    color: '#9ca3af',
-    fontStyle: 'italic',
+    fontWeight: '600',
+  },
+  routinesIcon: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  routinesCircle: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#6366f1',
+  },
+  tasksLane: {
+    flex: 1,
+    padding: 16,
   },
   tasksStack: {
     gap: 8,
   },
   shift: {
-    marginBottom: 8,
+    gap: 4,
   },
   multiTaskShift: {
     backgroundColor: 'rgba(99, 102, 241, 0.02)',
-    borderWidth: 2,
-    borderColor: 'rgba(99, 102, 241, 0.15)',
     borderRadius: 12,
     padding: 12,
-    shadowColor: '#6366f1',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 2,
+    borderColor: 'rgba(99, 102, 241, 0.15)',
   },
   shiftHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingBottom: 8,
     marginBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(99, 102, 241, 0.1)',
+    gap: 8,
   },
   shiftTags: {
-    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
+    flex: 1,
   },
-  shiftTag: {
+  shiftTimeTag: {
     backgroundColor: '#eff6ff',
-    borderWidth: 1,
     borderColor: '#bfdbfe',
+    borderWidth: 1,
     borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    alignSelf: 'flex-start',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
-  durationTag: {
+  shiftDurationTag: {
     backgroundColor: '#f0fdf4',
     borderColor: '#bbf7d0',
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
-  shiftTagText: {
+  shiftTimeTagText: {
     fontSize: 12,
     fontWeight: '500',
     color: '#1e40af',
+    lineHeight: 14,
+  },
+  shiftDurationTagText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#166534',
+    lineHeight: 14,
   },
   shiftTasks: {
     gap: 4,
   },
-  groupedTasks: {
-    gap: 0,
-    marginHorizontal: -4,
-  },
-  addTaskButton: {
-    marginTop: 8,
-    padding: 10,
-    backgroundColor: 'rgba(248, 250, 252, 0.5)',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderStyle: 'dashed',
-    borderRadius: 6,
+  noTasks: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    minHeight: 200,
   },
-  addTaskButtonText: {
-    fontSize: 12,
-    color: '#94a3b8',
-    fontWeight: '500',
+  noTasksText: {
+    color: '#9ca3af',
+    fontStyle: 'italic',
   },
-  slidingContainer: {
-    flexDirection: 'row',
-    width: '300%', // Three days side by side
-    paddingHorizontal: 16,
-  },
-}); 
+});
