@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../../contexts/FamilyContext';
 import { taskApi, familyApi, dayTemplateApi } from '../../../services/api';
@@ -9,7 +9,7 @@ import Modal from '../../../components/ui/Modal';
 import { useMessage } from '../../../hooks';
 import './DayTemplateManagement.css';
 
-export const DayTemplateManagement: React.FC = () => {
+export const DayTemplateManagement = forwardRef((_, ref) => {
   const { t } = useTranslation();
   const { currentFamily } = useFamily();
   
@@ -47,6 +47,11 @@ export const DayTemplateManagement: React.FC = () => {
 
   // Check if user is admin (can create/manage templates)
   const isAdmin = currentFamily?.userRole === 'ADMIN';
+
+  // Expose handleAddTemplate method to parent component
+  useImperativeHandle(ref, () => ({
+    handleAddTemplate
+  }));
 
   useEffect(() => {
     if (currentFamily) {
@@ -607,17 +612,6 @@ export const DayTemplateManagement: React.FC = () => {
                 {templates.length}
               </span>
             </h3>
-            {isAdmin && (
-              <div className="day-template-management-button-group">
-                <button
-                  onClick={handleAddTemplate}
-                  className="day-template-management-button day-template-management-button-primary day-template-management-button-sm"
-                  disabled={isLoading}
-                >
-                  {t('dailyRoutines.routines.add')}
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Templates List */}
@@ -889,4 +883,6 @@ export const DayTemplateManagement: React.FC = () => {
       </Modal>
     </div>
   );
-};
+});
+
+DayTemplateManagement.displayName = 'DayTemplateManagement';

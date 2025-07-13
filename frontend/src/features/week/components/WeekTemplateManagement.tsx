@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../../contexts/FamilyContext';
 import { weekTemplateApi, dayTemplateApi } from '../../../services/api';
@@ -9,7 +9,7 @@ import { useMessage } from '../../../hooks';
 import type { WeekTemplate, DayTemplate, DayTemplateItem, CreateWeekTemplateData, UpdateWeekTemplateData, ResolvedTask, Task } from '../../../types';
 import './WeekTemplateManagement.css';
 
-export const WeekTemplateManagement: React.FC = () => {
+export const WeekTemplateManagement = forwardRef((_, ref) => {
   const { t } = useTranslation();
   const { currentFamily } = useFamily();
   
@@ -40,6 +40,11 @@ export const WeekTemplateManagement: React.FC = () => {
   const [selectedDayTemplates, setSelectedDayTemplates] = useState<Record<number, string>>({});
 
   const isAdmin = currentFamily?.userRole === 'ADMIN';
+
+  // Expose handleAddTemplate method to parent component
+  useImperativeHandle(ref, () => ({
+    handleAddTemplate
+  }));
 
   useEffect(() => {
     if (currentFamily) {
@@ -493,17 +498,6 @@ export const WeekTemplateManagement: React.FC = () => {
                 {weekTemplates.length}
               </span>
             </h3>
-            {isAdmin && (
-              <div className="week-template-management-button-group">
-                <button
-                  onClick={handleAddTemplate}
-                  className="week-template-management-button week-template-management-button-primary"
-                  disabled={isLoading}
-                >
-                  + {t('weeklyRoutines.routines.add')}
-                </button>
-              </div>
-            )}
           </div>
 
 
@@ -531,14 +525,6 @@ export const WeekTemplateManagement: React.FC = () => {
               </div>
               <h5 className="week-template-management-empty-title">No Week Templates Yet</h5>
               <p className="week-template-management-empty-description">Create reusable week templates to quickly schedule recurring weekly patterns</p>
-              {isAdmin && (
-                <button
-                  onClick={handleAddTemplate}
-                  className="week-template-management-button week-template-management-button-primary"
-                >
-                  Create First Template
-                </button>
-              )}
             </div>
           ) : (
             <div className="week-template-management-templates-list">
@@ -829,4 +815,6 @@ export const WeekTemplateManagement: React.FC = () => {
       </Modal>
     </div>
   );
-}; 
+});
+
+WeekTemplateManagement.displayName = 'WeekTemplateManagement'; 

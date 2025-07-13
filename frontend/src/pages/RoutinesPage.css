@@ -1,0 +1,178 @@
+/* Routines Page Specific Styles */
+
+/* Header with Add Control */
+.routines-page-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 24px 16px;
+  gap: 12px;
+}
+
+/* Add Routine Control */
+.routines-add-control {
+  position: relative;
+}
+
+.routines-add-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.routines-add-button:hover {
+  background: #5558e5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.routines-add-button.active {
+  background: #5558e5;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.routines-add-chevron {
+  transition: transform 0.2s ease;
+}
+
+.routines-add-button:hover .routines-add-chevron {
+  transform: translateY(1px);
+}
+
+/* Add Dropdown */
+.routines-add-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 320px;
+  z-index: 50;
+  overflow: hidden;
+  animation: dropdownSlide 0.2s ease-out;
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.routines-dropdown-title {
+  padding: 16px 20px 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.routines-dropdown-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  padding: 16px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.routines-dropdown-option:hover {
+  background: #f9fafb;
+}
+
+.routines-dropdown-option:active {
+  background: #f3f4f6;
+}
+
+.routines-option-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6366f1;
+  flex-shrink: 0;
+}
+
+.routines-dropdown-option:hover .routines-option-icon {
+  background: #e0e7ff;
+}
+
+.routines-option-content {
+  flex: 1;
+}
+
+.routines-option-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.routines-option-description {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .routines-page-header {
+    padding: 0 16px 12px;
+  }
+  
+  .routines-add-dropdown {
+    width: calc(100vw - 32px);
+    max-width: 320px;
+    right: -8px;
+  }
+  
+  .routines-dropdown-option {
+    padding: 12px 16px;
+  }
+  
+  .routines-option-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .routines-add-button {
+    padding: 6px 12px;
+    font-size: 0.8125rem;
+  }
+  
+  .routines-add-button svg:first-child {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .routines-add-dropdown {
+    width: calc(100vw - 24px);
+  }
+}
