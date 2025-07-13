@@ -23,7 +23,9 @@ const Analytics: React.FC = () => {
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
   const [showTimeframeDropdown, setShowTimeframeDropdown] = useState(false);
   const [isLoadingTimeframe, setIsLoadingTimeframe] = useState(false);
+  const [showMemberDropdown, setShowMemberDropdown] = useState(false);
   const timeframeRef = useRef<HTMLDivElement>(null);
+  const memberFilterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (currentFamily) {
@@ -32,19 +34,21 @@ const Analytics: React.FC = () => {
     }
   }, [currentFamily, selectedTimeframe, customDateRange, selectedMemberIds]);
 
-  // Handle clicks outside the timeframe dropdown and keyboard navigation
+  // Handle clicks outside dropdowns and keyboard navigation
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (timeframeRef.current && !timeframeRef.current.contains(event.target as Node)) {
         setShowTimeframeDropdown(false);
       }
+      if (memberFilterRef.current && !memberFilterRef.current.contains(event.target as Node)) {
+        setShowMemberDropdown(false);
+      }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!showTimeframeDropdown) return;
-      
       if (event.key === 'Escape') {
-        setShowTimeframeDropdown(false);
+        if (showTimeframeDropdown) setShowTimeframeDropdown(false);
+        if (showMemberDropdown) setShowMemberDropdown(false);
       }
     };
 
@@ -54,7 +58,7 @@ const Analytics: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [showTimeframeDropdown]);
+  }, [showTimeframeDropdown, showMemberDropdown]);
 
   useEffect(() => {
     if (analyticsData) {
@@ -412,45 +416,23 @@ const Analytics: React.FC = () => {
     setExpandedMembers(newExpanded);
   };
 
-  const renderFilters = () => {
-    return (
-      <div className="analytics-subsection">
-        <div className="analytics-form">
-          {allMembers.length > 0 && (
-            <div className="analytics-form-row">
-              <div className="analytics-form-group">
-                <label className="analytics-form-label">Filter Members</label>
-                <select
-                  multiple
-                  value={selectedMemberIds}
-                  onChange={(e) => {
-                    const values = Array.from(e.target.selectedOptions, option => option.value);
-                    setSelectedMemberIds(values);
-                  }}
-                  className="analytics-form-input analytics-member-select"
-                  size={Math.min(allMembers.length, 4)}
-                >
-                  {allMembers.map(member => (
-                      <option key={member.id} value={member.id}>
-                        {member.name} {member.isVirtual ? '(Virtual)' : ''}
-                      </option>
-                    ))}
-                </select>
-                {selectedMemberIds.length > 0 && (
-                  <button
-                    type="button"
-                    className="analytics-button analytics-button-secondary analytics-button-sm"
-                    onClick={() => setSelectedMemberIds([])}
-                  >
-                    Clear Filter
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
+  const getMemberFilterLabel = () => {
+    if (selectedMemberIds.length === 0) return 'All members';
+    if (selectedMemberIds.length === 1) {
+      const member = allMembers.find(m => m.id === selectedMemberIds[0]);
+      return member ? member.name : 'All members';
+    }
+    return `${selectedMemberIds.length} members`;
+  };
+
+  const handleMemberToggle = (memberId: string) => {
+    setSelectedMemberIds(prev => {
+      if (prev.includes(memberId)) {
+        return prev.filter(id => id !== memberId);
+      } else {
+        return [...prev, memberId];
+      }
+    });
   };
 
   if (loading) {
@@ -534,6 +516,72 @@ const Analytics: React.FC = () => {
       <div className="analytics-management-header">
         <h2 className="analytics-management-title">{t('analytics.title')}</h2>
         <div className="analytics-header-controls">
+          {/* Member Filter */}
+          {allMembers.length > 0 && (
+            <div className="analytics-member-filter" ref={memberFilterRef}>
+              <button
+                className={`analytics-filter-button ${showMemberDropdown ? 'active' : ''}`}
+                onClick={() => setShowMemberDropdown(!showMemberDropdown)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>{getMemberFilterLabel()}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="analytics-filter-chevron">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              
+              {showMemberDropdown && (
+                <div className="analytics-member-dropdown">
+                  <div className="analytics-dropdown-header">
+                    <span className="analytics-dropdown-title">Filter by Members</span>
+                    {selectedMemberIds.length > 0 && (
+                      <button
+                        className="analytics-dropdown-clear"
+                        onClick={() => setSelectedMemberIds([])}
+                      >
+                        Clear all
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="analytics-member-list">
+                    {allMembers.map(member => (
+                      <label
+                        key={member.id}
+                        className="analytics-member-option"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedMemberIds.includes(member.id)}
+                          onChange={() => handleMemberToggle(member.id)}
+                          className="analytics-member-checkbox"
+                        />
+                        <span className="analytics-member-name">
+                          {member.name}
+                          {member.isVirtual && <span className="analytics-member-virtual">(Virtual)</span>}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  
+                  <div className="analytics-dropdown-footer">
+                    <button
+                      className="analytics-dropdown-apply"
+                      onClick={() => setShowMemberDropdown(false)}
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          
           {/* Modern Timeframe Selector */}
           <div className="analytics-timeframe-selector" ref={timeframeRef}>
             <button
@@ -664,7 +712,6 @@ const Analytics: React.FC = () => {
       </div>
       
       <div className="analytics-management-content">
-        {renderFilters()}
         {renderOverviewCards()}
         {renderFairnessChart()}
         {renderMemberScores()}
