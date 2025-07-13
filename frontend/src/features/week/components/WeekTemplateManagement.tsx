@@ -474,6 +474,20 @@ export const WeekTemplateManagement: React.FC = () => {
     <div className="week-template-management">
       <div className="week-template-management-header">
         <h2 className="week-template-management-title">{t('weeklyRoutines.title')}</h2>
+        {isAdmin && (
+          <button
+            onClick={handleAddTemplate}
+            className="week-template-management-header-button"
+            disabled={isLoading}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+            {t('weeklyRoutines.routines.add')}
+          </button>
+        )}
       </div>
       
       <div className="week-template-management-content">
@@ -486,25 +500,6 @@ export const WeekTemplateManagement: React.FC = () => {
 
         {/* Week Templates Section */}
         <div className="week-template-management-subsection">
-          <div className="week-template-management-subsection-header">
-            <h3 className="week-template-management-subsection-title">
-              {t('weeklyRoutines.routines.title')}
-              <span className="week-template-management-count-badge">
-                {weekTemplates.length}
-              </span>
-            </h3>
-            {isAdmin && (
-              <div className="week-template-management-button-group">
-                <button
-                  onClick={handleAddTemplate}
-                  className="week-template-management-button week-template-management-button-primary"
-                  disabled={isLoading}
-                >
-                  + {t('weeklyRoutines.routines.add')}
-                </button>
-              </div>
-            )}
-          </div>
 
 
 
@@ -531,14 +526,6 @@ export const WeekTemplateManagement: React.FC = () => {
               </div>
               <h5 className="week-template-management-empty-title">No Week Templates Yet</h5>
               <p className="week-template-management-empty-description">Create reusable week templates to quickly schedule recurring weekly patterns</p>
-              {isAdmin && (
-                <button
-                  onClick={handleAddTemplate}
-                  className="week-template-management-button week-template-management-button-primary"
-                >
-                  Create First Template
-                </button>
-              )}
             </div>
           ) : (
             <div className="week-template-management-templates-list">

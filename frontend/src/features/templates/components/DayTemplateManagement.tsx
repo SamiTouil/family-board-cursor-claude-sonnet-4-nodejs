@@ -588,6 +588,20 @@ export const DayTemplateManagement: React.FC = () => {
     <div className="day-template-management">
       <div className="day-template-management-header">
         <h2 className="day-template-management-title">{t('dailyRoutines.title')}</h2>
+        {isAdmin && (
+          <button
+            onClick={handleAddTemplate}
+            className="day-template-management-header-button"
+            disabled={isLoading}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+            {t('dailyRoutines.routines.add')}
+          </button>
+        )}
       </div>
       
       <div className="day-template-management-content">
@@ -600,25 +614,6 @@ export const DayTemplateManagement: React.FC = () => {
 
         {/* DayTemplate Section */}
         <div className="day-template-management-subsection">
-          <div className="day-template-management-subsection-header">
-            <h3 className="day-template-management-subsection-title">
-              {t('dailyRoutines.routines.title')}
-              <span className="day-template-management-count-badge">
-                {templates.length}
-              </span>
-            </h3>
-            {isAdmin && (
-              <div className="day-template-management-button-group">
-                <button
-                  onClick={handleAddTemplate}
-                  className="day-template-management-button day-template-management-button-primary day-template-management-button-sm"
-                  disabled={isLoading}
-                >
-                  {t('dailyRoutines.routines.add')}
-                </button>
-              </div>
-            )}
-          </div>
 
           {/* Templates List */}
           <div className="day-template-management-templates-list">

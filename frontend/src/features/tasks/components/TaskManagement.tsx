@@ -331,6 +331,20 @@ export const TaskManagement: React.FC = () => {
     <div className="task-management">
       <div className="task-management-header">
         <h2 className="task-management-title">{t('tasks.management')}</h2>
+        {isAdmin && (
+          <button
+            onClick={handleAddTask}
+            className="task-management-header-button"
+            disabled={isLoading}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+            {t('tasks.createTask')}
+          </button>
+        )}
       </div>
       
       <div className="task-management-content">
@@ -343,26 +357,6 @@ export const TaskManagement: React.FC = () => {
 
         {/* Tasks Section */}
         <div className="task-management-subsection">
-          <div className="task-management-subsection-header">
-            <h4 className="task-management-subsection-title">
-              {t('tasks.currentTasks')}
-              {sortedActiveTasks.length > 0 && (
-                <span className="task-management-count-badge">{sortedActiveTasks.length}</span>
-              )}
-            </h4>
-            {isAdmin && (
-              <div className="task-management-button-group">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleAddTask}
-                  disabled={isLoading}
-                >
-                  {t('tasks.createTask')}
-                </Button>
-              </div>
-            )}
-          </div>
 
 
 
