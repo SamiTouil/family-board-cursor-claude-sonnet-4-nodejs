@@ -14,8 +14,8 @@ When making changes to any component or functionality, ALWAYS check if there are
    - Run with: `cd backend && npm test`
    - Check for tests related to any API endpoints or services you modify
 
-3. **Playwright E2E Tests**: Located in `playwright/tests/*.spec.ts`
-   - Run with: `cd playwright && npm test`
+3. **Playwright E2E Tests**: Located in `e2e-tests/tests/*.spec.ts`
+   - Run with: `cd e2e-tests && npm test`
    - Check for tests that interact with UI elements you've changed
 
 ### Common Test Update Scenarios
@@ -42,7 +42,7 @@ screen.getByTitle('Edit task')
 To:
 ```tsx
 // First click the dropdown trigger
-const dropdownButtons = screen.getAllByRole('button', { name: 'î' });
+const dropdownButtons = screen.getAllByRole('button', { name: 'ï¿½' });
 fireEvent.click(dropdownButtons[0]);
 
 // Then click the menu item
