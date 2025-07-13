@@ -9,11 +9,12 @@ Implemented multiple optimizations to reduce test runtime to under 1 minute.
 ## Key Optimizations
 
 ### 1. Removed `waitForTimeout` Calls
-- **Before**: 43 instances of `waitForTimeout` with hardcoded delays (500ms - 2000ms each)
+- **Before**: 9 instances of `waitForTimeout` with hardcoded delays (500ms - 3000ms each)
 - **After**: Replaced with proper wait conditions:
-  - `waitForLoadState('networkidle')` for navigation
+  - `waitForLoadState('networkidle')` for navigation and WebSocket updates
   - `waitForLoadState('domcontentloaded')` for form submissions
   - `expect().toBeVisible()` for element visibility
+  - `.first()` selector for handling strict mode with multiple matches
 
 ### 2. Increased Parallelization
 - **Before**: 1 worker in CI (`workers: 1`)
@@ -23,11 +24,14 @@ Implemented multiple optimizations to reduce test runtime to under 1 minute.
 ### 3. Optimized Playwright Configuration
 ```typescript
 // Added performance optimizations:
+- workers: 4 (both locally and in CI for parallelization)
+- fullyParallel: true (all tests run independently)
 - actionTimeout: 10000 (reduced from 30s default)
 - navigationTimeout: 20000 (reduced from 30s default)  
 - globalTimeout: 5 minutes (strict limit)
-- retries: 1 (reduced from 2)
-- Disabled unnecessary features (screenshots, videos except on failure)
+- retries: 1 in CI, 0 locally (reduced from 2)
+- screenshot: 'only-on-failure'
+- video: 'retain-on-failure'
 ```
 
 ### 4. Test Helpers for Common Operations
@@ -38,11 +42,12 @@ Created `test-utils.ts` with optimized helpers:
 - `navigateAndWaitReady()` - Optimized navigation
 
 ### 5. Docker & CI Optimizations
-- Docker layer caching
-- Healthchecks for service readiness
+- Docker Buildx setup with layer caching
+- Healthchecks for service readiness (5s intervals, 3s timeout)
 - Parallel service startup
 - Playwright browser caching
-- Sharded test execution
+- Sharded test execution (4 shards running in parallel)
+- Matrix strategy in GitHub Actions for parallel job execution
 
 ### 6. Navigation Pattern Optimization
 ```typescript
@@ -69,9 +74,10 @@ cd e2e-tests
 Tests automatically run with 4-way sharding on PR/push.
 
 ## Results
-- **Before**: 6-7 minutes
-- **After**: <1 minute (with 4 parallel workers)
-- **Performance Gain**: ~85% reduction in test time
+- **Before**: 6-7 minutes on GitHub Actions
+- **After**: <1 minute on GitHub Actions (with 4 parallel shards)
+- **Locally**: ~27 seconds (with 4 workers)
+- **Performance Gain**: ~85% reduction in CI test time
 
 ## Best Practices Going Forward
 

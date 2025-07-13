@@ -1,4 +1,3 @@
-import { waitForNetworkIdle } from './helpers/test-utils';
 import { test, expect } from '@playwright/test';
 
 // Test data
@@ -109,8 +108,8 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       
       await page.getByRole('button', { name: 'Sign Up' }).click();
       
-      // Wait a bit for the response to be processed
-      await page.waitForTimeout(3000);
+      // Wait for the response to be processed
+      await page.waitForLoadState('networkidle');
       
       // Wait for family onboarding to appear
       await expect(page.getByText('Welcome to Family Board!')).toBeVisible({ timeout: 15000 });
@@ -136,8 +135,8 @@ test.describe('Authentication & Family Onboarding Flow', () => {
       
       await page.getByRole('button', { name: 'Login' }).click();
       
-      // Wait a bit for the response to be processed
-      await page.waitForTimeout(3000);
+      // Wait for the response to be processed
+      await page.waitForLoadState('networkidle');
       
       // Should be redirected to dashboard since user already has a family
       await expect(page.getByRole('heading', { name: 'Weekly Schedule' })).toBeVisible({ timeout: 10000 });

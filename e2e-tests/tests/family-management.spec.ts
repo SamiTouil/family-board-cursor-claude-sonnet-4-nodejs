@@ -303,8 +303,9 @@ test.describe('Family Management - Advanced Scenarios', () => {
       // Wait for success message - check for the success message class instead of specific text
       await expect(page.locator('.family-management-message-success')).toBeVisible({ timeout: 5000 });
       
-      // Wait for the family data to be refreshed - add extra wait for WebSocket update
-      await page.waitForTimeout(3000);
+      // Wait for the family data to be refreshed via WebSocket
+      await page.waitForLoadState('networkidle');
+      await expect(page.getByText('Updated Family Name').first()).toBeVisible({ timeout: 5000 });
       
       // Go back to dashboard to check title refresh
       await page.getByRole('button', { name: 'Home' }).click();

@@ -304,15 +304,15 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
 
       // Add task to routine with default settings
       await page.getByRole('button', { name: 'Add Task to Routine' }).click();
-      await page.waitForTimeout(1000); // Wait for dropdown to populate
+      await page.waitForLoadState('domcontentloaded'); // Wait for dropdown to populate
       
       // Click on CustomSelect to open dropdown
       await page.locator('.modal-form-group').filter({ hasText: 'Task *' }).locator('.custom-select').click();
-      await page.waitForTimeout(500); // Wait for dropdown to open
+      await expect(page.locator('.custom-select-option').first()).toBeVisible(); // Wait for dropdown to open
       
       // Select first available task from dropdown
       await page.locator('.custom-select-option').nth(1).click(); // Skip the placeholder option
-      await page.waitForTimeout(1000); // Wait for form to update after selection
+      await page.waitForLoadState('domcontentloaded'); // Wait for form to update after selection
       
       // Use Apply button for modal
       await page.getByRole('button', { name: 'Apply' }).click();
@@ -328,15 +328,15 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       // Add task with time override - click directly without waiting for enabled state
       // (there's a component bug where button stays disabled, but clicking works)
       await page.getByRole('button', { name: 'Add Task to Routine' }).click({ force: true });
-      await page.waitForTimeout(1000); // Wait for dropdown to populate
+      await page.waitForLoadState('domcontentloaded'); // Wait for dropdown to populate
       
       // Click on CustomSelect to open dropdown
       await page.locator('.modal-form-group').filter({ hasText: 'Task *' }).locator('.custom-select').click();
-      await page.waitForTimeout(500); // Wait for dropdown to open
+      await expect(page.locator('.custom-select-option').first()).toBeVisible(); // Wait for dropdown to open
       
       // Select second available task from dropdown
       await page.locator('.custom-select-option').nth(2).click(); // Skip the placeholder option
-      await page.waitForTimeout(1000); // Wait for form to update after selection
+      await page.waitForLoadState('domcontentloaded'); // Wait for form to update after selection
       
       await page.getByLabel('Override Time (Optional)').fill('07:00');
       await page.getByRole('button', { name: 'Apply' }).click();

@@ -5,7 +5,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 4 : undefined, // Increase workers in CI
+  workers: process.env.CI ? 4 : 4, // Always use 4 workers for parallelization
   reporter: [
     ['html', { open: 'never' }],
     ['list'],
@@ -16,12 +16,15 @@ export default defineConfig({
     // Reduce timeout for faster failures
     actionTimeout: 10000,
     navigationTimeout: 20000,
+    // Disable animations for faster tests
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
   },
   
   // Global timeout for the whole test run (5 minutes)
   globalTimeout: 5 * 60 * 1000,
   
-  // Timeout for each test (30 seconds instead of default 30s)
+  // Timeout for each test (30 seconds)
   timeout: 30000,
 
   projects: [
@@ -36,11 +39,4 @@ export default defineConfig({
       },
     },
   ],
-
-  // Use test fixtures for shared setup
-  use: {
-    // Disable animations for faster tests
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-  },
 });
