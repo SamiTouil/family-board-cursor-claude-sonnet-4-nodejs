@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFamily } from '../../contexts/FamilyContext';
 import { analyticsApi } from '../../services/api';
@@ -17,17 +17,44 @@ const Analytics: React.FC = () => {
     startDate: '',
     endDate: ''
   });
-  const [showVirtualMembers, setShowVirtualMembers] = useState(true);
+  // Virtual members are always included in analytics
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [allMembers, setAllMembers] = useState<Array<{id: string; name: string; isVirtual: boolean}>>([]);
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
+  const [showTimeframeDropdown, setShowTimeframeDropdown] = useState(false);
+  const [isLoadingTimeframe, setIsLoadingTimeframe] = useState(false);
+  const timeframeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (currentFamily) {
       fetchAnalyticsData();
       fetchFairnessHistory();
     }
-  }, [currentFamily, selectedTimeframe, customDateRange, showVirtualMembers, selectedMemberIds]);
+  }, [currentFamily, selectedTimeframe, customDateRange, selectedMemberIds]);
+
+  // Handle clicks outside the timeframe dropdown and keyboard navigation
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (timeframeRef.current && !timeframeRef.current.contains(event.target as Node)) {
+        setShowTimeframeDropdown(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!showTimeframeDropdown) return;
+      
+      if (event.key === 'Escape') {
+        setShowTimeframeDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showTimeframeDropdown]);
 
   useEffect(() => {
     if (analyticsData) {
@@ -153,9 +180,6 @@ const Analytics: React.FC = () => {
     if (!analyticsData?.memberStats) return null;
 
     const filteredMembers = analyticsData.memberStats.filter(member => {
-      // Filter by virtual member setting
-      if (!showVirtualMembers && member.isVirtual) return false;
-      
       // Filter by selected members (if any selected)
       if (selectedMemberIds.length > 0 && !selectedMemberIds.includes(member.memberId)) return false;
       
@@ -371,7 +395,7 @@ const Analytics: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `family-analytics-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `family-analytics-${new Date().toISOString().split('T')[0]!}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -391,61 +415,9 @@ const Analytics: React.FC = () => {
   const renderFilters = () => {
     return (
       <div className="analytics-subsection">
-        <div className="analytics-subsection-header">
-          <h3 className="analytics-subsection-title">Filters & Settings</h3>
-        </div>
-        
         <div className="analytics-form">
-          <div className="analytics-form-row">
-            <div className="analytics-form-group">
-              <label className="analytics-form-label">{t('analytics.timeframe')}</label>
-              <select 
-                value={selectedTimeframe} 
-                onChange={(e) => setSelectedTimeframe(e.target.value as any)}
-                className="analytics-form-input"
-              >
-                <option value="4weeks">Last 4 Weeks</option>
-                <option value="8weeks">Last 8 Weeks</option>
-                <option value="12weeks">Last 12 Weeks</option>
-                <option value="custom">{t('analytics.customRange')}</option>
-              </select>
-            </div>
-
-            {selectedTimeframe === 'custom' && (
-              <div className="analytics-form-group">
-                <label className="analytics-form-label">Date Range</label>
-                <div className="analytics-date-range">
-                  <input
-                    type="date"
-                    value={customDateRange.startDate}
-                    onChange={(e) => setCustomDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                    className="analytics-form-input"
-                  />
-                  <span className="analytics-date-separator">to</span>
-                  <input
-                    type="date"
-                    value={customDateRange.endDate}
-                    onChange={(e) => setCustomDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                    className="analytics-form-input"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="analytics-form-row">
-            <div className="analytics-form-group">
-              <label className="analytics-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={showVirtualMembers}
-                  onChange={(e) => setShowVirtualMembers(e.target.checked)}
-                />
-                {t('analytics.includeVirtualMembers')}
-              </label>
-            </div>
-
-            {allMembers.length > 0 && (
+          {allMembers.length > 0 && (
+            <div className="analytics-form-row">
               <div className="analytics-form-group">
                 <label className="analytics-form-label">Filter Members</label>
                 <select
@@ -458,9 +430,7 @@ const Analytics: React.FC = () => {
                   className="analytics-form-input analytics-member-select"
                   size={Math.min(allMembers.length, 4)}
                 >
-                  {allMembers
-                    .filter(member => showVirtualMembers || !member.isVirtual)
-                    .map(member => (
+                  {allMembers.map(member => (
                       <option key={member.id} value={member.id}>
                         {member.name} {member.isVirtual ? '(Virtual)' : ''}
                       </option>
@@ -476,8 +446,8 @@ const Analytics: React.FC = () => {
                   </button>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -509,19 +479,188 @@ const Analytics: React.FC = () => {
     );
   }
 
+  const getTimeframeLabel = () => {
+    switch (selectedTimeframe) {
+      case '4weeks': return 'Last 4 weeks';
+      case '8weeks': return 'Last 8 weeks';
+      case '12weeks': return 'Last 12 weeks';
+      case 'custom': 
+        if (customDateRange.startDate && customDateRange.endDate) {
+          const start = new Date(customDateRange.startDate);
+          const end = new Date(customDateRange.endDate);
+          const startStr = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const endStr = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          return `${startStr} - ${endStr}`;
+        }
+        return 'Custom range';
+      default: return 'Last 4 weeks';
+    }
+  };
+
+  const handleTimeframeSelect = (timeframe: string) => {
+    if (timeframe === 'custom') {
+      // Set default custom range to last 30 days
+      const end = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - 30);
+      setCustomDateRange({
+        startDate: start.toISOString().split('T')[0]!,
+        endDate: end.toISOString().split('T')[0]!
+      });
+    }
+    setSelectedTimeframe(timeframe as any);
+    setShowTimeframeDropdown(false);
+    setIsLoadingTimeframe(true);
+    // Reset loading state after data loads
+    setTimeout(() => setIsLoadingTimeframe(false), 300);
+  };
+
+  const handleQuickDateSelect = (days: number) => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - days);
+    setCustomDateRange({
+      startDate: start.toISOString().split('T')[0]!,
+      endDate: end.toISOString().split('T')[0]!
+    });
+    setSelectedTimeframe('custom');
+    setShowTimeframeDropdown(false);
+    setIsLoadingTimeframe(true);
+    setTimeout(() => setIsLoadingTimeframe(false), 300);
+  };
+
   return (
     <div className="analytics-management">
       <div className="analytics-management-header">
         <h2 className="analytics-management-title">{t('analytics.title')}</h2>
-        {analyticsData && (
-          <button
-            onClick={exportData}
-            className="analytics-export-btn"
-            title="Export analytics data"
-          >
-            📊 Export Data
-          </button>
-        )}
+        <div className="analytics-header-controls">
+          {/* Modern Timeframe Selector */}
+          <div className="analytics-timeframe-selector" ref={timeframeRef}>
+            <button
+              className={`analytics-timeframe-button ${showTimeframeDropdown ? 'active' : ''} ${isLoadingTimeframe ? 'loading' : ''}`}
+              onClick={() => setShowTimeframeDropdown(!showTimeframeDropdown)}
+              disabled={isLoadingTimeframe}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <span>{getTimeframeLabel()}</span>
+              {isLoadingTimeframe ? (
+                <div className="analytics-timeframe-spinner"></div>
+              ) : (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="analytics-timeframe-chevron">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              )}
+            </button>
+            
+            {showTimeframeDropdown && (
+              <div className="analytics-timeframe-dropdown">
+                <div className="analytics-timeframe-section">
+                  <div className="analytics-timeframe-section-title">Presets</div>
+                  <button
+                    className={`analytics-timeframe-option ${selectedTimeframe === '4weeks' ? 'active' : ''}`}
+                    onClick={() => handleTimeframeSelect('4weeks')}
+                  >
+                    <span>Last 4 weeks</span>
+                    {selectedTimeframe === '4weeks' && <span className="analytics-timeframe-check">✓</span>}
+                  </button>
+                  <button
+                    className={`analytics-timeframe-option ${selectedTimeframe === '8weeks' ? 'active' : ''}`}
+                    onClick={() => handleTimeframeSelect('8weeks')}
+                  >
+                    <span>Last 8 weeks</span>
+                    {selectedTimeframe === '8weeks' && <span className="analytics-timeframe-check">✓</span>}
+                  </button>
+                  <button
+                    className={`analytics-timeframe-option ${selectedTimeframe === '12weeks' ? 'active' : ''}`}
+                    onClick={() => handleTimeframeSelect('12weeks')}
+                  >
+                    <span>Last 12 weeks</span>
+                    {selectedTimeframe === '12weeks' && <span className="analytics-timeframe-check">✓</span>}
+                  </button>
+                </div>
+                
+                <div className="analytics-timeframe-divider"></div>
+                
+                <div className="analytics-timeframe-section">
+                  <div className="analytics-timeframe-section-title">Quick Select</div>
+                  <button
+                    className="analytics-timeframe-option"
+                    onClick={() => handleQuickDateSelect(7)}
+                  >
+                    <span>Last 7 days</span>
+                  </button>
+                  <button
+                    className="analytics-timeframe-option"
+                    onClick={() => handleQuickDateSelect(14)}
+                  >
+                    <span>Last 14 days</span>
+                  </button>
+                  <button
+                    className="analytics-timeframe-option"
+                    onClick={() => handleQuickDateSelect(30)}
+                  >
+                    <span>Last 30 days</span>
+                  </button>
+                </div>
+                
+                <div className="analytics-timeframe-divider"></div>
+                
+                <div className="analytics-timeframe-section">
+                  <button
+                    className={`analytics-timeframe-option ${selectedTimeframe === 'custom' ? 'active' : ''}`}
+                    onClick={() => handleTimeframeSelect('custom')}
+                  >
+                    <span>Custom range...</span>
+                    {selectedTimeframe === 'custom' && <span className="analytics-timeframe-check">✓</span>}
+                  </button>
+                </div>
+                
+                {selectedTimeframe === 'custom' && (
+                  <>
+                    <div className="analytics-timeframe-divider"></div>
+                    <div className="analytics-timeframe-custom">
+                      <div className="analytics-timeframe-custom-row">
+                        <label>From</label>
+                        <input
+                          type="date"
+                          value={customDateRange.startDate}
+                          onChange={(e) => setCustomDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                          className="analytics-timeframe-date-input"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                      <div className="analytics-timeframe-custom-row">
+                        <label>To</label>
+                        <input
+                          type="date"
+                          value={customDateRange.endDate}
+                          onChange={(e) => setCustomDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                          className="analytics-timeframe-date-input"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {analyticsData && (
+            <button
+              onClick={exportData}
+              className="analytics-export-btn"
+              title="Export analytics data"
+            >
+              📊 Export Data
+            </button>
+          )}
+        </div>
       </div>
       
       <div className="analytics-management-content">
