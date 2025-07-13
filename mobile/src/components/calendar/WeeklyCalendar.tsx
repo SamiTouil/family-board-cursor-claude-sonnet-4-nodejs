@@ -252,13 +252,17 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     
     try {
       const response = await familyApi.getMembers(currentFamily.id);
-      const membersList = response.data || [];
-      console.log('Loaded members:', membersList);
+      const membersList = response.data?.data || [];
+      console.log('WeeklyCalendar - Loaded family members:', membersList);
       
-      // Ensure we have an array of members
-      setFamilyMembers(Array.isArray(membersList) ? membersList : []);
+      // Extract user objects from family member responses
+      const members = Array.isArray(membersList) 
+        ? membersList.map((member: any) => member.user)
+        : [];
+      setFamilyMembers(members);
+      console.log('WeeklyCalendar - Set familyMembers state:', members);
     } catch (error) {
-      console.error('Failed to load family members:', error);
+      console.error('WeeklyCalendar - Failed to load family members:', error);
       setFamilyMembers([]);
     }
   };
@@ -415,6 +419,11 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
                         hideAvatar={isMultiTaskShift}
                         onPress={(task) => {
                           if (isAdmin) {
+                            console.log('WeeklyCalendar - Opening reassign modal:', {
+                              task,
+                              familyMembersCount: familyMembers.length,
+                              familyMembers
+                            });
                             setTaskOverrideAction('REASSIGN');
                             setSelectedTask(task);
                             setTaskOverrideDate(day.date);
@@ -438,10 +447,37 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     );
   };
   
-  const handleConfirmTaskOverride = async (_data: CreateTaskOverrideData) => {
-    setShowTaskOverrideModal(false);
-    // Reload current week after override
-    await loadWeekSchedule(currentWeekStart, false);
+  const handleConfirmTaskOverride = async (data: CreateTaskOverrideData) => {
+    if (!currentFamily) return;
+    
+    try {
+      // Prepare the week override data for the API
+      const weekOverrideData = {
+        weekStartDate: currentWeekStart,
+        taskOverrides: [data],
+        replaceExisting: false
+      };
+      
+      console.log('WeeklyCalendar - Applying task override:', weekOverrideData);
+      
+      // Apply the week override
+      await weekScheduleApi.applyWeekOverride(currentFamily.id, weekOverrideData);
+      
+      console.log('WeeklyCalendar - Task override applied successfully');
+      
+      // Close modal
+      setShowTaskOverrideModal(false);
+      
+      // Reload current week after override
+      await loadWeekSchedule(currentWeekStart, false);
+    } catch (error: any) {
+      console.error('WeeklyCalendar - Failed to apply task override:', error);
+      
+      // Keep modal open and show error
+      // You might want to add error state to show user feedback
+      const errorMessage = error.response?.data?.message || 'Failed to apply task override';
+      console.error('Error message:', errorMessage);
+    }
   };
   
   if (isLoading && !weekSchedule) {
