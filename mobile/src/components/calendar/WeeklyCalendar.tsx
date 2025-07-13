@@ -567,23 +567,11 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         key={`${day.date}-${position}`}
         style={[
           styles.dayColumn,
-          isToday && styles.todayColumn,
           styles.slidingDayColumn,
           position === 'prev' && styles.prevDayColumn,
           position === 'next' && styles.nextDayColumn,
         ]}
       >
-        {/* Day Header */}
-        <View style={[styles.dayHeader, isToday && styles.todayHeader]}>
-          <View style={styles.dayInfo}>
-            <Text style={[styles.dayName, isToday && styles.todayDayName]}>
-              {formatDate(day.date)}
-            </Text>
-            <Text style={styles.taskCount}>
-              {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
-            </Text>
-          </View>
-        </View>
         
         {/* Tasks */}
         <View style={styles.tasksContainer}>
@@ -829,7 +817,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   gradientBackground: {
     marginTop: -10, // Extend gradient above the container
@@ -1000,21 +987,12 @@ const styles = StyleSheet.create({
   },
   daysContainer: {
     flexDirection: 'row',
-    padding: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 16,
   },
   dayColumn: {
     flex: 1,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
     marginHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   slidingDayColumn: {
     width: '33.333%', // Each day takes 1/3 of the sliding container
@@ -1029,54 +1007,8 @@ const styles = StyleSheet.create({
   multiDayColumn: {
     marginHorizontal: 4,
   },
-  todayColumn: {
-    borderTopWidth: 3,
-    borderTopColor: '#3b82f6',
-  },
-  dayHeader: {
-    padding: 12,
-    borderBottomWidth: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    borderWidth: 1,
-    borderBottomWidth: 0,
-    borderColor: 'rgba(99, 102, 241, 0.1)',
-    shadowColor: '#6366f1',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  todayHeader: {
-    backgroundColor: 'rgba(59, 130, 246, 0.08)',
-    borderColor: 'rgba(59, 130, 246, 0.2)',
-  },
-  dayInfo: {
-    alignItems: 'center',
-  },
-  dayName: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#374151',
-    marginBottom: 2,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  todayDayName: {
-    color: '#2563eb',
-    fontWeight: '800',
-  },
-  taskCount: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
   tasksContainer: {
-    padding: 16,
-    minHeight: 200,
+    flex: 1,
   },
   noTasks: {
     flex: 1,
@@ -1090,10 +1022,10 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   tasksStack: {
-    gap: 12,
+    gap: 8,
   },
   shift: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   multiTaskShift: {
     backgroundColor: 'rgba(99, 102, 241, 0.02)',
@@ -1149,18 +1081,18 @@ const styles = StyleSheet.create({
     marginHorizontal: -4,
   },
   addTaskButton: {
-    marginTop: 12,
-    padding: 12,
-    backgroundColor: '#f8fafc',
-    borderWidth: 2,
-    borderColor: '#cbd5e1',
+    marginTop: 8,
+    padding: 10,
+    backgroundColor: 'rgba(248, 250, 252, 0.5)',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
     borderStyle: 'dashed',
-    borderRadius: 8,
+    borderRadius: 6,
     alignItems: 'center',
   },
   addTaskButtonText: {
-    fontSize: 14,
-    color: '#64748b',
+    fontSize: 12,
+    color: '#94a3b8',
     fontWeight: '500',
   },
   slidingContainer: {
