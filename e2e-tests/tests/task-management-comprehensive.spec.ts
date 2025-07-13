@@ -305,10 +305,14 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       // Add task to routine with default settings
       await page.getByRole('button', { name: 'Add Task to Routine' }).click();
       await page.waitForLoadState('domcontentloaded'); // Wait for dropdown to populate
+      // Ensure modal is fully rendered
+      await expect(page.locator('.modal-overlay')).toBeVisible();
       
       // Click on CustomSelect to open dropdown
-      await page.locator('.modal-form-group').filter({ hasText: 'Task *' }).locator('.custom-select').click();
-      await expect(page.locator('.custom-select-option').first()).toBeVisible(); // Wait for dropdown to open
+      const customSelect = page.locator('.modal-form-group').filter({ hasText: 'Task *' }).locator('.custom-select');
+      await customSelect.click();
+      // Wait for dropdown options to be fully visible
+      await expect(page.locator('.custom-select-option').first()).toBeVisible({ timeout: 10000 });
       
       // Select first available task from dropdown
       await page.locator('.custom-select-option').nth(1).click(); // Skip the placeholder option
@@ -331,8 +335,10 @@ test.describe('Task Management - Comprehensive Test Suite', () => {
       await page.waitForLoadState('domcontentloaded'); // Wait for dropdown to populate
       
       // Click on CustomSelect to open dropdown
-      await page.locator('.modal-form-group').filter({ hasText: 'Task *' }).locator('.custom-select').click();
-      await expect(page.locator('.custom-select-option').first()).toBeVisible(); // Wait for dropdown to open
+      const taskSelect = page.locator('.modal-form-group').filter({ hasText: 'Task *' }).locator('.custom-select');
+      await taskSelect.click();
+      // Wait for dropdown options to be fully visible
+      await expect(page.locator('.custom-select-option').first()).toBeVisible({ timeout: 10000 });
       
       // Select second available task from dropdown
       await page.locator('.custom-select-option').nth(2).click(); // Skip the placeholder option
