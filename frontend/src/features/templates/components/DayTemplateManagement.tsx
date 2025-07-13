@@ -614,14 +614,6 @@ export const DayTemplateManagement: React.FC = () => {
 
         {/* DayTemplate Section */}
         <div className="day-template-management-subsection">
-          <div className="day-template-management-subsection-header">
-            <h3 className="day-template-management-subsection-title">
-              {t('dailyRoutines.routines.title')}
-              <span className="day-template-management-count-badge">
-                {templates.length}
-              </span>
-            </h3>
-          </div>
 
           {/* Templates List */}
           <div className="day-template-management-templates-list">

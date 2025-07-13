@@ -84,6 +84,7 @@
 /* Subsections */
 .week-template-management-subsection {
   padding: 24px;
+  padding-top: 24px; /* Consistent padding since no header */
   border-bottom: 1px solid #f3f4f6;
 }
 

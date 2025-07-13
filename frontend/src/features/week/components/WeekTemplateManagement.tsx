@@ -500,14 +500,6 @@ export const WeekTemplateManagement: React.FC = () => {
 
         {/* Week Templates Section */}
         <div className="week-template-management-subsection">
-          <div className="week-template-management-subsection-header">
-            <h3 className="week-template-management-subsection-title">
-              {t('weeklyRoutines.routines.title')}
-              <span className="week-template-management-count-badge">
-                {weekTemplates.length}
-              </span>
-            </h3>
-          </div>
 
 
 
