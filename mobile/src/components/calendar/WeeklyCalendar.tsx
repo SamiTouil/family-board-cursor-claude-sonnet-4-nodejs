@@ -572,6 +572,30 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
           position === 'next' && styles.nextDayColumn,
         ]}
       >
+        {/* Day Header */}
+        <View style={styles.dayHeader}>
+          <Text style={styles.dayName}>
+            {formatDate(day.date)}
+          </Text>
+          {isAdmin && (
+            <View style={styles.dayActions}>
+              <TouchableOpacity
+                style={styles.dayActionButton}
+                onPress={() => handleTaskOverride('ADD', undefined, day.date)}
+                disabled={isLoading || availableTasks.length === 0}
+              >
+                <Text style={styles.dayActionButtonText}>+ Add Task</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.dayActionButton}
+                onPress={() => Alert.alert('Apply Daily Routine', 'This feature is coming soon!')}
+                disabled={isLoading}
+              >
+                <Text style={styles.dayActionButtonText}>Apply Routine</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
         
         {/* Tasks */}
         <View style={styles.tasksContainer}>
@@ -643,17 +667,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
                 );
               })}
             </View>
-          )}
-          
-          {/* Add Task Button */}
-          {isAdmin && (
-            <TouchableOpacity
-              style={styles.addTaskButton}
-              onPress={() => handleTaskOverride('ADD', undefined, day.date)}
-              disabled={isLoading || availableTasks.length === 0}
-            >
-              <Text style={styles.addTaskButtonText}>+ Add Task</Text>
-            </TouchableOpacity>
           )}
         </View>
       </View>
@@ -727,7 +740,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
       </LinearGradient>
 
       <GestureHandlerRootView style={styles.contentContainer}>
-
       {/* Messages */}
       {message && (
         <View style={[styles.message, styles[`message${message.type}`]]}>
@@ -837,6 +849,50 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
   },
+  dayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 8,
+    margin: 8,
+    backgroundColor: 'rgba(99, 102, 241, 0.08)',
+    borderWidth: 2,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+    borderRadius: 12,
+    shadowColor: '#6366f1',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    minHeight: 36,
+  },
+  dayName: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#374151',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  dayActions: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  dayActionButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+  },
+  dayActionButtonText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#6366f1',
+  },
   templateRow: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
@@ -872,10 +928,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-  },
-  dateRange: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
   },
   controls: {
     flexDirection: 'row',
