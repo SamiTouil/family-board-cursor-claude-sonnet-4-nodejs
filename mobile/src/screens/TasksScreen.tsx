@@ -10,11 +10,12 @@ import {
   Dimensions,
   TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFamily } from '../contexts/FamilyContext';
 import { useNotifications } from '../contexts/NotificationContext';
 import { taskApi } from '../services/api';
-import { TaskOverrideCard, Button, LoadingSpinner } from '../components/ui';
+import { TaskOverrideCard, Button, LoadingSpinner, LogoReversed } from '../components/ui';
 import { TaskFormModal } from '../components/forms/TaskFormModal';
 import type { Task, CreateTaskData, UpdateTaskData, ResolvedTask } from '../types';
 
@@ -23,6 +24,7 @@ const { width: screenWidth } = Dimensions.get('window');
 export const TasksScreen: React.FC = () => {
   const { currentFamily } = useFamily();
   const { emit } = useNotifications();
+  const insets = useSafeAreaInsets();
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -230,29 +232,51 @@ export const TasksScreen: React.FC = () => {
 
   if (!currentFamily) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Please select a family to manage tasks.</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Task Management</Text>
-        {isAdmin && (
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={handleAddTask}
-            disabled={isLoading}
-          >
-            <Text style={styles.addButtonText}>+ Add Task</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+    <View style={styles.container}>
+      {/* Gradient Header */}
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.gradientBackground, { paddingTop: insets.top + 10 }]}
+      >
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <TouchableOpacity 
+              style={styles.logoButton}
+              activeOpacity={0.7}
+            >
+              <LogoReversed size={48} style={styles.logo} />
+            </TouchableOpacity>
+            <View style={styles.headerText}>
+              <Text style={styles.title}>Task Management</Text>
+              <View style={styles.indicatorsRow}>
+                <View style={styles.leftIndicator}>
+                  <Text style={styles.headerDescription}>Create and organize family tasks</Text>
+                </View>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={handleAddTask}
+                    disabled={isLoading}
+                  >
+                    <Text style={styles.addButtonText}>+</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          </View>
+        </View>
+      </LinearGradient>
 
       {/* Success/Error Messages */}
       {message && (
@@ -371,7 +395,7 @@ export const TasksScreen: React.FC = () => {
         task={editingTask || undefined}
         isLoading={isSubmitting}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -380,31 +404,84 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f9fafb',
   },
+  gradientBackground: {
+    marginTop: -10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
+  },
   header: {
+    padding: 16,
+    paddingTop: 8,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  logoButton: {
+    alignSelf: 'center',
+    borderRadius: 8,
+    padding: 4,
+  },
+  logo: {
+    alignSelf: 'center',
+  },
+  headerText: {
+    flex: 1,
+  },
+  indicatorsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    marginTop: 2,
+    minHeight: 28,
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#1f2937',
+    fontWeight: '600',
+    color: 'white',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  leftIndicator: {
+    flex: 1,
+    minHeight: 20,
+    justifyContent: 'center',
+  },
+  headerDescription: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '500',
+    lineHeight: 20,
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   addButton: {
-    backgroundColor: '#6366f1',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    minHeight: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   addButtonText: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#ffffff',
+    color: 'white',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   message: {
     marginHorizontal: 16,

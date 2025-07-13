@@ -11,10 +11,12 @@ import {
   Modal,
   RefreshControl,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFamily } from '../contexts/FamilyContext';
 import { useAuth } from '../contexts/AuthContext';
 import { familyApi } from '../services/api';
-import { UserAvatar, Button, LoadingSpinner } from '../components/ui';
+import { UserAvatar, Button, LoadingSpinner, LogoReversed } from '../components/ui';
 import type { FamilyMember, FamilyJoinRequest, FamilyInvite } from '../types';
 
 interface MessageState {
@@ -25,6 +27,7 @@ interface MessageState {
 export const FamilyScreen: React.FC = () => {
   const { currentFamily, refreshFamilies } = useFamily();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
 
   // State for family data
   const [members, setMembers] = useState<FamilyMember[]>([]);
@@ -476,25 +479,53 @@ export const FamilyScreen: React.FC = () => {
   const activeInvites = invites.filter(invite => invite.status === 'PENDING');
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <UserAvatar
-          firstName={currentFamily.name}
-          lastName=""
-          avatarUrl={currentFamily.avatarUrl}
-          size="large"
-        />
-        <Text style={styles.headerTitle}>{currentFamily.name}</Text>
-        {isAdmin && (
-          <TouchableOpacity
-            style={styles.editFamilyButton}
-            onPress={handleEditFamily}
-          >
-            <Text style={styles.editFamilyButtonText}>Edit</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+    <View style={styles.container}>
+      {/* Gradient Header */}
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.gradientBackground, { paddingTop: insets.top + 10 }]}
+      >
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <TouchableOpacity 
+              style={styles.logoButton}
+              activeOpacity={0.7}
+            >
+              <LogoReversed size={48} style={styles.logo} />
+            </TouchableOpacity>
+            <View style={styles.headerText}>
+              <Text style={styles.headerTitle}>{currentFamily.name}</Text>
+              <View style={styles.indicatorsRow}>
+                <View style={styles.leftIndicator}>
+                  <Text style={styles.headerDescription}>
+                    {currentFamily.description || 'Family management'}
+                  </Text>
+                </View>
+                <View style={styles.headerButtons}>
+                  {isAdmin && (
+                    <TouchableOpacity
+                      style={styles.addVirtualButton}
+                      onPress={handleAddVirtualMember}
+                    >
+                      <Text style={styles.addVirtualButtonText}>+</Text>
+                    </TouchableOpacity>
+                  )}
+                  {isAdmin && (
+                    <TouchableOpacity
+                      style={styles.editFamilyButton}
+                      onPress={handleEditFamily}
+                    >
+                      <Text style={styles.editFamilyButtonText}>Edit</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </LinearGradient>
 
       {/* Messages */}
       {message && (
@@ -512,17 +543,6 @@ export const FamilyScreen: React.FC = () => {
       >
         {/* Family Members */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Family Members</Text>
-            {isAdmin && (
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={handleAddVirtualMember}
-              >
-                <Text style={styles.addButtonText}>+ Add Virtual</Text>
-              </TouchableOpacity>
-            )}
-          </View>
           {members.map(renderMemberCard)}
         </View>
 
@@ -788,7 +808,7 @@ export const FamilyScreen: React.FC = () => {
           <LoadingSpinner />
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -797,32 +817,107 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
+  gradientBackground: {
+    marginTop: -10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
+  },
   header: {
+    padding: 16,
+    paddingTop: 8,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
     gap: 12,
   },
-  headerTitle: {
+  logoButton: {
+    alignSelf: 'center',
+    borderRadius: 8,
+    padding: 4,
+  },
+  logo: {
+    alignSelf: 'center',
+  },
+  headerText: {
     flex: 1,
-    fontSize: 20,
+  },
+  indicatorsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 2,
+    minHeight: 28, // Match TaskSplitIndicator height
+  },
+  headerTitle: {
+    fontSize: 24,
     fontWeight: '600',
-    color: '#1f2937',
+    color: 'white',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  leftIndicator: {
+    flex: 1,
+    minHeight: 20, // Match ShiftIndicator height
+    justifyContent: 'center',
+  },
+  headerDescription: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '500',
+    lineHeight: 20,
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  addVirtualButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    minHeight: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addVirtualButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   editFamilyButton: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    minHeight: 28, // Match TaskSplitIndicator height
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   editFamilyButtonText: {
-    color: '#374151',
-    fontSize: 14,
+    color: 'white',
+    fontSize: 12,
     fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   message: {
     margin: 16,
