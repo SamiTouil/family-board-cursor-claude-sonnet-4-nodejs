@@ -163,15 +163,26 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
     </View>
   );
 
-  const renderMemberSelector = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
-        {action === 'ADD' ? 'Assign to' : 'Reassign to'}
-      </Text>
-      <View style={styles.memberGrid}>
-        {(familyMembers || [])
-          .filter(member => action === 'ADD' || member.id !== task?.memberId)
-          .map(member => (
+  const renderMemberSelector = () => {
+    const availableMembers = (familyMembers || [])
+      .filter(member => action === 'ADD' || member.id !== task?.memberId);
+    
+    console.log('TaskOverrideModal - renderMemberSelector:', {
+      action,
+      familyMembersCount: familyMembers?.length || 0,
+      familyMembers,
+      taskMemberId: task?.memberId,
+      availableMembersCount: availableMembers.length,
+      availableMembers
+    });
+    
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>
+          {action === 'ADD' ? 'Assign to' : 'Reassign to'}
+        </Text>
+        <View style={styles.memberGrid}>
+          {availableMembers.map(member => (
             <TouchableOpacity
               key={member.id}
               style={[
@@ -201,13 +212,14 @@ export const TaskOverrideModal: React.FC<TaskOverrideModalProps> = ({
             </TouchableOpacity>
           ))}
       </View>
-      {(familyMembers || []).filter(member => action === 'ADD' || member.id !== task?.memberId).length === 0 && (
+      {availableMembers.length === 0 && (
         <Text style={styles.noMembersText}>
           No other family members available for assignment.
         </Text>
       )}
     </View>
-  );
+    );
+  };
 
   const renderTimeSelector = () => (
     <View style={styles.section}>
