@@ -412,5 +412,25 @@
     "internalServerError": "Erreur interne du serveur. Veuillez réessayer plus tard.",
     "unauthorized": "Vous n'êtes pas autorisé à effectuer cette action",
     "networkError": "Erreur réseau. Veuillez vérifier votre connexion internet."
+  },
+  "analytics": {
+    "title": "Analytique",
+    "subtitle": "Suivez et analysez les performances des quarts de famille",
+    "monthlyOverview": "Aperçu Mensuel",
+    "memberScores": "Scores des Membres",
+    "shifts": "quarts",
+    "averageScore": "Score Moyen",
+    "topPerformer": "Meilleur Performeur",
+    "member": "Membre",
+    "totalScore": "Score Total",
+    "shiftsCompleted": "Quarts Complétés",
+    "trend": "Tendance",
+    "virtual": "Virtuel",
+    "timeframe": "Période",
+    "last3Months": "3 Derniers Mois",
+    "last6Months": "6 Derniers Mois",
+    "lastYear": "Dernière Année",
+    "customRange": "Période Personnalisée",
+    "includeVirtualMembers": "Inclure les Membres Virtuels"
   }
 } 

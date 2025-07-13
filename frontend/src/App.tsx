@@ -14,6 +14,7 @@ import HomePage from './pages/HomePage';
 import RoutinesPage from './pages/WeekPage';
 import TasksPage from './pages/TasksPage';
 import FamilyPage from './pages/FamilyPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import './App.css';
 
 const AppContent: React.FC = () => {
@@ -44,6 +45,7 @@ const AppContent: React.FC = () => {
         <Route path="week" element={<RoutinesPage />} />
         <Route path="family" element={<FamilyPage />} />
         <Route path="tasks" element={<TasksPage />} />
+        <Route path="analytics" element={<AnalyticsPage />} />
       </Route>
     </Routes>
   );

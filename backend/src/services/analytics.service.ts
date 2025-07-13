@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { startOfDay, subDays, addDays } from 'date-fns';
+import { startOfDay, subDays, addDays, format } from 'date-fns';
 import { WeekScheduleService } from './week-schedule.service';
 
 export interface MemberTaskStats {
@@ -22,6 +22,42 @@ export interface TaskSplitAnalytics {
   totalMinutes: number;
   averageMinutesPerMember: number;
   fairnessScore: number; // 0-100, where 100 is perfectly fair
+}
+
+export interface ShiftAnalyticsParams {
+  familyId: string;
+  timeframe: '3months' | '6months' | '1year' | 'custom';
+  startDate?: string;
+  endDate?: string;
+  memberIds?: string[];
+  showVirtual?: boolean;
+}
+
+export interface MonthlyScore {
+  month: string;
+  year: number;
+  totalShifts: number;
+  averageScore: number;
+  topPerformer: string;
+}
+
+export interface MemberShiftScore {
+  memberId: string;
+  memberName: string;
+  isVirtual: boolean;
+  totalScore: number;
+  shiftsCompleted: number;
+  averageScore: number;
+  trend: 'up' | 'down' | 'stable';
+}
+
+export interface ShiftDistribution {
+  memberId: string;
+  memberName: string;
+  morningShifts: number;
+  afternoonShifts: number;
+  eveningShifts: number;
+  weekendShifts: number;
 }
 
 export class AnalyticsService {
@@ -285,5 +321,296 @@ export class AnalyticsService {
     }
 
     return results.reverse();
+  }
+
+  /**
+   * Get comprehensive shift analytics for scoring
+   */
+  async getShiftAnalytics(params: ShiftAnalyticsParams) {
+    const { familyId, timeframe, startDate, endDate, memberIds, showVirtual = true } = params;
+
+    // Calculate date range
+    const dateRange = this.getShiftDateRange(timeframe, startDate, endDate);
+
+    // Get all family members
+    const familyMembers = await this.getFamilyMembers(familyId, showVirtual, memberIds);
+
+    // Get monthly scores
+    const monthlyScores = await this.getMonthlyShiftScores(familyId, dateRange, familyMembers);
+
+    // Get member scores
+    const memberScores = await this.getMemberShiftScores(familyId, dateRange, familyMembers);
+
+    // Get shift distribution
+    const shiftDistribution = await this.getShiftDistribution(familyId, dateRange, familyMembers);
+
+    return {
+      monthlyScores,
+      memberScores,
+      shiftDistribution
+    };
+  }
+
+  private getShiftDateRange(timeframe: string, customStart?: string, customEnd?: string): { start: Date; end: Date } {
+    const now = new Date();
+    const end = customEnd ? new Date(customEnd) : now;
+    let start: Date;
+
+    switch (timeframe) {
+      case '3months':
+        start = subDays(end, 90);
+        break;
+      case '6months':
+        start = subDays(end, 180);
+        break;
+      case '1year':
+        start = subDays(end, 365);
+        break;
+      case 'custom':
+        start = customStart ? new Date(customStart) : subDays(end, 90);
+        break;
+      default:
+        start = subDays(end, 90);
+    }
+
+    return {
+      start: startOfDay(start),
+      end: startOfDay(addDays(end, 1))
+    };
+  }
+
+  private async getFamilyMembers(familyId: string, showVirtual: boolean, memberIds?: string[]) {
+    const where: any = {
+      familyId,
+      ...(memberIds && memberIds.length > 0 ? { id: { in: memberIds } } : {}),
+      ...(!showVirtual ? { user: { isVirtual: false } } : {})
+    };
+
+    return await this.prisma.familyMember.findMany({
+      where,
+      include: {
+        user: true
+      }
+    });
+  }
+
+  private async getMonthlyShiftScores(
+    familyId: string,
+    dateRange: { start: Date; end: Date },
+    familyMembers: any[]
+  ): Promise<MonthlyScore[]> {
+    // Get all task overrides in the date range
+    const taskOverrides = await this.prisma.taskOverride.findMany({
+      where: {
+        task: {
+          familyId
+        },
+        assignedDate: {
+          gte: dateRange.start,
+          lt: dateRange.end
+        },
+        newMemberId: {
+          in: familyMembers.map(m => m.id)
+        }
+      },
+      include: {
+        newMember: true,
+        task: true
+      },
+      orderBy: {
+        assignedDate: 'asc'
+      }
+    });
+
+    // Group by month and calculate scores
+    const monthlyData = new Map<string, {
+      shifts: any[];
+      memberCounts: Map<string, { name: string; count: number; totalDuration: number }>;
+    }>();
+
+    taskOverrides.forEach(override => {
+      const monthKey = format(override.assignedDate, 'MM-yyyy');
+      
+      if (!monthlyData.has(monthKey)) {
+        monthlyData.set(monthKey, {
+          shifts: [],
+          memberCounts: new Map()
+        });
+      }
+
+      const monthData = monthlyData.get(monthKey)!;
+      monthData.shifts.push(override);
+
+      if (override.newMemberId) {
+        const memberName = override.newMember 
+          ? `${override.newMember.firstName} ${override.newMember.lastName}`
+          : 'Unknown';
+
+        const memberStats = monthData.memberCounts.get(override.newMemberId) || {
+          name: memberName,
+          count: 0,
+          totalDuration: 0
+        };
+
+        memberStats.count += 1;
+        memberStats.totalDuration += override.overrideDuration || override.task.defaultDuration;
+        monthData.memberCounts.set(override.newMemberId, memberStats);
+      }
+    });
+
+    // Convert to monthly scores
+    const monthlyScores: MonthlyScore[] = [];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    monthlyData.forEach((data, monthKey) => {
+      const [monthStr, yearStr] = monthKey.split('-');
+      const month = parseInt(monthStr || '1');
+      const year = parseInt(yearStr || new Date().getFullYear().toString());
+      let topPerformer = '';
+      let topCount = 0;
+
+      data.memberCounts.forEach((memberData) => {
+        if (memberData.count > topCount) {
+          topCount = memberData.count;
+          topPerformer = memberData.name;
+        }
+      });
+
+      monthlyScores.push({
+        month: monthNames[month - 1] || 'Unknown',
+        year: year || new Date().getFullYear(),
+        totalShifts: data.shifts.length,
+        averageScore: 0, // No scores available
+        topPerformer: topPerformer || 'N/A'
+      });
+    });
+
+    return monthlyScores.sort((a, b) => {
+      if (a.year !== b.year) return a.year - b.year;
+      return monthNames.indexOf(a.month) - monthNames.indexOf(b.month);
+    });
+  }
+
+  private async getMemberShiftScores(
+    _familyId: string,
+    dateRange: { start: Date; end: Date },
+    familyMembers: any[]
+  ): Promise<MemberShiftScore[]> {
+    const memberScores: MemberShiftScore[] = [];
+
+    for (const member of familyMembers) {
+      // Get all shifts for this member
+      const shifts = await this.prisma.taskOverride.findMany({
+        where: {
+          newMemberId: member.id,
+          assignedDate: {
+            gte: dateRange.start,
+            lt: dateRange.end
+          }
+        },
+        include: {
+          task: true
+        }
+      });
+
+      // Calculate current period stats
+      const currentCount = shifts.length;
+      const currentTotalDuration = shifts.reduce((sum, shift) => 
+        sum + (shift.overrideDuration || shift.task?.defaultDuration || 0), 0
+      );
+
+      // Get previous period for trend calculation
+      const prevDateRange = {
+        start: subDays(dateRange.start, 90),
+        end: dateRange.start
+      };
+
+      const prevShifts = await this.prisma.taskOverride.findMany({
+        where: {
+          newMemberId: member.id,
+          assignedDate: {
+            gte: prevDateRange.start,
+            lt: prevDateRange.end
+          }
+        }
+      });
+
+      const prevCount = prevShifts.length;
+
+      // Calculate trend based on shift count
+      let trend: 'up' | 'down' | 'stable' = 'stable';
+      
+      if (currentCount > prevCount * 1.1) trend = 'up';
+      else if (currentCount < prevCount * 0.9) trend = 'down';
+
+      const memberName = `${member.user?.firstName} ${member.user?.lastName}`;
+
+      memberScores.push({
+        memberId: member.id,
+        memberName,
+        isVirtual: member.user?.isVirtual || false,
+        totalScore: currentTotalDuration, // Using duration as a proxy for score
+        shiftsCompleted: currentCount,
+        averageScore: currentCount > 0 ? currentTotalDuration / currentCount : 0,
+        trend
+      });
+    }
+
+    // Sort by shifts completed descending
+    return memberScores.sort((a, b) => b.shiftsCompleted - a.shiftsCompleted);
+  }
+
+  private async getShiftDistribution(
+    _familyId: string,
+    dateRange: { start: Date; end: Date },
+    familyMembers: any[]
+  ): Promise<ShiftDistribution[]> {
+    const distributions: ShiftDistribution[] = [];
+
+    for (const member of familyMembers) {
+      const shifts = await this.prisma.taskOverride.findMany({
+        where: {
+          newMemberId: member.id,
+          assignedDate: {
+            gte: dateRange.start,
+            lt: dateRange.end
+          }
+        },
+        include: {
+          task: true
+        }
+      });
+
+      let morningShifts = 0;
+      let afternoonShifts = 0;
+      let eveningShifts = 0;
+      let weekendShifts = 0;
+
+      shifts.forEach(shift => {
+        const date = shift.assignedDate;
+        const hour = parseInt(shift.overrideTime?.split(':')[0] || shift.task?.defaultStartTime?.split(':')[0] || '0');
+        
+        // Time of day distribution
+        if (hour >= 6 && hour < 12) morningShifts++;
+        else if (hour >= 12 && hour < 18) afternoonShifts++;
+        else eveningShifts++;
+
+        // Weekend distribution
+        if (date.getDay() === 0 || date.getDay() === 6) weekendShifts++;
+      });
+
+      const memberName = `${member.user?.firstName} ${member.user?.lastName}`;
+
+      distributions.push({
+        memberId: member.id,
+        memberName,
+        morningShifts,
+        afternoonShifts,
+        eveningShifts,
+        weekendShifts
+      });
+    }
+
+    return distributions;
   }
 }

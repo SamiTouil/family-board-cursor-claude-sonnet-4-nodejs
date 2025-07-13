@@ -412,5 +412,32 @@
     "internalServerError": "Internal server error. Please try again later.",
     "unauthorized": "You are not authorized to perform this action",
     "networkError": "Network error. Please check your internet connection."
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Track and analyze family task distribution",
+    "monthlyOverview": "Overview",
+    "memberScores": "Member Distribution",
+    "shifts": "shifts",
+    "days": "days",
+    "members": "members",
+    "fairnessScore": "Fairness Score",
+    "totalTime": "Total Time",
+    "averageScore": "Average Score",
+    "topPerformer": "Top Contributor",
+    "member": "Member",
+    "totalScore": "Total Score",
+    "taskCount": "Tasks",
+    "percentage": "Share",
+    "avgPerTask": "Avg/Task",
+    "shiftsCompleted": "Shifts Completed",
+    "trend": "Trend",
+    "virtual": "Virtual",
+    "timeframe": "Timeframe",
+    "last3Months": "Last 3 Months",
+    "last6Months": "Last 6 Months",
+    "lastYear": "Last Year",
+    "customRange": "Custom Range",
+    "includeVirtualMembers": "Include Virtual Members"
   }
 } 
