@@ -306,10 +306,15 @@ describe('TaskManagement', () => {
     render(<TaskManagement />);
 
     await waitFor(() => {
-      const editButtons = screen.getAllByTitle('Edit task');
-      // Click on the second task's edit button (Clean Kitchen at 09:00) since tasks are now sorted by time
-      // First task is now "Walk Dog" at 07:00, second is "Clean Kitchen" at 09:00
-      fireEvent.click(editButtons[1]);
+      // Click on the dropdown menu button for the second task (Clean Kitchen)
+      const dropdownButtons = screen.getAllByRole('button', { name: '⋮' });
+      fireEvent.click(dropdownButtons[1]);
+    });
+
+    // Click on Edit option in the dropdown menu
+    await waitFor(() => {
+      const editOption = screen.getByText('Edit task');
+      fireEvent.click(editOption);
     });
 
     // Wait for modal to open and check that form is pre-filled with task data
@@ -336,11 +341,15 @@ describe('TaskManagement', () => {
 
     render(<TaskManagement />);
 
-    // Open edit form by clicking on edit button
+    // Open edit form by clicking dropdown and then edit
     await waitFor(() => {
-      const editButtons = screen.getAllByTitle('Edit task');
-      // Click on the second task's edit button (Clean Kitchen at 09:00) since tasks are now sorted by time
-      fireEvent.click(editButtons[1]);
+      const dropdownButtons = screen.getAllByRole('button', { name: '⋮' });
+      fireEvent.click(dropdownButtons[1]);
+    });
+
+    await waitFor(() => {
+      const editOption = screen.getByText('Edit task');
+      fireEvent.click(editOption);
     });
 
     // Wait for modal to open and update task name
@@ -382,10 +391,15 @@ describe('TaskManagement', () => {
     render(<TaskManagement />);
 
     await waitFor(() => {
-      const deleteButtons = screen.getAllByTitle('Remove task');
-      // Click on the second delete button (Clean Kitchen at 09:00) since tasks are now sorted by time
-      // First task is now "Walk Dog" (task-2), second is "Clean Kitchen" (task-1)
-      fireEvent.click(deleteButtons[1]);
+      // Click on the dropdown menu button for the second task (Clean Kitchen)
+      const dropdownButtons = screen.getAllByRole('button', { name: '⋮' });
+      fireEvent.click(dropdownButtons[1]);
+    });
+
+    // Click on Delete option in the dropdown menu
+    await waitFor(() => {
+      const deleteOption = screen.getByText('Remove task');
+      fireEvent.click(deleteOption);
     });
 
     await waitFor(() => {
@@ -408,8 +422,15 @@ describe('TaskManagement', () => {
     render(<TaskManagement />);
 
     await waitFor(() => {
-      const deleteButtons = screen.getAllByTitle('Remove task');
-      fireEvent.click(deleteButtons[0]);
+      // Click on the dropdown menu button for the first task
+      const dropdownButtons = screen.getAllByRole('button', { name: '⋮' });
+      fireEvent.click(dropdownButtons[0]);
+    });
+
+    // Click on Delete option in the dropdown menu
+    await waitFor(() => {
+      const deleteOption = screen.getByText('Remove task');
+      fireEvent.click(deleteOption);
     });
 
     expect(mockTaskApi.deleteTask).not.toHaveBeenCalled();
