@@ -112,16 +112,96 @@ export const taskApi = {
   async getFamilyTasks(familyId: string, params?: { isActive?: boolean }) {
     return await apiClient.get(`/tasks/family/${familyId}`, { params });
   },
-  
+
   async createTask(familyId: string, data: any) {
     return await apiClient.post(`/tasks/family/${familyId}`, data);
   },
-  
+
   async updateTask(taskId: string, data: any) {
     return await apiClient.put(`/tasks/${taskId}`, data);
   },
-  
+
   async deleteTask(taskId: string) {
     return await apiClient.delete(`/tasks/${taskId}`);
   }
-}; 
+};
+
+// Day Template API
+export const dayTemplateApi = {
+  async getTemplates(familyId: string) {
+    return await apiClient.get(`/families/${familyId}/day-templates`);
+  },
+
+  async createTemplate(familyId: string, data: any) {
+    return await apiClient.post(`/families/${familyId}/day-templates`, data);
+  },
+
+  async updateTemplate(familyId: string, templateId: string, data: any) {
+    return await apiClient.put(`/families/${familyId}/day-templates/${templateId}`, data);
+  },
+
+  async deleteTemplate(familyId: string, templateId: string) {
+    return await apiClient.delete(`/families/${familyId}/day-templates/${templateId}`);
+  },
+
+  async applyTemplate(familyId: string, templateId: string, data: any) {
+    return await apiClient.post(`/families/${familyId}/day-templates/${templateId}/apply`, data);
+  },
+
+  // Template items
+  async getItems(familyId: string, templateId: string) {
+    return await apiClient.get(`/families/${familyId}/day-templates/${templateId}/items`);
+  },
+
+  async addItem(familyId: string, templateId: string, data: any) {
+    return await apiClient.post(`/families/${familyId}/day-templates/${templateId}/items`, data);
+  },
+
+  async updateItem(familyId: string, templateId: string, itemId: string, data: any) {
+    return await apiClient.put(`/families/${familyId}/day-templates/${templateId}/items/${itemId}`, data);
+  },
+
+  async removeItem(familyId: string, templateId: string, itemId: string) {
+    return await apiClient.delete(`/families/${familyId}/day-templates/${templateId}/items/${itemId}`);
+  }
+};
+
+// Week Template API
+export const weekTemplateApi = {
+  async getTemplates(familyId: string, params?: any) {
+    return await apiClient.get(`/families/${familyId}/week-templates`, { params });
+  },
+
+  async createTemplate(familyId: string, data: any) {
+    return await apiClient.post(`/families/${familyId}/week-templates`, data);
+  },
+
+  async updateTemplate(familyId: string, templateId: string, data: any) {
+    return await apiClient.put(`/families/${familyId}/week-templates/${templateId}`, data);
+  },
+
+  async deleteTemplate(familyId: string, templateId: string) {
+    return await apiClient.delete(`/families/${familyId}/week-templates/${templateId}`);
+  },
+
+  async duplicateTemplate(familyId: string, templateId: string, data: any) {
+    return await apiClient.post(`/families/${familyId}/week-templates/${templateId}/duplicate`, data);
+  },
+
+  // Template days
+  async getTemplateDays(familyId: string, templateId: string) {
+    return await apiClient.get(`/families/${familyId}/week-templates/${templateId}/days`);
+  },
+
+  async addTemplateDay(familyId: string, templateId: string, data: any) {
+    return await apiClient.post(`/families/${familyId}/week-templates/${templateId}/days`, data);
+  },
+
+  async updateTemplateDay(familyId: string, templateId: string, dayId: string, data: any) {
+    return await apiClient.put(`/families/${familyId}/week-templates/${templateId}/days/${dayId}`, data);
+  },
+
+  async removeTemplateDay(familyId: string, templateId: string, dayId: string) {
+    return await apiClient.delete(`/families/${familyId}/week-templates/${templateId}/days/${dayId}`);
+  }
+};
