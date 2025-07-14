@@ -47,10 +47,16 @@ export const RoutinesScreen: React.FC = () => {
   const [isAddWeekTemplateModalOpen, setIsAddWeekTemplateModalOpen] = useState(false);
   const [isEditWeekTemplateModalOpen, setIsEditWeekTemplateModalOpen] = useState(false);
   const [editingWeekTemplate, setEditingWeekTemplate] = useState<WeekTemplate | null>(null);
-  const [weekTemplateData, setWeekTemplateData] = useState({
+  const [weekTemplateData, setWeekTemplateData] = useState<{
+    name: string;
+    description: string;
+    isDefault: boolean;
+    applyRule: 'EVEN_WEEKS' | 'ODD_WEEKS' | null;
+  }>({
     name: '',
     description: '',
     isDefault: false,
+    applyRule: null,
   });
 
   // Check if user is admin
@@ -215,7 +221,7 @@ export const RoutinesScreen: React.FC = () => {
 
   // Week template functions
   const handleAddWeekTemplate = () => {
-    setWeekTemplateData({ name: '', description: '', isDefault: false });
+    setWeekTemplateData({ name: '', description: '', isDefault: false, applyRule: null });
     setIsAddWeekTemplateModalOpen(true);
   };
 
@@ -225,6 +231,7 @@ export const RoutinesScreen: React.FC = () => {
       name: template.name,
       description: template.description || '',
       isDefault: template.isDefault,
+      applyRule: template.applyRule || null,
     });
     setIsEditWeekTemplateModalOpen(true);
   };
@@ -241,6 +248,7 @@ export const RoutinesScreen: React.FC = () => {
         name: weekTemplateData.name.trim(),
         description: weekTemplateData.description.trim() || undefined,
         isDefault: weekTemplateData.isDefault,
+        applyRule: weekTemplateData.applyRule,
       };
 
       const response = await weekTemplateApi.createTemplate(currentFamily.id, createData);
@@ -268,6 +276,7 @@ export const RoutinesScreen: React.FC = () => {
         name: weekTemplateData.name.trim(),
         description: weekTemplateData.description.trim() || undefined,
         isDefault: weekTemplateData.isDefault,
+        applyRule: weekTemplateData.applyRule,
       };
 
       const response = await weekTemplateApi.updateTemplate(currentFamily.id, editingWeekTemplate.id, updateData);
@@ -426,6 +435,13 @@ export const RoutinesScreen: React.FC = () => {
             {template.isDefault && (
               <View style={styles.defaultBadge}>
                 <Text style={styles.defaultBadgeText}>Default</Text>
+              </View>
+            )}
+            {template.applyRule && (
+              <View style={[styles.defaultBadge, { backgroundColor: '#e0f2fe', borderColor: '#7dd3fc' }]}>
+                <Text style={[styles.defaultBadgeText, { color: '#0369a1' }]}>
+                  {template.applyRule === 'ODD_WEEKS' ? 'Odd' : 'Even'}
+                </Text>
               </View>
             )}
           </View>
@@ -670,6 +686,38 @@ export const RoutinesScreen: React.FC = () => {
                 <Text style={styles.checkboxLabel}>Set as default routine</Text>
               </View>
             </View>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Application Rule (Optional)</Text>
+              <View style={styles.radioGroup}>
+                <TouchableOpacity
+                  style={[styles.radioOption, weekTemplateData.applyRule === null && styles.radioOptionSelected]}
+                  onPress={() => setWeekTemplateData(prev => ({ ...prev, applyRule: null }))}
+                >
+                  <View style={[styles.radio, weekTemplateData.applyRule === null && styles.radioChecked]}>
+                    {weekTemplateData.applyRule === null && <View style={styles.radioInner} />}
+                  </View>
+                  <Text style={styles.radioLabel}>All weeks</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.radioOption, weekTemplateData.applyRule === 'ODD_WEEKS' && styles.radioOptionSelected]}
+                  onPress={() => setWeekTemplateData(prev => ({ ...prev, applyRule: 'ODD_WEEKS' }))}
+                >
+                  <View style={[styles.radio, weekTemplateData.applyRule === 'ODD_WEEKS' && styles.radioChecked]}>
+                    {weekTemplateData.applyRule === 'ODD_WEEKS' && <View style={styles.radioInner} />}
+                  </View>
+                  <Text style={styles.radioLabel}>Odd weeks only</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.radioOption, weekTemplateData.applyRule === 'EVEN_WEEKS' && styles.radioOptionSelected]}
+                  onPress={() => setWeekTemplateData(prev => ({ ...prev, applyRule: 'EVEN_WEEKS' }))}
+                >
+                  <View style={[styles.radio, weekTemplateData.applyRule === 'EVEN_WEEKS' && styles.radioChecked]}>
+                    {weekTemplateData.applyRule === 'EVEN_WEEKS' && <View style={styles.radioInner} />}
+                  </View>
+                  <Text style={styles.radioLabel}>Even weeks only</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </ScrollView>
         </SafeAreaView>
       </Modal>
@@ -725,6 +773,38 @@ export const RoutinesScreen: React.FC = () => {
                   {weekTemplateData.isDefault && <Text style={styles.checkboxCheck}>✓</Text>}
                 </TouchableOpacity>
                 <Text style={styles.checkboxLabel}>Set as default routine</Text>
+              </View>
+            </View>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Application Rule (Optional)</Text>
+              <View style={styles.radioGroup}>
+                <TouchableOpacity
+                  style={[styles.radioOption, weekTemplateData.applyRule === null && styles.radioOptionSelected]}
+                  onPress={() => setWeekTemplateData(prev => ({ ...prev, applyRule: null }))}
+                >
+                  <View style={[styles.radio, weekTemplateData.applyRule === null && styles.radioChecked]}>
+                    {weekTemplateData.applyRule === null && <View style={styles.radioInner} />}
+                  </View>
+                  <Text style={styles.radioLabel}>All weeks</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.radioOption, weekTemplateData.applyRule === 'ODD_WEEKS' && styles.radioOptionSelected]}
+                  onPress={() => setWeekTemplateData(prev => ({ ...prev, applyRule: 'ODD_WEEKS' }))}
+                >
+                  <View style={[styles.radio, weekTemplateData.applyRule === 'ODD_WEEKS' && styles.radioChecked]}>
+                    {weekTemplateData.applyRule === 'ODD_WEEKS' && <View style={styles.radioInner} />}
+                  </View>
+                  <Text style={styles.radioLabel}>Odd weeks only</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.radioOption, weekTemplateData.applyRule === 'EVEN_WEEKS' && styles.radioOptionSelected]}
+                  onPress={() => setWeekTemplateData(prev => ({ ...prev, applyRule: 'EVEN_WEEKS' }))}
+                >
+                  <View style={[styles.radio, weekTemplateData.applyRule === 'EVEN_WEEKS' && styles.radioChecked]}>
+                    {weekTemplateData.applyRule === 'EVEN_WEEKS' && <View style={styles.radioInner} />}
+                  </View>
+                  <Text style={styles.radioLabel}>Even weeks only</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </ScrollView>
@@ -1006,6 +1086,45 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   checkboxLabel: {
+    fontSize: 14,
+    color: '#374151',
+  },
+  radioGroup: {
+    gap: 12,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  radioOptionSelected: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#3b82f6',
+  },
+  radio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioChecked: {
+    borderColor: '#3b82f6',
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#3b82f6',
+  },
+  radioLabel: {
     fontSize: 14,
     color: '#374151',
   },

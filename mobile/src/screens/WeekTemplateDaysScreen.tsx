@@ -99,7 +99,10 @@ export const WeekTemplateDaysScreen: React.FC = () => {
     try {
       // Load template days
       const daysResponse = await weekTemplateApi.getTemplateDays(currentFamily.id, templateId);
-      setTemplateDays(daysResponse.data.days || []);
+      
+      // The response might have the days directly in data, not in data.days
+      const days = daysResponse.data.days || daysResponse.data || [];
+      setTemplateDays(Array.isArray(days) ? days : []);
 
       // Load available day templates
       const dayTemplatesResponse = await dayTemplateApi.getTemplates(currentFamily.id);
