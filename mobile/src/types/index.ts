@@ -244,7 +244,14 @@ export interface DayTemplateItem {
   overrideTime?: string;
   overrideDuration?: number;
   task: Task;
-  member?: FamilyMember;
+  member?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email?: string | null;
+    avatarUrl?: string | null;
+    isVirtual?: boolean;
+  };
   createdAt: string;
   updatedAt: string;
 }
