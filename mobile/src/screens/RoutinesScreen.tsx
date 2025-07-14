@@ -314,114 +314,124 @@ export const RoutinesScreen: React.FC = () => {
     );
   };
 
+  const handleDayTemplatePress = (template: DayTemplate) => {
+    if (!isAdmin) {
+      // Non-admin users navigate directly to manage tasks
+      navigation.navigate('DayTemplateTasks', {
+        templateId: template.id,
+        templateName: template.name,
+      });
+      return;
+    }
+
+    // Admin users get action menu
+    Alert.alert(
+      'Daily Routine Actions',
+      `What would you like to do with "${template.name}"?`,
+      [
+        {
+          text: 'Manage Tasks',
+          onPress: () => navigation.navigate('DayTemplateTasks', {
+            templateId: template.id,
+            templateName: template.name,
+          })
+        },
+        { text: 'Edit', onPress: () => handleEditDayTemplate(template) },
+        { text: 'Delete', onPress: () => handleDeleteDayTemplate(template), style: 'destructive' },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
+  };
+
   const renderDayTemplateCard = (template: DayTemplate) => (
     <TouchableOpacity
       key={template.id}
-      style={styles.templateCard}
-      onPress={() => navigation.navigate('DayTemplateTasks', {
-        templateId: template.id,
-        templateName: template.name,
-      })}
-    >
-      <View style={styles.templateInfo}>
-        <Text style={styles.templateName}>{template.name}</Text>
-        {template.description && (
-          <Text style={styles.templateDescription}>{template.description}</Text>
-        )}
-      </View>
-      <View style={styles.templateActions}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.manageButton]}
-          onPress={() => navigation.navigate('DayTemplateTasks', {
-            templateId: template.id,
-            templateName: template.name,
-          })}
-        >
-          <Text style={styles.manageButtonText}>Manage Tasks →</Text>
-        </TouchableOpacity>
-        {isAdmin && (
-          <>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.editButton]}
-              onPress={(e) => {
-                e.stopPropagation();
-                handleEditDayTemplate(template);
-              }}
-              disabled={isLoading}
-            >
-              <Text style={styles.editButtonText}>Edit</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.deleteButton]}
-              onPress={(e) => {
-                e.stopPropagation();
-                handleDeleteDayTemplate(template);
-              }}
-              disabled={isLoading}
-            >
-              <Text style={styles.deleteButtonText}>Delete</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderWeekTemplateCard = (template: WeekTemplate) => (
-    <TouchableOpacity
-      key={template.id}
-      style={styles.templateCard}
-      onPress={() => navigation.navigate('WeekTemplateDays', {
-        templateId: template.id,
-        templateName: template.name,
-      })}
+      style={[
+        styles.templateCard,
+        { 
+          borderLeftColor: '#8b5cf6', // Purple for daily routines
+          backgroundColor: '#8b5cf610' // Light purple tint
+        }
+      ]}
+      onPress={() => handleDayTemplatePress(template)}
+      activeOpacity={0.7}
     >
       <View style={styles.templateInfo}>
         <View style={styles.templateHeader}>
+          <Text style={styles.templateIcon}>📅</Text>
           <Text style={styles.templateName}>{template.name}</Text>
-          {template.isDefault && (
-            <View style={styles.defaultBadge}>
-              <Text style={styles.defaultBadgeText}>Default</Text>
+          <View style={styles.templateBadges}>
+            <View style={styles.typeBadge}>
+              <Text style={styles.typeBadgeText}>Daily</Text>
             </View>
-          )}
+          </View>
         </View>
         {template.description && (
           <Text style={styles.templateDescription}>{template.description}</Text>
         )}
       </View>
-      <View style={styles.templateActions}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.manageButton]}
-          onPress={() => navigation.navigate('WeekTemplateDays', {
+    </TouchableOpacity>
+  );
+
+  const handleWeekTemplatePress = (template: WeekTemplate) => {
+    if (!isAdmin) {
+      // Non-admin users navigate directly to configure days
+      navigation.navigate('WeekTemplateDays', {
+        templateId: template.id,
+        templateName: template.name,
+      });
+      return;
+    }
+
+    // Admin users get action menu
+    Alert.alert(
+      'Weekly Routine Actions',
+      `What would you like to do with "${template.name}"?`,
+      [
+        {
+          text: 'Configure Days',
+          onPress: () => navigation.navigate('WeekTemplateDays', {
             templateId: template.id,
             templateName: template.name,
-          })}
-        >
-          <Text style={styles.manageButtonText}>Configure Days →</Text>
-        </TouchableOpacity>
-        {isAdmin && (
-          <>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.editButton]}
-              onPress={(e) => {
-                e.stopPropagation();
-                handleEditWeekTemplate(template);
-              }}
-              disabled={isLoading}
-            >
-              <Text style={styles.editButtonText}>Edit</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.deleteButton]}
-              onPress={(e) => {
-                e.stopPropagation();
-                handleDeleteWeekTemplate(template);
-              }}
-              disabled={isLoading}
-            >
-              <Text style={styles.deleteButtonText}>Delete</Text>
-            </TouchableOpacity>
-          </>
+          })
+        },
+        { text: 'Edit', onPress: () => handleEditWeekTemplate(template) },
+        { text: 'Delete', onPress: () => handleDeleteWeekTemplate(template), style: 'destructive' },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
+  };
+
+  const renderWeekTemplateCard = (template: WeekTemplate) => (
+    <TouchableOpacity
+      key={template.id}
+      style={[
+        styles.templateCard,
+        { 
+          borderLeftColor: '#06b6d4', // Cyan for weekly routines
+          backgroundColor: '#06b6d410' // Light cyan tint
+        }
+      ]}
+      onPress={() => handleWeekTemplatePress(template)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.templateInfo}>
+        <View style={styles.templateHeader}>
+          <Text style={styles.templateIcon}>📆</Text>
+          <Text style={styles.templateName}>{template.name}</Text>
+          <View style={styles.templateBadges}>
+            <View style={[styles.typeBadge, { backgroundColor: '#e0f7fa', borderColor: '#b2ebf2' }]}>
+              <Text style={[styles.typeBadgeText, { color: '#00838f' }]}>Weekly</Text>
+            </View>
+            {template.isDefault && (
+              <View style={styles.defaultBadge}>
+                <Text style={styles.defaultBadgeText}>Default</Text>
+              </View>
+            )}
+          </View>
+        </View>
+        {template.description && (
+          <Text style={styles.templateDescription}>{template.description}</Text>
         )}
       </View>
     </TouchableOpacity>
@@ -793,10 +803,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    backgroundColor: '#ffffff',
     marginTop: 16,
     marginBottom: 16,
-    paddingVertical: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -822,12 +830,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   templateCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    borderLeftWidth: 6,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    padding: 16,
+    marginBottom: 8,
+    marginHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   templateInfo: {
     flex: 1,
@@ -835,64 +853,59 @@ const styles = StyleSheet.create({
   templateHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    flexWrap: 'wrap',
+  },
+  templateIcon: {
+    fontSize: 20,
+    marginRight: 8,
   },
   templateName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
-    marginRight: 8,
+    color: '#111827',
+    flex: 1,
+    lineHeight: 20,
+  },
+  templateBadges: {
+    flexDirection: 'row',
+    gap: 6,
+    marginLeft: 'auto',
+  },
+  typeBadge: {
+    backgroundColor: '#ede9fe',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#c7d2fe',
+  },
+  typeBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#5b21b6',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   defaultBadge: {
     backgroundColor: '#fef3c7',
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fde68a',
   },
   defaultBadgeText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
     color: '#92400e',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   templateDescription: {
     fontSize: 14,
     color: '#6b7280',
-    marginTop: 2,
-  },
-  templateActions: {
-    flexDirection: 'row',
-    gap: 8,
-    flexWrap: 'wrap',
-  },
-  actionButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  manageButton: {
-    backgroundColor: '#e0e7ff',
-  },
-  manageButtonText: {
-    color: '#4338ca',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  editButton: {
-    backgroundColor: '#f3f4f6',
-  },
-  editButtonText: {
-    color: '#374151',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  deleteButton: {
-    backgroundColor: '#fee2e2',
-  },
-  deleteButtonText: {
-    color: '#dc2626',
-    fontSize: 12,
-    fontWeight: '600',
+    marginTop: 6,
+    lineHeight: 20,
   },
   emptyText: {
     fontSize: 14,
