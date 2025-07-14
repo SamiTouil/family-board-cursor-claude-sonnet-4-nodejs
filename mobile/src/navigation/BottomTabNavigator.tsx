@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { HomeScreen } from '../screens/HomeScreen';
 import { FamilyScreen } from '../screens/FamilyScreen';
 import { TasksScreen } from '../screens/TasksScreen';
-import { RoutinesScreen } from '../screens/RoutinesScreen';
+import { RoutinesStackNavigator } from './RoutinesStackNavigator';
 import { NotificationScreen } from '../screens/NotificationScreen';
 import { HomeIcon, FamilyIcon, TasksIcon, RoutinesIcon } from '../components/ui/icons';
 import { UserAvatar, UserMenu, UserProfile } from '../components/ui';
@@ -145,7 +145,7 @@ export const BottomTabNavigator: React.FC = () => {
         />
         <Tab.Screen 
           name="Routines" 
-          component={RoutinesScreen}
+          component={RoutinesStackNavigator}
           options={{
             tabBarLabel: 'Routines',
           }}

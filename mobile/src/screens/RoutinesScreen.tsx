@@ -11,16 +11,17 @@ import {
   TextInput,
   SafeAreaView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useFamily } from '../contexts/FamilyContext';
+import type { RoutinesStackParamList } from '../navigation/RoutinesStackNavigator';
 import { dayTemplateApi, weekTemplateApi } from '../services/api';
-import { Button, LoadingSpinner, LogoReversed } from '../components/ui';
+import { Button, LoadingSpinner, PageHeader, headerButtonStyles } from '../components/ui';
 import type { DayTemplate, WeekTemplate } from '../types';
 
 export const RoutinesScreen: React.FC = () => {
   const { currentFamily } = useFamily();
-  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<StackNavigationProp<RoutinesStackParamList>>();
 
   // State for templates
   const [dayTemplates, setDayTemplates] = useState<DayTemplate[]>([]);
@@ -314,36 +315,67 @@ export const RoutinesScreen: React.FC = () => {
   };
 
   const renderDayTemplateCard = (template: DayTemplate) => (
-    <View key={template.id} style={styles.templateCard}>
+    <TouchableOpacity
+      key={template.id}
+      style={styles.templateCard}
+      onPress={() => navigation.navigate('DayTemplateTasks', {
+        templateId: template.id,
+        templateName: template.name,
+      })}
+    >
       <View style={styles.templateInfo}>
         <Text style={styles.templateName}>{template.name}</Text>
         {template.description && (
           <Text style={styles.templateDescription}>{template.description}</Text>
         )}
       </View>
-      {isAdmin && (
-        <View style={styles.templateActions}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.editButton]}
-            onPress={() => handleEditDayTemplate(template)}
-            disabled={isLoading}
-          >
-            <Text style={styles.editButtonText}>Edit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.deleteButton]}
-            onPress={() => handleDeleteDayTemplate(template)}
-            disabled={isLoading}
-          >
-            <Text style={styles.deleteButtonText}>Delete</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
+      <View style={styles.templateActions}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.manageButton]}
+          onPress={() => navigation.navigate('DayTemplateTasks', {
+            templateId: template.id,
+            templateName: template.name,
+          })}
+        >
+          <Text style={styles.manageButtonText}>Manage Tasks →</Text>
+        </TouchableOpacity>
+        {isAdmin && (
+          <>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.editButton]}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleEditDayTemplate(template);
+              }}
+              disabled={isLoading}
+            >
+              <Text style={styles.editButtonText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.deleteButton]}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleDeleteDayTemplate(template);
+              }}
+              disabled={isLoading}
+            >
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </TouchableOpacity>
   );
 
   const renderWeekTemplateCard = (template: WeekTemplate) => (
-    <View key={template.id} style={styles.templateCard}>
+    <TouchableOpacity
+      key={template.id}
+      style={styles.templateCard}
+      onPress={() => navigation.navigate('WeekTemplateDays', {
+        templateId: template.id,
+        templateName: template.name,
+      })}
+    >
       <View style={styles.templateInfo}>
         <View style={styles.templateHeader}>
           <Text style={styles.templateName}>{template.name}</Text>
@@ -357,25 +389,42 @@ export const RoutinesScreen: React.FC = () => {
           <Text style={styles.templateDescription}>{template.description}</Text>
         )}
       </View>
-      {isAdmin && (
-        <View style={styles.templateActions}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.editButton]}
-            onPress={() => handleEditWeekTemplate(template)}
-            disabled={isLoading}
-          >
-            <Text style={styles.editButtonText}>Edit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.deleteButton]}
-            onPress={() => handleDeleteWeekTemplate(template)}
-            disabled={isLoading}
-          >
-            <Text style={styles.deleteButtonText}>Delete</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
+      <View style={styles.templateActions}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.manageButton]}
+          onPress={() => navigation.navigate('WeekTemplateDays', {
+            templateId: template.id,
+            templateName: template.name,
+          })}
+        >
+          <Text style={styles.manageButtonText}>Configure Days →</Text>
+        </TouchableOpacity>
+        {isAdmin && (
+          <>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.editButton]}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleEditWeekTemplate(template);
+              }}
+              disabled={isLoading}
+            >
+              <Text style={styles.editButtonText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.deleteButton]}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleDeleteWeekTemplate(template);
+              }}
+              disabled={isLoading}
+            >
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </TouchableOpacity>
   );
 
   if (!currentFamily) {
@@ -390,34 +439,11 @@ export const RoutinesScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Gradient Header */}
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.gradientBackground, { paddingTop: insets.top + 10 }]}
-      >
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <TouchableOpacity
-              style={styles.logoButton}
-              activeOpacity={0.7}
-            >
-              <LogoReversed size={48} style={styles.logo} />
-            </TouchableOpacity>
-            <View style={styles.headerText}>
-              <Text style={styles.headerTitle}>Routines</Text>
-              <View style={styles.indicatorsRow}>
-                <View style={styles.leftIndicator}>
-                  <Text style={styles.headerDescription}>
-                    Create and manage daily & weekly routines
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
-      </LinearGradient>
+      <PageHeader
+        title="Routines"
+        description="Create and manage daily & weekly routines"
+        showLogo
+      />
 
       {/* Messages */}
       {message && (
@@ -709,66 +735,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
-  gradientBackground: {
-    marginTop: -10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  header: {
-    padding: 16,
-    paddingTop: 8,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  logoButton: {
-    alignSelf: 'center',
-    borderRadius: 8,
-    padding: 4,
-  },
-  logo: {
-    alignSelf: 'center',
-  },
-  headerText: {
-    flex: 1,
-  },
-  indicatorsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 2,
-    minHeight: 28,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: 'white',
-    textShadowColor: 'rgba(0, 0, 0, 0.1)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  leftIndicator: {
-    flex: 1,
-    minHeight: 20,
-    justifyContent: 'center',
-  },
-  headerDescription: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '500',
-    lineHeight: 20,
-    textShadowColor: 'rgba(0, 0, 0, 0.1)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
   message: {
     margin: 16,
     padding: 12,
@@ -897,11 +863,20 @@ const styles = StyleSheet.create({
   templateActions: {
     flexDirection: 'row',
     gap: 8,
+    flexWrap: 'wrap',
   },
   actionButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
+  },
+  manageButton: {
+    backgroundColor: '#e0e7ff',
+  },
+  manageButtonText: {
+    color: '#4338ca',
+    fontSize: 12,
+    fontWeight: '600',
   },
   editButton: {
     backgroundColor: '#f3f4f6',

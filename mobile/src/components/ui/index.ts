@@ -8,4 +8,5 @@ export { TaskSplitIndicator } from './TaskSplitIndicator';
 export { UserMenu } from './UserMenu';
 export { UserProfile } from './UserProfile';
 export { default as Logo } from './Logo';
-export { default as LogoReversed } from './LogoReversed'; 
+export { default as LogoReversed } from './LogoReversed';
+export { PageHeader, headerButtonStyles } from './PageHeader'; 
