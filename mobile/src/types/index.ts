@@ -224,4 +224,99 @@ export interface NotificationContextType {
   clearNotifications: () => void;
   requestPermissions: () => Promise<boolean>;
   registerForPushNotifications: () => Promise<string | null>;
-} 
+}
+
+// Day Template types
+export interface DayTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  familyId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DayTemplateItem {
+  id: string;
+  dayTemplateId: string;
+  taskId: string;
+  memberId?: string;
+  overrideTime?: string;
+  overrideDuration?: number;
+  task: Task;
+  member?: FamilyMember;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateDayTemplateData {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateDayTemplateData {
+  name?: string;
+  description?: string;
+}
+
+export interface CreateDayTemplateItemData {
+  taskId: string;
+  memberId?: string;
+  overrideTime?: string;
+  overrideDuration?: number;
+}
+
+export interface UpdateDayTemplateItemData {
+  memberId?: string;
+  overrideTime?: string;
+  overrideDuration?: number;
+}
+
+// Week Template types
+export interface WeekTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  isDefault: boolean;
+  applyRule?: 'EVEN_WEEKS' | 'ODD_WEEKS' | null;
+  priority: number;
+  familyId: string;
+  days?: WeekTemplateDay[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WeekTemplateDay {
+  id: string;
+  weekTemplateId: string;
+  dayOfWeek: number;
+  dayTemplateId: string;
+  dayTemplate?: DayTemplate;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateWeekTemplateData {
+  name: string;
+  description?: string;
+  isDefault?: boolean;
+  applyRule?: 'EVEN_WEEKS' | 'ODD_WEEKS' | null;
+  priority?: number;
+}
+
+export interface UpdateWeekTemplateData {
+  name?: string;
+  description?: string;
+  isDefault?: boolean;
+  applyRule?: 'EVEN_WEEKS' | 'ODD_WEEKS' | null;
+  priority?: number;
+}
+
+export interface CreateWeekTemplateDayData {
+  dayOfWeek: number;
+  dayTemplateId: string;
+}
+
+export interface UpdateWeekTemplateDayData {
+  dayTemplateId: string;
+}
