@@ -10,13 +10,11 @@ import {
   Modal,
   SafeAreaView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useFamily } from '../contexts/FamilyContext';
 import { weekTemplateApi, dayTemplateApi } from '../services/api';
-import { LoadingSpinner } from '../components/ui';
+import { LoadingSpinner, PageHeader, headerButtonStyles } from '../components/ui';
 import type { WeekTemplateDay, DayTemplate } from '../types';
 
 type RouteParams = {
@@ -39,7 +37,6 @@ export const WeekTemplateDaysScreen: React.FC = () => {
   const route = useRoute<RouteProp<{ params: RouteParams }, 'params'>>();
   const { templateId, templateName } = route.params;
   const { currentFamily } = useFamily();
-  const insets = useSafeAreaInsets();
 
   // State
   const [templateDays, setTemplateDays] = useState<WeekTemplateDay[]>([]);
@@ -291,26 +288,12 @@ export const WeekTemplateDaysScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Gradient Header */}
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.gradientBackground, { paddingTop: insets.top + 10 }]}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>←</Text>
-          </TouchableOpacity>
-          <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>{templateName}</Text>
-            <Text style={styles.headerDescription}>Configure days for this weekly routine</Text>
-          </View>
-        </View>
-      </LinearGradient>
+      <PageHeader
+        title={templateName}
+        description="Configure days for this weekly routine"
+        showBackButton
+        showLogo={false}
+      />
 
       {/* Messages */}
       {message && (
@@ -508,52 +491,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f3f4f6',
-  },
-  gradientBackground: {
-    marginTop: -10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  header: {
-    padding: 16,
-    paddingTop: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    marginRight: 12,
-    padding: 8,
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: 'white',
-    fontWeight: '600',
-  },
-  headerContent: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: 'white',
-    textShadowColor: 'rgba(0, 0, 0, 0.1)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  headerDescription: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '500',
-    marginTop: 2,
-    textShadowColor: 'rgba(0, 0, 0, 0.1)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
   message: {
     margin: 16,
