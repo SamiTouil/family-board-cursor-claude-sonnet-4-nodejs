@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -477,16 +478,34 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
                         hideAvatar={isMultiTaskShift}
                         onPress={(task) => {
                           if (isAdmin) {
-                            console.log('WeeklyCalendar - Opening reassign modal:', {
-                              task,
-                              familyMembersCount: familyMembers.length,
-                              familyMembers
-                            });
-                            setTaskOverrideAction('REASSIGN');
-                            setSelectedTask(task);
-                            setSelectedTasks([]); // Clear bulk selection
-                            setTaskOverrideDate(day.date);
-                            setShowTaskOverrideModal(true);
+                            Alert.alert(
+                              'Task Actions',
+                              `What would you like to do with "${task.task.name}"?`,
+                              [
+                                { 
+                                  text: 'Reassign', 
+                                  onPress: () => {
+                                    setTaskOverrideAction('REASSIGN');
+                                    setSelectedTask(task);
+                                    setSelectedTasks([]);
+                                    setTaskOverrideDate(day.date);
+                                    setShowTaskOverrideModal(true);
+                                  }
+                                },
+                                { 
+                                  text: 'Remove', 
+                                  onPress: () => {
+                                    setTaskOverrideAction('REMOVE');
+                                    setSelectedTask(task);
+                                    setSelectedTasks([]);
+                                    setTaskOverrideDate(day.date);
+                                    setShowTaskOverrideModal(true);
+                                  },
+                                  style: 'destructive' 
+                                },
+                                { text: 'Cancel', style: 'cancel' }
+                              ]
+                            );
                           }
                         }}
                       />
