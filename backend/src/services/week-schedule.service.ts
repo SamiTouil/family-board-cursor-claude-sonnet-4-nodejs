@@ -292,6 +292,30 @@ export class WeekScheduleService {
       await this.sendTaskReassignmentNotifications(familyId, finalOverrides, adminUserId);
     }
 
+    // Emit general WebSocket event for schedule update
+    const webSocketService = getWebSocketService();
+    if (webSocketService) {
+      console.log('📅 Emitting week-schedule-updated event for family:', familyId);
+      console.log('📅 Event data:', {
+        type: 'week-schedule-updated',
+        familyId,
+        weekStartDate: data.weekStartDate,
+        isTemplateChange: !!data.weekTemplateId,
+        hasOverrides: finalOverrides.length > 0,
+      });
+      webSocketService.sendToFamily(familyId, 'week-schedule-updated', {
+        type: 'week-schedule-updated',
+        familyId,
+        weekStartDate: data.weekStartDate,
+        date: data.weekStartDate, // Add date field for consistency
+        message: `Week schedule has been updated`,
+        isTemplateChange: !!data.weekTemplateId,
+        hasOverrides: finalOverrides.length > 0,
+      });
+    } else {
+      console.error('❌ WebSocket service not available for week-schedule-updated event!');
+    }
+
     // Return the updated week override with relations
     return await this.getWeekOverrideById(weekOverride.id, familyId);
   }

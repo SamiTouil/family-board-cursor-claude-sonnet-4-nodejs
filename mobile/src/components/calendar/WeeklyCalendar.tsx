@@ -38,8 +38,9 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
   const [familyMembers, setFamilyMembers] = useState<User[]>([]);
   
-  // Cache for adjacent weeks
-  const [weekCache, setWeekCache] = useState<Map<string, ResolvedWeekSchedule>>(new Map());
+  // Cache for adjacent weeks - use ref to avoid dependency issues
+  const weekCacheRef = useRef<Map<string, ResolvedWeekSchedule>>(new Map());
+  const [cacheVersion, setCacheVersion] = useState(0); // Force re-render when cache changes
   
   // Task override modal state
   const [showTaskOverrideModal, setShowTaskOverrideModal] = useState(false);
@@ -68,8 +69,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     if (!currentFamily) return;
     
     // Check cache first
-    if (useCache && weekCache.has(weekStartDate)) {
-      const cached = weekCache.get(weekStartDate);
+    if (useCache && weekCacheRef.current.has(weekStartDate)) {
+      const cached = weekCacheRef.current.get(weekStartDate);
       if (cached) {
         setWeekSchedule(cached);
         return;
@@ -84,14 +85,15 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
       setWeekSchedule(scheduleData);
       
       // Update cache
-      setWeekCache(prev => new Map(prev).set(weekStartDate, scheduleData));
+      weekCacheRef.current.set(weekStartDate, scheduleData);
+      setCacheVersion(v => v + 1); // Trigger re-render
     } catch (error: any) {
       console.error('Failed to load week schedule:', error);
       setError(error.response?.data?.message || 'Failed to load week schedule');
     } finally {
       setIsLoading(false);
     }
-  }, [currentFamily, weekCache]);
+  }, [currentFamily?.id]); // Only depend on family ID, not the whole object or cache
   
   // Preload adjacent weeks
   const preloadAdjacentWeeks = async (weekStartDate: string) => {
@@ -113,12 +115,9 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
         weekScheduleApi.getWeekSchedule(currentFamily.id, nextWeekStart),
       ]);
       
-      setWeekCache(prev => {
-        const newCache = new Map(prev);
-        newCache.set(prevWeekStart, prevResponse.data);
-        newCache.set(nextWeekStart, nextResponse.data);
-        return newCache;
-      });
+      weekCacheRef.current.set(prevWeekStart, prevResponse.data);
+      weekCacheRef.current.set(nextWeekStart, nextResponse.data);
+      setCacheVersion(v => v + 1); // Trigger re-render
     } catch (error) {
       console.error('Failed to preload adjacent weeks:', error);
     }
@@ -142,40 +141,62 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     }
   }, [currentFamily]);
   
+  // Create stable event handlers
+  const handleTaskUpdate = useCallback((data: any) => {
+    console.log('📋 Task update received in WeeklyCalendar:', data);
+    // Clear cache for the affected week
+    if (data.date || data.weekStartDate) {
+      const dateStr = data.date || data.weekStartDate;
+      const affectedWeekStart = getMonday(new Date(dateStr));
+      weekCacheRef.current.delete(affectedWeekStart);
+      setCacheVersion(v => v + 1);
+    }
+    
+    // Reload the current week schedule when tasks are updated
+    if (currentWeekStart) {
+      loadWeekSchedule(currentWeekStart, false); // Don't use cache
+    }
+  }, [currentWeekStart, loadWeekSchedule]);
+  
+  const handleWeekScheduleUpdate = useCallback((data: any) => {
+    console.log('📅 Week schedule update received in WeeklyCalendar:', data);
+    console.log('📅 Current week start:', currentWeekStart);
+    console.log('📅 Current family:', currentFamily?.id);
+    
+    // Clear all cache since we don't know what changed
+    weekCacheRef.current.clear();
+    setCacheVersion(v => v + 1);
+    
+    // Force reload the current week schedule
+    if (currentWeekStart) {
+      console.log('📅 Reloading week schedule...');
+      loadWeekSchedule(currentWeekStart, false);
+    }
+  }, [currentWeekStart, currentFamily?.id, loadWeekSchedule]);
+  
   // Listen for real-time task updates
   useEffect(() => {
-    if (!currentFamily || !currentWeekStart) return;
+    if (!currentFamily) return;
     
-    const handleTaskUpdate = (data: any) => {
-      console.log('📋 Task update received in WeeklyCalendar:', data);
-      // Clear cache for the affected week
-      if (data.date) {
-        const affectedWeekStart = getMonday(new Date(data.date));
-        setWeekCache(prev => {
-          const newCache = new Map(prev);
-          newCache.delete(affectedWeekStart);
-          return newCache;
-        });
-      }
-      
-      // Reload the current week schedule when tasks are updated
-      loadWeekSchedule(currentWeekStart, false); // Don't use cache
-    };
+    console.log('🔌 Setting up WebSocket listeners in WeeklyCalendar');
     
     // Subscribe to task-related events
     on('task-assigned', handleTaskUpdate);
     on('task-unassigned', handleTaskUpdate);
     on('task-schedule-updated', handleTaskUpdate);
     on('week-schedule-reverted', handleTaskUpdate);
+    on('week-schedule-updated', handleWeekScheduleUpdate);
     
     // Cleanup listeners on unmount
     return () => {
+      console.log('🔌 Cleaning up WebSocket listeners in WeeklyCalendar');
       off('task-assigned', handleTaskUpdate);
       off('task-unassigned', handleTaskUpdate);
       off('task-schedule-updated', handleTaskUpdate);
       off('week-schedule-reverted', handleTaskUpdate);
+      off('week-schedule-updated', handleWeekScheduleUpdate);
     };
-  }, [currentFamily, currentWeekStart, on, off, loadWeekSchedule]);
+  }, [on, off, handleTaskUpdate, handleWeekScheduleUpdate]); // Only depend on functions, not data
   
   // State for virtual scrolling
   const [scrollDays, setScrollDays] = useState<Array<{day: ResolvedDay | null; weekStart: string; dayIndex: number}>>([]);
@@ -191,7 +212,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     const prevWeek = new Date(currentWeekStart + 'T00:00:00.000Z');
     prevWeek.setDate(prevWeek.getDate() - 7);
     const prevWeekStart = getMonday(prevWeek);
-    const prevWeekData = weekCache.get(prevWeekStart);
+    const prevWeekData = weekCacheRef.current.get(prevWeekStart);
     
     for (let i = 0; i < 7; i++) {
       days.push({
@@ -214,7 +235,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     const nextWeek = new Date(currentWeekStart + 'T00:00:00.000Z');
     nextWeek.setDate(nextWeek.getDate() + 7);
     const nextWeekStart = getMonday(nextWeek);
-    const nextWeekData = weekCache.get(nextWeekStart);
+    const nextWeekData = weekCacheRef.current.get(nextWeekStart);
     
     for (let i = 0; i < 7; i++) {
       days.push({
@@ -226,7 +247,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     
     setScrollDays(days);
     setCenterIndex(7 + currentDayIndex);
-  }, [weekSchedule, currentWeekStart, currentDayIndex, weekCache]);
+  }, [weekSchedule, currentWeekStart, currentDayIndex, cacheVersion]); // Use cacheVersion instead of weekCache
   
   // Scroll to center when days are loaded
   useEffect(() => {
@@ -252,15 +273,15 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     // Check if we moved to a different week
     if (selectedDay.weekStart !== currentWeekStart) {
       // Use cached data if available
-      if (weekCache.has(selectedDay.weekStart)) {
-        setWeekSchedule(weekCache.get(selectedDay.weekStart)!);
+      if (weekCacheRef.current.has(selectedDay.weekStart)) {
+        setWeekSchedule(weekCacheRef.current.get(selectedDay.weekStart)!);
       }
       
       setCurrentWeekStart(selectedDay.weekStart);
       setCurrentDayIndex(selectedDay.dayIndex);
       
       // Load in background if not cached
-      if (!weekCache.has(selectedDay.weekStart)) {
+      if (!weekCacheRef.current.has(selectedDay.weekStart)) {
         loadWeekSchedule(selectedDay.weekStart);
       }
       preloadAdjacentWeeks(selectedDay.weekStart);

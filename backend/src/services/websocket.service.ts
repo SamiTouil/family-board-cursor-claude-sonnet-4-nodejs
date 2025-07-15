@@ -55,6 +55,9 @@ export class WebSocketService {
       },
       transports: ['websocket', 'polling'],
       allowEIO3: true, // Allow different Socket.IO versions
+      pingInterval: 25000, // Send ping every 25 seconds
+      pingTimeout: 60000, // Wait 60 seconds for pong
+      connectTimeout: 45000, // 45 seconds to establish connection
     });
 
     this.setupSocketHandlers();
@@ -201,8 +204,11 @@ export class WebSocketService {
    */
   public sendToFamily(familyId: string, event: string, data: any) {
     const roomName = `family:${familyId}`;
+    const room = this.io.sockets.adapter.rooms.get(roomName);
+    const clientCount = room ? room.size : 0;
+    console.log(`📤 Sending ${event} to family room ${roomName} (${clientCount} clients)`);
+    console.log(`📤 Event data:`, JSON.stringify(data, null, 2));
     this.io.to(roomName).emit(event, data);
-    console.log(`Sent ${event} to family room ${roomName}`);
   }
 
   /**
