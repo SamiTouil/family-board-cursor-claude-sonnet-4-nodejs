@@ -35,8 +35,36 @@ async function startServer(): Promise<void> {
 
     // Middleware
     app.use(helmet());
+    
+    // Configure CORS to allow both web and mobile clients
+    const allowedOrigins = [
+      process.env['FRONTEND_URL'] || 'http://localhost:3000',
+      'http://localhost:8081', // Expo development
+      'http://192.168.1.24:8081', // Expo on local network
+      'exp://192.168.1.24:8081', // Expo client
+      /^http:\/\/192\.168\.\d+\.\d+:8081$/, // Any local IP for Expo
+      /^exp:\/\/\d+\.\d+\.\d+\.\d+:\d+$/, // Any Expo URL
+    ];
+    
     app.use(cors({
-      origin: process.env['FRONTEND_URL'] || 'http://localhost:3000',
+      origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps)
+        if (!origin) return callback(null, true);
+        
+        // Check if origin is in allowed list
+        const isAllowed = allowedOrigins.some(allowed => {
+          if (allowed instanceof RegExp) {
+            return allowed.test(origin);
+          }
+          return allowed === origin;
+        });
+        
+        if (isAllowed) {
+          callback(null, true);
+        } else {
+          callback(new Error(`CORS policy: Origin ${origin} not allowed`));
+        }
+      },
       credentials: true, // Allow cookies to be sent
     }));
     app.use(cookieParser());

@@ -510,10 +510,21 @@ export class WeekScheduleService {
       }
     }
 
+    // Sort tasks by their effective start time
+    const sortedTasks = resolvedTasks.sort((a, b) => {
+      // Get effective time for task A
+      const timeA = a.overrideTime || a.task.defaultStartTime;
+      // Get effective time for task B
+      const timeB = b.overrideTime || b.task.defaultStartTime;
+      
+      // Compare times (format is "HH:MM")
+      return timeA.localeCompare(timeB);
+    });
+
     return { 
       date, 
       dayOfWeek,
-      tasks: resolvedTasks 
+      tasks: sortedTasks 
     };
   }
 
@@ -547,8 +558,15 @@ export class WeekScheduleService {
     overrides: CreateTaskOverrideDto[],
     adminUserId: string
   ): Promise<void> {
+    console.log('📨 sendTaskReassignmentNotifications called with:', {
+      familyId,
+      overridesCount: overrides.length,
+      adminUserId
+    });
+    
     const webSocketService = getWebSocketService();
     if (!webSocketService) {
+      console.error('❌ WebSocket service not available!');
       return; // WebSocket service not available
     }
 
@@ -585,9 +603,12 @@ export class WeekScheduleService {
       });
 
       // Handle different override actions
+      console.log(`🔄 Processing override action: ${override.action} for task: ${task.name}`);
+      
       switch (override.action) {
         case TaskOverrideAction.REASSIGN:
           if (override.originalMemberId && override.newMemberId) {
+            console.log(`📤 Sending REASSIGN notification: ${task.name} from ${override.originalMemberId} to ${override.newMemberId}`);
             await webSocketService.notifyTaskReassigned(familyId, {
               taskId: override.taskId,
               taskName: task.name,

@@ -29,13 +29,32 @@ export class WebSocketService {
   private userSockets = new Map<string, string>(); // socketId -> userId
 
   constructor(httpServer: HTTPServer) {
+    // Configure allowed origins for WebSocket connections
+    const allowedOrigins = [
+      process.env['FRONTEND_URL'] || 'http://localhost:3000',
+      'http://localhost:8081', // Expo development
+      'http://192.168.1.24:8081', // Expo on local network
+      'exp://192.168.1.24:8081', // Expo client
+    ];
+    
     this.io = new SocketIOServer(httpServer, {
       cors: {
-        origin: process.env['FRONTEND_URL'] || 'http://localhost:3000',
+        origin: (origin, callback) => {
+          // Allow requests with no origin (like mobile apps)
+          if (!origin) return callback(null, true);
+          
+          // Check if origin matches any allowed origin or pattern
+          const isAllowed = allowedOrigins.includes(origin) || 
+                           /^http:\/\/192\.168\.\d+\.\d+:8081$/.test(origin) ||
+                           /^exp:\/\/\d+\.\d+\.\d+\.\d+:\d+$/.test(origin);
+          
+          callback(null, isAllowed);
+        },
         methods: ['GET', 'POST'],
         credentials: true,
       },
       transports: ['websocket', 'polling'],
+      allowEIO3: true, // Allow different Socket.IO versions
     });
 
     this.setupSocketHandlers();
@@ -84,7 +103,10 @@ export class WebSocketService {
   private async authenticateSocket(socket: AuthenticatedSocket, next: (err?: Error) => void) {
     try {
       const token = socket.handshake.auth['token'];
+      console.log('🔐 WebSocket auth attempt from:', socket.handshake.headers.origin || 'no origin');
+      
       if (!token) {
+        console.error('❌ No authentication token provided');
         return next(new Error('No authentication token provided'));
       }
 
@@ -278,8 +300,20 @@ export class WebSocketService {
     adminUserId: string;
     adminName: string;
   }) {
+    console.log('🔔 notifyTaskReassigned called:', {
+      familyId,
+      taskName: taskReassignmentData.taskName,
+      originalMemberId: taskReassignmentData.originalMemberId,
+      newMemberId: taskReassignmentData.newMemberId,
+      connectedUsersCount: this.connectedUsers.size,
+    });
+    
     // Notify the user who lost the task (if any)
     if (taskReassignmentData.originalMemberId) {
+      console.log(`📤 Sending task-unassigned to user ${taskReassignmentData.originalMemberId}`);
+      const isConnected = this.isUserConnected(taskReassignmentData.originalMemberId);
+      console.log(`👤 User ${taskReassignmentData.originalMemberId} connected: ${isConnected}`);
+      
       this.sendToUser(taskReassignmentData.originalMemberId, 'task-unassigned', {
         type: 'task-unassigned',
         familyId,

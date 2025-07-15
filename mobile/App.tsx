@@ -13,6 +13,7 @@ import { SignupScreen } from './src/screens/auth/SignupScreen';
 import { FamilyOnboardingScreen } from './src/screens/family/FamilyOnboardingScreen';
 import { LoadingSpinner } from './src/components/ui';
 import { BottomTabNavigator } from './src/navigation/BottomTabNavigator';
+import { NotificationHandler } from './src/components/NotificationHandler';
 import type { AuthStackParamList, RootStackParamList } from './src/types';
 
 const AuthStack = createStackNavigator<AuthStackParamList>();
@@ -85,6 +86,7 @@ export default function App() {
           <NotificationProvider>
             <FamilyProvider>
               <StatusBar style="light" />
+              <NotificationHandler />
               <AppNavigator />
             </FamilyProvider>
           </NotificationProvider>
