@@ -29,6 +29,10 @@ interface NotificationItemProps {
 const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onPress }) => {
   const config = NotificationService.getNotificationConfig(notification.type);
   const formattedTime = NotificationService.formatTimestamp(notification.timestamp);
+  
+  // Use task icon if available for task notifications
+  const isTaskEvent = notification.type === 'task-assigned' || notification.type === 'task-unassigned';
+  const icon = (isTaskEvent && notification.data?.taskIcon) ? notification.data.taskIcon : config.icon;
 
   return (
     <TouchableOpacity
@@ -41,7 +45,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onPre
     >
       <View style={styles.notificationContent}>
         <View style={styles.notificationHeader}>
-          <Text style={styles.notificationIcon}>{config.icon}</Text>
+          <Text style={styles.notificationIcon}>{icon}</Text>
           <View style={styles.notificationMeta}>
             <Text style={styles.notificationTitle}>{notification.title}</Text>
             <Text style={styles.notificationTime}>{formattedTime}</Text>

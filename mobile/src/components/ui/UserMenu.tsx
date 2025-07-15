@@ -180,6 +180,10 @@ export const UserMenu: React.FC<UserMenuProps> = ({
                     const config = NotificationService.getNotificationConfig(notification.type);
                     const formattedTime = NotificationService.formatTimestamp(notification.timestamp);
                     
+                    // Use task icon if available for task notifications
+                    const isTaskEvent = notification.type === 'task-assigned' || notification.type === 'task-unassigned';
+                    const icon = (isTaskEvent && notification.data?.taskIcon) ? notification.data.taskIcon : config.icon;
+                    
                     return (
                       <TouchableOpacity
                         key={notification.id}
@@ -190,7 +194,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
                         onPress={() => handleNotificationPress(notification.id)}
                       >
                         <Text style={styles.notificationIcon}>
-                          {config.icon}
+                          {icon}
                         </Text>
                         <View style={styles.notificationContent}>
                           <Text style={styles.notificationMessage}>
