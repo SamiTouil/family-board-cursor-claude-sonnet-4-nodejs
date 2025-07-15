@@ -203,15 +203,30 @@ export class WeekScheduleService {
     });
 
     // Handle existing override replacement based on replaceExisting flag
+    let removedOverrides: TaskOverride[] = [];
+    
     if (data.replaceExisting) {
       // Check if this is a day-level override (all overrides for the same date)
       const isDayLevelOverride = validatedOverrides.length > 0 && 
         validatedOverrides.every(override => override.assignedDate === validatedOverrides[0].assignedDate);
 
       if (isDayLevelOverride && validatedOverrides.length > 0) {
-        // For day-level overrides with replaceExisting=true, delete all existing overrides for the target date
+        // For day-level overrides with replaceExisting=true, get existing overrides before deleting
         const targetDateString = validatedOverrides[0].assignedDate;
         const targetDate = new Date(targetDateString + 'T00:00:00.000Z');
+        
+        // Get existing overrides that will be removed
+        removedOverrides = await this.prisma.taskOverride.findMany({
+          where: {
+            weekOverrideId: weekOverride.id,
+            assignedDate: targetDate,
+            action: { in: ['ADD', 'REASSIGN'] },
+            newMemberId: { not: null },
+          },
+          include: {
+            task: true,
+          },
+        });
         
         // Delete all existing overrides for this date in one operation
         await this.prisma.taskOverride.deleteMany({
@@ -221,7 +236,19 @@ export class WeekScheduleService {
           },
         });
       } else {
-        // For week-level overrides with replaceExisting=true, remove all existing task overrides for this week
+        // For week-level overrides with replaceExisting=true, get existing overrides before deleting
+        removedOverrides = await this.prisma.taskOverride.findMany({
+          where: {
+            weekOverrideId: weekOverride.id,
+            action: { in: ['ADD', 'REASSIGN'] },
+            newMemberId: { not: null },
+          },
+          include: {
+            task: true,
+          },
+        });
+        
+        // Remove all existing task overrides for this week
         await this.prisma.taskOverride.deleteMany({
           where: { weekOverrideId: weekOverride.id },
         });
@@ -255,6 +282,11 @@ export class WeekScheduleService {
       await this.applyTaskOverride(weekOverride.id, override);
     }
 
+    // Send notifications for removed tasks first (if any)
+    if (adminUserId && removedOverrides.length > 0) {
+      await this.sendTaskRemovalNotifications(familyId, removedOverrides, adminUserId, weekStartDateObj);
+    }
+
     // Send notifications for task reassignments if adminUserId is provided
     if (adminUserId && finalOverrides.length > 0) {
       await this.sendTaskReassignmentNotifications(familyId, finalOverrides, adminUserId);
@@ -269,16 +301,59 @@ export class WeekScheduleService {
    */
   async removeWeekOverride(
     familyId: string,
-    weekStartDate: string
+    weekStartDate: string,
+    adminUserId?: string
   ): Promise<void> {
     const weekStartDateObj = this.parseAndValidateWeekStartDate(weekStartDate);
 
+    // First, get all task overrides that will be removed to send notifications
+    const overridesToRemove = await this.prisma.taskOverride.findMany({
+      where: {
+        weekOverride: {
+          familyId,
+          weekStartDate: weekStartDateObj,
+        },
+      },
+      include: {
+        task: true,
+        weekOverride: true,
+      },
+    });
+
+    // Group overrides by action to send appropriate notifications
+    const removedAssignments: TaskOverride[] = [];
+    
+    for (const override of overridesToRemove) {
+      if (override.action === 'ADD' && override.newMemberId) {
+        removedAssignments.push(override);
+      } else if (override.action === 'REASSIGN' && override.newMemberId) {
+        removedAssignments.push(override);
+      }
+    }
+
+    // Delete the overrides
     await this.prisma.weekOverride.deleteMany({
       where: {
         familyId,
         weekStartDate: weekStartDateObj,
       },
     });
+
+    // Send notifications for removed task assignments
+    if (adminUserId && removedAssignments.length > 0) {
+      await this.sendTaskRemovalNotifications(familyId, removedAssignments, adminUserId, weekStartDateObj);
+    }
+
+    // Emit WebSocket event for schedule update
+    const webSocketService = getWebSocketService();
+    if (webSocketService) {
+      webSocketService.sendToFamily(familyId, 'week-schedule-reverted', {
+        type: 'week-schedule-reverted',
+        familyId,
+        weekStartDate,
+        message: 'Week schedule has been reverted to template',
+      });
+    }
   }
 
   // ==================== PRIVATE HELPER METHODS ====================
@@ -548,6 +623,64 @@ export class WeekScheduleService {
         overrideDuration: override.overrideDuration,
       },
     });
+  }
+
+  /**
+   * Send notifications for removed task assignments (when reverting week)
+   */
+  private async sendTaskRemovalNotifications(
+    familyId: string,
+    removedOverrides: TaskOverride[],
+    adminUserId: string,
+    weekStartDate: Date
+  ): Promise<void> {
+    console.log('📨 sendTaskRemovalNotifications called with:', {
+      familyId,
+      removedCount: removedOverrides.length,
+      adminUserId
+    });
+    
+    const webSocketService = getWebSocketService();
+    if (!webSocketService) {
+      console.error('❌ WebSocket service not available!');
+      return;
+    }
+
+    // Get admin user information
+    const adminUser = await this.prisma.user.findUnique({
+      where: { id: adminUserId },
+      select: { firstName: true, lastName: true },
+    });
+
+    if (!adminUser) {
+      return;
+    }
+
+    const adminName = `${adminUser.firstName} ${adminUser.lastName}`;
+
+    // Process each removed override
+    for (const override of removedOverrides) {
+      const date = new Date(override.assignedDate);
+      const formattedDate = date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+      });
+
+      // Notify the user who lost the task
+      if (override.newMemberId && override.task) {
+        console.log(`📤 Sending task removal notification for: ${override.task.name} to ${override.newMemberId}`);
+        await webSocketService.notifyTaskReassigned(familyId, {
+          taskId: override.taskId,
+          taskName: override.task.name,
+          date: formattedDate,
+          originalMemberId: override.newMemberId, // They had it
+          newMemberId: null, // Now no one has it
+          adminUserId,
+          adminName,
+        });
+      }
+    }
   }
 
   /**

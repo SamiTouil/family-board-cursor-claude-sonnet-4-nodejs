@@ -166,12 +166,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     on('task-assigned', handleTaskUpdate);
     on('task-unassigned', handleTaskUpdate);
     on('task-schedule-updated', handleTaskUpdate);
+    on('week-schedule-reverted', handleTaskUpdate);
     
     // Cleanup listeners on unmount
     return () => {
       off('task-assigned', handleTaskUpdate);
       off('task-unassigned', handleTaskUpdate);
       off('task-schedule-updated', handleTaskUpdate);
+      off('week-schedule-reverted', handleTaskUpdate);
     };
   }, [currentFamily, currentWeekStart, on, off, loadWeekSchedule]);
   

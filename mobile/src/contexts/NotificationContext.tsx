@@ -286,6 +286,22 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       eventListeners.current['task-schedule-updated']?.forEach(callback => callback(data));
     });
 
+    // Week schedule reverted event
+    newSocket.on('week-schedule-reverted', (data) => {
+      console.log('📅 Week schedule reverted event received:', data);
+      addNotification({
+        type: 'week-schedule-reverted',
+        title: 'Schedule Reverted',
+        message: data.message,
+        data: {
+          ...data,
+          screen: 'Home', // Navigate to home/calendar when tapped
+        },
+      });
+      // Forward the event to any registered listeners
+      eventListeners.current['week-schedule-reverted']?.forEach(callback => callback(data));
+    });
+
     socketRef.current = newSocket;
   }, [addNotification]);
 
