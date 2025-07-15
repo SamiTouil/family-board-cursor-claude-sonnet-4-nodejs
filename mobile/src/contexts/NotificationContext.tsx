@@ -72,8 +72,11 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       // Get notification config for better icons and formatting
       const config = NotificationService.getNotificationConfig(notification.type);
       
+      // Use task icon if available for task notifications
+      const icon = (isTaskEvent && notification.data?.taskIcon) ? notification.data.taskIcon : config.icon;
+      
       await NotificationService.showNotification({
-        title: `${config.icon} ${notification.title}`,
+        title: `${icon} ${notification.title}`,
         body: notification.message,
         data: notification.data,
       });
