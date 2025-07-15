@@ -58,7 +58,9 @@ export default {
       favicon: "./assets/favicon.png"
     },
     extra: {
-      apiUrl: IS_PRODUCTION ? "https://mabt.eu/api" : "http://192.168.1.24:3001/api",
+      apiUrl: IS_PRODUCTION 
+        ? "https://mabt.eu/api" 
+        : process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.24:3001/api",
       environment: IS_PRODUCTION ? "production" : "development",
       eas: {
         projectId: "83ccd68d-755d-4d43-99e8-afde30ef3cb6"

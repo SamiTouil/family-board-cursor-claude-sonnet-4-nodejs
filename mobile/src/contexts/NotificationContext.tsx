@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { NotificationService } from '../services/NotificationService';
@@ -64,10 +65,15 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     const newUnreadCount = notifications.filter(n => !n.read).length + 1;
     await NotificationService.updateBadgeCount(newUnreadCount);
     
-    // Show native notification if app is in background
-    if (AppState.currentState !== 'active') {
+    // Show native notification for task-related events (both foreground and background)
+    const isTaskEvent = notification.type === 'task-assigned' || notification.type === 'task-unassigned';
+    
+    if (AppState.currentState !== 'active' || isTaskEvent) {
+      // Get notification config for better icons and formatting
+      const config = NotificationService.getNotificationConfig(notification.type);
+      
       await NotificationService.showNotification({
-        title: notification.title,
+        title: `${config.icon} ${notification.title}`,
         body: notification.message,
         data: notification.data,
       });
@@ -98,14 +104,28 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   // Connect to WebSocket
   const connect = useCallback(async () => {
+    console.log('🚀 Connect function called');
     const token = await AsyncStorage.getItem('authToken');
+    console.log('🔑 Retrieved token:', token ? 'Token exists' : 'No token');
+    console.log('📊 Current state:', {
+      hasToken: !!token,
+      isAlreadyConnected: socketRef.current?.connected
+    });
     
-    if (!isAuthenticated || !token || socketRef.current?.connected) {
+    if (!token || socketRef.current?.connected) {
+      console.log('⏹️ Connect aborted:', {
+        reason: !token ? 'No token' : 'Already connected'
+      });
       return;
     }
 
-    // Use same base URL as API client but without /api path for WebSocket
-    const baseUrl = 'http://192.168.1.24:3001';
+    // Get WebSocket URL from app config
+    const apiUrl = Constants.expoConfig?.extra?.apiUrl || 'http://192.168.1.24:3001/api';
+    // Remove /api from the end to get the base WebSocket URL
+    const baseUrl = apiUrl.replace(/\/api$/, '');
+    
+    console.log('🔌 Connecting to WebSocket:', baseUrl);
+    console.log('🔐 Auth token present:', !!token);
     
     const newSocket = io(baseUrl, {
       auth: {
@@ -114,11 +134,15 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       transports: ['websocket', 'polling'],
       timeout: 20000,
       forceNew: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
 
     // Connection event handlers
     newSocket.on('connect', () => {
-      console.log('WebSocket connected');
+      console.log('✅ WebSocket connected successfully');
+      console.log('🆔 Socket ID:', newSocket.id);
       setIsConnected(true);
       reconnectAttempts.current = 0;
       
@@ -130,7 +154,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     });
 
     newSocket.on('disconnect', (reason) => {
-      console.log('WebSocket disconnected:', reason);
+      console.log('❌ WebSocket disconnected:', reason);
       setIsConnected(false);
       
       // Only try to reconnect if it wasn't a manual disconnect
@@ -140,12 +164,20 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     });
 
     newSocket.on('connect_error', (error) => {
-      console.log('WebSocket connection error:', error);
+      console.error('🚫 WebSocket connection error:', error.message);
+      console.error('Error type:', error.type);
+      console.error('Error data:', error.data);
+      console.error('Full error:', error);
       setIsConnected(false);
       
       if (reconnectAttempts.current < maxReconnectAttempts) {
         scheduleReconnect();
       }
+    });
+    
+    // Add error event handler
+    newSocket.on('error', (error) => {
+      console.error('❌ WebSocket error:', error);
     });
 
     // Real-time event handlers
@@ -217,22 +249,32 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
     // Task reassignment event handlers
     newSocket.on('task-assigned', (data) => {
+      console.log('📋 Task assigned event received:', data);
+      // Use the message from backend which already has all the details
       addNotification({
         type: 'task-assigned',
-        title: 'Task Assigned',
+        title: 'New Task Assigned',
         message: data.message,
-        data,
+        data: {
+          ...data,
+          screen: 'Home', // Navigate to home/calendar when tapped
+        },
       });
       // Forward the event to any registered listeners
       eventListeners.current['task-assigned']?.forEach(callback => callback(data));
     });
 
     newSocket.on('task-unassigned', (data) => {
+      console.log('❌ Task unassigned event received:', data);
+      // Use the message from backend which already has all the details
       addNotification({
         type: 'task-unassigned',
-        title: 'Task Unassigned',
+        title: 'Task Removed',
         message: data.message,
-        data,
+        data: {
+          ...data,
+          screen: 'Home', // Navigate to home/calendar when tapped
+        },
       });
       // Forward the event to any registered listeners
       eventListeners.current['task-unassigned']?.forEach(callback => callback(data));
@@ -245,7 +287,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     });
 
     socketRef.current = newSocket;
-  }, [isAuthenticated, addNotification]);
+  }, [addNotification]);
 
   // Schedule reconnection
   const scheduleReconnect = useCallback(() => {
@@ -306,9 +348,12 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   // Handle authentication changes
   useEffect(() => {
+    console.log('🔐 NotificationContext auth effect - isAuthenticated:', isAuthenticated);
     if (isAuthenticated) {
+      console.log('📞 Calling connect()...');
       connect();
     } else {
+      console.log('🔌 Calling disconnect()...');
       disconnect();
     }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -26,7 +26,7 @@ interface WeeklyCalendarProps {
 
 export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   const { currentFamily } = useFamily();
-  const { } = useNotifications();
+  const { on, off } = useNotifications();
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<ScrollView>(null);
   
@@ -64,7 +64,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     return `${year}-${month}-${dayOfMonth}`;
   };
   
-  const loadWeekSchedule = async (weekStartDate: string, useCache = true) => {
+  const loadWeekSchedule = useCallback(async (weekStartDate: string, useCache = true) => {
     if (!currentFamily) return;
     
     // Check cache first
@@ -91,7 +91,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentFamily, weekCache]);
   
   // Preload adjacent weeks
   const preloadAdjacentWeeks = async (weekStartDate: string) => {
@@ -141,6 +141,39 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
       loadFamilyMembers();
     }
   }, [currentFamily]);
+  
+  // Listen for real-time task updates
+  useEffect(() => {
+    if (!currentFamily || !currentWeekStart) return;
+    
+    const handleTaskUpdate = (data: any) => {
+      console.log('📋 Task update received in WeeklyCalendar:', data);
+      // Clear cache for the affected week
+      if (data.date) {
+        const affectedWeekStart = getMonday(new Date(data.date));
+        setWeekCache(prev => {
+          const newCache = new Map(prev);
+          newCache.delete(affectedWeekStart);
+          return newCache;
+        });
+      }
+      
+      // Reload the current week schedule when tasks are updated
+      loadWeekSchedule(currentWeekStart, false); // Don't use cache
+    };
+    
+    // Subscribe to task-related events
+    on('task-assigned', handleTaskUpdate);
+    on('task-unassigned', handleTaskUpdate);
+    on('task-schedule-updated', handleTaskUpdate);
+    
+    // Cleanup listeners on unmount
+    return () => {
+      off('task-assigned', handleTaskUpdate);
+      off('task-unassigned', handleTaskUpdate);
+      off('task-schedule-updated', handleTaskUpdate);
+    };
+  }, [currentFamily, currentWeekStart, on, off, loadWeekSchedule]);
   
   // State for virtual scrolling
   const [scrollDays, setScrollDays] = useState<Array<{day: ResolvedDay | null; weekStart: string; dayIndex: number}>>([]);
@@ -322,10 +355,17 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ style }) => {
   const groupTasksIntoShifts = (tasks: ResolvedTask[]): Array<{ memberId: string | null; tasks: ResolvedTask[] }> => {
     if (tasks.length === 0) return [];
     
+    // First sort all tasks by time to ensure proper display order
+    const sortedTasks = [...tasks].sort((a, b) => {
+      const timeA = a.overrideTime || a.task.defaultStartTime;
+      const timeB = b.overrideTime || b.task.defaultStartTime;
+      return timeA.localeCompare(timeB);
+    });
+    
     const shifts: Array<{ memberId: string | null; tasks: ResolvedTask[] }> = [];
     let currentShift: { memberId: string | null; tasks: ResolvedTask[] } | null = null;
     
-    tasks.forEach((task) => {
+    sortedTasks.forEach((task) => {
       const memberId = task.member?.id || null;
       
       if (!currentShift || currentShift.memberId !== memberId) {
