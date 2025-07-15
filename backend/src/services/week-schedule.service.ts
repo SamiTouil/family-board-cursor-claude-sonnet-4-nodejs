@@ -697,6 +697,7 @@ export class WeekScheduleService {
         await webSocketService.notifyTaskReassigned(familyId, {
           taskId: override.taskId,
           taskName: override.task.name,
+          taskIcon: override.task.icon,
           date: formattedDate,
           originalMemberId: override.newMemberId, // They had it
           newMemberId: null, // Now no one has it
@@ -741,10 +742,10 @@ export class WeekScheduleService {
 
     // Process each override and send appropriate notifications
     for (const override of overrides) {
-      // Get task information
+      // Get task information including icon
       const task = await this.prisma.task.findUnique({
         where: { id: override.taskId },
-        select: { name: true },
+        select: { name: true, icon: true },
       });
 
       if (!task) {
@@ -769,6 +770,7 @@ export class WeekScheduleService {
             await webSocketService.notifyTaskReassigned(familyId, {
               taskId: override.taskId,
               taskName: task.name,
+              taskIcon: task.icon,
               date: formattedDate,
               originalMemberId: override.originalMemberId,
               newMemberId: override.newMemberId,
@@ -783,6 +785,7 @@ export class WeekScheduleService {
             await webSocketService.notifyTaskReassigned(familyId, {
               taskId: override.taskId,
               taskName: task.name,
+              taskIcon: task.icon,
               date: formattedDate,
               originalMemberId: null, // Task was added, not reassigned
               newMemberId: override.newMemberId,
@@ -797,6 +800,7 @@ export class WeekScheduleService {
             await webSocketService.notifyTaskReassigned(familyId, {
               taskId: override.taskId,
               taskName: task.name,
+              taskIcon: task.icon,
               date: formattedDate,
               originalMemberId: override.originalMemberId,
               newMemberId: null, // Task was removed

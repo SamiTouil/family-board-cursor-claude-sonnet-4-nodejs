@@ -298,6 +298,7 @@ export class WebSocketService {
   public notifyTaskReassigned(familyId: string, taskReassignmentData: {
     taskId: string;
     taskName: string;
+    taskIcon?: string;
     date: string;
     originalMemberId: string | null;
     newMemberId: string | null;
@@ -325,6 +326,7 @@ export class WebSocketService {
         familyId,
         taskId: taskReassignmentData.taskId,
         taskName: taskReassignmentData.taskName,
+        taskIcon: taskReassignmentData.taskIcon,
         date: taskReassignmentData.date,
         adminName: taskReassignmentData.adminName,
         message: `"${taskReassignmentData.taskName}" on ${taskReassignmentData.date} has been unassigned from you by ${taskReassignmentData.adminName}`,
@@ -338,6 +340,7 @@ export class WebSocketService {
         familyId,
         taskId: taskReassignmentData.taskId,
         taskName: taskReassignmentData.taskName,
+        taskIcon: taskReassignmentData.taskIcon,
         date: taskReassignmentData.date,
         adminName: taskReassignmentData.adminName,
         message: `"${taskReassignmentData.taskName}" on ${taskReassignmentData.date} has been assigned to you by ${taskReassignmentData.adminName}`,
@@ -350,6 +353,7 @@ export class WebSocketService {
       familyId,
       taskId: taskReassignmentData.taskId,
       taskName: taskReassignmentData.taskName,
+      taskIcon: taskReassignmentData.taskIcon,
       date: taskReassignmentData.date,
       originalMemberId: taskReassignmentData.originalMemberId,
       newMemberId: taskReassignmentData.newMemberId,
