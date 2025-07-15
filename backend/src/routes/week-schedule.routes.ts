@@ -210,7 +210,7 @@ router.delete('/:familyId/week-schedule/override', async (req: AuthenticatedRequ
     const userId = req.user!.userId;
     await checkFamilyAdmin(userId, familyId);
 
-    await weekScheduleService.removeWeekOverride(familyId, weekStartDate);
+    await weekScheduleService.removeWeekOverride(familyId, weekStartDate, userId);
 
     return res.status(200).json({ 
       message: 'Week override removed successfully',

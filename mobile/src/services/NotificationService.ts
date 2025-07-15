@@ -385,6 +385,11 @@ export class NotificationService {
           icon: '📅',
           title: 'Schedule Updated',
         };
+      case 'week-schedule-reverted':
+        return {
+          icon: '↩️',
+          title: 'Schedule Reverted',
+        };
       default:
         return {
           icon: '🔔',

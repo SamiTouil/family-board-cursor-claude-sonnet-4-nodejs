@@ -595,9 +595,24 @@ describe('WeekScheduleService', () => {
       const familyId = 'family-1';
       const weekStartDate = '2024-01-01';
 
+      // Mock the findMany call for task overrides
+      (mockPrisma.taskOverride.findMany as jest.Mock).mockResolvedValue([]);
       (mockPrisma.weekOverride.deleteMany as jest.Mock).mockResolvedValue({ count: 1 });
 
       await weekScheduleService.removeWeekOverride(familyId, weekStartDate);
+
+      expect(mockPrisma.taskOverride.findMany).toHaveBeenCalledWith({
+        where: {
+          weekOverride: {
+            familyId,
+            weekStartDate: new Date('2024-01-01T00:00:00.000Z'),
+          },
+        },
+        include: {
+          task: true,
+          weekOverride: true,
+        },
+      });
 
       expect(mockPrisma.weekOverride.deleteMany).toHaveBeenCalledWith({
         where: {

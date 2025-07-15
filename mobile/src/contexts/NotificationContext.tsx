@@ -105,6 +105,13 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   // Connect to WebSocket
   const connect = useCallback(async () => {
     console.log('🚀 Connect function called');
+    
+    // Check if already connecting or connected
+    if (socketRef.current?.connected) {
+      console.log('✅ Socket already connected, skipping connection');
+      return;
+    }
+    
     const token = await AsyncStorage.getItem('authToken');
     console.log('🔑 Retrieved token:', token ? 'Token exists' : 'No token');
     console.log('📊 Current state:', {
@@ -112,10 +119,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       isAlreadyConnected: socketRef.current?.connected
     });
     
-    if (!token || socketRef.current?.connected) {
-      console.log('⏹️ Connect aborted:', {
-        reason: !token ? 'No token' : 'Already connected'
-      });
+    if (!token) {
+      console.log('⏹️ Connect aborted: No token');
       return;
     }
 
@@ -135,8 +140,14 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       timeout: 20000,
       forceNew: true,
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: Infinity, // Keep trying to reconnect
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      randomizationFactor: 0.5,
+      autoConnect: true,
+      // Add ping/pong to keep connection alive
+      pingInterval: 25000,
+      pingTimeout: 60000,
     });
 
     // Connection event handlers
@@ -286,6 +297,45 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       eventListeners.current['task-schedule-updated']?.forEach(callback => callback(data));
     });
 
+    // Week schedule reverted event
+    newSocket.on('week-schedule-reverted', (data) => {
+      console.log('📅 Week schedule reverted event received:', data);
+      addNotification({
+        type: 'week-schedule-reverted',
+        title: 'Schedule Reverted',
+        message: data.message,
+        data: {
+          ...data,
+          screen: 'Home', // Navigate to home/calendar when tapped
+        },
+      });
+      // Forward the event to any registered listeners
+      eventListeners.current['week-schedule-reverted']?.forEach(callback => callback(data));
+    });
+
+    // Week schedule updated event (when applying routines)
+    newSocket.on('week-schedule-updated', (data) => {
+      console.log('📅 Week schedule updated event received:', data);
+      console.log('📅 Event data details:', JSON.stringify(data, null, 2));
+      console.log('📅 Registered listeners for week-schedule-updated:', eventListeners.current['week-schedule-updated']?.length || 0);
+      
+      addNotification({
+        type: 'week-schedule-updated',
+        title: 'Schedule Updated',
+        message: data.message,
+        data: {
+          ...data,
+          screen: 'Home', // Navigate to home/calendar when tapped
+        },
+      });
+      
+      // Forward the event to any registered listeners
+      eventListeners.current['week-schedule-updated']?.forEach((callback, index) => {
+        console.log(`📅 Calling listener ${index + 1} for week-schedule-updated`);
+        callback(data);
+      });
+    });
+
     socketRef.current = newSocket;
   }, [addNotification]);
 
@@ -360,20 +410,27 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     return () => {
       disconnect();
     };
-  }, [isAuthenticated, connect, disconnect]);
+  }, [isAuthenticated]); // Remove connect and disconnect from dependencies to prevent loops
 
   // Handle app state changes for background notifications
   useEffect(() => {
     const handleAppStateChange = (nextAppState: string) => {
+      console.log('📱 App state changed to:', nextAppState);
       if (nextAppState === 'active') {
         // App came to foreground - clear any pending notifications
         NotificationService.clearDeliveredNotifications();
+        
+        // Reconnect WebSocket if disconnected
+        if (isAuthenticated && !socketRef.current?.connected) {
+          console.log('📱 App active - reconnecting WebSocket...');
+          connect();
+        }
       }
     };
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
     return () => subscription?.remove();
-  }, []);
+  }, [isAuthenticated, connect]);
 
   // Initialize notification service
   useEffect(() => {
@@ -383,9 +440,14 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      disconnect();
+      // Only disconnect when component is truly unmounting
+      if (socketRef.current) {
+        console.log('🔌 Component unmounting - disconnecting WebSocket');
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
     };
-  }, [disconnect]);
+  }, []); // Empty deps - only run on mount/unmount
 
   const value: NotificationContextType = {
     notifications,
