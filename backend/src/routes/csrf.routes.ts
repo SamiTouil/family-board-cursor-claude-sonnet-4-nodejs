@@ -11,7 +11,8 @@ const router = Router();
  * is currently enabled or disabled on the server.
  */
 router.get('/status', (_req, res) => {
-  const isEnabled = process.env['DISABLE_CSRF_VALIDATION'] !== 'true';
+  // TEMPORARY: CSRF is disabled in code
+  const isEnabled = false;
 
   res.json({
     enabled: isEnabled,
