@@ -1,0 +1,71 @@
+{
+  "name": "Family Board Development",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.devcontainer.yml"
+  ],
+  "service": "devcontainer",
+  "workspaceFolder": "/workspace",
+  
+  "features": {},
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker",
+        "Prisma.prisma",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-typescript-next",
+        "eamodio.gitlens",
+        "usernamehw.errorlens",
+        "Orta.vscode-jest",
+        "ms-playwright.playwright",
+        "mikestead.dotenv",
+        "yoavbls.pretty-ts-errors",
+        "christian-kohler.npm-intellisense",
+        "christian-kohler.path-intellisense"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "eslint.validate": [
+          "javascript",
+          "javascriptreact",
+          "typescript",
+          "typescriptreact"
+        ],
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "files.watcherExclude": {
+          "**/node_modules/**": true,
+          "**/dist/**": true,
+          "**/.next/**": true
+        }
+      }
+    }
+  },
+
+  "forwardPorts": [
+    3000,  // Frontend
+    3001,  // Backend
+    5432,  // PostgreSQL
+    8080,  // Adminer
+    19000, // Expo
+    19001, // Expo
+    19002  // Expo
+  ],
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  
+  "remoteUser": "developer",
+  
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/home/developer/.ssh,type=bind,consistency=cached,readonly"
+  ],
+  
+  "runArgs": [
+    "--network=host"
+  ]
+}
