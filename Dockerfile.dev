@@ -1,0 +1,91 @@
+FROM node:18-alpine
+
+# Install development tools
+RUN apk add --no-cache \
+    git \
+    bash \
+    bash-completion \
+    curl \
+    wget \
+    openssh-client \
+    postgresql-client \
+    python3 \
+    make \
+    g++ \
+    libc6-compat \
+    # Development utilities
+    vim \
+    nano \
+    jq \
+    tree \
+    htop \
+    github-cli \
+    sudo \
+    # For building native dependencies
+    build-base \
+    # For Prisma
+    openssl \
+    openssl-dev \
+    # For Playwright
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
+# Install global npm packages
+RUN npm install -g \
+    typescript \
+    tsx \
+    prisma \
+    @playwright/test \
+    expo-cli \
+    eas-cli \
+    npm-check-updates \
+    concurrently \
+    wait-on
+
+# Set up git (for devcontainer)
+RUN git config --global --add safe.directory /workspace
+
+# Create a non-root user for development
+RUN addgroup -g 1001 developer && \
+    adduser -D -u 1001 -G developer developer
+
+# Set bash as default shell
+RUN sed -i 's/bin\/ash/bin\/bash/g' /etc/passwd
+
+# Create workspace directory
+RUN mkdir -p /workspace && chown -R developer:developer /workspace
+
+# Create VSCode directories with correct permissions
+RUN mkdir -p /home/developer/.vscode-server/extensions \
+    /home/developer/.vscode-server-insiders/extensions \
+    /home/developer/.cache \
+    /home/developer/.npm
+
+# Fix permissions for the developer user's home directory
+RUN chown -R developer:developer /home/developer
+
+# Configure sudo for developer user
+RUN echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Switch to non-root user
+USER developer
+
+# Set working directory
+WORKDIR /workspace
+
+# Set environment variables
+ENV NODE_ENV=development
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV PLAYWRIGHT_BROWSERS_PATH=/home/developer/.cache/playwright
+
+# Install Playwright browsers as user
+RUN npx playwright install chromium
+
+# Keep container running
+CMD ["bash"]
