@@ -1,13 +1,15 @@
 {
   "name": "Family Board Development",
-  "dockerComposeFile": [
-    "../docker-compose.yml",
-    "docker-compose.devcontainer.yml"
-  ],
-  "service": "devcontainer",
-  "workspaceFolder": "/workspace",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "workspace",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   
-  "features": {},
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    }
+  },
 
   "customizations": {
     "vscode": {
@@ -20,10 +22,6 @@
         "ms-vscode.vscode-typescript-next",
         "eamodio.gitlens",
         "usernamehw.errorlens",
-        "Orta.vscode-jest",
-        "ms-playwright.playwright",
-        "mikestead.dotenv",
-        "yoavbls.pretty-ts-errors",
         "christian-kohler.npm-intellisense",
         "christian-kohler.path-intellisense"
       ],
@@ -36,13 +34,7 @@
           "javascriptreact",
           "typescript",
           "typescriptreact"
-        ],
-        "typescript.tsdk": "node_modules/typescript/lib",
-        "files.watcherExclude": {
-          "**/node_modules/**": true,
-          "**/dist/**": true,
-          "**/.next/**": true
-        }
+        ]
       }
     }
   },
@@ -51,21 +43,10 @@
     3000,  // Frontend
     3001,  // Backend
     5432,  // PostgreSQL
-    8080,  // Adminer
-    19000, // Expo
-    19001, // Expo
-    19002  // Expo
+    8080   // Adminer
   ],
 
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   
-  "remoteUser": "developer",
-  
-  "mounts": [
-    "source=${localEnv:HOME}/.ssh,target=/home/developer/.ssh,type=bind,consistency=cached,readonly"
-  ],
-  
-  "runArgs": [
-    "--network=host"
-  ]
+  "remoteUser": "developer"
 }

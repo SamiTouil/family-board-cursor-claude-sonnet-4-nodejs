@@ -39,7 +39,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-family_board}
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production}
       PORT: 3001
       DISABLE_CSRF_VALIDATION: ${DISABLE_CSRF_VALIDATION:-false}
     depends_on:
@@ -47,7 +47,7 @@ services:
         condition: service_healthy
     volumes:
       - ./backend:/app
-      - /app/node_modules
+      - backend-node-modules:/app/node_modules
     command: npm run dev
 
   frontend:
@@ -63,8 +63,10 @@ services:
       - backend
     volumes:
       - ./frontend:/app
-      - /app/node_modules
+      - frontend-node-modules:/app/node_modules
     command: npm run dev
 
 volumes:
-  postgres_data: 
+  postgres_data:
+  backend-node-modules:
+  frontend-node-modules: 
