@@ -24,7 +24,7 @@
     "db:safe-push": "npm run db:export && dotenv -e ../.env -- prisma db push && npm run prisma:seed"
   },
   "dependencies": {
-    "@prisma/client": "^5.19.1",
+    "@prisma/client": "5.22.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -53,7 +53,7 @@
     "dotenv-cli": "^8.0.0",
     "eslint": "^8.54.0",
     "jest": "^29.7.0",
-    "prisma": "^5.7.1",
+    "prisma": "5.22.0",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.1",
     "tsx": "^4.6.2",
