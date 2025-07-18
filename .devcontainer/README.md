@@ -28,6 +28,39 @@ The devcontainer automatically starts these services:
 - Backend API (port 3001)
 - Frontend web app (port 3000)
 
+## Database Management
+
+The devcontainer includes PostgreSQL client tools for database operations:
+
+### Dump Database
+```bash
+# Create a backup of the current database
+.devcontainer/scripts/db-dump.sh
+
+# The backup will be saved to /workspace/backups/
+```
+
+### Restore Database
+```bash
+# Restore from a backup file
+.devcontainer/scripts/db-restore.sh /workspace/backups/familyboard_20241118_123456.sql.gz
+
+# List available backups
+ls -la backups/*.sql.gz
+```
+
+### Direct Database Access
+```bash
+# Connect to the database using psql
+psql -h postgres -U postgres -d family_board
+
+# Use pg_dump directly
+pg_dump -h postgres -U postgres family_board > my-backup.sql
+
+# Use pg_restore for custom format dumps
+pg_restore -h postgres -U postgres -d family_board backup.dump
+```
+
 ## Development Commands
 
 Inside the container, you can run:

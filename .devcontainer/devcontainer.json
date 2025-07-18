@@ -9,7 +9,8 @@
 
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers-community/features/postgres-asdf:1": {}
   },
 
   "customizations": {
@@ -29,6 +30,10 @@
   "forwardPorts": [3000, 3001, 5432, 8080],
   
   "postCreateCommand": "cd /workspace && if [ -f .devcontainer/post-create.sh ]; then bash .devcontainer/post-create.sh; fi",
+  
+  "containerEnv": {
+    "PGPASSWORD": "postgres"
+  },
   
   "remoteUser": "node"
 }

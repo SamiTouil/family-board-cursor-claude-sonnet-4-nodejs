@@ -3,6 +3,11 @@ set -e
 
 echo "🚀 Setting up development environment..."
 
+# Install PostgreSQL client tools
+echo "🐘 Installing PostgreSQL client tools..."
+sudo apt-get update
+sudo apt-get install -y postgresql-client
+
 # Ensure we're in the workspace
 cd /workspace
 
