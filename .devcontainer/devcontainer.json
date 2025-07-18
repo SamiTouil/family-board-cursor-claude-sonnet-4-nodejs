@@ -1,14 +1,15 @@
 {
-  "name": "Family Board Development",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "workspace",
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-  
+  "name": "Family Board",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.yml"
+  ],
+  "service": "app",
+  "workspaceFolder": "/workspace",
+
   "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "18"
-    }
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
 
   "customizations": {
@@ -16,37 +17,18 @@
       "extensions": [
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "ms-azuretools.vscode-docker",
         "Prisma.prisma",
-        "bradlc.vscode-tailwindcss",
-        "ms-vscode.vscode-typescript-next",
-        "eamodio.gitlens",
-        "usernamehw.errorlens",
-        "christian-kohler.npm-intellisense",
-        "christian-kohler.path-intellisense"
+        "bradlc.vscode-tailwindcss"
       ],
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash",
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "eslint.validate": [
-          "javascript",
-          "javascriptreact",
-          "typescript",
-          "typescriptreact"
-        ]
+        "terminal.integrated.defaultProfile.linux": "bash"
       }
     }
   },
 
-  "forwardPorts": [
-    3000,  // Frontend
-    3001,  // Backend
-    5432,  // PostgreSQL
-    8080   // Adminer
-  ],
-
-  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "forwardPorts": [3000, 3001, 5432, 8080],
   
-  "remoteUser": "developer"
+  "postCreateCommand": "cd /workspace && if [ -f .devcontainer/post-create.sh ]; then bash .devcontainer/post-create.sh; fi",
+  
+  "remoteUser": "node"
 }
