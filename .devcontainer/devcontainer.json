@@ -1,71 +1,34 @@
 {
-  "name": "Family Board Development",
+  "name": "Family Board",
   "dockerComposeFile": [
     "../docker-compose.yml",
-    "docker-compose.devcontainer.yml"
+    "docker-compose.yml"
   ],
-  "service": "devcontainer",
+  "service": "app",
   "workspaceFolder": "/workspace",
-  
-  "features": {},
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
 
   "customizations": {
     "vscode": {
       "extensions": [
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "ms-azuretools.vscode-docker",
         "Prisma.prisma",
-        "bradlc.vscode-tailwindcss",
-        "ms-vscode.vscode-typescript-next",
-        "eamodio.gitlens",
-        "usernamehw.errorlens",
-        "Orta.vscode-jest",
-        "ms-playwright.playwright",
-        "mikestead.dotenv",
-        "yoavbls.pretty-ts-errors",
-        "christian-kohler.npm-intellisense",
-        "christian-kohler.path-intellisense"
+        "bradlc.vscode-tailwindcss"
       ],
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash",
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "eslint.validate": [
-          "javascript",
-          "javascriptreact",
-          "typescript",
-          "typescriptreact"
-        ],
-        "typescript.tsdk": "node_modules/typescript/lib",
-        "files.watcherExclude": {
-          "**/node_modules/**": true,
-          "**/dist/**": true,
-          "**/.next/**": true
-        }
+        "terminal.integrated.defaultProfile.linux": "bash"
       }
     }
   },
 
-  "forwardPorts": [
-    3000,  // Frontend
-    3001,  // Backend
-    5432,  // PostgreSQL
-    8080,  // Adminer
-    19000, // Expo
-    19001, // Expo
-    19002  // Expo
-  ],
-
-  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "forwardPorts": [3000, 3001, 5432, 8080],
   
-  "remoteUser": "developer",
+  "postCreateCommand": "cd /workspace && if [ -f .devcontainer/post-create.sh ]; then bash .devcontainer/post-create.sh; fi",
   
-  "mounts": [
-    "source=${localEnv:HOME}/.ssh,target=/home/developer/.ssh,type=bind,consistency=cached,readonly"
-  ],
-  
-  "runArgs": [
-    "--network=host"
-  ]
+  "remoteUser": "node"
 }

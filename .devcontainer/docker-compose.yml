@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/javascript-node:1-18-bullseye
+    volumes:
+      - ../:/workspace:cached
+    command: sleep infinity
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/family_board
+      JWT_SECRET: dev-secret-key-change-in-production
+      NODE_ENV: development

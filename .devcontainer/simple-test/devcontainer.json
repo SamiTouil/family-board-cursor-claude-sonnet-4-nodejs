@@ -1,0 +1,5 @@
+{
+  "name": "Simple Node.js",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:18",
+  "postCreateCommand": "node --version && npm --version"
+}
