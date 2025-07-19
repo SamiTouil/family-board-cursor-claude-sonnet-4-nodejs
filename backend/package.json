@@ -20,7 +20,7 @@
     "prisma:studio": "dotenv -e ../.env -- prisma studio",
     "prisma:seed": "dotenv -e ../.env -- tsx src/prisma/seed.ts",
     "db:export": "dotenv -e ../.env -- tsx scripts/export-db.ts",
-    "db:reset-with-seed": "dotenv -e ../.env -- prisma db push --force-reset && npm run prisma:seed",
+    "db:reset": "dotenv -e ../.env -- prisma migrate reset --force && npm run prisma:seed",
     "db:safe-push": "npm run db:export && dotenv -e ../.env -- prisma db push && npm run prisma:seed"
   },
   "dependencies": {

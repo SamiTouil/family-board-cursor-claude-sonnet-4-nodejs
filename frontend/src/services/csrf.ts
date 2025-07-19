@@ -1,11 +1,20 @@
 /**
  * CSRF Protection Service for Frontend
- * 
+ *
  * Handles CSRF token fetching, caching, and automatic inclusion in requests.
  * Uses double-submit cookie pattern with automatic token management.
  */
 
-import { apiClient } from './api-client';
+import axios from 'axios';
+
+// Create a separate axios instance for CSRF operations to avoid circular dependency
+const csrfClient = axios.create({
+  baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api`,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true, // Enable cookies for CSRF protection
+});
 
 interface CSRFTokenResponse {
   success: boolean;
@@ -51,8 +60,8 @@ class CSRFService {
   private async fetchToken(forceRefresh: boolean = false): Promise<string> {
     try {
       const url = forceRefresh ? '/csrf/token?refreshCSRF=true' : '/csrf/token';
-      const response = await apiClient.get<CSRFTokenResponse>(url);
-      
+      const response = await csrfClient.get<CSRFTokenResponse>(url);
+
       if (!response.data.success || !response.data.csrfToken) {
         throw new Error('Invalid CSRF token response');
       }
@@ -97,15 +106,12 @@ class CSRFService {
    */
   async isCSRFEnabled(): Promise<boolean> {
     try {
-      // Try to make a test request without CSRF token
-      await apiClient.post('/test-csrf-check', {});
-      return false; // If it succeeds, CSRF is disabled
+      // Check CSRF status endpoint instead of making a test request
+      const response = await csrfClient.get('/csrf/status');
+      return response.data.enabled === true;
     } catch (error: any) {
-      if (error.response?.status === 403 && 
-          error.response?.data?.code === 'CSRF_TOKEN_REQUIRED') {
-        return true; // CSRF is enabled
-      }
-      return false; // Other error, assume CSRF is disabled
+      // If we can't check status, assume CSRF is disabled
+      return false;
     }
   }
 }
