@@ -55,8 +55,15 @@ export function errorHandler(
   }
 
   // Default server error
+  console.error('Unhandled error:', error);
+  console.error('Error stack:', error.stack);
   res.status(500).json({
     success: false,
     message: i18next.t('errors.internalServerError'),
+    // Include error details in development
+    ...(process.env.NODE_ENV === 'development' && { 
+      error: error.message,
+      stack: error.stack 
+    })
   });
 } 
