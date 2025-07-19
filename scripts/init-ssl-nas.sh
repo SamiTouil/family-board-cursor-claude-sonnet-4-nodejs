@@ -87,17 +87,19 @@ fi
 # Step 3: Obtain SSL certificates
 echo ""
 echo "🔐 Step 3: Obtaining SSL certificates..."
-# Use docker-compose exec to run certbot with proper network context
-docker-compose -f docker-compose.nas.yml run --rm \
+# Run certbot using the existing network and nginx setup
+docker run --rm \
   -v $(pwd)/certbot/conf:/etc/letsencrypt \
   -v $(pwd)/certbot/www:/var/www/certbot \
-  certbot certonly \
+  --network container:family-board-nginx \
+  certbot/certbot certonly \
   --webroot \
   --webroot-path /var/www/certbot \
   --email $EMAIL \
   --agree-tos \
   --no-eff-email \
-  --force-renewal \
+  --non-interactive \
+  --keep-until-expiring \
   -d $DOMAIN \
   -d www.$DOMAIN
 
