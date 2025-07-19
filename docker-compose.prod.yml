@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_DB: familyboard
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me-in-production}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fdsfjh88432kjhsd9810-035-094386sdjfh8304230489u}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backups:/backups
@@ -29,10 +29,12 @@ services:
     ports:
       - "3001:3001"
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-change-me-in-production}@postgres:5432/familyboard
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-fdsfjh88432kjhsd9810-035-094386sdjfh8304230489u}@postgres:5432/familyboard
+      JWT_SECRET: ${JWT_SECRET:-kdjshbfgdf984375i4kj35h23i85y34ktjhedmfj19098y34i5rwf843}
       NODE_ENV: production
       PORT: 3001
+      FRONTEND_URL: https://mabt.eu
+      DISABLE_CSRF_VALIDATION: false
     depends_on:
       postgres:
         condition: service_healthy
