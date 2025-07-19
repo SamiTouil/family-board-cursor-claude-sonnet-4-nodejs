@@ -43,12 +43,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: https://mabt.eu/api
+        VITE_SOCKET_URL: https://mabt.eu
     container_name: family-board-frontend
     restart: unless-stopped
     ports:
       - "3000:80"
-    environment:
-      VITE_API_URL: ${VITE_API_URL:-https://yourdomain.com}
     depends_on:
       - backend
 
