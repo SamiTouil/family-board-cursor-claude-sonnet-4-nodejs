@@ -53,17 +53,25 @@ fi
 # Step 2: Test HTTP connectivity
 echo ""
 echo "🔍 Step 2: Testing HTTP connectivity..."
+# Create a test file to verify webroot is working
+mkdir -p certbot/www/.well-known/acme-challenge
+echo "test-content" > certbot/www/.well-known/acme-challenge/test
+
 echo "Testing local connectivity..."
-if curl -f -s -o /dev/null http://localhost/.well-known/acme-challenge/test; then
+if curl -f -s http://localhost/.well-known/acme-challenge/test | grep -q "test-content"; then
     echo "✅ Local HTTP connectivity OK"
 else
     echo "⚠️  Local HTTP connectivity failed - nginx might not be properly configured"
+    echo "Checking nginx logs..."
+    docker-compose -f docker-compose.nas.yml logs --tail=10 nginx
 fi
 
 echo ""
 echo "Testing external connectivity to $DOMAIN..."
-if timeout 10 curl -f -s -o /dev/null http://$DOMAIN/.well-known/acme-challenge/test 2>/dev/null; then
+if timeout 10 curl -f -s http://$DOMAIN/.well-known/acme-challenge/test 2>/dev/null | grep -q "test-content"; then
     echo "✅ External HTTP connectivity OK"
+    # Clean up test file
+    rm -f certbot/www/.well-known/acme-challenge/test
 else
     echo "❌ ERROR: Cannot reach $DOMAIN from the internet"
     echo ""
@@ -79,11 +87,11 @@ fi
 # Step 3: Obtain SSL certificates
 echo ""
 echo "🔐 Step 3: Obtaining SSL certificates..."
-docker run --rm \
+# Use docker-compose exec to run certbot with proper network context
+docker-compose -f docker-compose.nas.yml run --rm \
   -v $(pwd)/certbot/conf:/etc/letsencrypt \
   -v $(pwd)/certbot/www:/var/www/certbot \
-  --network family-board-network \
-  certbot/certbot certonly \
+  certbot certonly \
   --webroot \
   --webroot-path /var/www/certbot \
   --email $EMAIL \
