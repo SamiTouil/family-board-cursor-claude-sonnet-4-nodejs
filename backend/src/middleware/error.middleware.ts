@@ -61,9 +61,9 @@ export function errorHandler(
     success: false,
     message: i18next.t('errors.internalServerError'),
     // Include error details in development
-    ...(process.env.NODE_ENV === 'development' && { 
+    ...(process.env['NODE_ENV'] === 'development' && {
       error: error.message,
-      stack: error.stack 
+      stack: error.stack
     })
   });
 } 

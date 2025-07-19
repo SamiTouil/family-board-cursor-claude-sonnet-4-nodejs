@@ -17,11 +17,11 @@ export_db() {
     echo "✅ Database state exported successfully!"
 }
 
-# Function to reset DB with current seed
+# Function to reset DB with current seed (migration-aware)
 reset_db() {
-    echo "🔄 Resetting database with seed data..."
+    echo "🔄 Resetting database with seed data (migration-aware)..."
     cd backend
-    npm run db:reset-with-seed
+    npm run db:reset
     cd ..
     echo "✅ Database reset completed!"
 }

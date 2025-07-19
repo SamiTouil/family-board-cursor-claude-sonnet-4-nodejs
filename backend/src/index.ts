@@ -39,11 +39,15 @@ async function startServer(): Promise<void> {
     // Configure CORS to allow both web and mobile clients
     const allowedOrigins = [
       process.env['FRONTEND_URL'] || 'http://localhost:3000',
+      'http://localhost:3000', // Frontend development (explicit)
+      'http://127.0.0.1:3000', // Frontend development (localhost alternative)
       'http://localhost:8081', // Expo development
       'http://192.168.1.24:8081', // Expo on local network
       'exp://192.168.1.24:8081', // Expo client
       /^http:\/\/192\.168\.\d+\.\d+:8081$/, // Any local IP for Expo
       /^exp:\/\/\d+\.\d+\.\d+\.\d+:\d+$/, // Any Expo URL
+      /^http:\/\/localhost:\d+$/, // Any localhost port
+      /^http:\/\/127\.0\.0\.1:\d+$/, // Any 127.0.0.1 port
     ];
     
     app.use(cors({
