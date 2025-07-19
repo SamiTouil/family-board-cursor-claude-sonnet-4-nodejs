@@ -44,7 +44,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
-        VITE_API_URL: https://mabt.eu/api
+        VITE_API_URL: https://mabt.eu
         VITE_SOCKET_URL: https://mabt.eu
     container_name: family-board-frontend
     restart: unless-stopped
