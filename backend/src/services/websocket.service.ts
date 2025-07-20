@@ -31,8 +31,7 @@ export class WebSocketService {
   constructor(httpServer: HTTPServer) {
     // Configure allowed origins for WebSocket connections
     const allowedOrigins = [
-      process.env['FRONTEND_URL'] || 'http://localhost:3000',
-      'http://localhost:8081', // Expo development
+      process.env['FRONTEND_URL'] || 'https://mabt.eu',
       'http://192.168.1.24:8081', // Expo on local network
       'exp://192.168.1.24:8081', // Expo client
     ];

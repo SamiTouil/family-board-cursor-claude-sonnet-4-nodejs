@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import { SOCKET_BASE_URL } from '../config/production';
 
 interface WebSocketNotification {
   id: string;
@@ -84,7 +85,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
 
 
-    const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:3001', {
+    const newSocket = io(SOCKET_BASE_URL, {
       auth: {
         token,
       },

@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { csrfService } from './csrf';
+import { API_BASE_URL } from '../config/production';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Use production config directly
+// const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://mabt.eu';
 
 export const apiClient = axios.create({
   baseURL: `${API_BASE_URL}/api`,
