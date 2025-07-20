@@ -31,9 +31,9 @@ export class WebSocketService {
   constructor(httpServer: HTTPServer) {
     // Configure allowed origins for WebSocket connections
     const allowedOrigins = [
-      process.env['FRONTEND_URL'] || 'https://mabt.eu',
-      'http://192.168.1.24:8081', // Expo on local network
-      'exp://192.168.1.24:8081', // Expo client
+      process.env['FRONTEND_URL'] || 'http://localhost:3000',
+      // Parse additional allowed origins from environment variable
+      ...(process.env['ALLOWED_ORIGINS']?.split(',').map(origin => origin.trim()) || []),
     ];
     
     this.io = new SocketIOServer(httpServer, {

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
-import { SOCKET_BASE_URL } from '../config/production';
+import { SOCKET_BASE_URL } from '../config/app';
 
 interface WebSocketNotification {
   id: string;
