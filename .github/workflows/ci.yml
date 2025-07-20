@@ -207,7 +207,7 @@ jobs:
 
     - name: Start application stack
       run: |
-        # Create a minimal .env file for E2E tests
+        # Create a minimal .env file for E2E tests (infrastructure variables)
         cat > .env << EOF
         DB_NAME=family_board
         DB_USER=postgres
@@ -216,12 +216,23 @@ jobs:
         BACKEND_PORT=3001
         FRONTEND_PORT=3000
         ADMINER_PORT=8080
-        JWT_SECRET=test-jwt-secret-for-e2e-tests-32-chars-minimum-length
-        NODE_ENV=development
-        VITE_API_URL=http://localhost:3001
+        EOF
+
+        # Create backend .env file with backend-specific variables
+        cat > backend/.env << EOF
+        # Backend Application Environment Variables for E2E Tests
         DATABASE_URL=postgresql://postgres:postgres@postgres:5432/family_board
+        JWT_SECRET=test-jwt-secret-for-e2e-tests-32-chars-minimum-length
+        BCRYPT_ROUNDS=10
+        NODE_ENV=development
+        PORT=3001
         # Disable CSRF validation for E2E tests until client integration is complete
         DISABLE_CSRF_VALIDATION=true
+        FRONTEND_URL=http://localhost:3000
+        API_RATE_LIMIT_WINDOW=15
+        API_RATE_LIMIT_MAX=100
+        DEFAULT_LANGUAGE=en
+        SUPPORTED_LANGUAGES=en,fr
         EOF
         
         # Start the full application stack
