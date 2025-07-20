@@ -56,7 +56,6 @@ function extractCSRFToken(req: Request): string | undefined {
 /**
  * Check if the request method requires CSRF protection
  */
-// @ts-ignore - temporarily unused due to disabled CSRF
 function requiresCSRFProtection(method: string): boolean {
   const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
   return !safeMethods.includes(method.toUpperCase());
@@ -99,15 +98,10 @@ export function generateCSRFToken(
  * Should be applied after generateCSRFToken middleware
  */
 export function validateCSRFToken(
-  _req: CSRFRequest,
-  _res: Response,
+  req: CSRFRequest,
+  res: Response,
   next: NextFunction
 ): void {
-  // TEMPORARY: CSRF validation disabled in code
-  next();
-  return;
-  
-  /* Commented out temporarily to avoid TypeScript errors
   // Feature flag to disable CSRF validation during client migration
   if (process.env['DISABLE_CSRF_VALIDATION'] === 'true') {
     next();
@@ -162,7 +156,6 @@ export function validateCSRFToken(
   }
 
   next();
-  */
 }
 
 /**
