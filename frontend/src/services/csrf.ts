@@ -6,7 +6,7 @@
  */
 
 import axios from 'axios';
-import { API_BASE_URL } from '../config/production';
+import { API_BASE_URL } from '../config/app';
 
 // Create a separate axios instance for CSRF operations to avoid circular dependency
 const csrfClient = axios.create({

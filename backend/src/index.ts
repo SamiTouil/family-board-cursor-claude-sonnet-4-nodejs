@@ -38,9 +38,10 @@ async function startServer(): Promise<void> {
     
     // Configure CORS to allow both web and mobile clients
     const allowedOrigins = [
-      process.env['FRONTEND_URL'] || 'https://mabt.eu',
-      'http://192.168.1.24:8081', // Expo on local network
-      'exp://192.168.1.24:8081', // Expo client
+      process.env['FRONTEND_URL'] || 'http://localhost:3000',
+      // Parse additional allowed origins from environment variable
+      ...(process.env['ALLOWED_ORIGINS']?.split(',').map(origin => origin.trim()) || []),
+      // Regex patterns for mobile development
       /^http:\/\/192\.168\.\d+\.\d+:8081$/, // Any local IP for Expo
       /^exp:\/\/\d+\.\d+\.\d+\.\d+:\d+$/, // Any Expo URL
     ];

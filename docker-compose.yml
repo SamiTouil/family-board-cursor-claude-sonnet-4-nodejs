@@ -47,7 +47,7 @@ services:
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     env_file:
-      - ./frontend/.env         # Frontend-specific variables only
+      - ./frontend/.env.development  # Development environment variables
     depends_on:
       - backend
     volumes:
