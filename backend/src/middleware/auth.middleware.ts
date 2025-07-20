@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { TokenExpiredError } from 'jsonwebtoken';
 import { getJwtSecret } from '../config/jwt.config';
 import { UserService } from '../services/user.service';
 import { i18next } from '../config/i18n';
@@ -67,7 +67,7 @@ export async function authenticateToken(
 
     next();
   } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
+    if (error instanceof TokenExpiredError) {
       res.status(401).json({
         success: false,
         message: i18next.t('errors.tokenExpired'),

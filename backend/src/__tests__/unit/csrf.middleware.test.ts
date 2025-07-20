@@ -135,10 +135,16 @@ describe('CSRF Middleware', () => {
 
     // TEMPORARY: All validation tests should pass through due to disabled CSRF
     it('should always skip validation (temporarily disabled)', () => {
+      // Set the environment variable to disable CSRF for this test
+      process.env['DISABLE_CSRF_VALIDATION'] = 'true';
+
       validateCSRFToken(mockReq as CSRFRequest, mockRes as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalled();
       expect(mockRes.status).not.toHaveBeenCalled();
+
+      // Clean up
+      delete process.env['DISABLE_CSRF_VALIDATION'];
     });
 
     it.skip('should skip validation for safe HTTP methods', () => {
