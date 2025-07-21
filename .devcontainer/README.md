@@ -91,7 +91,7 @@ The container automatically creates `.env` files for each service if they don't 
 ## Troubleshooting
 
 ### Container fails to start
-- Ensure Docker is running
+- Ensure Podman is running
 - Check that ports 3000, 3001, 5432, and 8080 are not in use
 
 ### Database connection issues

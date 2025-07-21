@@ -6,7 +6,7 @@ REM Use this for regular updates after initial deployment
 setlocal
 
 REM Configuration
-set COMPOSE_FILE=docker-compose.production.yml
+set COMPOSE_FILE=podman-compose.production.yml
 set ENV_FILE=.env.production
 
 echo.
@@ -16,7 +16,7 @@ echo ============================
 echo.
 
 echo [INFO] Pulling latest images...
-docker-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" pull
+podman-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" pull
 if errorlevel 1 (
     echo [ERROR] Failed to pull images
     pause
@@ -24,7 +24,7 @@ if errorlevel 1 (
 )
 
 echo [INFO] Restarting services with new images...
-docker-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" up -d
+podman-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" up -d
 if errorlevel 1 (
     echo [ERROR] Failed to restart services
     pause
@@ -35,7 +35,7 @@ echo [INFO] Waiting for services to be ready...
 timeout /t 10 /nobreak >nul
 
 echo [INFO] Running any pending database migrations...
-docker-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" exec backend npx prisma db push 2>nul
+podman-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" exec backend npx prisma db push 2>nul
 REM Ignore migration errors as they might be normal
 
 echo [SUCCESS] Update completed!

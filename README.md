@@ -7,7 +7,7 @@ A minimalistic family task planner application built with modern web technologie
 - **Backend**: Node.js + TypeScript + Express + Prisma + PostgreSQL
 - **Frontend**: React + TypeScript + Vite + Vitest
 - **E2E Testing**: Playwright (Chromium only)
-- **Containerization**: Docker + Docker Compose
+- **Containerization**: Podman + Podman Compose
 - **Database Admin**: Adminer
 - **CI/CD**: GitHub Actions
 - **Internationalization**: i18next (English & French)
@@ -15,7 +15,7 @@ A minimalistic family task planner application built with modern web technologie
 ## 📋 Prerequisites
 
 - Node.js 18+ and npm 8+
-- Docker and Docker Compose
+- Podman and Podman Compose
 - Git
 
 ## 🛠️ Quick Start
@@ -56,15 +56,15 @@ A minimalistic family task planner application built with modern web technologie
 │   │   ├── types/          # TypeScript types
 │   │   └── __tests__/      # Unit tests
 │   ├── prisma/             # Database schema and migrations
-│   └── Dockerfile
+│   └── Containerfile
 ├── frontend/               # React + TypeScript frontend
 │   ├── src/
 │   │   ├── i18n/          # Internationalization
 │   │   └── test/          # Test setup
-│   └── Dockerfile
+│   └── Containerfile
 ├── e2e-tests/             # Playwright E2E tests
 ├── scripts/               # Setup and utility scripts
-└── docker-compose.yml    # Docker services configuration
+└── podman-compose.yml    # Podman services configuration
 ```
 
 ## 🧪 Testing
@@ -80,7 +80,7 @@ A minimalistic family task planner application built with modern web technologie
 - `npm run dev` - Start all services in development mode
 - `npm run dev:detached` - Start services in background
 - `npm run down` - Stop all services
-- `npm run clean` - Clean up Docker resources
+- `npm run clean` - Clean up Podman resources
 
 ## 🌐 Environment Variables
 
@@ -102,7 +102,7 @@ Copy `.env.example` to `.env` and configure:
 
 Supports English (default) and French with automatic language detection.
 
-## 🐳 Docker Services
+## 🐳 Podman Services
 
 - **postgres**: PostgreSQL 15 database
 - **adminer**: Database administration interface
@@ -130,7 +130,7 @@ Initial simple user model includes:
 
 ## 🚦 Getting Started with Development
 
-1. Make sure Docker is running
+1. Make sure Podman is running
 2. Run `npm run setup` (one-time setup)
 3. Use `npm run dev` for development
 4. Access Adminer at http://localhost:8080 for database management
@@ -140,7 +140,7 @@ Initial simple user model includes:
 
 Use ACT to test GitHub Actions locally:
 ```bash
-# Stop Docker containers first to avoid port conflicts
+# Stop Podman containers first to avoid port conflicts
 npm run down
 
 # Run CI locally (non-interactive)
