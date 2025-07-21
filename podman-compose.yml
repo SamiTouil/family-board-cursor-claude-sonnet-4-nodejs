@@ -29,8 +29,10 @@ services:
       - .env                    # Infrastructure variables
       - ./backend/.env          # Backend-specific variables
     environment:
-      # Override DATABASE_URL to use Podman service name
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-familyboard}
+      # Override DATABASE_URL to use Podman service name with Prisma 6 connection pool settings
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-familyboard}?connection_limit=20&pool_timeout=30
+      # Pass through root-level CSRF configuration
+      DISABLE_CSRF_VALIDATION: ${DISABLE_CSRF_VALIDATION:-false}
     depends_on:
       postgres:
         condition: service_healthy
@@ -47,7 +49,11 @@ services:
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     env_file:
-      - ./frontend/.env.development  # Development environment variables
+      - .env                         # Infrastructure variables (includes DISABLE_CSRF_VALIDATION)
+      - ./frontend/.env              # Frontend environment variables
+    environment:
+      # Pass through root-level CSRF configuration
+      VITE_DISABLE_CSRF_VALIDATION: ${DISABLE_CSRF_VALIDATION:-false}
     depends_on:
       - backend
     volumes:
