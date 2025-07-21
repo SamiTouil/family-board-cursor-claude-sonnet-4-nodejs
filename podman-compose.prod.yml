@@ -22,7 +22,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Containerfile
       target: production
     container_name: family-board-backend
     restart: unless-stopped
@@ -48,7 +48,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.prod
+      dockerfile: Containerfile.prod
       args:
         VITE_API_URL: https://mabt.eu
         VITE_SOCKET_URL: https://mabt.eu

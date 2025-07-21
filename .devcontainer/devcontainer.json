@@ -1,7 +1,7 @@
 {
   "name": "Family Board",
   "dockerComposeFile": [
-    "../docker-compose.yml",
+    "../podman-compose.yml",
     "docker-compose.yml"
   ],
   "service": "app",

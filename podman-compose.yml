@@ -20,7 +20,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Containerfile
       target: development
     container_name: family-board-backend
     ports:
@@ -29,7 +29,7 @@ services:
       - .env                    # Infrastructure variables
       - ./backend/.env          # Backend-specific variables
     environment:
-      # Override DATABASE_URL to use Docker service name
+      # Override DATABASE_URL to use Podman service name
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-familyboard}
     depends_on:
       postgres:
@@ -42,7 +42,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Containerfile
     container_name: family-board-frontend
     ports:
       - "${FRONTEND_PORT:-3000}:3000"

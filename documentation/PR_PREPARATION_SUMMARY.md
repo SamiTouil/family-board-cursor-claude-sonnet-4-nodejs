@@ -55,11 +55,11 @@
 - **Impact**: 1/5 checks failing
 - **Solution**: CI environment needs to install updated dependencies
 
-### 2. Docker Container Issue
+### 2. Podman Container Issue
 - **Status**: Backend container missing cookie-parser
 - **Cause**: Container built from cached package.json before dependency was added
-- **Impact**: Runtime error in Docker environment
-- **Solution**: Rebuild container with `docker-compose build --no-cache backend`
+- **Impact**: Runtime error in Podman environment
+- **Solution**: Rebuild container with `podman-compose build --no-cache backend`
 
 ## 🔧 Required Actions Before Merge
 

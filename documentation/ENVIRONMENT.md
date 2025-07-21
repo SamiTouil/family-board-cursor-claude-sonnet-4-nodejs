@@ -63,9 +63,9 @@ JWT_SECRET=your-super-secure-jwt-secret-key-must-be-at-least-32-characters-long
 2. Generate a strong JWT secret: `openssl rand -hex 32`
 3. Update all values with production settings
 
-## Docker Compose Integration
+## Podman Compose Integration
 
-Docker Compose reads from the root `.env` file automatically:
+Podman Compose reads from the root `.env` file automatically:
 ```yaml
 environment:
   JWT_SECRET: ${JWT_SECRET}  # Reads from root .env
@@ -96,5 +96,5 @@ If you have multiple .env files:
 
 ### Environment Not Loading
 - Check that .env is in the root directory
-- Verify docker-compose.yml references ${JWT_SECRET}
+- Verify podman-compose.yml references ${JWT_SECRET}
 - Ensure no duplicate .env files override values

@@ -6,7 +6,7 @@ REM Run this script whenever you want to update to the latest version
 setlocal enabledelayedexpansion
 
 REM Configuration
-set COMPOSE_FILE=docker-compose.production.yml
+set COMPOSE_FILE=podman-compose.production.yml
 set ENV_FILE=.env.production
 set BACKUP_DIR=.\backups
 
@@ -17,15 +17,15 @@ echo   Family Board Production Deployment
 echo ========================================
 echo.
 
-REM Function to check if Docker is running
-echo [INFO] Checking Docker status...
-docker info >nul 2>&1
+REM Function to check if Podman is running
+echo [INFO] Checking Podman status...
+podman info >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] Docker is not running. Please start Docker Desktop and try again.
+    echo [ERROR] Podman is not running. Please start Podman and try again.
     pause
     exit /b 1
 )
-echo [SUCCESS] Docker is running
+echo [SUCCESS] Podman is running
 echo.
 
 REM Function to check if environment file exists
@@ -58,7 +58,7 @@ for /f "tokens=1-2 delims=: " %%i in ('time /t') do set mytime=%%i%%j
 set mytime=%mytime: =0%
 set BACKUP_FILE=%BACKUP_DIR%\family_board_backup_%mydate%_%mytime%.sql
 
-docker-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" exec -T postgres pg_dump -U "%POSTGRES_USER%" "%POSTGRES_DB%" > "%BACKUP_FILE%" 2>nul
+podman-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" exec -T postgres pg_dump -U "%POSTGRES_USER%" "%POSTGRES_DB%" > "%BACKUP_FILE%" 2>nul
 if errorlevel 1 (
     echo [WARNING] Database backup failed (this is normal if database is empty)
 ) else (
@@ -67,8 +67,8 @@ if errorlevel 1 (
 echo.
 
 REM Function to pull latest images
-echo [INFO] Pulling latest Docker images...
-docker-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" pull
+echo [INFO] Pulling latest container images...
+podman-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" pull
 if errorlevel 1 (
     echo [ERROR] Failed to pull images
     pause
@@ -79,7 +79,7 @@ echo.
 
 REM Function to start services
 echo [INFO] Starting services...
-docker-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" up -d
+podman-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" up -d
 if errorlevel 1 (
     echo [ERROR] Failed to start services
     pause
@@ -126,7 +126,7 @@ echo.
 
 REM Function to run database migrations
 echo [INFO] Running database migrations...
-docker-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" exec backend npx prisma db push
+podman-compose -f "%COMPOSE_FILE%" --env-file "%ENV_FILE%" exec backend npx prisma db push
 if errorlevel 1 (
     echo [WARNING] Database migrations failed (this might be normal for first deployment)
 ) else (
@@ -143,13 +143,13 @@ echo   • Backend API: http://localhost:3001
 echo   • Database Admin: http://localhost:8080 (if enabled)
 echo.
 echo [INFO] To check service status:
-echo   docker-compose -f %COMPOSE_FILE% ps
+echo   podman-compose -f %COMPOSE_FILE% ps
 echo.
 echo [INFO] To view logs:
-echo   docker-compose -f %COMPOSE_FILE% logs -f
+echo   podman-compose -f %COMPOSE_FILE% logs -f
 echo.
 echo [INFO] To stop services:
-echo   docker-compose -f %COMPOSE_FILE% down
+echo   podman-compose -f %COMPOSE_FILE% down
 echo.
 
 pause

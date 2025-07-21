@@ -10,16 +10,16 @@ echo   Family Board Production Setup
 echo ==========================================
 echo.
 
-REM Check if Docker is running
-echo [INFO] Checking Docker status...
-docker info >nul 2>&1
+REM Check if Podman is running
+echo [INFO] Checking Podman status...
+podman info >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] Docker is not running. Please start Docker Desktop and try again.
-    echo [INFO] Download Docker Desktop from: https://www.docker.com/products/docker-desktop
+    echo [ERROR] Podman is not running. Please start Podman and try again.
+    echo [INFO] Download Podman from: https://podman.io/getting-started/installation
     pause
     exit /b 1
 )
-echo [SUCCESS] Docker is running
+echo [SUCCESS] Podman is running
 echo.
 
 REM Check if environment file exists
