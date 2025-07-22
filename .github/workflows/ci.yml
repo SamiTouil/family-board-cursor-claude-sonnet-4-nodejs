@@ -253,7 +253,8 @@ jobs:
         cat > frontend/.env << EOF
         # Frontend Application Environment Variables for E2E Tests
         # Use backend service name for container-to-container communication
-        VITE_API_URL=http://backend:3001/api
+        # Note: /api is added automatically by frontend code
+        VITE_API_URL=http://backend:3001
         VITE_DISABLE_CSRF_VALIDATION=true
         VITE_DEFAULT_LANGUAGE=en
         VITE_SUPPORTED_LANGUAGES=en,fr
