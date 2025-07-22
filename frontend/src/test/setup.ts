@@ -22,6 +22,7 @@ globalThis.fetch = vi.fn(() =>
     arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
     blob: () => Promise.resolve(new Blob()),
     formData: () => Promise.resolve(new FormData()),
+    bytes: () => Promise.resolve(new Uint8Array()),
   } as Response)
 )
 
