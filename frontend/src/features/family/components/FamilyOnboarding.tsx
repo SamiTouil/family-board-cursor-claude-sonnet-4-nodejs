@@ -10,9 +10,24 @@ type OnboardingStep = 'choice' | 'create' | 'join';
 
 export const FamilyOnboarding: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('choice');
-  const { t } = useTranslation();
+  const { t, ready } = useTranslation();
   const { logout } = useAuth();
   const { pendingJoinRequests } = useFamily();
+
+  // Wait for i18n to be ready before rendering
+  if (!ready) {
+    return (
+      <div className="family-onboarding">
+        <div className="family-onboarding-container">
+          <div className="family-onboarding-choice">
+            <div className="family-onboarding-header">
+              <h1 className="family-onboarding-title">Loading...</h1>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // If user has pending join requests, show the join form (which will show pending status)
   useEffect(() => {
@@ -51,10 +66,10 @@ export const FamilyOnboarding: React.FC = () => {
           <div className="family-onboarding-choice">
             <div className="family-onboarding-header">
               <h1 className="family-onboarding-title">
-                {t('family.onboarding.title')}
+                {t('family.onboarding.title', 'Welcome to Family Board!')}
               </h1>
               <p className="family-onboarding-subtitle">
-                {t('family.onboarding.subtitle')}
+                {t('family.onboarding.subtitle', 'To get started, you need to either create a new family or join an existing one.')}
               </p>
             </div>
             
@@ -66,10 +81,10 @@ export const FamilyOnboarding: React.FC = () => {
               >
                 <div className="family-onboarding-option-icon">👨‍👩‍👧‍👦</div>
                 <h3 className="family-onboarding-option-title">
-                  {t('family.onboarding.createOption')}
+                  {t('family.onboarding.createOption', 'Create New Family')}
                 </h3>
                 <p className="family-onboarding-option-description">
-                  {t('family.onboarding.createDescription')}
+                  {t('family.onboarding.createDescription', 'Start your own family and invite others to join.')}
                 </p>
               </button>
               
@@ -80,10 +95,10 @@ export const FamilyOnboarding: React.FC = () => {
               >
                 <div className="family-onboarding-option-icon">🤝</div>
                 <h3 className="family-onboarding-option-title">
-                  {t('family.onboarding.joinOption')}
+                  {t('family.onboarding.joinOption', 'Join Existing Family')}
                 </h3>
                 <p className="family-onboarding-option-description">
-                  {t('family.onboarding.joinDescription')}
+                  {t('family.onboarding.joinDescription', 'Use an invitation code to join an existing family.')}
                 </p>
               </button>
             </div>

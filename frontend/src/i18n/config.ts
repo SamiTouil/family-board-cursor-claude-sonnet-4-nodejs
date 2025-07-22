@@ -12,11 +12,14 @@ i18n
     fallbackLng: 'en',
     lng: 'en',
     debug: false,
-    
+
+    // Make i18n initialization synchronous for E2E tests
+    initImmediate: false,
+
     interpolation: {
       escapeValue: false,
     },
-    
+
     resources: {
       en: {
         translation: en,
