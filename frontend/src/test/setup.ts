@@ -5,7 +5,7 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
 // Mock fetch globally for all tests
-global.fetch = vi.fn(() =>
+globalThis.fetch = vi.fn(() =>
   Promise.resolve({
     ok: true,
     status: 200,

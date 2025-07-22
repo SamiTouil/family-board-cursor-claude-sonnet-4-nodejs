@@ -14,6 +14,22 @@ jest.mock('../services/websocket.service', () => ({
   },
 }));
 
+// Mock jsonwebtoken to provide TokenExpiredError
+jest.mock('jsonwebtoken', () => {
+  const originalJwt = jest.requireActual('jsonwebtoken');
+  return {
+    ...originalJwt,
+    TokenExpiredError: class TokenExpiredError extends Error {
+      constructor(message: string, expiredAt: Date) {
+        super(message);
+        this.name = 'TokenExpiredError';
+        this.expiredAt = expiredAt;
+      }
+      expiredAt: Date;
+    },
+  };
+});
+
 beforeAll(async () => {
   // Initialize i18n for all tests
   await initI18n();
