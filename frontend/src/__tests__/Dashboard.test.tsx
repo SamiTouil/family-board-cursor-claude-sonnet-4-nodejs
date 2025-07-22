@@ -72,13 +72,14 @@ vi.mock('../contexts/WebSocketContext', () => ({
 // Mock i18next
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => {
+    t: (key: string, fallback?: string) => {
       const translations: Record<string, string> = {
         'app.title': 'Family Board',
         'auth.logout': 'Logout',
       }
-      return translations[key] || key
+      return translations[key] || fallback || key
     },
+    ready: true, // Add ready state for i18n
   }),
 }))
 

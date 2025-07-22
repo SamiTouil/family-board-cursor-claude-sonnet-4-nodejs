@@ -19,7 +19,8 @@ vi.mock('../services/api');
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string, fallback?: string) => fallback || key,
+    ready: true, // Add ready state for i18n
   }),
 }));
 
