@@ -323,79 +323,50 @@ jobs:
     name: "Build & Push Container Images"
     runs-on: ubuntu-latest
     needs: [lint, unit-tests-backend, unit-tests-frontend, build, e2e-tests]
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/fix/clean-ci-keep-parallelization') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Install Podman and Podman Compose
+    - name: Install Podman
       run: |
         sudo apt-get update
-        sudo apt-get install -y podman podman-compose
+        sudo apt-get install -y podman
         podman --version
-        podman-compose --version
 
     - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Extract metadata for backend image
-      id: meta-backend
-      uses: docker/metadata-action@v5
-      with:
-        images: ghcr.io/${{ github.repository }}/backend
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
-
-    - name: Extract metadata for frontend image
-      id: meta-frontend
-      uses: docker/metadata-action@v5
-      with:
-        images: ghcr.io/${{ github.repository }}/frontend
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
 
     - name: Build and push backend image
       run: |
+        cd backend
         podman build \
-          --tag ${{ steps.meta-backend.outputs.tags }} \
+          --tag ghcr.io/${{ github.repository }}/backend:latest \
+          --tag ghcr.io/${{ github.repository }}/backend:${{ github.sha }} \
           --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
           --label "org.opencontainers.image.description=Family Board Backend" \
           --label "org.opencontainers.image.licenses=MIT" \
-          --file backend/Containerfile \
-          backend/
+          --file Containerfile \
+          .
 
-        # Push all tags
-        for tag in ${{ steps.meta-backend.outputs.tags }}; do
-          podman push $tag
-        done
+        podman push ghcr.io/${{ github.repository }}/backend:latest
+        podman push ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
 
     - name: Build and push frontend image
       run: |
+        cd frontend
         podman build \
-          --tag ${{ steps.meta-frontend.outputs.tags }} \
+          --tag ghcr.io/${{ github.repository }}/frontend:latest \
+          --tag ghcr.io/${{ github.repository }}/frontend:${{ github.sha }} \
           --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
           --label "org.opencontainers.image.description=Family Board Frontend" \
           --label "org.opencontainers.image.licenses=MIT" \
-          --file frontend/Containerfile \
-          frontend/
+          --file Containerfile.prod \
+          .
 
-        # Push all tags
-        for tag in ${{ steps.meta-frontend.outputs.tags }}; do
-          podman push $tag
-        done
+        podman push ghcr.io/${{ github.repository }}/frontend:latest
+        podman push ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
 
     - name: Image build summary
       run: |
@@ -403,10 +374,10 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Backend Image" >> $GITHUB_STEP_SUMMARY
         echo "- **Repository**: ghcr.io/${{ github.repository }}/backend" >> $GITHUB_STEP_SUMMARY
-        echo "- **Tags**: ${{ steps.meta-backend.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Tags**: latest, ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Frontend Image" >> $GITHUB_STEP_SUMMARY
         echo "- **Repository**: ghcr.io/${{ github.repository }}/frontend" >> $GITHUB_STEP_SUMMARY
-        echo "- **Tags**: ${{ steps.meta-frontend.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Tags**: latest, ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Images are available at: https://github.com/${{ github.repository }}/pkgs/container" >> $GITHUB_STEP_SUMMARY
