@@ -1,0 +1,223 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_BACKEND: ${{ github.repository }}/backend
+  IMAGE_NAME_FRONTEND: ${{ github.repository }}/frontend
+
+jobs:
+  # Step 1: Run all tests
+  test:
+    name: "Run Tests"
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    # Install dependencies
+    - name: Install root dependencies
+      run: npm install
+
+    - name: Install backend dependencies
+      run: cd backend && npm install
+
+    - name: Install frontend dependencies
+      run: cd frontend && npm install
+
+    # Generate Prisma client
+    - name: Generate Prisma client
+      run: cd backend && npx prisma generate
+
+    # Lint
+    - name: Lint backend
+      run: cd backend && npm run lint
+
+    - name: Lint frontend
+      run: cd frontend && npm run lint
+
+    # Unit Tests
+    - name: Backend unit tests
+      run: cd backend && npm test
+
+    - name: Frontend unit tests
+      run: cd frontend && npm test
+
+    # Build applications
+    - name: Build backend
+      run: cd backend && npm run build
+
+    - name: Build frontend
+      run: cd frontend && npm run build
+
+    # E2E Tests (only if not on main branch or if PR)
+    - name: Install Podman and Podman Compose
+      if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y podman podman-compose
+        podman --version
+        podman-compose --version
+
+    - name: Set up environment for E2E tests
+      if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
+      run: |
+        # Create root .env file
+        cat > .env << EOF
+        NODE_ENV=development
+        POSTGRES_DB=familyboard
+        POSTGRES_USER=postgres
+        POSTGRES_PASSWORD=postgres
+        EOF
+
+        # Create backend .env file
+        cat > backend/.env << EOF
+        NODE_ENV=development
+        PORT=3001
+        DATABASE_URL=postgresql://postgres:postgres@postgres:5432/familyboard?connection_limit=20&pool_timeout=30
+        DATABASE_URL_HOST=postgresql://postgres:postgres@localhost:5432/familyboard?connection_limit=20&pool_timeout=30
+        JWT_SECRET=your-super-secure-jwt-secret-for-development-only
+        BCRYPT_ROUNDS=10
+        FRONTEND_URL=http://localhost:3000
+        ALLOWED_ORIGINS=http://localhost:3000
+        DISABLE_CSRF_VALIDATION=true
+        API_RATE_LIMIT_WINDOW=15
+        API_RATE_LIMIT_MAX=1000
+        DEFAULT_LANGUAGE=en
+        SUPPORTED_LANGUAGES=en,fr
+        EOF
+
+        # Create frontend .env file
+        cat > frontend/.env << EOF
+        VITE_API_URL=http://localhost:3001
+        VITE_DISABLE_CSRF_VALIDATION=true
+        VITE_DEFAULT_LANGUAGE=en
+        VITE_SUPPORTED_LANGUAGES=en,fr
+        EOF
+
+    - name: Start services for E2E tests
+      if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
+      run: |
+        podman-compose -f podman-compose.yml up -d
+        
+        # Wait for services to be ready
+        echo "Waiting for services to start..."
+        sleep 30
+        
+        # Check if services are running
+        podman-compose -f podman-compose.yml ps
+        
+        # Wait for backend to be healthy
+        timeout 60 bash -c 'until curl -f http://localhost:3001/api/health; do sleep 2; done'
+        
+        # Initialize database
+        podman-compose -f podman-compose.yml exec -T backend npx prisma db push
+        
+        echo "Services are ready!"
+
+    - name: Install E2E test dependencies
+      if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
+      run: |
+        cd e2e-tests
+        npm ci
+        npx playwright install chromium
+
+    - name: Run E2E tests
+      if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
+      run: |
+        cd e2e-tests
+        npx playwright test
+
+    - name: Upload E2E test results
+      if: always() && (github.ref != 'refs/heads/main' || github.event_name == 'pull_request')
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: e2e-tests/playwright-report/
+        retention-days: 30
+
+    - name: Cleanup
+      if: always() && (github.ref != 'refs/heads/main' || github.event_name == 'pull_request')
+      run: |
+        podman-compose -f podman-compose.yml down -v || true
+        podman system prune -f || true
+
+  # Step 2: Build and push images (only on main branch after tests pass)
+  build-and-push:
+    name: "Build & Push Images"
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Podman
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y podman
+        podman --version
+
+    - name: Log in to GitHub Container Registry
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+
+    - name: Build and push backend image
+      run: |
+        cd backend
+        podman build \
+          --tag ghcr.io/${{ env.IMAGE_NAME_BACKEND }}:latest \
+          --tag ghcr.io/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }} \
+          --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+          --label "org.opencontainers.image.description=Family Board Backend" \
+          --label "org.opencontainers.image.licenses=MIT" \
+          --file Containerfile \
+          .
+        
+        podman push ghcr.io/${{ env.IMAGE_NAME_BACKEND }}:latest
+        podman push ghcr.io/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
+
+    - name: Build and push frontend image
+      run: |
+        cd frontend
+        podman build \
+          --tag ghcr.io/${{ env.IMAGE_NAME_FRONTEND }}:latest \
+          --tag ghcr.io/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }} \
+          --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+          --label "org.opencontainers.image.description=Family Board Frontend" \
+          --label "org.opencontainers.image.licenses=MIT" \
+          --file Containerfile.prod \
+          .
+        
+        podman push ghcr.io/${{ env.IMAGE_NAME_FRONTEND }}:latest
+        podman push ghcr.io/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
+
+    - name: Build summary
+      run: |
+        echo "## 🚀 Container Images Built and Pushed" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Images Available:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Backend**: \`ghcr.io/${{ env.IMAGE_NAME_BACKEND }}:latest\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Frontend**: \`ghcr.io/${{ env.IMAGE_NAME_FRONTEND }}:latest\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Deploy with:" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "podman-compose -f podman-compose.production.yml pull" >> $GITHUB_STEP_SUMMARY
+        echo "podman-compose -f podman-compose.production.yml up -d" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "View images: https://github.com/${{ github.repository }}/pkgs/container" >> $GITHUB_STEP_SUMMARY
