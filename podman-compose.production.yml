@@ -31,8 +31,8 @@ services:
     ports:
       - "3001:3001"
     environment:
-      # Database connection
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-familyboard}
+      # Database connection with Prisma 6 connection pool settings
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-familyboard}?connection_limit=20&pool_timeout=30
       
       # Security
       JWT_SECRET: ${JWT_SECRET}

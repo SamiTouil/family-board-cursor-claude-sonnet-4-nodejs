@@ -48,7 +48,7 @@ vi.mock('../contexts/AuthContext', () => ({
 // Mock i18next
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => {
+    t: (key: string, fallback?: string) => {
       const translations: Record<string, string> = {
         'family.onboarding.title': 'Welcome to Family Board!',
         'family.onboarding.subtitle': 'To get started, you need to either create a new family or join an existing one.',
@@ -71,8 +71,9 @@ vi.mock('react-i18next', () => ({
         'common.back': 'Back',
         'common.loading': 'Loading...',
       }
-      return translations[key] || key
+      return translations[key] || fallback || key
     },
+    ready: true, // Add ready state for i18n
   }),
 }))
 

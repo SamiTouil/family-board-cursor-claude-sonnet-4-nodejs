@@ -24,7 +24,7 @@ const mockFamilyContext = {
 // Mock i18next
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => {
+    t: (key: string, fallback?: string) => {
       const translations: Record<string, string> = {
         'family.join.title': 'Join a Family',
         'family.join.subtitle': 'Enter the invitation code to join an existing family.',
@@ -43,8 +43,9 @@ vi.mock('react-i18next', () => ({
         'family.join.joining': 'Joining...',
         'family.join.codeRequired': 'Invitation code is required',
       }
-      return translations[key] || key
+      return translations[key] || fallback || key
     },
+    ready: true, // Add ready state for i18n
   }),
 }))
 

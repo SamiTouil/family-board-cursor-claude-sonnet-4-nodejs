@@ -3,6 +3,33 @@ import { initI18n } from '../config/i18n';
 
 const prisma = new PrismaClient();
 
+// Mock WebSocket service for tests
+jest.mock('../services/websocket.service', () => ({
+  WebSocketService: {
+    getInstance: jest.fn(() => ({
+      emitToFamily: jest.fn(),
+      emitToUser: jest.fn(),
+      emitToRoom: jest.fn(),
+    })),
+  },
+}));
+
+// Mock jsonwebtoken to provide TokenExpiredError
+jest.mock('jsonwebtoken', () => {
+  const originalJwt = jest.requireActual('jsonwebtoken');
+  return {
+    ...originalJwt,
+    TokenExpiredError: class TokenExpiredError extends Error {
+      constructor(message: string, expiredAt: Date) {
+        super(message);
+        this.name = 'TokenExpiredError';
+        this.expiredAt = expiredAt;
+      }
+      expiredAt: Date;
+    },
+  };
+});
+
 beforeAll(async () => {
   // Initialize i18n for all tests
   await initI18n();
