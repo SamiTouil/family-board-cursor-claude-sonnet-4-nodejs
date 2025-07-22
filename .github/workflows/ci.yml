@@ -341,43 +341,46 @@ jobs:
     - name: Build and push backend image
       run: |
         cd backend
+        REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
         podman build \
-          --tag ghcr.io/${{ github.repository }}/backend:latest \
-          --tag ghcr.io/${{ github.repository }}/backend:${{ github.sha }} \
+          --tag ghcr.io/${REPO_LOWER}/backend:latest \
+          --tag ghcr.io/${REPO_LOWER}/backend:${{ github.sha }} \
           --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
           --label "org.opencontainers.image.description=Family Board Backend" \
           --label "org.opencontainers.image.licenses=MIT" \
           --file Containerfile \
           .
 
-        podman push ghcr.io/${{ github.repository }}/backend:latest
-        podman push ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+        podman push ghcr.io/${REPO_LOWER}/backend:latest
+        podman push ghcr.io/${REPO_LOWER}/backend:${{ github.sha }}
 
     - name: Build and push frontend image
       run: |
         cd frontend
+        REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
         podman build \
-          --tag ghcr.io/${{ github.repository }}/frontend:latest \
-          --tag ghcr.io/${{ github.repository }}/frontend:${{ github.sha }} \
+          --tag ghcr.io/${REPO_LOWER}/frontend:latest \
+          --tag ghcr.io/${REPO_LOWER}/frontend:${{ github.sha }} \
           --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
           --label "org.opencontainers.image.description=Family Board Frontend" \
           --label "org.opencontainers.image.licenses=MIT" \
           --file Containerfile.prod \
           .
 
-        podman push ghcr.io/${{ github.repository }}/frontend:latest
-        podman push ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
+        podman push ghcr.io/${REPO_LOWER}/frontend:latest
+        podman push ghcr.io/${REPO_LOWER}/frontend:${{ github.sha }}
 
     - name: Image build summary
       run: |
+        REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
         echo "## Container Images Built and Pushed 🚀" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Backend Image" >> $GITHUB_STEP_SUMMARY
-        echo "- **Repository**: ghcr.io/${{ github.repository }}/backend" >> $GITHUB_STEP_SUMMARY
+        echo "- **Repository**: ghcr.io/${REPO_LOWER}/backend" >> $GITHUB_STEP_SUMMARY
         echo "- **Tags**: latest, ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Frontend Image" >> $GITHUB_STEP_SUMMARY
-        echo "- **Repository**: ghcr.io/${{ github.repository }}/frontend" >> $GITHUB_STEP_SUMMARY
+        echo "- **Repository**: ghcr.io/${REPO_LOWER}/frontend" >> $GITHUB_STEP_SUMMARY
         echo "- **Tags**: latest, ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Images are available at: https://github.com/${{ github.repository }}/pkgs/container" >> $GITHUB_STEP_SUMMARY
