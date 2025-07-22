@@ -252,9 +252,9 @@ jobs:
         # Create frontend .env file with frontend-specific variables
         cat > frontend/.env << EOF
         # Frontend Application Environment Variables for E2E Tests
-        # Use backend service name for container-to-container communication
+        # Use localhost for E2E tests since browser runs on host machine
         # Note: /api is added automatically by frontend code
-        VITE_API_URL=http://backend:3001
+        VITE_API_URL=http://localhost:3001
         VITE_DISABLE_CSRF_VALIDATION=true
         VITE_DEFAULT_LANGUAGE=en
         VITE_SUPPORTED_LANGUAGES=en,fr
