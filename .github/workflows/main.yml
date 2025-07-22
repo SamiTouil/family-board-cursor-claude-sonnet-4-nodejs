@@ -47,12 +47,12 @@ jobs:
     - name: Lint frontend
       run: cd frontend && npm run lint
 
-    # Unit Tests (skip for now due to test environment issues)
-    # - name: Backend unit tests
-    #   run: cd backend && npm test
+    # Unit Tests
+    - name: Backend unit tests
+      run: cd backend && npm test
 
-    # - name: Frontend unit tests
-    #   run: cd frontend && npm test
+    - name: Frontend unit tests
+      run: cd frontend && npm test
 
     # Build applications
     - name: Build backend
