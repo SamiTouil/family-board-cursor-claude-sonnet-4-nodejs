@@ -274,6 +274,16 @@ jobs:
 
         echo "Services are ready!"
 
+    - name: Test API connectivity from frontend container
+      run: |
+        echo "Testing API connectivity..."
+        # Test if frontend container can reach backend
+        podman-compose -f podman-compose.yml exec -T frontend curl -f http://backend:3001/api/health || echo "Frontend->Backend connection failed"
+        # Test if host can reach both services
+        curl -f http://localhost:3001/api/health || echo "Host->Backend connection failed"
+        curl -f http://localhost:3000 || echo "Host->Frontend connection failed"
+        echo "API connectivity test completed"
+
     - name: Run E2E tests
       run: |
         cd e2e-tests
