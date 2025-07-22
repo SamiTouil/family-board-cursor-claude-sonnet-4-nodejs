@@ -249,6 +249,15 @@ jobs:
         SUPPORTED_LANGUAGES=en,fr
         EOF
 
+        # Create frontend .env file with frontend-specific variables
+        cat > frontend/.env << EOF
+        # Frontend Application Environment Variables for E2E Tests
+        VITE_API_URL=http://localhost:3001/api
+        VITE_DISABLE_CSRF_VALIDATION=true
+        VITE_DEFAULT_LANGUAGE=en
+        VITE_SUPPORTED_LANGUAGES=en,fr
+        EOF
+
         # Start the full application stack with Podman Compose
         podman-compose -f podman-compose.yml up --build -d
 
