@@ -250,7 +250,7 @@ jobs:
         EOF
 
         # Start the full application stack with Podman Compose
-        podman-compose up --build -d
+        podman-compose -f podman-compose.yml up --build -d
 
         # Wait for services to be ready
         echo "Waiting for services to be ready..."
@@ -259,7 +259,7 @@ jobs:
 
         # Initialize database schema
         echo "Initializing database schema..."
-        podman-compose exec -T backend npx prisma db push
+        podman-compose -f podman-compose.yml exec -T backend npx prisma db push
 
         echo "Services are ready!"
 
@@ -294,5 +294,5 @@ jobs:
     - name: Cleanup
       if: always()
       run: |
-        podman-compose down -v || true
+        podman-compose -f podman-compose.yml down -v || true
         podman system prune -f || true

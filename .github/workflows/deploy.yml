@@ -157,8 +157,8 @@ jobs:
           **Deployment:**
           Pull the latest images on your production server:
           \`\`\`bash
-          docker-compose -f docker-compose.prod.yml pull
-          docker-compose -f docker-compose.prod.yml up -d
+          podman-compose -f podman-compose.production.yml pull
+          podman-compose -f podman-compose.production.yml up -d
           \`\`\`
           EOF
           
@@ -191,5 +191,5 @@ jobs:
           echo "Frontend image: ghcr.io/${{ env.IMAGE_NAME_FRONTEND }}:latest"
           echo ""
           echo "To deploy on production server:"
-          echo "1. Pull latest images: docker-compose -f docker-compose.prod.yml pull"
-          echo "2. Restart services: docker-compose -f docker-compose.prod.yml up -d"
+          echo "1. Pull latest images: podman-compose -f podman-compose.production.yml pull"
+          echo "2. Restart services: podman-compose -f podman-compose.production.yml up -d"

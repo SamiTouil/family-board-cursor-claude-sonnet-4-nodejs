@@ -10,7 +10,7 @@ export CI=true
 
 # Start services with test optimizations
 echo "📦 Starting services..."
-docker-compose -f ../docker-compose.yml -f ../docker-compose.test.yml up -d db backend frontend
+podman-compose -f ../podman-compose.yml up -d postgres backend frontend
 
 # Wait for services to be ready
 echo "⏳ Waiting for services..."
@@ -27,7 +27,7 @@ TEST_EXIT_CODE=$?
 
 # Stop services
 echo "🛑 Stopping services..."
-docker-compose -f ../docker-compose.yml -f ../docker-compose.test.yml down
+podman-compose -f ../podman-compose.yml down
 
 # Exit with test status
 exit $TEST_EXIT_CODE
