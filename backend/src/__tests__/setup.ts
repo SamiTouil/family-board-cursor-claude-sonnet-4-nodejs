@@ -3,6 +3,17 @@ import { initI18n } from '../config/i18n';
 
 const prisma = new PrismaClient();
 
+// Mock WebSocket service for tests
+jest.mock('../services/websocket.service', () => ({
+  WebSocketService: {
+    getInstance: jest.fn(() => ({
+      emitToFamily: jest.fn(),
+      emitToUser: jest.fn(),
+      emitToRoom: jest.fn(),
+    })),
+  },
+}));
+
 beforeAll(async () => {
   // Initialize i18n for all tests
   await initI18n();

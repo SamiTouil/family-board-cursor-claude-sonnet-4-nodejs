@@ -1,8 +1,29 @@
-import { expect, afterEach, beforeAll } from 'vitest'
+import { expect, afterEach, beforeAll, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
+
+// Mock fetch globally for all tests
+global.fetch = vi.fn(() =>
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    json: () => Promise.resolve({ success: true, data: [] }),
+    text: () => Promise.resolve(''),
+    headers: new Headers(),
+    redirected: false,
+    statusText: 'OK',
+    type: 'basic',
+    url: '',
+    clone: vi.fn(),
+    body: null,
+    bodyUsed: false,
+    arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+    blob: () => Promise.resolve(new Blob()),
+    formData: () => Promise.resolve(new FormData()),
+  } as Response)
+)
 
 // Initialize i18next for tests
 beforeAll(async () => {

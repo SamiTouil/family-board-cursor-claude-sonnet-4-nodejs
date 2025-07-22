@@ -252,8 +252,13 @@ jobs:
     - name: Run E2E tests
       run: |
         cd e2e-tests
-        npm install
+        npm ci
         npx playwright install chromium
+        # Check if playwright config exists
+        if [ ! -f "playwright.config.ts" ]; then
+          echo "Error: playwright.config.ts not found"
+          exit 1
+        fi
         npx playwright test --shard=${{ matrix.shard }}/${{ matrix.total }}
 
     - name: Upload Playwright report
