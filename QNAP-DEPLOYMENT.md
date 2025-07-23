@@ -2,6 +2,10 @@
 
 This guide helps you deploy Family Board on your QNAP NAS using Container Station with automated GHCR image updates.
 
+## 🔒 SSL/HTTPS Support
+
+This guide includes **SSL/HTTPS support** using Let's Encrypt for production deployments with automatic certificate management.
+
 ## 🎯 Overview
 
 Your setup will be:
@@ -11,9 +15,15 @@ Your setup will be:
 
 ## 📋 Prerequisites
 
+### Basic Requirements:
 - QNAP NAS with Container Station installed
 - SSH access to your QNAP NAS
 - GitHub Personal Access Token (for GHCR access)
+
+### For SSL/HTTPS (Recommended):
+- **Domain name** pointing to your QNAP's public IP
+- **Port 80 and 443** forwarded to your QNAP in router
+- **Valid email address** for Let's Encrypt notifications
 
 ## 🚀 Initial Setup
 
@@ -33,10 +43,21 @@ cd /share/Container/family-board
 ### 3. Copy Files to QNAP
 
 Copy these files from your project to the QNAP directory:
+
+**For HTTP deployment (local/testing):**
 - `docker-compose.qnap.yml`
-- `.env.qnap` → rename to `.env`
 - `scripts/deploy-qnap.sh`
 - `scripts/update-qnap.sh`
+
+**For HTTPS deployment (production with SSL):**
+- `docker-compose.qnap-ssl.yml`
+- `nginx/` directory (nginx.conf and ssl.conf)
+- `scripts/deploy-qnap-ssl.sh`
+- `scripts/update-qnap-ssl.sh`
+- `scripts/renew-ssl.sh`
+
+**Environment file:**
+- `.env.qnap` → rename to `.env`
 
 ### 4. Configure Environment
 
@@ -47,6 +68,8 @@ vi .env
 ```
 
 **Required configurations:**
+
+**For HTTP deployment:**
 ```bash
 # Database password (change this!)
 POSTGRES_PASSWORD=your-secure-database-password
@@ -59,6 +82,22 @@ FRONTEND_URL=http://192.168.1.100:8080  # Replace with your QNAP IP
 FRONTEND_PORT=8080
 ```
 
+**For HTTPS deployment (recommended for production):**
+```bash
+# Database password (change this!)
+POSTGRES_PASSWORD=your-secure-database-password
+
+# JWT secret (generate a secure 32+ character string)
+JWT_SECRET=your-super-secure-jwt-secret-32-chars-min
+
+# SSL Configuration
+DOMAIN_NAME=familyboard.yourdomain.com  # Your domain name
+SSL_EMAIL=your-email@domain.com         # Email for Let's Encrypt
+
+# HTTPS URL
+FRONTEND_URL=https://familyboard.yourdomain.com
+```
+
 ### 5. Login to GitHub Container Registry
 
 ```bash
@@ -69,7 +108,7 @@ docker login ghcr.io -u YOUR_GITHUB_USERNAME -p YOUR_GITHUB_TOKEN
 
 ## 🐳 Deployment
 
-### Initial Deployment
+### Option A: HTTP Deployment (Local/Testing)
 
 ```bash
 # Make scripts executable
@@ -79,13 +118,33 @@ chmod +x scripts/*.sh
 ./scripts/deploy-qnap.sh
 ```
 
+### Option B: HTTPS Deployment (Production with SSL) 🔒
+
+**Prerequisites:**
+1. Domain name pointing to your QNAP's public IP
+2. Ports 80 and 443 forwarded to QNAP
+3. Configure `.env` with DOMAIN_NAME and SSL_EMAIL
+
+```bash
+# Make scripts executable
+chmod +x scripts/*.sh
+
+# Deploy with SSL for the first time
+./scripts/deploy-qnap-ssl.sh
+```
+
 ### Regular Updates
 
 When new code is pushed to main branch:
 
+**For HTTP deployment:**
 ```bash
-# Quick update to latest images
 ./scripts/update-qnap.sh
+```
+
+**For HTTPS deployment:**
+```bash
+./scripts/update-qnap-ssl.sh
 ```
 
 ## 🔧 Management Commands
@@ -112,7 +171,28 @@ docker-compose -f docker-compose.qnap.yml up -d
 
 ### Database Backup
 ```bash
+# For HTTP deployment
 docker-compose -f docker-compose.qnap.yml exec postgres pg_dump -U postgres familyboard > backup.sql
+
+# For HTTPS deployment
+docker-compose -f docker-compose.qnap-ssl.yml exec postgres pg_dump -U postgres familyboard > backup.sql
+```
+
+### SSL Certificate Management (HTTPS only)
+
+**Renew SSL certificates:**
+```bash
+./scripts/renew-ssl.sh
+```
+
+**Check certificate status:**
+```bash
+docker-compose -f docker-compose.qnap-ssl.yml run --rm certbot certificates
+```
+
+**Force certificate renewal:**
+```bash
+docker-compose -f docker-compose.qnap-ssl.yml run --rm certbot renew --force-renewal
 ```
 
 ## 🌐 Access Your Application
