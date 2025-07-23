@@ -10,14 +10,27 @@ echo "=========================="
 
 COMPOSE_FILE="docker-compose.qnap-ssl.yml"
 
+# Detect available container orchestration tool
+COMPOSE_CMD=""
+if command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+elif command -v docker &> /dev/null && docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker compose"
+elif command -v podman-compose &> /dev/null; then
+    COMPOSE_CMD="podman-compose"
+else
+    echo "❌ Error: No container orchestration tool found!"
+    exit 1
+fi
+
 echo "🔄 Renewing SSL certificates..."
-docker-compose -f $COMPOSE_FILE run --rm certbot renew
+$COMPOSE_CMD -f $COMPOSE_FILE run --rm certbot renew
 
 echo "🔄 Reloading nginx configuration..."
-docker-compose -f $COMPOSE_FILE exec nginx nginx -s reload
+$COMPOSE_CMD -f $COMPOSE_FILE exec nginx nginx -s reload
 
 echo "✅ SSL certificate renewal complete!"
 
 # Check certificate expiry
 echo "📅 Certificate expiry information:"
-docker-compose -f $COMPOSE_FILE run --rm certbot certificates
+$COMPOSE_CMD -f $COMPOSE_FILE run --rm certbot certificates

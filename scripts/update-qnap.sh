@@ -10,17 +10,30 @@ echo "============================"
 
 COMPOSE_FILE="docker-compose.qnap.yml"
 
+# Detect available container orchestration tool
+COMPOSE_CMD=""
+if command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+elif command -v docker &> /dev/null && docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker compose"
+elif command -v podman-compose &> /dev/null; then
+    COMPOSE_CMD="podman-compose"
+else
+    echo "❌ Error: No container orchestration tool found!"
+    exit 1
+fi
+
 echo "📦 Pulling latest images from GHCR..."
-docker-compose -f $COMPOSE_FILE pull
+$COMPOSE_CMD -f $COMPOSE_FILE pull
 
 echo "🔄 Recreating containers with new images..."
-docker-compose -f $COMPOSE_FILE up -d --force-recreate
+$COMPOSE_CMD -f $COMPOSE_FILE up -d --force-recreate
 
 echo "⏳ Waiting for services to stabilize..."
 sleep 20
 
 echo "🔍 Checking service status..."
-docker-compose -f $COMPOSE_FILE ps
+$COMPOSE_CMD -f $COMPOSE_FILE ps
 
 echo ""
 echo "✅ Update complete!"
