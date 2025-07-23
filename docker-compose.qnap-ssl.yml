@@ -1,0 +1,127 @@
+# Docker Compose file for QNAP SSL deployment
+# Note: version field removed as it's obsolete in newer Docker Compose
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: familyboard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: familyboard
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - familyboard-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend:
+    image: ghcr.io/samitouil/family-board-cursor-claude-sonnet-4-nodejs/backend:latest
+    container_name: familyboard-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/familyboard?connection_limit=20&pool_timeout=30
+      
+      # Security
+      JWT_SECRET: ${JWT_SECRET}
+      BCRYPT_ROUNDS: 12
+      DISABLE_CSRF_VALIDATION: false
+      
+      # Server
+      NODE_ENV: production
+      PORT: 3001
+      
+      # CORS - HTTPS URLs
+      FRONTEND_URL: ${FRONTEND_URL}
+      ALLOWED_ORIGINS: ${FRONTEND_URL}
+      
+      # Rate Limiting
+      API_RATE_LIMIT_WINDOW: 15
+      API_RATE_LIMIT_MAX: 100
+      
+      # Internationalization
+      DEFAULT_LANGUAGE: en
+      SUPPORTED_LANGUAGES: en,fr
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - familyboard-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    image: ghcr.io/samitouil/family-board-cursor-claude-sonnet-4-nodejs/frontend:latest
+    container_name: familyboard-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - familyboard-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx reverse proxy with SSL
+  nginx:
+    image: nginx:alpine
+    container_name: familyboard-nginx
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+      - "${HTTPS_PORT:-8443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl.conf:/etc/nginx/conf.d/ssl.conf:ro
+      - certbot_certs:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - familyboard-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Let's Encrypt certificate management
+  certbot:
+    image: certbot/certbot
+    container_name: familyboard-certbot
+    restart: "no"
+    volumes:
+      - certbot_certs:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+      - /etc/localtime:/etc/localtime:ro
+    command: certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos --no-eff-email -d ${DOMAIN_NAME}
+
+volumes:
+  postgres_data:
+    driver: local
+  certbot_certs:
+    driver: local
+  certbot_www:
+    driver: local
+
+networks:
+  familyboard-network:
+    driver: bridge
