@@ -362,8 +362,8 @@ jobs:
         cd frontend
         REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
         podman build \
-          --build-arg VITE_API_URL="" \
-          --build-arg VITE_SOCKET_URL="" \
+          --build-arg VITE_API_URL="https://mabt.eu:9443" \
+          --build-arg VITE_SOCKET_URL="https://mabt.eu:9443" \
           --build-arg VITE_ENVIRONMENT=production \
           --build-arg VITE_APP_NAME="Family Board" \
           --build-arg VITE_APP_VERSION="1.0.0" \
