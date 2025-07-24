@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useCurrentWeek } from '../../contexts/CurrentWeekContext';
 import { weekScheduleApi, weekTemplateApi, dayTemplateApi, taskApi } from '../../services/api';
@@ -18,6 +19,7 @@ interface WeeklyCalendarProps {
 }
 
 export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => {
+  const { user: currentUser } = useAuth();
   const { currentFamily } = useFamily();
   const { currentWeekStart, setCurrentWeekStart } = useCurrentWeek();
   
@@ -49,6 +51,52 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
   const [familyMembers, setFamilyMembers] = useState<User[]>([]);
 
   const isAdmin = currentFamily?.userRole === 'ADMIN';
+
+  // Helper function to check if a shift belongs to the current user
+  const isCurrentUserShift = (memberId: string): boolean => {
+    return currentUser?.id === memberId;
+  };
+
+  // Calculate current user's daily workload
+  const getCurrentUserDayStats = (dayTasks: ResolvedTask[]) => {
+    const userTasks = dayTasks.filter(task => isCurrentUserShift(task.memberId));
+    const totalDuration = userTasks.reduce((sum, task) => {
+      const duration = task.overrideDuration || task.task.defaultDuration;
+      return sum + duration;
+    }, 0);
+
+    return {
+      taskCount: userTasks.length,
+      totalDuration,
+      tasks: userTasks
+    };
+  };
+
+  // Helper function to check if a shift is currently active
+  const isShiftCurrentlyActive = (tasks: ResolvedTask[], date: string): boolean => {
+    if (!tasks.length) return false;
+
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+
+    // Only check if it's today
+    if (date !== today) return false;
+
+    const currentTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes
+
+    // Check if any task in the shift is currently active
+    return tasks.some(task => {
+      const startTime = task.overrideTime || task.task.defaultStartTime;
+      const duration = task.overrideDuration || task.task.defaultDuration;
+
+      // Parse start time (format: "HH:MM")
+      const [hours, minutes] = startTime.split(':').map(Number);
+      const startMinutes = hours * 60 + minutes;
+      const endMinutes = startMinutes + duration;
+
+      return currentTime >= startMinutes && currentTime < endMinutes;
+    });
+  };
 
   // Initialize and load data when family changes
   useEffect(() => {
@@ -743,6 +791,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
           {weekSchedule.days.map((day) => {
             const dayTasks = getDayTasks(day);
             const isToday = new Date(day.date + 'T00:00:00.000Z').toDateString() === new Date().toDateString();
+            const userStats = getCurrentUserDayStats(dayTasks);
             
             return (
               <div 
@@ -831,19 +880,25 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                           }
                         }
                         
+                        const isCurrentUser = isCurrentUserShift(shift.memberId);
+                        const isCurrentlyActive = isCurrentUser && isShiftCurrentlyActive(shift.tasks, day.date);
+
                         return (
                           <div
                             key={`shift-${shiftIndex}-${shift.memberId}`}
-                            className={`weekly-calendar-shift ${isMultiTaskShift ? 'is-multi-task' : ''}`}
+                            className={`weekly-calendar-shift ${isMultiTaskShift ? 'is-multi-task' : ''} ${isCurrentUser ? 'is-current-user' : ''} ${isCurrentlyActive ? 'is-currently-active' : ''}`}
                           >
                             {isMultiTaskShift && shiftMember && (
                               <div className="weekly-calendar-shift-header">
-                                <UserAvatar
-                                  firstName={shiftMember.firstName}
-                                  lastName={shiftMember.lastName}
-                                  avatarUrl={shiftMember.avatarUrl}
-                                  size="small"
-                                />
+                                <div className="weekly-calendar-shift-member">
+                                  <UserAvatar
+                                    firstName={shiftMember.firstName}
+                                    lastName={shiftMember.lastName}
+                                    avatarUrl={shiftMember.avatarUrl}
+                                    size="small"
+                                  />
+
+                                </div>
                                 <div className="weekly-calendar-shift-tags">
                                   <span className="weekly-calendar-shift-tag time-tag">
                                     {formatTime24(shiftStartTime)} - {formatTime24(shiftEndTime)}
@@ -878,21 +933,28 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                               </div>
                             )}
                             <div className={`weekly-calendar-shift-tasks ${isMultiTaskShift ? 'grouped' : ''}`}>
-                              {shift.tasks.map((task, taskIndex) => (
-                                <TaskOverrideCard
-                                  key={`${task.taskId}-${task.memberId}-${taskIndex}`}
-                                  task={task}
-                                  taskIndex={taskIndex}
-                                  isAdmin={isAdmin}
-                                  onRemove={(task) => handleTaskOverride('REMOVE', task, day.date)}
-                                  onReassign={(task) => handleTaskOverride('REASSIGN', task, day.date)}
-                                  formatTime={formatTime}
-                                  formatDuration={formatDuration}
-                                  showDescription={false}
-                                  compact={false}
-                                  hideAvatar={isMultiTaskShift}
-                                />
-                              ))}
+                              {shift.tasks.map((task, taskIndex) => {
+                                const isTaskCurrentUser = isCurrentUserShift(task.memberId);
+                                const isTaskCurrentlyActive = isTaskCurrentUser && isShiftCurrentlyActive([task], day.date);
+
+                                return (
+                                  <TaskOverrideCard
+                                    key={`${task.taskId}-${task.memberId}-${taskIndex}`}
+                                    task={task}
+                                    taskIndex={taskIndex}
+                                    isAdmin={isAdmin}
+                                    onRemove={(task) => handleTaskOverride('REMOVE', task, day.date)}
+                                    onReassign={(task) => handleTaskOverride('REASSIGN', task, day.date)}
+                                    formatTime={formatTime}
+                                    formatDuration={formatDuration}
+                                    showDescription={false}
+                                    compact={false}
+                                    hideAvatar={isMultiTaskShift}
+                                    isCurrentUser={isTaskCurrentUser}
+                                    isCurrentlyActive={isTaskCurrentlyActive}
+                                  />
+                                );
+                              })}
                             </div>
                           </div>
                         );

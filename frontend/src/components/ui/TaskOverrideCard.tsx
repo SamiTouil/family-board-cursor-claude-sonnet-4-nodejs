@@ -17,6 +17,8 @@ interface TaskOverrideCardProps {
   showDescription?: boolean;
   compact?: boolean;
   hideAvatar?: boolean;
+  isCurrentUser?: boolean;
+  isCurrentlyActive?: boolean;
 }
 
 export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
@@ -30,16 +32,18 @@ export const TaskOverrideCard: React.FC<TaskOverrideCardProps> = ({
   formatDuration,
   showDescription = true,
   compact = false,
-  hideAvatar = false
+  hideAvatar = false,
+  isCurrentUser = false,
+  isCurrentlyActive = false
 }) => {
   const startTime = task.overrideTime || task.task.defaultStartTime;
   const duration = task.overrideDuration || task.task.defaultDuration;
 
   return (
-    <div 
+    <div
       key={`${task.taskId}-${task.memberId}-${taskIndex}`}
-      className={`task-override-card ${task.source === 'override' ? 'is-override' : ''} ${compact ? 'compact' : ''} ${onEdit ? 'editable' : ''}`}
-      style={{ 
+      className={`task-override-card ${task.source === 'override' ? 'is-override' : ''} ${compact ? 'compact' : ''} ${onEdit ? 'editable' : ''} ${isCurrentUser ? 'is-current-user' : ''} ${isCurrentlyActive ? 'is-currently-active' : ''}`}
+      style={{
         borderLeftColor: task.task.color,
         backgroundColor: `${task.task.color}10`
       }}
