@@ -57,20 +57,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
     return currentUser?.id === memberId;
   };
 
-  // Calculate current user's daily workload
-  const getCurrentUserDayStats = (dayTasks: ResolvedTask[]) => {
-    const userTasks = dayTasks.filter(task => isCurrentUserShift(task.memberId));
-    const totalDuration = userTasks.reduce((sum, task) => {
-      const duration = task.overrideDuration || task.task.defaultDuration;
-      return sum + duration;
-    }, 0);
 
-    return {
-      taskCount: userTasks.length,
-      totalDuration,
-      tasks: userTasks
-    };
-  };
 
   // Helper function to check if a shift is currently active
   const isShiftCurrentlyActive = (tasks: ResolvedTask[], date: string): boolean => {
@@ -90,7 +77,9 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
       const duration = task.overrideDuration || task.task.defaultDuration;
 
       // Parse start time (format: "HH:MM")
-      const [hours, minutes] = startTime.split(':').map(Number);
+      const timeParts = startTime.split(':').map(Number);
+      const hours = timeParts[0] || 0;
+      const minutes = timeParts[1] || 0;
       const startMinutes = hours * 60 + minutes;
       const endMinutes = startMinutes + duration;
 
@@ -791,7 +780,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
           {weekSchedule.days.map((day) => {
             const dayTasks = getDayTasks(day);
             const isToday = new Date(day.date + 'T00:00:00.000Z').toDateString() === new Date().toDateString();
-            const userStats = getCurrentUserDayStats(dayTasks);
             
             return (
               <div 
@@ -880,7 +868,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                           }
                         }
                         
-                        const isCurrentUser = isCurrentUserShift(shift.memberId);
+                        const isCurrentUser = shift.memberId ? isCurrentUserShift(shift.memberId) : false;
                         const isCurrentlyActive = isCurrentUser && isShiftCurrentlyActive(shift.tasks, day.date);
 
                         return (
@@ -934,7 +922,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                             )}
                             <div className={`weekly-calendar-shift-tasks ${isMultiTaskShift ? 'grouped' : ''}`}>
                               {shift.tasks.map((task, taskIndex) => {
-                                const isTaskCurrentUser = isCurrentUserShift(task.memberId);
+                                const isTaskCurrentUser = task.memberId ? isCurrentUserShift(task.memberId) : false;
                                 const isTaskCurrentlyActive = isTaskCurrentUser && isShiftCurrentlyActive([task], day.date);
 
                                 return (
