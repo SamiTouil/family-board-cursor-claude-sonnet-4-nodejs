@@ -1,9 +1,6 @@
-# Docker Compose file for QNAP SSL deployment
-# Note: version field removed as it's obsolete in newer Docker Compose
-
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: familyboard-postgres
     restart: unless-stopped
     environment:
@@ -31,24 +28,24 @@ services:
     environment:
       # Database
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/familyboard?connection_limit=20&pool_timeout=30
-      
+
       # Security
       JWT_SECRET: ${JWT_SECRET}
       BCRYPT_ROUNDS: 12
       DISABLE_CSRF_VALIDATION: false
-      
+
       # Server
       NODE_ENV: production
       PORT: 3001
-      
+
       # CORS - HTTPS URLs
       FRONTEND_URL: ${FRONTEND_URL}
-      ALLOWED_ORIGINS: ${FRONTEND_URL}
-      
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+
       # Rate Limiting
       API_RATE_LIMIT_WINDOW: 15
       API_RATE_LIMIT_MAX: 100
-      
+
       # Internationalization
       DEFAULT_LANGUAGE: en
       SUPPORTED_LANGUAGES: en,fr
@@ -87,13 +84,13 @@ services:
       - frontend
       - backend
     ports:
-      - "${HTTP_PORT:-8080}:80"
-      - "${HTTPS_PORT:-8443}:443"
+      - "${HTTP_PORT:-9080}:80"
+      - "${HTTPS_PORT:-9443}:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl.conf:/etc/nginx/conf.d/ssl.conf:ro
       - certbot_certs:/etc/letsencrypt:ro
-      - certbot_www:/var/www/certbot:ro
+      - certbot_www:/var/www/certbot
       - /etc/localtime:/etc/localtime:ro
     networks:
       - familyboard-network
