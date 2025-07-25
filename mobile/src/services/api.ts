@@ -91,18 +91,24 @@ export const familyApi = {
 // Week Schedule API
 export const weekScheduleApi = {
   async getWeekSchedule(familyId: string, weekStartDate: string) {
-    return await apiClient.get(`/families/${familyId}/week-schedule`, { 
-      params: { weekStartDate } 
+    return await apiClient.get(`/families/${familyId}/week-schedule`, {
+      params: { weekStartDate }
     });
   },
-  
+
   async applyWeekOverride(familyId: string, data: any) {
     return await apiClient.post(`/families/${familyId}/week-schedule/override`, data);
   },
-  
+
   async removeWeekOverride(familyId: string, weekStartDate: string) {
     return await apiClient.delete(`/families/${familyId}/week-schedule/override`, {
       params: { weekStartDate }
+    });
+  },
+
+  async getShiftStatus(familyId: string, weekStartDate?: string) {
+    return await apiClient.get(`/families/${familyId}/shift-status`, {
+      params: weekStartDate ? { weekStartDate } : {}
     });
   }
 };

@@ -14,6 +14,8 @@ import {
   WeekTemplateWithRelations,
   TaskOverride,
   TaskOverrideAction,
+  ShiftInfo,
+  ShiftStatusQueryParams,
 } from '../types/task.types';
 import { getWebSocketService } from './websocket.service';
 
@@ -889,4 +891,288 @@ export class WeekScheduleService {
 
     return weekOverride;
   }
-} 
+
+  // ==================== SHIFT STATUS ====================
+
+  /**
+   * Get the current shift status for a user
+   * Uses the same logic as the frontend ShiftIndicator
+   */
+  async getShiftStatus(
+    familyId: string,
+    userId: string,
+    params: ShiftStatusQueryParams = {}
+  ): Promise<ShiftInfo | null> {
+    // Get the week start date (default to current week)
+    const weekStartDate = params.weekStartDate || this.getCurrentWeekStart();
+
+    // Get the week schedule
+    const weekSchedule = await this.getWeekSchedule(familyId, { weekStartDate });
+
+    return this.calculateShiftInfo(weekSchedule, familyId, userId);
+  }
+
+  /**
+   * Calculate shift information for a user based on the week schedule
+   * This implements the same logic as the frontend ShiftIndicator
+   */
+  private async calculateShiftInfo(weekSchedule: ResolvedWeekSchedule, familyId: string, userId: string): Promise<ShiftInfo | null> {
+    const now = new Date();
+
+    // Get all tasks for the entire week, sorted by date and time
+    const allWeekTasks: Array<{ task: ResolvedTask; startTime: Date }> = [];
+
+    weekSchedule.days.forEach(day => {
+      day.tasks.forEach(task => {
+        const startTime = task.overrideTime || task.task.defaultStartTime;
+        const [hours, minutes] = startTime.split(':').map(Number);
+
+        // Parse the day date and set the task time
+        const dayDate = new Date(day.date.toISOString().split('T')[0] + 'T00:00:00');
+        const taskStart = new Date(dayDate);
+        taskStart.setHours(hours || 0, minutes || 0, 0, 0);
+
+        allWeekTasks.push({
+          task,
+          startTime: taskStart
+        });
+      });
+    });
+
+    // Sort all tasks by start time (across all days)
+    allWeekTasks.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+
+    // Find the most recent task (closest in the past)
+    const pastTasks = allWeekTasks.filter(({ startTime }) => startTime <= now);
+
+    if (pastTasks.length === 0) {
+      // No tasks have started yet, find next task for current user
+      const nextUserTask = allWeekTasks.find(({ task }) => task.memberId === userId);
+      if (nextUserTask) {
+        const timeUntilStart = this.formatTimeRemaining(nextUserTask.startTime.getTime() - now.getTime());
+        return {
+          type: 'next',
+          startTime: nextUserTask.startTime,
+          timeUntilStart
+        };
+      }
+      return null;
+    }
+
+    // Get the most recent task that has started
+    const mostRecentTask = pastTasks[pastTasks.length - 1];
+
+    // Check if the most recent task is assigned to the current user
+    if (mostRecentTask.task.memberId === userId) {
+      // User is currently in shift - find when their shift ends (first task assigned to someone else)
+      const shiftEndTask = allWeekTasks.find(({ startTime, task }) =>
+        startTime > mostRecentTask.startTime && task.memberId !== userId
+      );
+
+      if (shiftEndTask) {
+        // Shift ends when first task assigned to someone else starts
+        const timeRemaining = this.formatTimeRemaining(shiftEndTask.startTime.getTime() - now.getTime());
+        return {
+          type: 'current',
+          endTime: shiftEndTask.startTime,
+          timeRemaining
+        };
+      } else {
+        // No more tasks assigned to others in the current week
+        // Check if we need to look at the next week for shift end
+        return await this.calculateCrossWeekShiftEnd(familyId, userId, now);
+      }
+    } else {
+      // User is not in shift - find their next task
+      const nextUserTask = allWeekTasks.find(({ startTime, task }) =>
+        startTime > now && task.memberId === userId
+      );
+
+      if (nextUserTask) {
+        const timeUntilStart = this.formatTimeRemaining(nextUserTask.startTime.getTime() - now.getTime());
+        return {
+          type: 'next',
+          startTime: nextUserTask.startTime,
+          timeUntilStart
+        };
+      }
+
+      // No more tasks for user this week - check next week
+      return await this.calculateCrossWeekNextShift(familyId, userId, now);
+    }
+  }
+
+  /**
+   * Calculate shift end when it spans across weeks
+   */
+  private async calculateCrossWeekShiftEnd(familyId: string, userId: string, now: Date): Promise<ShiftInfo | null> {
+    // Get the next week's schedule to find when shift ends
+    const nextWeekStart = new Date(now);
+    const daysUntilNextMonday = (8 - now.getDay()) % 7 || 7;
+    nextWeekStart.setDate(now.getDate() + daysUntilNextMonday);
+
+    const nextWeekStartStr = this.formatDateToString(nextWeekStart);
+
+    try {
+      const nextWeekSchedule = await this.getWeekSchedule(familyId, { weekStartDate: nextWeekStartStr });
+
+      // Get all tasks from next week
+      const nextWeekTasks: Array<{ task: ResolvedTask; startTime: Date }> = [];
+
+      nextWeekSchedule.days.forEach(day => {
+        day.tasks.forEach(task => {
+          const startTime = task.overrideTime || task.task.defaultStartTime;
+          const [hours, minutes] = startTime.split(':').map(Number);
+
+          const dayDate = new Date(day.date.toISOString().split('T')[0] + 'T00:00:00');
+          const taskStart = new Date(dayDate);
+          taskStart.setHours(hours || 0, minutes || 0, 0, 0);
+
+          nextWeekTasks.push({
+            task,
+            startTime: taskStart
+          });
+        });
+      });
+
+      // Sort by start time
+      nextWeekTasks.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+
+      // Find first task assigned to someone else
+      const shiftEndTask = nextWeekTasks.find(({ task }) => task.memberId !== userId);
+
+      if (shiftEndTask) {
+        const timeRemaining = this.formatTimeRemaining(shiftEndTask.startTime.getTime() - now.getTime());
+        return {
+          type: 'current',
+          endTime: shiftEndTask.startTime,
+          timeRemaining
+        };
+      }
+
+      // If no tasks assigned to others in next week, default to end of next week
+      const endOfNextWeek = new Date(nextWeekStart);
+      endOfNextWeek.setDate(endOfNextWeek.getDate() + 6);
+      endOfNextWeek.setHours(23, 59, 59, 999);
+      const timeRemaining = this.formatTimeRemaining(endOfNextWeek.getTime() - now.getTime());
+      return {
+        type: 'current',
+        endTime: endOfNextWeek,
+        timeRemaining
+      };
+
+    } catch (error) {
+      // If we can't get next week's schedule, default to end of current week
+      const endOfWeek = new Date(now);
+      const daysUntilSunday = (7 - now.getDay()) % 7;
+      endOfWeek.setDate(now.getDate() + daysUntilSunday);
+      endOfWeek.setHours(23, 59, 59, 999);
+      const timeRemaining = this.formatTimeRemaining(endOfWeek.getTime() - now.getTime());
+      return {
+        type: 'current',
+        endTime: endOfWeek,
+        timeRemaining
+      };
+    }
+  }
+
+  /**
+   * Calculate next shift when it's in the following week
+   */
+  private async calculateCrossWeekNextShift(familyId: string, userId: string, now: Date): Promise<ShiftInfo | null> {
+    // Get the next week's schedule to find user's next shift
+    const nextWeekStart = new Date(now);
+    const daysUntilNextMonday = (8 - now.getDay()) % 7 || 7;
+    nextWeekStart.setDate(now.getDate() + daysUntilNextMonday);
+
+    const nextWeekStartStr = this.formatDateToString(nextWeekStart);
+
+    try {
+      const nextWeekSchedule = await this.getWeekSchedule(familyId, { weekStartDate: nextWeekStartStr });
+
+      // Get all tasks from next week
+      const nextWeekTasks: Array<{ task: ResolvedTask; startTime: Date }> = [];
+
+      nextWeekSchedule.days.forEach(day => {
+        day.tasks.forEach(task => {
+          const startTime = task.overrideTime || task.task.defaultStartTime;
+          const [hours, minutes] = startTime.split(':').map(Number);
+
+          const dayDate = new Date(day.date.toISOString().split('T')[0] + 'T00:00:00');
+          const taskStart = new Date(dayDate);
+          taskStart.setHours(hours || 0, minutes || 0, 0, 0);
+
+          nextWeekTasks.push({
+            task,
+            startTime: taskStart
+          });
+        });
+      });
+
+      // Sort by start time
+      nextWeekTasks.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+
+      // Find first task assigned to current user
+      const nextUserTask = nextWeekTasks.find(({ task }) => task.memberId === userId);
+
+      if (nextUserTask) {
+        const timeUntilStart = this.formatTimeRemaining(nextUserTask.startTime.getTime() - now.getTime());
+        return {
+          type: 'next',
+          startTime: nextUserTask.startTime,
+          timeUntilStart
+        };
+      }
+
+      return null; // No tasks for user in next week either
+    } catch (error) {
+      return null; // Can't determine next week's schedule
+    }
+  }
+
+  /**
+   * Get the current week start date (Monday)
+   */
+  private getCurrentWeekStart(): string {
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Sunday = 0, Monday = 1
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + daysToMonday);
+    return this.formatDateToString(monday);
+  }
+
+  /**
+   * Format a date to YYYY-MM-DD string
+   */
+  private formatDateToString(date: Date): string {
+    return date.toISOString().split('T')[0];
+  }
+
+  /**
+   * Format time remaining in a human-readable format
+   */
+  private formatTimeRemaining(milliseconds: number): string {
+    const totalMinutes = Math.floor(milliseconds / (1000 * 60));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+
+    if (days > 0) {
+      if (remainingHours > 0) {
+        return `${days}d ${remainingHours}h`;
+      }
+      return `${days}d`;
+    }
+
+    if (hours > 0) {
+      if (minutes > 0) {
+        return `${hours}h ${minutes}m`;
+      }
+      return `${hours}h`;
+    }
+
+    return `${minutes}m`;
+  }
+}

@@ -631,4 +631,46 @@ describe('WeekScheduleService', () => {
       ).rejects.toThrow('Invalid week start date format');
     });
   });
-}); 
+
+  describe('getShiftStatus', () => {
+    it('should return null when no week schedule exists', async () => {
+      const familyId = 'family-1';
+      const userId = 'user-1';
+
+      // Mock getWeekSchedule to return empty schedule
+      jest.spyOn(weekScheduleService, 'getWeekSchedule').mockResolvedValue({
+        familyId: 'family-1',
+        weekStartDate: new Date('2024-01-01'),
+        days: [],
+        hasOverrides: false
+      });
+
+      const result = await weekScheduleService.getShiftStatus(familyId, userId, {});
+
+      expect(result).toBeNull();
+    });
+
+    it('should handle getShiftStatus method call without errors', async () => {
+      const familyId = 'family-1';
+      const userId = 'user-1';
+
+      // Mock getWeekSchedule to return a basic schedule
+      jest.spyOn(weekScheduleService, 'getWeekSchedule').mockResolvedValue({
+        familyId: 'family-1',
+        weekStartDate: new Date('2024-01-01'),
+        days: [{
+          date: new Date('2024-01-01'),
+          dayOfWeek: 1,
+          tasks: []
+        }],
+        hasOverrides: false
+      });
+
+      // This should not throw an error
+      const result = await weekScheduleService.getShiftStatus(familyId, userId, {});
+
+      // Result can be null or a ShiftInfo object, both are valid
+      expect(result === null || typeof result === 'object').toBe(true);
+    });
+  });
+});

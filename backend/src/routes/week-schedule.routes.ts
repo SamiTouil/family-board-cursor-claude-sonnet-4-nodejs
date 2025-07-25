@@ -2,9 +2,10 @@ import { Router, Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { WeekScheduleService } from '../services/week-schedule.service';
 import { PrismaClient } from '@prisma/client';
-import { 
+import {
   WeekScheduleQueryParams,
   ApplyWeekOverrideDto,
+  ShiftStatusQueryParams,
 } from '../types/task.types';
 
 const router = Router();
@@ -37,6 +38,75 @@ async function checkFamilyAdmin(userId: string, familyId: string): Promise<void>
     throw new Error('Access denied: Only family admins can perform this action');
   }
 }
+
+// ==================== SHIFT STATUS ROUTES ====================
+
+/**
+ * GET /api/families/:familyId/shift-status
+ * Get the current shift status for the authenticated user
+ */
+router.get('/:familyId/shift-status', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { familyId } = req.params;
+    const { weekStartDate } = req.query as Partial<ShiftStatusQueryParams>;
+
+    if (!familyId) {
+      return res.status(400).json({ error: 'Family ID is required' });
+    }
+
+    // Verify user has access to this family
+    const userId = req.user!.userId;
+    await checkFamilyMembership(userId, familyId);
+
+    const shiftInfo = await weekScheduleService.getShiftStatus(
+      familyId,
+      userId,
+      weekStartDate ? { weekStartDate } : {}
+    );
+
+    if (!shiftInfo) {
+      return res.status(200).json({ shiftInfo: null });
+    }
+
+    const response = {
+      shiftInfo: {
+        type: shiftInfo.type,
+        startTime: shiftInfo.startTime?.toISOString(),
+        endTime: shiftInfo.endTime?.toISOString(),
+        timeUntilStart: shiftInfo.timeUntilStart,
+        timeRemaining: shiftInfo.timeRemaining,
+      }
+    };
+
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log('=== SHIFT STATUS ERROR ===');
+    console.log('Error type:', error?.constructor?.name);
+    console.log('Error message:', (error as any)?.message);
+
+    if (error instanceof Error) {
+      if (error.message.includes('Access denied')) {
+        console.log('Access denied error');
+        return res.status(403).json({ error: error.message });
+      }
+      if (error.message.includes('not found')) {
+        console.log('Not found error');
+        return res.status(404).json({ error: error.message });
+      }
+      if (error.message.includes('Invalid week start date')) {
+        console.log('Invalid date error');
+        return res.status(400).json({ error: error.message });
+      }
+      if (error.message.includes('must be a Monday')) {
+        console.log('Invalid start day error');
+        return res.status(400).json({ error: error.message });
+      }
+    }
+
+    console.error('Unexpected error getting shift status:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // ==================== WEEK SCHEDULE ROUTES ====================
 
@@ -241,4 +311,4 @@ router.delete('/:familyId/week-schedule/override', async (req: AuthenticatedRequ
   }
 });
 
-export default router; 
+export default router;
