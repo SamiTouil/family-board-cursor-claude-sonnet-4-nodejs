@@ -58,7 +58,11 @@ router.get('/:familyId/shift-status', async (req: AuthenticatedRequest, res: Res
     const userId = req.user!.userId;
     await checkFamilyMembership(userId, familyId);
 
-    const shiftInfo = await weekScheduleService.getShiftStatus(familyId, userId, { weekStartDate });
+    const shiftInfo = await weekScheduleService.getShiftStatus(
+      familyId,
+      userId,
+      weekStartDate ? { weekStartDate } : {}
+    );
 
     if (!shiftInfo) {
       return res.status(200).json({ shiftInfo: null });
