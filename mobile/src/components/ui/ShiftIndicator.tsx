@@ -3,22 +3,13 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { useFamily } from '../../contexts/FamilyContext';
 import { weekScheduleApi } from '../../services/api';
-import type { ResolvedWeekSchedule, ResolvedTask } from '../../types';
-
-interface ShiftInfo {
-  type: 'current' | 'next';
-  endTime?: Date;
-  startTime?: Date;
-  timeRemaining?: string;
-  timeUntilStart?: string;
-}
+import type { ShiftInfo } from '../../types';
 
 export const ShiftIndicator: React.FC = () => {
   const { user } = useAuth();
   const { currentFamily } = useFamily();
   const [shiftInfo, setShiftInfo] = useState<ShiftInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
 
   const getCurrentWeekStart = (): string => {
     const today = new Date();
@@ -31,7 +22,7 @@ export const ShiftIndicator: React.FC = () => {
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     d.setDate(diff);
-    
+
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const dayOfMonth = String(d.getDate()).padStart(2, '0');
@@ -45,15 +36,12 @@ export const ShiftIndicator: React.FC = () => {
     if (forceRefresh || !shiftInfo) {
       setIsLoading(true);
     }
-    
+
     try {
       const weekStart = getCurrentWeekStart();
-      const response = await weekScheduleApi.getWeekSchedule(currentFamily.id, weekStart);
-      const weekSchedule: ResolvedWeekSchedule = response.data;
-      
-      const shiftData = await calculateShiftInfo(weekSchedule);
+      const response = await weekScheduleApi.getShiftStatus(currentFamily.id, weekStart);
+      const shiftData = response.data.shiftInfo;
       setShiftInfo(shiftData);
-      setLastUpdateTime(new Date());
     } catch (error) {
       // Silently handle errors - user will see no shift info
       if (!shiftInfo) {
@@ -65,58 +53,65 @@ export const ShiftIndicator: React.FC = () => {
     }
   }, [currentFamily, user, shiftInfo]);
 
-  // Separate function to update time displays without API calls
-  const updateTimeDisplays = useCallback(() => {
-    if (!shiftInfo) return;
-    
-    const now = new Date();
-    
-    if (shiftInfo.type === 'current' && shiftInfo.endTime) {
-      const timeRemaining = formatTimeRemaining(shiftInfo.endTime.getTime() - now.getTime());
-      setShiftInfo(prev => prev ? { ...prev, timeRemaining } : null);
-    } else if (shiftInfo.type === 'next' && shiftInfo.startTime) {
-      const timeUntilStart = formatTimeRemaining(shiftInfo.startTime.getTime() - now.getTime());
-      setShiftInfo(prev => prev ? { ...prev, timeUntilStart } : null);
-    }
-  }, [shiftInfo]);
-
   useEffect(() => {
     if (currentFamily && user) {
       loadShiftInfo(true); // Force refresh on mount
-      
-      // Update time displays every minute without API calls
-      const timeInterval = setInterval(updateTimeDisplays, 60000);
-      
-      // Refresh data from API every 5 minutes
-      const dataInterval = setInterval(() => loadShiftInfo(false), 5 * 60000);
-      
+
+      // Refresh data from API every minute to keep time displays current
+      const dataInterval = setInterval(() => loadShiftInfo(false), 60000);
+
       return () => {
-        clearInterval(timeInterval);
         clearInterval(dataInterval);
       };
     }
     return undefined;
-  }, [currentFamily, user, loadShiftInfo, updateTimeDisplays]);
+  }, [currentFamily, user, loadShiftInfo]);
 
-  const calculateShiftInfo = async (weekSchedule: ResolvedWeekSchedule): Promise<ShiftInfo | null> => {
-    if (!user) return null;
-
+  const formatTimeWithDate = (dateString: string): string => {
+    const date = new Date(dateString);
     const now = new Date();
-    
-    // Get all tasks for the entire week, sorted by date and time
-    const allWeekTasks: Array<{ task: ResolvedTask; startTime: Date }> = [];
-    
-    weekSchedule.days.forEach(day => {
-      day.tasks.forEach(task => {
-        const startTime = task.overrideTime || task.task.defaultStartTime;
-        const [hours, minutes] = startTime.split(':').map(Number);
-        
-        // Parse the day date and set the task time
-        const dayDate = new Date(day.date + 'T00:00:00');
-        const taskStart = new Date(dayDate);
-        taskStart.setHours(hours || 0, minutes || 0, 0, 0);
-        
-        allWeekTasks.push({
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    const timeDiff = targetDate.getTime() - today.getTime();
+    const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+
+    const timeStr = date.toLocaleTimeString([], {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    if (daysDiff === 0) {
+      return timeStr; // Today - no need to specify
+    } else if (daysDiff === 1) {
+      return `${timeStr} Tomorrow`;
+    } else if (daysDiff === -1) {
+      return `${timeStr} Yesterday`;
+    } else if (daysDiff > 1 && daysDiff <= 6) {
+      const dayName = date.toLocaleDateString([], { weekday: 'long' });
+      return `${timeStr} ${dayName}`;
+    } else {
+      // For dates beyond this week, show the actual date
+      const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      return `${timeStr} ${dateStr}`;
+    }
+  };
+
+  // Always render the container to prevent layout shifts
+  return (
+    <View style={styles.container}>
+      {(!currentFamily || !user) ? (
+        // Don't show anything if no family/user context
+        <View style={styles.placeholder} />
+      ) : isLoading && !shiftInfo ? (
+        // Only show loading on initial load
+        <Text style={styles.singleLineText}>Loading shifts...</Text>
+      ) : !shiftInfo ? (
+        <Text style={styles.singleLineText}>No shifts scheduled</Text>
+      ) : shiftInfo.type === 'current' ? (
+        <Text style={styles.singleLineText}>
+          <Text style={[styles.statusText, styles.currentShift]}>Shift ends </Text>
           task,
           startTime: taskStart
         });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useCurrentWeek } from '../../contexts/CurrentWeekContext';
@@ -11,7 +11,7 @@ import RoutinesIcon from '../ui/icons/RoutinesIcon';
 import { TaskOverrideModal } from './TaskOverrideModal';
 import { TaskSplitIndicator } from '../layout/TaskSplitIndicator';
 import { useMessage } from '../../hooks';
-import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate, DayTemplate, DayTemplateItem, Task, User, CreateTaskOverrideData } from '../../types';
+import type { ResolvedWeekSchedule, ResolvedTask, WeekTemplate, DayTemplate, DayTemplateItem, Task, User, CreateTaskOverrideData, ShiftInfo } from '../../types';
 import './WeeklyCalendar.css';
 
 interface WeeklyCalendarProps {
@@ -49,6 +49,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
   const [taskOverrideDate, setTaskOverrideDate] = useState<string>('');
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
   const [familyMembers, setFamilyMembers] = useState<User[]>([]);
+  const [shiftStatus, setShiftStatus] = useState<ShiftInfo | null>(null);
 
   const isAdmin = currentFamily?.userRole === 'ADMIN';
 
@@ -59,32 +60,61 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
 
 
 
-  // Helper function to check if a shift is currently active
-  const isShiftCurrentlyActive = (tasks: ResolvedTask[], date: string): boolean => {
-    if (!tasks.length) return false;
+  // Load shift status from backend
+  const loadShiftStatus = useCallback(async () => {
+    if (!currentFamily) {
+      console.log('❌ No currentFamily, skipping shift status load');
+      return;
+    }
 
+    console.log('🔄 Loading shift status...', { familyId: currentFamily.id, weekStart: currentWeekStart });
+    try {
+      // Pass currentWeekStart even if undefined - backend will use current week
+      const response = await weekScheduleApi.getShiftStatus(currentFamily.id, currentWeekStart || undefined);
+      console.log('✅ Shift status loaded:', response.data);
+      setShiftStatus(response.data.shiftInfo);
+    } catch (error) {
+      console.error('❌ Failed to load shift status:', error);
+      setShiftStatus(null);
+    }
+  }, [currentFamily, currentWeekStart]);
+
+  // Helper function to check if a specific task is currently active
+  const isShiftCurrentlyActive = (tasks: ResolvedTask[], date: string): boolean => {
+    if (!tasks.length || !currentUser || shiftStatus?.type !== 'current') return false;
+
+    // Only show as active if this is the current user's shift AND
+    // one of these tasks is actually the currently running task
     const now = new Date();
     const today = now.toISOString().split('T')[0];
 
-    // Only check if it's today
+    // Only check tasks for today
     if (date !== today) return false;
 
-    const currentTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes
+    // Check if this shift belongs to the current user
+    const isCurrentUserShift = tasks.some(task => task.memberId === currentUser.id);
+    if (!isCurrentUserShift) return false;
 
-    // Check if any task in the shift is currently active
-    return tasks.some(task => {
+    // Check if any task in this shift is currently running (started but not finished)
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+
+    const hasActiveTask = tasks.some(task => {
+      if (task.memberId !== currentUser.id) return false;
+
       const startTime = task.overrideTime || task.task.defaultStartTime;
       const duration = task.overrideDuration || task.task.defaultDuration;
 
-      // Parse start time (format: "HH:MM")
       const timeParts = startTime.split(':').map(Number);
       const hours = timeParts[0] || 0;
       const minutes = timeParts[1] || 0;
       const startMinutes = hours * 60 + minutes;
       const endMinutes = startMinutes + duration;
 
+      // Task is active if current time is between start and end
       return currentTime >= startMinutes && currentTime < endMinutes;
     });
+
+    return hasActiveTask;
   };
 
   // Initialize and load data when family changes
@@ -99,10 +129,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
 
   // Load week schedule when currentWeekStart changes
   useEffect(() => {
+    console.log('📅 Week effect:', { currentFamily: !!currentFamily, currentWeekStart });
     if (currentFamily && currentWeekStart) {
       loadWeekSchedule(currentWeekStart);
+      loadShiftStatus();
     }
-  }, [currentFamily, currentWeekStart]);
+  }, [currentFamily, currentWeekStart, loadShiftStatus]);
+
+
 
   const getMonday = (date: Date): string => {
     const d = new Date(date);
@@ -119,12 +153,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
 
   const loadWeekSchedule = async (weekStartDate: string) => {
     if (!currentFamily) return;
-    
+
     setIsLoading(true);
     setError(null);
     try {
       const response = await weekScheduleApi.getWeekSchedule(currentFamily.id, weekStartDate);
       setWeekSchedule(response.data);
+      // Also load shift status when schedule changes
+      await loadShiftStatus();
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to load week schedule');
     } finally {
@@ -748,6 +784,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
               )}
             </div>
           )}
+
+
         </div>
       </div>
 
@@ -774,6 +812,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
           >
             Try Again
           </Button>
+
         </div>
       ) : weekSchedule ? (
         <div className="weekly-calendar-grid">

@@ -603,6 +603,20 @@ export interface WeekScheduleQueryParams {
   weekStartDate: string; // ISO date string (YYYY-MM-DD) for the Monday of the week
 }
 
+// Shift status information
+export interface ShiftInfo {
+  type: 'current' | 'next';
+  startTime?: Date;
+  endTime?: Date;
+  timeUntilStart?: string;
+  timeRemaining?: string;
+}
+
+// Query parameters for getting shift status
+export interface ShiftStatusQueryParams {
+  weekStartDate?: string; // Optional - defaults to current week
+}
+
 // DTO for applying week overrides
 export interface ApplyWeekOverrideDto {
   weekStartDate: string; // ISO date string (YYYY-MM-DD) for the Monday of the week

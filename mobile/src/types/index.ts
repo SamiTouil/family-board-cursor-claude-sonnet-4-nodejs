@@ -327,3 +327,12 @@ export interface CreateWeekTemplateDayData {
 export interface UpdateWeekTemplateDayData {
   dayTemplateId: string;
 }
+
+// Shift status types
+export interface ShiftInfo {
+  type: 'current' | 'next';
+  startTime?: string; // ISO string
+  endTime?: string; // ISO string
+  timeUntilStart?: string;
+  timeRemaining?: string;
+}
