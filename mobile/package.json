@@ -11,6 +11,8 @@
     "build:simulator": "./build-simulator.sh",
     "build:production": "./build-production.sh",
     "build:production:simulator": "./build-production.sh --simulator",
+    "build:production:clean": "./clean-build-production.sh",
+    "build:production:clean:simulator": "./clean-build-production.sh --simulator",
     "ios:device": "expo run:ios --device",
     "ios:simulator": "expo run:ios",
     "ios:production": "NODE_ENV=production EXPO_PUBLIC_ENV=production expo run:ios --device --configuration Release",
