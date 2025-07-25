@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Family Board iOS Build Script
-# This script helps you build and install the app on your iPhone via USB
+# Family Board iOS Production Build Script
+# This script builds and installs the production app on your iPhone via USB
 
 set -e
 
-echo "🍎 Family Board iOS Build & Install Script"
-echo "=========================================="
+echo "🍎 Family Board iOS Production Build & Install Script"
+echo "===================================================="
 
 # Check if device is connected
 echo "📱 Checking for connected iOS devices..."
@@ -20,22 +20,26 @@ fi
 
 echo "✅ iOS device detected!"
 
-# Check if we have a development team set up
-echo "🔧 Checking development setup..."
-
-# Build the app
-echo "🏗️  Building iOS app..."
+# Build the production app
+echo "🏗️  Building production iOS app..."
+echo "📡 API Endpoint: https://mabt.eu/api"
+echo "🔔 Push notifications: ENABLED"
 echo "This may take a few minutes on first build..."
 
-# Use Expo to create a development build
-npx expo run:ios --device
+# Set production environment and build
+export NODE_ENV=production
+export EXPO_PUBLIC_ENV=production
 
-echo "🎉 Build complete!"
+# Use Expo to create a production build
+npx expo run:ios --device --configuration Release
+
+echo "🎉 Production build complete!"
 echo ""
 echo "📱 The app should now be installed on your iPhone!"
 echo "   Look for 'Family Board' on your home screen"
 echo ""
-echo "💡 Tips:"
-echo "   - Keep your iPhone connected during development"
-echo "   - The app will auto-reload when you make changes"
-echo "   - Shake your phone to open the developer menu"
+echo "🚀 Production Features:"
+echo "   - Connects to https://mabt.eu/api"
+echo "   - Push notifications enabled"
+echo "   - Optimized performance"
+echo "   - No development server needed"

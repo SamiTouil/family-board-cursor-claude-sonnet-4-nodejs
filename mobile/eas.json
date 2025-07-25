@@ -17,8 +17,22 @@
       }
     },
     "production": {
+      "env": {
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_ENV": "production"
+      },
       "ios": {
         "resourceClass": "m-medium"
+      }
+    },
+    "production-local": {
+      "distribution": "internal",
+      "env": {
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_ENV": "production"
+      },
+      "ios": {
+        "simulator": false
       }
     },
     "local": {

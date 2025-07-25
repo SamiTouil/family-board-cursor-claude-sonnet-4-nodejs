@@ -9,8 +9,12 @@
     "web": "expo start --web",
     "build:ios": "./build-ios.sh",
     "build:simulator": "./build-simulator.sh",
+    "build:production": "./build-production.sh",
+    "build:production:simulator": "./build-production.sh --simulator",
     "ios:device": "expo run:ios --device",
-    "ios:simulator": "expo run:ios"
+    "ios:simulator": "expo run:ios",
+    "ios:production": "NODE_ENV=production EXPO_PUBLIC_ENV=production expo run:ios --device --configuration Release",
+    "ios:production:simulator": "NODE_ENV=production EXPO_PUBLIC_ENV=production expo run:ios --configuration Release"
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",

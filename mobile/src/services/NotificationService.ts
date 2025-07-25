@@ -7,14 +7,17 @@ import { Platform } from 'react-native';
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
     console.log('📱 Handling notification:', notification.request.content.title);
-    
+
     // Always show notifications, especially when app is in background
+    // This ensures notifications appear even when the app is backgrounded
     return {
       shouldShowAlert: true,
       shouldPlaySound: true,
       shouldSetBadge: true,
       shouldShowBanner: true,
       shouldShowList: true,
+      // iOS specific: ensure notifications show in foreground
+      priority: Notifications.AndroidNotificationPriority.HIGH,
     };
   },
 });

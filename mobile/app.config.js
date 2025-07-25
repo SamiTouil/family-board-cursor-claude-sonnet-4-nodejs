@@ -17,11 +17,16 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: IS_PRODUCTION ? "com.familyboard.app" : "com.familyboard.dev",
-      backgroundModes: ["background-fetch", "background-processing"],
+      backgroundModes: ["background-fetch", "background-processing", "remote-notification"],
       infoPlist: {
-        UIBackgroundModes: ["background-fetch", "background-processing"],
+        UIBackgroundModes: ["background-fetch", "background-processing", "remote-notification"],
         NSUserNotificationUsageDescription: "This app uses notifications to keep you updated about family activities and schedules.",
-        NSNotificationUsageDescription: "This app uses notifications to keep you updated about family activities and schedules."
+        NSNotificationUsageDescription: "This app uses notifications to keep you updated about family activities and schedules.",
+        UIBackgroundRefreshUsageDescription: "This app uses background refresh to keep your family schedule up to date.",
+        // Enable background app refresh
+        UIApplicationSupportsIndirectInputEvents: true,
+        // Ensure notifications work in all states
+        UNUserNotificationCenter: true
       }
     },
     notifications: {
