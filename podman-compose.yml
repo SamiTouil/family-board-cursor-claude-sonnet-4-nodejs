@@ -54,6 +54,10 @@ services:
     environment:
       # Pass through root-level CSRF configuration
       VITE_DISABLE_CSRF_VALIDATION: ${DISABLE_CSRF_VALIDATION:-false}
+      # File watching environment variables for containers
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: 1000
+      WATCHPACK_POLLING: "true"
     depends_on:
       - backend
     volumes:
