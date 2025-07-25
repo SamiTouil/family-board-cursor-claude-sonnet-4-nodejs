@@ -21,7 +21,8 @@ echo "🏗️  This may take a few minutes on first build..."
 
 # Load production environment
 if [ -f ".env.production" ]; then
-    export $(cat .env.production | xargs)
+    # Load environment variables, filtering out comments and empty lines
+    export $(grep -v '^#' .env.production | grep -v '^$' | xargs)
     echo "✅ Loaded production environment variables"
 else
     # Fallback to manual export
