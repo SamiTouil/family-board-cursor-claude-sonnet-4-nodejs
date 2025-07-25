@@ -63,18 +63,14 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
   // Load shift status from backend
   const loadShiftStatus = useCallback(async () => {
     if (!currentFamily) {
-      console.log('❌ No currentFamily, skipping shift status load');
       return;
     }
 
-    console.log('🔄 Loading shift status...', { familyId: currentFamily.id, weekStart: currentWeekStart });
     try {
       // Pass currentWeekStart even if undefined - backend will use current week
       const response = await weekScheduleApi.getShiftStatus(currentFamily.id, currentWeekStart || undefined);
-      console.log('✅ Shift status loaded:', response.data);
       setShiftStatus(response.data.shiftInfo);
     } catch (error) {
-      console.error('❌ Failed to load shift status:', error);
       setShiftStatus(null);
     }
   }, [currentFamily, currentWeekStart]);
@@ -129,7 +125,6 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
 
   // Load week schedule when currentWeekStart changes
   useEffect(() => {
-    console.log('📅 Week effect:', { currentFamily: !!currentFamily, currentWeekStart });
     if (currentFamily && currentWeekStart) {
       loadWeekSchedule(currentWeekStart);
       loadShiftStatus();

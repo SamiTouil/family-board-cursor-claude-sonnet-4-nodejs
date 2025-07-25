@@ -909,14 +909,14 @@ export class WeekScheduleService {
     // Get the week schedule
     const weekSchedule = await this.getWeekSchedule(familyId, { weekStartDate });
 
-    return this.calculateShiftInfo(weekSchedule, userId);
+    return this.calculateShiftInfo(weekSchedule, familyId, userId);
   }
 
   /**
    * Calculate shift information for a user based on the week schedule
    * This implements the same logic as the frontend ShiftIndicator
    */
-  private async calculateShiftInfo(weekSchedule: ResolvedWeekSchedule, userId: string): Promise<ShiftInfo | null> {
+  private async calculateShiftInfo(weekSchedule: ResolvedWeekSchedule, familyId: string, userId: string): Promise<ShiftInfo | null> {
     const now = new Date();
 
     // Get all tasks for the entire week, sorted by date and time
