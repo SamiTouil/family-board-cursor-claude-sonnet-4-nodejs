@@ -37,27 +37,26 @@ export default {
       iosDisplayInForeground: true
     },
     plugins: [
-      [
-        "expo-notifications",
-        {
-          icon: "./assets/icon.png",
-          color: "#3B82F6",
-          sounds: ["default"],
-          iosDisplayInForeground: true,
-          // Configure for LOCAL notifications only (no push notifications)
-          mode: "local",
-          // Explicitly disable push notifications to avoid entitlements
-          ios: {
-            allowsAlert: true,
-            allowsBadge: true,
-            allowsSound: true,
-            allowsCriticalAlerts: false,
-            allowsProvisional: false,
-            // Do NOT request push notification entitlements
-            requestPushNotificationPermission: false
-          }
-        }
-      ]
+      // Temporarily disable expo-notifications plugin to avoid push notification entitlements
+      // We'll handle local notifications programmatically without plugin
+      // [
+      //   "expo-notifications",
+      //   {
+      //     icon: "./assets/icon.png",
+      //     color: "#3B82F6",
+      //     sounds: ["default"],
+      //     iosDisplayInForeground: true,
+      //     mode: "local",
+      //     ios: {
+      //       allowsAlert: true,
+      //       allowsBadge: true,
+      //       allowsSound: true,
+      //       allowsCriticalAlerts: false,
+      //       allowsProvisional: false,
+      //       requestPushNotificationPermission: false
+      //     }
+      //   }
+      // ]
     ],
     android: {
       adaptiveIcon: {
