@@ -45,7 +45,17 @@ export default {
           sounds: ["default"],
           iosDisplayInForeground: true,
           // Configure for LOCAL notifications only (no push notifications)
-          mode: "local"
+          mode: "local",
+          // Explicitly disable push notifications to avoid entitlements
+          ios: {
+            allowsAlert: true,
+            allowsBadge: true,
+            allowsSound: true,
+            allowsCriticalAlerts: false,
+            allowsProvisional: false,
+            // Do NOT request push notification entitlements
+            requestPushNotificationPermission: false
+          }
         }
       ]
     ],
