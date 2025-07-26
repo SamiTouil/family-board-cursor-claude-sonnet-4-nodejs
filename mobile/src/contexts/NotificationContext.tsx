@@ -132,18 +132,29 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
     // Construct WebSocket URL based on environment
     let baseUrl: string;
+    let fallbackUrl: string | null = null;
+
     if (apiUrl.includes('mabt.eu')) {
-      // Production: use the same domain as API
+      // Production: try multiple URL formats
       baseUrl = 'https://mabt.eu';
+      fallbackUrl = 'wss://mabt.eu'; // WebSocket-specific URL as fallback
     } else {
       // Development: remove /api from the end to get the base WebSocket URL
       baseUrl = apiUrl.replace(/\/api$/, '');
     }
 
     console.log('🔌 Connecting to WebSocket:', baseUrl);
+    if (fallbackUrl) console.log('🔄 Fallback URL available:', fallbackUrl);
     console.log('🌐 API URL:', apiUrl);
     console.log('🏗️ Environment:', Constants.expoConfig?.extra?.environment);
     console.log('🔐 Auth token present:', !!token);
+    console.log('📱 Platform:', Platform.OS);
+    console.log('🆔 Device info:', {
+      isDevice: Device.isDevice,
+      deviceName: Device.deviceName,
+      osName: Device.osName,
+      osVersion: Device.osVersion
+    });
     
     const newSocket = io(baseUrl, {
       auth: {
@@ -170,14 +181,21 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     newSocket.on('connect', () => {
       console.log('✅ WebSocket connected successfully');
       console.log('🆔 Socket ID:', newSocket.id);
+      console.log('🔗 Connected to:', baseUrl);
+      console.log('🌐 Transport:', newSocket.io.engine.transport.name);
+      console.log('📡 Upgraded:', newSocket.io.engine.upgraded);
       setIsConnected(true);
       reconnectAttempts.current = 0;
-      
+
       // Clear any pending reconnect timeout
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = null;
       }
+
+      // Test connection by emitting a ping
+      console.log('🏓 Sending connection test ping...');
+      newSocket.emit('ping', { timestamp: Date.now() });
     });
 
     newSocket.on('disconnect', (reason) => {
@@ -208,6 +226,20 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     // Add error event handler
     newSocket.on('error', (error) => {
       console.error('❌ WebSocket error:', error);
+    });
+
+    // Add pong handler for connection testing
+    newSocket.on('pong', (data) => {
+      console.log('🏓 Received pong:', data);
+    });
+
+    // Add transport change handlers
+    newSocket.io.on('upgrade', () => {
+      console.log('⬆️ WebSocket transport upgraded to:', newSocket.io.engine.transport.name);
+    });
+
+    newSocket.io.on('upgradeError', (error) => {
+      console.error('⬆️❌ WebSocket upgrade error:', error);
     });
 
     // Real-time event handlers
