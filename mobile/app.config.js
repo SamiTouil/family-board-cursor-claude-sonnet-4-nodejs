@@ -29,7 +29,7 @@ export default {
         UNUserNotificationCenter: true
       }
     },
-    // Local notifications only (no push notifications)
+    // Local notifications configuration
     notifications: {
       icon: "./assets/icon.png",
       color: "#3B82F6",
@@ -37,26 +37,17 @@ export default {
       iosDisplayInForeground: true
     },
     plugins: [
-      // Temporarily disable expo-notifications plugin to avoid push notification entitlements
-      // We'll handle local notifications programmatically without plugin
-      // [
-      //   "expo-notifications",
-      //   {
-      //     icon: "./assets/icon.png",
-      //     color: "#3B82F6",
-      //     sounds: ["default"],
-      //     iosDisplayInForeground: true,
-      //     mode: "local",
-      //     ios: {
-      //       allowsAlert: true,
-      //       allowsBadge: true,
-      //       allowsSound: true,
-      //       allowsCriticalAlerts: false,
-      //       allowsProvisional: false,
-      //       requestPushNotificationPermission: false
-      //     }
-      //   }
-      // ]
+      [
+        "expo-notifications",
+        {
+          icon: "./assets/icon.png",
+          color: "#3B82F6",
+          sounds: ["default"],
+          iosDisplayInForeground: true,
+          // Configure for LOCAL notifications only (no push notifications)
+          mode: "local"
+        }
+      ]
     ],
     android: {
       adaptiveIcon: {

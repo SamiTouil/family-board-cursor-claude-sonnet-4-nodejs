@@ -14,6 +14,8 @@ import { FamilyOnboardingScreen } from './src/screens/family/FamilyOnboardingScr
 import { LoadingSpinner } from './src/components/ui';
 import { BottomTabNavigator } from './src/navigation/BottomTabNavigator';
 import { NotificationHandler } from './src/components/NotificationHandler';
+import { WebSocketDebug } from './src/components/debug/WebSocketDebug';
+import Constants from 'expo-constants';
 import type { AuthStackParamList, RootStackParamList } from './src/types';
 
 const AuthStack = createStackNavigator<AuthStackParamList>();
@@ -71,7 +73,17 @@ const AppNavigator = () => {
         <RootStack.Screen name="FamilyOnboarding" component={FamilyOnboardingScreen} />
       ) : (
         // User is authenticated and has completed onboarding - show main app
-        <RootStack.Screen name="Main" component={MainAppScreen} />
+        <>
+          <RootStack.Screen name="Main" component={MainAppScreen} />
+          {/* Add debug screen for production troubleshooting */}
+          {Constants.expoConfig?.extra?.environment === 'production' && (
+            <RootStack.Screen
+              name="Debug"
+              component={WebSocketDebug}
+              options={{ title: 'WebSocket Debug' }}
+            />
+          )}
+        </>
       )}
     </RootStack.Navigator>
   );
