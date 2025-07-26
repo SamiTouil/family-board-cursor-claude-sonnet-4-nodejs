@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import * as Device from 'expo-device';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { NotificationService } from '../services/NotificationService';
@@ -135,7 +136,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     let fallbackUrl: string | null = null;
 
     if (apiUrl.includes('mabt.eu')) {
-      // Production: try multiple URL formats
+      // Production: use the correct WebSocket path that matches nginx configuration
       baseUrl = 'https://mabt.eu';
       fallbackUrl = 'wss://mabt.eu'; // WebSocket-specific URL as fallback
     } else {
@@ -148,37 +149,75 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     console.log('🌐 API URL:', apiUrl);
     console.log('🏗️ Environment:', Constants.expoConfig?.extra?.environment);
     console.log('🔐 Auth token present:', !!token);
-    console.log('📱 Platform:', Platform.OS);
-    console.log('🆔 Device info:', {
-      isDevice: Device.isDevice,
-      deviceName: Device.deviceName,
-      osName: Device.osName,
-      osVersion: Device.osVersion
-    });
+
+    console.log('🔍 Debug checkpoint 1: About to log platform info');
+    try {
+      console.log('📱 Platform:', Platform.OS);
+      console.log('🔍 Debug checkpoint 2: Platform logged successfully');
+    } catch (error) {
+      console.error('❌ Platform import error:', error);
+    }
+
+    try {
+      console.log('🆔 Device info:', {
+        isDevice: Device.isDevice,
+        deviceName: Device.deviceName,
+        osName: Device.osName,
+        osVersion: Device.osVersion
+      });
+      console.log('🔍 Debug checkpoint 3: Device info logged successfully');
+    } catch (error) {
+      console.error('❌ Device import error:', error);
+    }
+
+    console.log('🔍 Debug checkpoint 4: About to create socket connection');
     
     console.log('🔗 Creating socket connection...');
-    const newSocket = io(baseUrl, {
-      auth: {
-        token,
-      },
-      transports: ['websocket', 'polling'],
-      timeout: 10000, // Reduced timeout for faster debugging
-      forceNew: true,
-      reconnection: true,
-      reconnectionAttempts: 3, // Reduced for faster debugging
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      randomizationFactor: 0.5,
-      autoConnect: true,
-      // Add ping/pong to keep connection alive
-      pingInterval: 25000,
-      pingTimeout: 60000,
-      // Production-specific settings
-      upgrade: true,
-      rememberUpgrade: true,
-    });
+    console.log('🔍 Socket.io import check:', typeof io);
+    console.log('🔍 Socket.io available:', !!io);
 
-    console.log('🔗 Socket created, setting up event handlers...');
+    let newSocket: Socket;
+    try {
+      // Use different transport configuration for production vs development
+      const transportConfig = apiUrl.includes('mabt.eu') ? {
+        // Production: Use polling first due to SSL issues with WebSocket
+        transports: ['polling', 'websocket'],
+        upgrade: false, // Don't try to upgrade to WebSocket due to SSL issues
+        rememberUpgrade: false,
+      } : {
+        // Development: Use WebSocket first
+        transports: ['websocket', 'polling'],
+        upgrade: true,
+        rememberUpgrade: true,
+      };
+
+      newSocket = io(baseUrl, {
+        auth: {
+          token,
+        },
+        ...transportConfig,
+        timeout: 10000, // Reduced timeout for faster debugging
+        forceNew: true,
+        reconnection: true,
+        reconnectionAttempts: 3, // Reduced for faster debugging
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        randomizationFactor: 0.5,
+        autoConnect: true,
+        // Add ping/pong to keep connection alive
+        pingInterval: 25000,
+        pingTimeout: 60000,
+      });
+      console.log('🔗 Socket created successfully, setting up event handlers...');
+    } catch (error) {
+      console.error('💥 Failed to create socket:', error);
+      console.error('💥 Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      return;
+    }
 
     // Add a connection timeout to debug connection issues
     const connectionTimeout = setTimeout(() => {
@@ -189,8 +228,32 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         console.error('  - Socket state:', newSocket.connected ? 'connected' : 'disconnected');
         console.error('  - Transport:', newSocket.io.engine?.transport?.name || 'none');
         console.error('  - Ready state:', newSocket.io.engine?.readyState || 'unknown');
+
+        // Try fallback URL if available
+        if (fallbackUrl && baseUrl !== fallbackUrl) {
+          console.log('🔄 Trying fallback WebSocket URL after timeout:', fallbackUrl);
+          newSocket.disconnect();
+          // We'll implement fallback connection here
+        }
       }
     }, 15000);
+
+    // Add connection state debugging
+    newSocket.on('connecting', () => {
+      console.log('🔄 WebSocket connecting...');
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.error('🚫 WebSocket connection error:', error.message);
+      console.error('Error type:', error.type);
+      console.error('Error description:', error.description);
+      console.error('Error context:', error.context);
+      console.error('Error data:', error.data);
+      console.error('🌐 Attempted connection to:', baseUrl);
+      console.error('🔐 Token present:', !!token);
+      console.error('📱 Environment:', Constants.expoConfig?.extra?.environment);
+      setIsConnected(false);
+    });
 
     // Connection event handlers
     newSocket.on('connect', () => {
