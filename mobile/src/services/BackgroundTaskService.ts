@@ -86,26 +86,35 @@ export class BackgroundTaskService {
   static async initialize(): Promise<void> {
     try {
       console.log('🔄 Initializing background task service...');
-      
+
       // Check if background fetch is available
       const status = await BackgroundFetch.getStatusAsync();
       console.log('📱 Background fetch status:', status);
-      
+
       if (status === BackgroundFetch.BackgroundFetchStatus.Available) {
-        // Register the background task
-        await BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-          minimumInterval: 15 * 60, // 15 minutes minimum interval
-          stopOnTerminate: false, // Continue after app termination
-          startOnBoot: true, // Start after device reboot
-        });
-        
+        // Check if task is already registered
+        const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_FETCH_TASK);
+
+        if (!isRegistered) {
+          // Register the background task
+          await BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
+            minimumInterval: 15 * 60, // 15 minutes minimum interval
+            stopOnTerminate: false, // Continue after app termination
+            startOnBoot: true, // Start after device reboot
+          });
+          console.log('✅ Background fetch registered successfully');
+        } else {
+          console.log('✅ Background fetch already registered');
+        }
+
         this.isRegistered = true;
-        console.log('✅ Background fetch registered successfully');
       } else {
         console.log('❌ Background fetch not available:', status);
+        console.log('💡 Background notifications will only work when app becomes active');
       }
     } catch (error) {
       console.error('❌ Error initializing background task service:', error);
+      console.log('💡 Falling back to foreground-only notifications');
     }
   }
 

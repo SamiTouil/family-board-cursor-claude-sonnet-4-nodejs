@@ -17,9 +17,9 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: IS_PRODUCTION ? "com.familyboard.app" : "com.familyboard.dev",
-      backgroundModes: ["background-fetch", "background-processing", "background-app-refresh"],
+      backgroundModes: ["fetch", "background-processing"],
       infoPlist: {
-        UIBackgroundModes: ["background-fetch", "background-processing", "background-app-refresh"],
+        UIBackgroundModes: ["fetch", "background-processing"],
         NSUserNotificationUsageDescription: "This app uses notifications to keep you updated about family activities and schedules.",
         NSNotificationUsageDescription: "This app uses notifications to keep you updated about family activities and schedules.",
         UIBackgroundRefreshUsageDescription: "This app uses background refresh to keep your family schedule up to date.",
