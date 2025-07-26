@@ -40,9 +40,9 @@ export class NotificationService {
       
       // Request permissions with enhanced options
       await this.requestPermissions();
-      
-      // Register for push notifications
-      await this.registerForPushNotifications();
+
+      // Configure local notifications only (skip push notification registration)
+      await this.configureLocalNotifications();
       
       this.isInitialized = true;
       console.log('✅ NotificationService initialized successfully');
@@ -98,34 +98,11 @@ export class NotificationService {
   }
 
   /**
-   * Register for push notifications and get push token
+   * Configure local notifications only (no push notifications)
    */
-  static async registerForPushNotifications(): Promise<string | null> {
+  static async configureLocalNotifications(): Promise<void> {
     try {
-      // Check if running on physical device
-      if (!Device.isDevice) {
-        console.log('Push notifications are not supported on simulator/emulator');
-        return null;
-      }
-
-      // Get project ID from config
-      const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-      
-      if (!projectId) {
-        console.error('No Expo project ID found. Push notifications will not work.');
-        console.log('Make sure to set "extra.eas.projectId" in your app.config.js');
-        return null;
-      }
-
-      console.log('Using Expo project ID:', projectId);
-
-      // Get push token
-      const token = await Notifications.getExpoPushTokenAsync({
-        projectId: projectId,
-      });
-
-      this.pushToken = token.data;
-      console.log('Push token:', this.pushToken);
+      console.log('🔔 Configuring local notifications...');
 
       // Configure notification channel for Android
       if (Platform.OS === 'android') {
@@ -136,13 +113,22 @@ export class NotificationService {
           lightColor: '#3B82F6',
           sound: 'default',
         });
+        console.log('✅ Android notification channel configured');
       }
 
-      return this.pushToken;
+      console.log('✅ Local notifications configured successfully');
+      console.log('📱 Note: Using LOCAL notifications only (no push notifications)');
     } catch (error) {
-      console.error('Error registering for push notifications:', error);
-      return null;
+      console.error('❌ Error configuring local notifications:', error);
     }
+  }
+
+  /**
+   * Register for push notifications and get push token (DISABLED for local-only mode)
+   */
+  static async registerForPushNotifications(): Promise<string | null> {
+    console.log('🚫 Push notifications disabled - using local notifications only');
+    return null;
   }
 
   /**
