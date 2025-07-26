@@ -21,9 +21,15 @@ export default {
       infoPlist: {
         UIBackgroundModes: ["background-fetch", "background-processing"],
         NSUserNotificationUsageDescription: "This app uses notifications to keep you updated about family activities and schedules.",
-        NSNotificationUsageDescription: "This app uses notifications to keep you updated about family activities and schedules."
+        NSNotificationUsageDescription: "This app uses notifications to keep you updated about family activities and schedules.",
+        UIBackgroundRefreshUsageDescription: "This app uses background refresh to keep your family schedule up to date.",
+        // Enable background app refresh
+        UIApplicationSupportsIndirectInputEvents: true,
+        // Ensure notifications work in all states
+        UNUserNotificationCenter: true
       }
     },
+    // Local notifications only (no push notifications)
     notifications: {
       icon: "./assets/icon.png",
       color: "#3B82F6",
@@ -31,15 +37,26 @@ export default {
       iosDisplayInForeground: true
     },
     plugins: [
-      [
-        "expo-notifications",
-        {
-          icon: "./assets/icon.png",
-          color: "#3B82F6",
-          sounds: ["default"],
-          iosDisplayInForeground: true
-        }
-      ]
+      // Temporarily disable expo-notifications plugin to avoid push notification entitlements
+      // We'll handle local notifications programmatically without plugin
+      // [
+      //   "expo-notifications",
+      //   {
+      //     icon: "./assets/icon.png",
+      //     color: "#3B82F6",
+      //     sounds: ["default"],
+      //     iosDisplayInForeground: true,
+      //     mode: "local",
+      //     ios: {
+      //       allowsAlert: true,
+      //       allowsBadge: true,
+      //       allowsSound: true,
+      //       allowsCriticalAlerts: false,
+      //       allowsProvisional: false,
+      //       requestPushNotificationPermission: false
+      //     }
+      //   }
+      // ]
     ],
     android: {
       adaptiveIcon: {
