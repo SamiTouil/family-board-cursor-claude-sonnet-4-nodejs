@@ -156,15 +156,16 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       osVersion: Device.osVersion
     });
     
+    console.log('🔗 Creating socket connection...');
     const newSocket = io(baseUrl, {
       auth: {
         token,
       },
       transports: ['websocket', 'polling'],
-      timeout: 20000,
+      timeout: 10000, // Reduced timeout for faster debugging
       forceNew: true,
       reconnection: true,
-      reconnectionAttempts: Infinity, // Keep trying to reconnect
+      reconnectionAttempts: 3, // Reduced for faster debugging
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       randomizationFactor: 0.5,
@@ -177,8 +178,23 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       rememberUpgrade: true,
     });
 
+    console.log('🔗 Socket created, setting up event handlers...');
+
+    // Add a connection timeout to debug connection issues
+    const connectionTimeout = setTimeout(() => {
+      if (!newSocket.connected) {
+        console.error('⏰ WebSocket connection timeout after 15 seconds');
+        console.error('🔍 Debug info:');
+        console.error('  - URL:', baseUrl);
+        console.error('  - Socket state:', newSocket.connected ? 'connected' : 'disconnected');
+        console.error('  - Transport:', newSocket.io.engine?.transport?.name || 'none');
+        console.error('  - Ready state:', newSocket.io.engine?.readyState || 'unknown');
+      }
+    }, 15000);
+
     // Connection event handlers
     newSocket.on('connect', () => {
+      clearTimeout(connectionTimeout);
       console.log('✅ WebSocket connected successfully');
       console.log('🆔 Socket ID:', newSocket.id);
       console.log('🔗 Connected to:', baseUrl);
@@ -216,6 +232,29 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       console.error('🌐 Attempted connection to:', baseUrl);
       console.error('🔐 Token present:', !!token);
       console.error('📱 Environment:', Constants.expoConfig?.extra?.environment);
+
+      // Try fallback URL if available and this is the first attempt with primary URL
+      if (fallbackUrl && baseUrl !== fallbackUrl && reconnectAttempts.current === 0) {
+        console.log('🔄 Trying fallback WebSocket URL:', fallbackUrl);
+        newSocket.disconnect();
+
+        // Create new socket with fallback URL
+        const fallbackSocket = io(fallbackUrl, {
+          auth: { token },
+          transports: ['websocket', 'polling'],
+          timeout: 20000,
+          forceNew: true,
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+        });
+
+        // Note: setupSocketHandlers function needs to be implemented
+        // For now, just log that we would try fallback
+        console.log('🔄 Would try fallback, but setupSocketHandlers not implemented yet');
+        return;
+      }
+
       setIsConnected(false);
 
       if (reconnectAttempts.current < maxReconnectAttempts) {
