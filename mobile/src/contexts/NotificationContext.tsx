@@ -3,6 +3,7 @@ import { AppState, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { NotificationService } from '../services/NotificationService';
@@ -104,6 +105,83 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const clearNotifications = useCallback(async () => {
     setNotifications([]);
     await NotificationService.updateBadgeCount(0);
+  }, []);
+
+  // Check for missed notifications while app was backgrounded
+  const checkForMissedNotifications = useCallback(async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      console.log('🔍 Checking for missed notifications...');
+
+      // Get the last time we checked (stored in AsyncStorage)
+      const lastCheckTime = await AsyncStorage.getItem('lastNotificationCheck');
+      const lastCheck = lastCheckTime ? new Date(lastCheckTime) : new Date(Date.now() - 5 * 60 * 1000); // Default to 5 minutes ago
+
+      // Make API call to check for recent task assignments
+      const apiUrl = Constants.expoConfig?.extra?.apiUrl || 'http://192.168.1.24:3001/api';
+      const token = await AsyncStorage.getItem('authToken');
+
+      if (!token) return;
+
+      const response = await fetch(`${apiUrl}/families/recent-assignments?since=${lastCheck.toISOString()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📋 Found missed assignments:', data.assignments?.length || 0);
+
+        // Show notifications for missed assignments
+        if (data.assignments && data.assignments.length > 0) {
+          for (const assignment of data.assignments) {
+            await NotificationService.showNotification({
+              title: `📋 Missed: ${assignment.taskName}`,
+              body: assignment.message,
+              data: {
+                screen: 'Home',
+                taskId: assignment.taskId,
+                assignmentId: assignment.id,
+              },
+            });
+          }
+        }
+      }
+
+      // Update last check time
+      await AsyncStorage.setItem('lastNotificationCheck', new Date().toISOString());
+    } catch (error) {
+      console.error('❌ Error checking for missed notifications:', error);
+    }
+  }, [isAuthenticated]);
+
+  // Schedule background notification checks using local notifications
+  const scheduleBackgroundNotificationChecks = useCallback(async () => {
+    try {
+      console.log('⏰ Scheduling background notification checks...');
+
+      // Schedule periodic checks every 5 minutes for the next hour
+      const checkIntervals = [5, 10, 15, 30, 45, 60]; // minutes
+
+      for (const minutes of checkIntervals) {
+        await NotificationService.scheduleLocalNotification(
+          '🔔 Family Board',
+          'Checking for new task assignments...',
+          {
+            type: 'background-check',
+            checkTime: new Date(Date.now() + minutes * 60 * 1000).toISOString(),
+          },
+          minutes * 60 // seconds
+        );
+      }
+
+      console.log('✅ Background notification checks scheduled');
+    } catch (error) {
+      console.error('❌ Error scheduling background checks:', error);
+    }
   }, []);
 
   // Connect to WebSocket
@@ -572,12 +650,19 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       if (nextAppState === 'active') {
         // App came to foreground - clear any pending notifications
         NotificationService.clearDeliveredNotifications();
-        
+
         // Reconnect WebSocket if disconnected
         if (isAuthenticated && !socketRef.current?.connected) {
           console.log('📱 App active - reconnecting WebSocket...');
           connect();
         }
+
+        // Check for missed notifications while app was backgrounded
+        checkForMissedNotifications();
+      } else if (nextAppState === 'background') {
+        // App went to background - schedule background notification check
+        console.log('📱 App backgrounded - scheduling background notification checks');
+        scheduleBackgroundNotificationChecks();
       }
     };
 
@@ -585,10 +670,33 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     return () => subscription?.remove();
   }, [isAuthenticated, connect]);
 
-  // Initialize notification service
+  // Initialize notification service and set up notification handlers
   useEffect(() => {
     NotificationService.initialize();
-  }, []);
+
+    // Handle notification responses (when user taps on notification)
+    const notificationResponseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log('📱 Notification tapped:', response.notification.request.content);
+
+      const data = response.notification.request.content.data;
+
+      // If it's a background check notification, perform the check
+      if (data?.type === 'background-check') {
+        console.log('🔍 Background check notification tapped - checking for updates');
+        checkForMissedNotifications();
+      }
+
+      // Handle other notification types (navigate to screens, etc.)
+      if (data?.screen) {
+        console.log(`📱 Should navigate to: ${data.screen}`);
+        // Navigation logic would go here
+      }
+    });
+
+    return () => {
+      notificationResponseSubscription.remove();
+    };
+  }, [checkForMissedNotifications]);
 
   // Cleanup on unmount
   useEffect(() => {
