@@ -18,6 +18,83 @@ const router = Router();
 // Apply auth middleware to all family routes
 router.use(authenticateToken);
 
+// Get recent task assignments for background notifications (must be before other routes)
+router.get('/recent-assignments', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const { since } = req.query;
+
+    if (!since || typeof since !== 'string') {
+      return res.status(400).json({ error: 'Missing or invalid "since" parameter' });
+    }
+
+    const sinceDate = new Date(since);
+    if (isNaN(sinceDate.getTime())) {
+      return res.status(400).json({ error: 'Invalid date format for "since" parameter' });
+    }
+
+    // Get user's families
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
+
+    const userFamilies = await prisma.familyMember.findMany({
+      where: { userId },
+      select: { familyId: true },
+    });
+
+    const familyIds = userFamilies.map(f => f.familyId);
+
+    // Find recent task assignments for this user
+    const recentAssignments = await prisma.taskOverride.findMany({
+      where: {
+        familyId: { in: familyIds },
+        assignedToId: userId,
+        createdAt: { gte: sinceDate },
+      },
+      include: {
+        task: {
+          select: {
+            name: true,
+            icon: true,
+          },
+        },
+        assignedTo: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        assignedBy: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Format assignments for notifications
+    const assignments = recentAssignments.map(assignment => ({
+      id: assignment.id,
+      taskId: assignment.taskId,
+      taskName: assignment.task.name,
+      taskIcon: assignment.task.icon,
+      message: `${assignment.task.icon} ${assignment.task.name} assigned by ${assignment.assignedBy?.firstName || 'Someone'}`,
+      assignedAt: assignment.createdAt,
+      assignedBy: assignment.assignedBy ? `${assignment.assignedBy.firstName} ${assignment.assignedBy.lastName}` : 'Unknown',
+    }));
+
+    console.log(`📋 Found ${assignments.length} recent assignments for user ${userId} since ${sinceDate.toISOString()}`);
+
+    await prisma.$disconnect();
+    res.json({ success: true, assignments });
+  } catch (error) {
+    console.error('Error fetching recent assignments:', error);
+    res.status(500).json({ error: 'Failed to fetch recent assignments' });
+  }
+});
+
 // Validation middleware
 const validateBody = (schema: z.ZodSchema) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {

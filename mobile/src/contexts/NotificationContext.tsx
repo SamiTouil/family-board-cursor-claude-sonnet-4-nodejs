@@ -7,6 +7,7 @@ import * as Notifications from 'expo-notifications';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { NotificationService } from '../services/NotificationService';
+import { BackgroundTaskService } from '../services/BackgroundTaskService';
 import type { Notification } from '../types';
 
 interface NotificationContextType {
@@ -158,29 +159,20 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     }
   }, [isAuthenticated]);
 
-  // Schedule background notification checks using local notifications
-  const scheduleBackgroundNotificationChecks = useCallback(async () => {
+  // Initialize background tasks when app goes to background
+  const initializeBackgroundTasks = useCallback(async () => {
     try {
-      console.log('⏰ Scheduling background notification checks...');
+      console.log('⏰ Initializing background tasks...');
 
-      // Schedule periodic checks every 5 minutes for the next hour
-      const checkIntervals = [5, 10, 15, 30, 45, 60]; // minutes
+      // Initialize background fetch service
+      await BackgroundTaskService.initialize();
 
-      for (const minutes of checkIntervals) {
-        await NotificationService.scheduleLocalNotification(
-          '🔔 Family Board',
-          'Checking for new task assignments...',
-          {
-            type: 'background-check',
-            checkTime: new Date(Date.now() + minutes * 60 * 1000).toISOString(),
-          },
-          minutes * 60 // seconds
-        );
-      }
+      // Store the current time as the last background time
+      await AsyncStorage.setItem('lastBackgroundTime', new Date().toISOString());
 
-      console.log('✅ Background notification checks scheduled');
+      console.log('✅ Background tasks initialized');
     } catch (error) {
-      console.error('❌ Error scheduling background checks:', error);
+      console.error('❌ Error initializing background tasks:', error);
     }
   }, []);
 
@@ -660,9 +652,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         // Check for missed notifications while app was backgrounded
         checkForMissedNotifications();
       } else if (nextAppState === 'background') {
-        // App went to background - schedule background notification check
-        console.log('📱 App backgrounded - scheduling background notification checks');
-        scheduleBackgroundNotificationChecks();
+        // App went to background - initialize background tasks
+        console.log('📱 App backgrounded - initializing background tasks');
+        initializeBackgroundTasks();
       }
     };
 
@@ -674,19 +666,16 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   useEffect(() => {
     NotificationService.initialize();
 
+    // Initialize background task service
+    BackgroundTaskService.initialize();
+
     // Handle notification responses (when user taps on notification)
     const notificationResponseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
       console.log('📱 Notification tapped:', response.notification.request.content);
 
       const data = response.notification.request.content.data;
 
-      // If it's a background check notification, perform the check
-      if (data?.type === 'background-check') {
-        console.log('🔍 Background check notification tapped - checking for updates');
-        checkForMissedNotifications();
-      }
-
-      // Handle other notification types (navigate to screens, etc.)
+      // Handle navigation for task notifications
       if (data?.screen) {
         console.log(`📱 Should navigate to: ${data.screen}`);
         // Navigation logic would go here
