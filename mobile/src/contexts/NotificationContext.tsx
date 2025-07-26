@@ -129,10 +129,20 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
     // Get WebSocket URL from app config
     const apiUrl = Constants.expoConfig?.extra?.apiUrl || 'http://192.168.1.24:3001/api';
-    // Remove /api from the end to get the base WebSocket URL
-    const baseUrl = apiUrl.replace(/\/api$/, '');
-    
+
+    // Construct WebSocket URL based on environment
+    let baseUrl: string;
+    if (apiUrl.includes('mabt.eu')) {
+      // Production: use the same domain as API
+      baseUrl = 'https://mabt.eu';
+    } else {
+      // Development: remove /api from the end to get the base WebSocket URL
+      baseUrl = apiUrl.replace(/\/api$/, '');
+    }
+
     console.log('🔌 Connecting to WebSocket:', baseUrl);
+    console.log('🌐 API URL:', apiUrl);
+    console.log('🏗️ Environment:', Constants.expoConfig?.extra?.environment);
     console.log('🔐 Auth token present:', !!token);
     
     const newSocket = io(baseUrl, {
@@ -151,6 +161,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       // Add ping/pong to keep connection alive
       pingInterval: 25000,
       pingTimeout: 60000,
+      // Production-specific settings
+      upgrade: true,
+      rememberUpgrade: true,
     });
 
     // Connection event handlers
@@ -182,8 +195,11 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       console.error('Error type:', error.type);
       console.error('Error data:', error.data);
       console.error('Full error:', error);
+      console.error('🌐 Attempted connection to:', baseUrl);
+      console.error('🔐 Token present:', !!token);
+      console.error('📱 Environment:', Constants.expoConfig?.extra?.environment);
       setIsConnected(false);
-      
+
       if (reconnectAttempts.current < maxReconnectAttempts) {
         scheduleReconnect();
       }

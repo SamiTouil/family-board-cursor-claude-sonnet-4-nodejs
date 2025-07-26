@@ -51,19 +51,20 @@ echo "🎨 Using custom icons from assets/"
 # Prebuild with production configuration
 npx expo prebuild --platform ios
 
-echo "🔧 Removing push notification entitlements for personal Apple ID compatibility..."
-# Remove aps-environment entitlement that causes provisioning issues
+echo "🔧 Configuring entitlements for local notifications only..."
+# Remove aps-environment entitlement that causes provisioning issues with personal Apple ID
 if [ -f "ios/FamilyBoard/FamilyBoard.entitlements" ]; then
-    # Create clean entitlements file without aps-environment
+    # Create clean entitlements file without push notification entitlements
     cat > ios/FamilyBoard/FamilyBoard.entitlements << 'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
+    <!-- Local notifications only - no push notification entitlements -->
   </dict>
 </plist>
 EOF
-    echo "✅ Cleaned entitlements file"
+    echo "✅ Configured entitlements for local notifications"
 fi
 
 echo "🏗️  Building production iOS app..."
