@@ -374,7 +374,7 @@ export const TaskManagement: React.FC = () => {
                 </div>
                 <h5 className="task-management-empty-title">{t('tasks.noTasks')}</h5>
                 <p className="task-management-empty-description">{t('tasks.noTasksDescription')}</p>
-                {isAdmin && (
+                {canManageTasks && (
                   <Button
                     variant="primary"
                     onClick={handleAddTask}

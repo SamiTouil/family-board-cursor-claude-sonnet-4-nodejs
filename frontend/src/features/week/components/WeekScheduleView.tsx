@@ -166,7 +166,7 @@ export const WeekScheduleView: React.FC = () => {
           </div>
         </div>
         
-        {isAdmin && (
+        {canManageOverrides && (
           <div className="week-schedule-view-actions">
             {weekSchedule?.hasOverrides && (
               <button
@@ -236,7 +236,7 @@ export const WeekScheduleView: React.FC = () => {
                           date={day.date}
                           showSource={weekSchedule.hasOverrides}
                           isClickable={false}
-                          isAdmin={isAdmin}
+                          isAdmin={canManageOverrides}
                           onOverride={(task) => handleTaskOverride(task, day.date)}
                         />
                       ))}

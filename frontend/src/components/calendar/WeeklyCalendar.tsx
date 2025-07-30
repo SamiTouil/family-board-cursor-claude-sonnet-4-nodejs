@@ -748,7 +748,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
             →
           </button>
 
-          {isAdmin && (
+          {canManageOverrides && (
             <div className="weekly-calendar-admin-controls">
               <button
                 className="weekly-calendar-header-button"
@@ -930,7 +930,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                                     {formatDuration(totalDuration)}
                                   </span>
                                 </div>
-                                {isAdmin && (
+                                {canManageOverrides && (
                                   <div className="weekly-calendar-shift-actions">
                                     <DropdownMenu
                                       items={[

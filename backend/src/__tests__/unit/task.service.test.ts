@@ -132,7 +132,7 @@ describe('TaskService', () => {
       });
     });
 
-    it('should throw error when user is not family admin', async () => {
+    it('should allow family members to create tasks', async () => {
       const userId = 'user-2';
       const familyId = 'family-1';
       const taskData: CreateTaskDto = {
@@ -145,10 +145,10 @@ describe('TaskService', () => {
       };
 
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(mockMemberMembership);
+      (mockPrisma.task.create as jest.Mock).mockResolvedValue(mockTask);
 
-      await expect(TaskService.createTask(userId, familyId, taskData)).rejects.toThrow(
-        'Access denied: Only family admins can perform this action'
-      );
+      const result = await TaskService.createTask(userId, familyId, taskData);
+      expect(result).toEqual(mockTask);
     });
 
     it('should throw error when user is not family member', async () => {
@@ -447,17 +447,17 @@ describe('TaskService', () => {
       expect(result.color).toBe('#33FF57');
     });
 
-    it('should throw error when user is not family admin', async () => {
+    it('should allow family members to update tasks', async () => {
       const userId = 'user-2';
       const taskId = 'task-1';
       const updateData: UpdateTaskDto = { name: 'Updated Task Name' };
 
       (mockPrisma.task.findUnique as jest.Mock).mockResolvedValue(mockTask);
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(mockMemberMembership);
+      (mockPrisma.task.update as jest.Mock).mockResolvedValue({ ...mockTask, ...updateData });
 
-      await expect(TaskService.updateTask(userId, taskId, updateData)).rejects.toThrow(
-        'Access denied: Only family admins can perform this action'
-      );
+      const result = await TaskService.updateTask(userId, taskId, updateData);
+      expect(result.name).toBe('Updated Task Name');
     });
 
     it('should throw error when task does not exist', async () => {
@@ -490,16 +490,15 @@ describe('TaskService', () => {
       });
     });
 
-    it('should throw error when user is not family admin', async () => {
+    it('should allow family members to delete tasks', async () => {
       const userId = 'user-2';
       const taskId = 'task-1';
 
       (mockPrisma.task.findUnique as jest.Mock).mockResolvedValue(mockTask);
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(mockMemberMembership);
+      (mockPrisma.task.update as jest.Mock).mockResolvedValue({ ...mockTask, deletedAt: new Date() });
 
-      await expect(TaskService.deleteTask(userId, taskId)).rejects.toThrow(
-        'Access denied: Only family admins can perform this action'
-      );
+      await expect(TaskService.deleteTask(userId, taskId)).resolves.not.toThrow();
     });
   });
 
