@@ -196,9 +196,9 @@ router.post('/:familyId/week-schedule/override', async (req: AuthenticatedReques
       return res.status(400).json({ error: 'Family ID is required' });
     }
 
-    // Verify user has admin access to this family
+    // Verify user is a member of this family
     const userId = req.user!.userId;
-    await checkFamilyAdmin(userId, familyId);
+    await checkFamilyMembership(userId, familyId);
 
     const weekOverride = await weekScheduleService.applyWeekOverride(familyId, overrideData, userId);
 
@@ -276,9 +276,9 @@ router.delete('/:familyId/week-schedule/override', async (req: AuthenticatedRequ
       return res.status(400).json({ error: 'Family ID is required' });
     }
 
-    // Verify user has admin access to this family
+    // Verify user is a member of this family
     const userId = req.user!.userId;
-    await checkFamilyAdmin(userId, familyId);
+    await checkFamilyMembership(userId, familyId);
 
     await weekScheduleService.removeWeekOverride(familyId, weekStartDate, userId);
 

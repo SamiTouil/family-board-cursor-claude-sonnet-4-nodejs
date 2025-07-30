@@ -35,8 +35,8 @@ export const TaskManagement: React.FC = () => {
   // Emoji picker state
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  // Check if user is admin (can create/manage tasks)
-  const isAdmin = currentFamily?.userRole === 'ADMIN';
+  // All family members can create/manage tasks
+  const canManageTasks = currentFamily !== null;
 
   useEffect(() => {
     if (currentFamily) {
@@ -331,7 +331,7 @@ export const TaskManagement: React.FC = () => {
     <div className="task-management">
       <div className="task-management-header">
         <h2 className="task-management-title">{t('tasks.management')}</h2>
-        {isAdmin && (
+        {canManageTasks && (
           <button
             onClick={handleAddTask}
             className="task-management-header-button"
@@ -392,9 +392,9 @@ export const TaskManagement: React.FC = () => {
                   <TaskOverrideCard
                     task={adaptTaskForCard(task)}
                     taskIndex={0} // Not used for task management
-                    isAdmin={isAdmin}
-                    {...(isAdmin && { onRemove: (resolvedTask) => handleDeleteTask(resolvedTask.taskId) })}
-                    {...(isAdmin && { onEdit: (resolvedTask) => handleEditTask(resolvedTask.task) })}
+                    isAdmin={canManageTasks}
+                    {...(canManageTasks && { onRemove: (resolvedTask) => handleDeleteTask(resolvedTask.taskId) })}
+                    {...(canManageTasks && { onEdit: (resolvedTask) => handleEditTask(resolvedTask.task) })}
                     formatTime={formatTime}
                     formatDuration={formatDuration}
                   />

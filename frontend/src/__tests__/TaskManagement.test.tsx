@@ -147,7 +147,7 @@ describe('TaskManagement', () => {
     });
   });
 
-  it('hides create task button for non-admins', async () => {
+  it('shows create task button for family members', async () => {
     const memberFamily: Family = { ...mockFamily, userRole: 'MEMBER' };
     mockUseFamily.mockReturnValue({
       currentFamily: memberFamily,
@@ -172,7 +172,7 @@ describe('TaskManagement', () => {
     render(<TaskManagement />);
 
     await waitFor(() => {
-      expect(screen.queryByText('tasks.createFirstTask')).toBeNull();
+      expect(screen.getByText('tasks.createFirstTask')).toBeDefined();
     });
   });
 

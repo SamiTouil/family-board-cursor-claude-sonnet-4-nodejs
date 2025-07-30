@@ -61,10 +61,10 @@ export class TaskService {
     };
   }
 
-  // Create a new task (admin only)
+  // Create a new task (family members can create tasks)
   static async createTask(userId: string, familyId: string, data: CreateTaskDto): Promise<TaskResponseDto> {
-    // Check if user is admin of the family
-    await this.checkFamilyAdmin(userId, familyId);
+    // Check if user is a member of the family
+    await this.checkFamilyMembership(userId, familyId);
 
     // Validate that the family exists
     const family = await prisma.family.findUnique({
@@ -150,10 +150,10 @@ export class TaskService {
     return this.taskToResponseDto(task);
   }
 
-  // Update a task (admin only)
+  // Update a task (family members can update tasks)
   static async updateTask(
-    userId: string, 
-    taskId: string, 
+    userId: string,
+    taskId: string,
     data: UpdateTaskDto
   ): Promise<TaskResponseDto> {
     const existingTask = await prisma.task.findUnique({
@@ -164,8 +164,8 @@ export class TaskService {
       throw new Error('Task not found');
     }
 
-    // Check if user is admin of the family
-    await this.checkFamilyAdmin(userId, existingTask.familyId);
+    // Check if user is a member of the family
+    await this.checkFamilyMembership(userId, existingTask.familyId);
 
     // Build update data
     const updateData: any = {};
@@ -185,7 +185,7 @@ export class TaskService {
     return this.taskToResponseDto(updatedTask);
   }
 
-  // Soft delete a task (admin only)
+  // Soft delete a task (family members can delete tasks)
   static async deleteTask(userId: string, taskId: string): Promise<void> {
     const existingTask = await prisma.task.findUnique({
       where: { id: taskId },
@@ -195,8 +195,8 @@ export class TaskService {
       throw new Error('Task not found');
     }
 
-    // Check if user is admin of the family
-    await this.checkFamilyAdmin(userId, existingTask.familyId);
+    // Check if user is a member of the family
+    await this.checkFamilyMembership(userId, existingTask.familyId);
 
     // Soft delete by setting isActive to false
     await prisma.task.update({

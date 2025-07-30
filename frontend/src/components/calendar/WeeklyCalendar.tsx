@@ -51,7 +51,8 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
   const [familyMembers, setFamilyMembers] = useState<User[]>([]);
   const [shiftStatus, setShiftStatus] = useState<ShiftInfo | null>(null);
 
-  const isAdmin = currentFamily?.userRole === 'ADMIN';
+  // All family members can manage task overrides
+  const canManageOverrides = currentFamily !== null;
 
   // Helper function to check if a shift belongs to the current user
   const isCurrentUserShift = (memberId: string): boolean => {
@@ -827,7 +828,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                       {formatDate(day.date)}
                     </h3>
                   </div>
-                  {isAdmin && (
+                  {canManageOverrides && (
                     <div className="weekly-calendar-day-controls">
                       <Button
                         variant="icon"
@@ -964,7 +965,7 @@ export const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ className }) => 
                                     key={`${task.taskId}-${task.memberId}-${taskIndex}`}
                                     task={task}
                                     taskIndex={taskIndex}
-                                    isAdmin={isAdmin}
+                                    isAdmin={canManageOverrides}
                                     onRemove={(task) => handleTaskOverride('REMOVE', task, day.date)}
                                     onReassign={(task) => handleTaskOverride('REASSIGN', task, day.date)}
                                     formatTime={formatTime}

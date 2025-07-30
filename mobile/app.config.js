@@ -3,7 +3,7 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production' || process.env.EXPO_
 export default {
   expo: {
     name: IS_PRODUCTION ? "Family Board" : "Family Board (Dev)",
-    slug: IS_PRODUCTION ? "family-board" : "family-board-dev",
+    slug: "family-board-dev", // Keep consistent slug for EAS
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",

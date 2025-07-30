@@ -20,7 +20,8 @@ export const WeekScheduleView: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<ResolvedTask | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('');
 
-  const isAdmin = currentFamily?.userRole === 'ADMIN';
+  // All family members can manage task overrides
+  const canManageOverrides = currentFamily !== null;
 
   useEffect(() => {
     if (currentFamily) {
