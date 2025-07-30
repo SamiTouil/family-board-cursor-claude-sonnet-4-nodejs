@@ -18,6 +18,34 @@ const router = Router();
 // Apply auth middleware to all family routes
 router.use(authenticateToken);
 
+// Get recent task assignments for background notifications (must be before other routes)
+router.get('/recent-assignments', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const { since } = req.query;
+
+    if (!since || typeof since !== 'string') {
+      res.status(400).json({ error: 'Missing or invalid "since" parameter' });
+      return;
+    }
+
+    const sinceDate = new Date(since);
+    if (isNaN(sinceDate.getTime())) {
+      res.status(400).json({ error: 'Invalid date format for "since" parameter' });
+      return;
+    }
+
+    // For now, return empty assignments until the notification system is fully implemented
+    // This endpoint is used by mobile app for background notifications
+    console.log(`📋 Recent assignments requested for user ${userId} since ${sinceDate.toISOString()}`);
+
+    res.json({ success: true, assignments: [] });
+  } catch (error) {
+    console.error('Error fetching recent assignments:', error);
+    res.status(500).json({ error: 'Failed to fetch recent assignments' });
+  }
+});
+
 // Validation middleware
 const validateBody = (schema: z.ZodSchema) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
