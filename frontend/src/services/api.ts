@@ -102,7 +102,14 @@ export const familyApi = {
   async removeMember(familyId: string, memberId: string) {
     return await apiClient.delete(`/families/${familyId}/members/${memberId}`);
   },
-  
+
+  async updateMemberRole(familyId: string, memberId: string, role: 'ADMIN' | 'MEMBER') {
+    return await apiClient.put(`/families/${familyId}/members/${memberId}/role`, {
+      memberId,
+      role
+    });
+  },
+
   async createInvite(familyId: string, data: any) {
     return await apiClient.post(`/families/${familyId}/invites`, data);
   }
