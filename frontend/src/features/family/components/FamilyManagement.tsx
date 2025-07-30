@@ -435,6 +435,33 @@ export const FamilyManagement: React.FC = () => {
     }
   };
 
+  // Update member role function
+  const handleUpdateMemberRole = async (memberId: string, memberName: string, currentRole: string) => {
+    const newRole = currentRole === 'ADMIN' ? 'MEMBER' : 'ADMIN';
+    const action = newRole === 'ADMIN' ? t('family.promoteToAdmin') : t('family.demoteToMember');
+
+    if (!confirm(t('family.confirmRoleChange', { name: memberName, action }))) {
+      return;
+    }
+
+    if (!currentFamily) return;
+
+    setIsLoading(true);
+    try {
+      const response = await familyApi.updateMemberRole(currentFamily.id, memberId, newRole);
+      if (response.data.success) {
+        setMessage({ type: 'success', text: t('family.roleUpdated', { name: memberName, role: newRole }) });
+        await loadFamilyData();
+      } else {
+        setMessage({ type: 'error', text: response.data.message || t('family.roleUpdateError') });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: t('family.roleUpdateError') });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Join request functions
   const handleJoinRequestResponse = async (requestId: string, response: 'APPROVED' | 'REJECTED') => {
     setIsLoading(true);
@@ -590,6 +617,17 @@ export const FamilyManagement: React.FC = () => {
                           title={t('family.editVirtualMember')}
                         >
                           {t('common.edit')}
+                        </Button>
+                      )}
+                      {!member.user?.isVirtual && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleUpdateMemberRole(member.id, memberName, member.role)}
+                          disabled={isLoading}
+                          title={member.role === 'ADMIN' ? t('family.demoteToMember') : t('family.promoteToAdmin')}
+                        >
+                          {member.role === 'ADMIN' ? t('family.demote') : t('family.promote')}
                         </Button>
                       )}
                       <Button
