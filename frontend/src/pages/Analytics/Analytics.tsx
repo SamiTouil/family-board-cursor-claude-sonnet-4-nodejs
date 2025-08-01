@@ -11,7 +11,6 @@ const Analytics: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [analyticsData, setAnalyticsData] = useState<TaskSplitAnalytics | null>(null);
-  const [fairnessHistory, setFairnessHistory] = useState<Array<{ week: Date; fairnessScore: number }> | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState<'4weeks' | '8weeks' | '12weeks' | 'custom'>('4weeks');
   const [customDateRange, setCustomDateRange] = useState({
     startDate: '',
@@ -30,7 +29,6 @@ const Analytics: React.FC = () => {
   useEffect(() => {
     if (currentFamily) {
       fetchAnalyticsData();
-      fetchFairnessHistory();
     }
   }, [currentFamily, selectedTimeframe, customDateRange, selectedMemberIds]);
 
@@ -115,17 +113,7 @@ const Analytics: React.FC = () => {
     }
   };
 
-  const fetchFairnessHistory = async () => {
-    if (!currentFamily) return;
-    
-    try {
-      const weeks = Math.ceil(getPeriodDays() / 7);
-      const response = await analyticsApi.getFairnessHistory(currentFamily.id, weeks);
-      setFairnessHistory(response.data.data);
-    } catch (err) {
-      // Silently fail for fairness history - it's optional data
-    }
-  };
+
 
   const renderOverviewCards = () => {
     if (!analyticsData) return null;
@@ -266,92 +254,7 @@ const Analytics: React.FC = () => {
     );
   };
 
-  const renderFairnessChart = () => {
-    if (!fairnessHistory || fairnessHistory.length === 0) return null;
 
-    const maxScore = 100;
-    const minScore = 0;
-    const chartHeight = 200;
-    const chartWidth = 600;
-    const padding = 40;
-
-    // Prepare data points
-    const points = fairnessHistory.map((item, index) => {
-      const x = padding + (index / (fairnessHistory.length - 1)) * (chartWidth - 2 * padding);
-      const y = chartHeight - padding - ((item.fairnessScore - minScore) / (maxScore - minScore)) * (chartHeight - 2 * padding);
-      return { x, y, score: item.fairnessScore, date: item.week };
-    });
-
-    return (
-      <div className="analytics-subsection">
-        <div className="analytics-subsection-header">
-          <h3 className="analytics-subsection-title">Fairness Trend</h3>
-        </div>
-        
-        <div className="analytics-chart-container">
-          <svg width={chartWidth} height={chartHeight} className="analytics-chart-svg">
-            {/* Grid lines */}
-            {[0, 25, 50, 75, 100].map(score => {
-              const y = chartHeight - padding - ((score - minScore) / (maxScore - minScore)) * (chartHeight - 2 * padding);
-              return (
-                <g key={score}>
-                  <line
-                    x1={padding}
-                    y1={y}
-                    x2={chartWidth - padding}
-                    y2={y}
-                    stroke="#e5e7eb"
-                    strokeWidth="1"
-                  />
-                  <text
-                    x={padding - 10}
-                    y={y + 4}
-                    fontSize="12"
-                    fill="#6b7280"
-                    textAnchor="end"
-                  >
-                    {score}%
-                  </text>
-                </g>
-              );
-            })}
-            
-            {/* Chart line */}
-            <polyline
-              points={points.map(p => `${p.x},${p.y}`).join(' ')}
-              fill="none"
-              stroke="#6366f1"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            
-            {/* Data points */}
-            {points.map((point, index) => (
-              <circle
-                key={index}
-                cx={point.x}
-                cy={point.y}
-                r="4"
-                fill="#6366f1"
-                stroke="white"
-                strokeWidth="2"
-              >
-                <title>{`Week ${index + 1}: ${point.score}%`}</title>
-              </circle>
-            ))}
-          </svg>
-          
-          <div className="analytics-chart-legend">
-            <div className="analytics-chart-legend-item">
-              <div className="analytics-chart-legend-color"></div>
-              <span>Fairness Score</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   const getPeriodDays = () => {
     switch (selectedTimeframe) {
@@ -391,8 +294,7 @@ const Analytics: React.FC = () => {
         totalMinutes: member.totalMinutes,
         taskCount: member.taskCount,
         percentage: Math.round(member.percentage * 100) / 100
-      })),
-      fairnessHistory: fairnessHistory
+      }))
     };
 
     const blob = new Blob([JSON.stringify(exportJson, null, 2)], { type: 'application/json' });
@@ -713,7 +615,6 @@ const Analytics: React.FC = () => {
       
       <div className="analytics-management-content">
         {renderOverviewCards()}
-        {renderFairnessChart()}
         {renderMemberScores()}
       </div>
     </div>
