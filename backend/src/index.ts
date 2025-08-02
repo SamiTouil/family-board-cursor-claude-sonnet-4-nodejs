@@ -72,20 +72,31 @@ async function startServer(): Promise<void> {
     // CSRF Protection - Generate tokens for all requests
     app.use(generateCSRFToken);
 
-    // Routes
+    // Public routes (no CSRF validation required)
     app.use('/api', healthRoutes);
     app.use('/api/csrf', csrfRoutes);
     app.use('/api/auth', authRoutes);
 
-    // Apply CSRF validation to protected routes
+    // Protected routes (CSRF validation required)
+    // Current API (unversioned for backward compatibility)
+    // User management
     app.use('/api/users', validateCSRFToken, userRoutes);
+    
+    // Family-related routes
     app.use('/api/families', validateCSRFToken, familyRoutes);
-    app.use('/api/tasks', validateCSRFToken, taskRoutes);
-
     app.use('/api/families', validateCSRFToken, dayTemplateRoutes);
     app.use('/api/families', validateCSRFToken, weekTemplateRoutes);
     app.use('/api/families', validateCSRFToken, weekScheduleRoutes);
+    
+    // Task management
+    app.use('/api/tasks', validateCSRFToken, taskRoutes);
+    
+    // Analytics
     app.use('/api/analytics', validateCSRFToken, analyticsRoutes);
+
+    // Future API versioning structure (ready for v1 implementation)
+    // Example: app.use('/api/v1/users', validateCSRFToken, userRoutesV1);
+    // This structure allows gradual migration to versioned APIs without breaking existing clients
 
     // Error handling
     app.use(errorHandler);

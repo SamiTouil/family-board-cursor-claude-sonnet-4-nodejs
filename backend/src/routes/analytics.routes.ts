@@ -2,12 +2,16 @@ import { Router, Request, Response } from 'express';
 import { AnalyticsService, ShiftAnalyticsParams } from '../services/analytics.service';
 import { authenticateToken } from '../middleware/auth.middleware';
 import { AppError } from '../utils/errors';
+import { analyticsController } from '../controllers/analytics.controller';
 
 const router = Router();
 const analyticsService = new AnalyticsService();
 
+// Apply auth middleware to all analytics routes
+router.use(authenticateToken);
+
 // Get shift analytics
-router.get('/shifts', authenticateToken, async (req: Request, res: Response) => {
+router.get('/shifts', async (req: Request, res: Response) => {
   try {
     const user = req.user;
     if (!user || !user.familyId) {
@@ -44,7 +48,7 @@ router.get('/shifts', authenticateToken, async (req: Request, res: Response) => 
 });
 
 // Get task split analytics (existing functionality)
-router.get('/task-split', authenticateToken, async (req: Request, res: Response) => {
+router.get('/task-split', async (req: Request, res: Response) => {
   try {
     const user = req.user;
     if (!user || !user.familyId) {
@@ -71,7 +75,7 @@ router.get('/task-split', authenticateToken, async (req: Request, res: Response)
 });
 
 // Get historical fairness scores
-router.get('/fairness-history', authenticateToken, async (req: Request, res: Response) => {
+router.get('/fairness-history', async (req: Request, res: Response) => {
   try {
     const user = req.user;
     if (!user || !user.familyId) {
@@ -95,5 +99,12 @@ router.get('/fairness-history', authenticateToken, async (req: Request, res: Res
     }
   }
 });
+
+// Family-specific analytics routes (moved from family.routes.ts)
+// Get task split analytics for a specific family
+router.get('/:familyId/task-split', analyticsController.getTaskSplit);
+
+// Get fairness history for a specific family
+router.get('/:familyId/fairness-history', analyticsController.getFairnessHistory);
 
 export default router;
