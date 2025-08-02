@@ -6,6 +6,7 @@ import {
   TaskQueryParams
 } from '../types/task.types';
 import prisma from '../lib/prisma';
+import { AppError } from '../utils/errors';
 
 export class TaskService {
   
@@ -21,7 +22,7 @@ export class TaskService {
     });
 
     if (!membership) {
-      throw new Error('Access denied: You are not a member of this family');
+      throw AppError.fromErrorKey('FAMILY_MEMBER_REQUIRED');
     }
 
     return { role: membership.role };
@@ -32,7 +33,7 @@ export class TaskService {
     const membership = await this.checkFamilyMembership(userId, familyId);
     
     if (membership.role !== 'ADMIN') {
-      throw new Error('Access denied: Only family admins can perform this action');
+      throw AppError.fromErrorKey('ADMIN_REQUIRED');
     }
   }
 
@@ -64,7 +65,7 @@ export class TaskService {
     });
 
     if (!family) {
-      throw new Error('Family not found');
+      throw AppError.fromErrorKey('FAMILY_NOT_FOUND');
     }
 
     const task = await prisma.task.create({
@@ -133,7 +134,7 @@ export class TaskService {
     });
 
     if (!task) {
-      throw new Error('Task not found');
+      throw AppError.fromErrorKey('TASK_NOT_FOUND');
     }
 
     // Check if user is a member of the family
@@ -153,7 +154,7 @@ export class TaskService {
     });
 
     if (!existingTask) {
-      throw new Error('Task not found');
+      throw AppError.fromErrorKey('TASK_NOT_FOUND');
     }
 
     // Check if user is admin of the family
@@ -184,7 +185,7 @@ export class TaskService {
     });
 
     if (!existingTask) {
-      throw new Error('Task not found');
+      throw AppError.fromErrorKey('TASK_NOT_FOUND');
     }
 
     // Check if user is admin of the family
@@ -204,7 +205,7 @@ export class TaskService {
     });
 
     if (!existingTask) {
-      throw new Error('Task not found');
+      throw AppError.fromErrorKey('TASK_NOT_FOUND');
     }
 
     // Check if user is admin of the family
@@ -223,7 +224,7 @@ export class TaskService {
     });
 
     if (!existingTask) {
-      throw new Error('Task not found');
+      throw AppError.fromErrorKey('TASK_NOT_FOUND');
     }
 
     // Check if user is admin of the family
@@ -278,7 +279,7 @@ export class TaskService {
     });
 
     if (!existingTask) {
-      throw new Error('Task not found');
+      throw AppError.fromErrorKey('TASK_NOT_FOUND');
     }
 
     // Check if user is admin of the family

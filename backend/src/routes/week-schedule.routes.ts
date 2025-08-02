@@ -7,6 +7,7 @@ import {
   ShiftStatusQueryParams,
 } from '../types/task.types';
 import prisma from '../lib/prisma';
+import { AppError } from '../utils/errors';
 
 const router = Router();
 const weekScheduleService = new WeekScheduleService();
@@ -23,7 +24,7 @@ async function checkFamilyMembership(userId: string, familyId: string): Promise<
   });
 
   if (!membership) {
-    throw new Error('Access denied: You are not a member of this family');
+    throw AppError.fromErrorKey('FAMILY_MEMBER_REQUIRED');
   }
 
   return { role: membership.role };
@@ -34,7 +35,7 @@ async function checkFamilyAdmin(userId: string, familyId: string): Promise<void>
   const membership = await checkFamilyMembership(userId, familyId);
   
   if (membership.role !== 'ADMIN') {
-    throw new Error('Access denied: Only family admins can perform this action');
+    throw AppError.fromErrorKey('ADMIN_REQUIRED');
   }
 }
 

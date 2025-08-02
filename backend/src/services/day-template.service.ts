@@ -14,6 +14,7 @@ import {
 
 } from '../types/task.types';
 import prisma from '../lib/prisma';
+import { AppError } from '../utils/errors';
 
 export class DayTemplateService {
   
@@ -38,7 +39,7 @@ export class DayTemplateService {
     });
 
     if (existingTemplate) {
-      throw new Error('A template with this name already exists in this family');
+      throw AppError.fromErrorKey('TEMPLATE_NAME_EXISTS');
     }
 
     // Create the day template
@@ -278,7 +279,7 @@ export class DayTemplateService {
     // Verify template exists and belongs to the family
     const existingTemplate = await this.getDayTemplateById(id, familyId);
     if (!existingTemplate) {
-      throw new Error('Day template not found');
+      throw AppError.fromErrorKey('DAY_TEMPLATE_NOT_FOUND');
     }
 
     // Check if new name conflicts with existing templates (if name is being changed)
@@ -292,7 +293,7 @@ export class DayTemplateService {
       });
 
       if (nameConflict) {
-        throw new Error('A template with this name already exists in this family');
+        throw AppError.fromErrorKey('TEMPLATE_NAME_EXISTS');
       }
     }
 
@@ -368,7 +369,7 @@ export class DayTemplateService {
     // Verify template exists and belongs to the family
     const existingTemplate = await this.getDayTemplateById(id, familyId);
     if (!existingTemplate) {
-      throw new Error('Day template not found');
+      throw AppError.fromErrorKey('DAY_TEMPLATE_NOT_FOUND');
     }
 
     // Delete the template (cascade will delete template items)
@@ -393,7 +394,7 @@ export class DayTemplateService {
     // Verify template exists and belongs to the family
     const template = await this.getDayTemplateById(templateId, familyId);
     if (!template) {
-      throw new Error('Day template not found');
+      throw AppError.fromErrorKey('DAY_TEMPLATE_NOT_FOUND');
     }
 
     // Verify task belongs to the family
@@ -406,7 +407,7 @@ export class DayTemplateService {
     });
 
     if (!task) {
-      throw new Error('Task not found or does not belong to this family');
+      throw AppError.fromErrorKey('TASK_NOT_FOUND', 'Task not found or does not belong to this family');
     }
 
     // Verify member belongs to the family (if memberId is provided)
@@ -422,7 +423,7 @@ export class DayTemplateService {
       });
 
       if (!member) {
-        throw new Error('Member not found or does not belong to this family');
+        throw AppError.fromErrorKey('MEMBER_NOT_FOUND', 'Member not found or does not belong to this family');
       }
     }
 
@@ -436,7 +437,7 @@ export class DayTemplateService {
     });
 
     if (existingItem) {
-      throw new Error('This task is already assigned to this member in the template');
+      throw AppError.fromErrorKey('TASK_ALREADY_ASSIGNED');
     }
 
     // Create the template item
@@ -507,7 +508,7 @@ export class DayTemplateService {
     });
 
     if (!existingItem) {
-      throw new Error('Template item not found');
+      throw AppError.fromErrorKey('TEMPLATE_ITEM_NOT_FOUND');
     }
 
     // Verify member belongs to the family (if memberId is being changed)
@@ -524,7 +525,7 @@ export class DayTemplateService {
         });
 
         if (!member) {
-          throw new Error('Member not found or does not belong to this family');
+          throw AppError.fromErrorKey('MEMBER_NOT_FOUND', 'Member not found or does not belong to this family');
         }
       }
 
@@ -540,7 +541,7 @@ export class DayTemplateService {
         });
 
         if (conflictingItem) {
-          throw new Error('This task is already assigned to this member in the template');
+          throw AppError.fromErrorKey('TASK_ALREADY_ASSIGNED');
         }
       }
     }
@@ -615,7 +616,7 @@ export class DayTemplateService {
     });
 
     if (!existingItem) {
-      throw new Error('Template item not found');
+      throw AppError.fromErrorKey('TEMPLATE_ITEM_NOT_FOUND');
     }
 
     // Delete the template item
@@ -640,7 +641,7 @@ export class DayTemplateService {
     });
 
     if (!template) {
-      throw new Error('Day template not found');
+      throw AppError.fromErrorKey('DAY_TEMPLATE_NOT_FOUND');
     }
 
     // Get all template items
@@ -700,11 +701,11 @@ export class DayTemplateService {
     // Verify template exists and belongs to the family
     const template = await this.getDayTemplateById(templateId, familyId);
     if (!template) {
-      throw new Error('Day template not found');
+      throw AppError.fromErrorKey('DAY_TEMPLATE_NOT_FOUND');
     }
 
     if (!template.isActive) {
-      throw new Error('Cannot preview inactive template');
+      throw AppError.fromErrorKey('INACTIVE_TEMPLATE');
     }
 
     return template.items;
@@ -721,7 +722,7 @@ export class DayTemplateService {
     // Verify source template exists and belongs to the family
     const sourceTemplate = await this.getDayTemplateById(templateId, familyId);
     if (!sourceTemplate) {
-      throw new Error('Source template not found');
+      throw AppError.fromErrorKey('DAY_TEMPLATE_NOT_FOUND', 'Source template not found');
     }
 
     // Check if new name conflicts
@@ -733,7 +734,7 @@ export class DayTemplateService {
     });
 
     if (nameConflict) {
-      throw new Error('A template with this name already exists in this family');
+      throw AppError.fromErrorKey('TEMPLATE_NAME_EXISTS');
     }
 
     // Create new template with items in a transaction
