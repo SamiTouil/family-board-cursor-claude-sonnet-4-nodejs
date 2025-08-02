@@ -1,7 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-// @ts-ignore - temporarily unused due to disabled CSRF
 import crypto from 'crypto';
-// @ts-ignore - temporarily unused due to disabled CSRF
 import { i18next } from '../config/i18n';
 
 export interface CSRFRequest extends Request {
@@ -36,7 +34,6 @@ function generateRandomCSRFToken(): string {
 /**
  * Extract CSRF token from request (header or body)
  */
-// @ts-ignore - temporarily unused due to disabled CSRF
 function extractCSRFToken(req: Request): string | undefined {
   // Check header first (preferred)
   const headerToken = req.headers[CSRF_HEADER_NAME] as string;
