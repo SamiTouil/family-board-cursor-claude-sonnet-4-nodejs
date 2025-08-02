@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { generateCSRFToken, getCSRFToken } from '../middleware/csrf.middleware';
+import { security } from '../config';
 
 const router = Router();
 
@@ -11,8 +12,8 @@ const router = Router();
  * is currently enabled or disabled on the server.
  */
 router.get('/status', (_req, res) => {
-  // Check if CSRF validation is disabled via environment variable
-  const isEnabled = process.env['DISABLE_CSRF_VALIDATION'] !== 'true';
+  // Check if CSRF validation is disabled via configuration
+  const isEnabled = !security.disableCsrfValidation;
 
   res.json({
     enabled: isEnabled,

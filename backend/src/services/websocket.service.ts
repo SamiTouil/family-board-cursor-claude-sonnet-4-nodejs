@@ -2,6 +2,7 @@ import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import jwt from 'jsonwebtoken';
 import { getJwtSecret } from '../config/jwt.config';
+import { cors as corsConfig } from '../config';
 import prisma from '../lib/prisma';
 
 interface AuthenticatedSocket extends Socket {
@@ -22,11 +23,7 @@ export class WebSocketService {
 
   constructor(httpServer: HTTPServer) {
     // Configure allowed origins for WebSocket connections
-    const allowedOrigins = [
-      process.env['FRONTEND_URL'] || 'http://localhost:3000',
-      // Parse additional allowed origins from environment variable
-      ...(process.env['ALLOWED_ORIGINS']?.split(',').map(origin => origin.trim()) || []),
-    ];
+    const allowedOrigins = corsConfig.allowedOrigins;
     
     this.io = new SocketIOServer(httpServer, {
       cors: {
