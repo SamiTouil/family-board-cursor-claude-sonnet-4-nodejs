@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import { 
   Task,
   CreateTaskDto,
@@ -6,14 +5,7 @@ import {
   TaskResponseDto,
   TaskQueryParams
 } from '../types/task.types';
-
-// Use a global instance like other services
-declare global {
-  var __prisma: PrismaClient | undefined;
-}
-
-const prisma = globalThis.__prisma || new PrismaClient();
-if (process.env['NODE_ENV'] !== 'production') globalThis.__prisma = prisma;
+import prisma from '../lib/prisma';
 
 export class TaskService {
   

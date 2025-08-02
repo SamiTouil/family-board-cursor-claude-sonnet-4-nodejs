@@ -2,15 +2,7 @@ import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import jwt from 'jsonwebtoken';
 import { getJwtSecret } from '../config/jwt.config';
-import { PrismaClient } from '@prisma/client';
-
-// Use a global instance like other services
-declare global {
-  var __prisma: PrismaClient | undefined;
-}
-
-const prisma = globalThis.__prisma || new PrismaClient();
-if (process.env['NODE_ENV'] !== 'production') globalThis.__prisma = prisma;
+import prisma from '../lib/prisma';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;

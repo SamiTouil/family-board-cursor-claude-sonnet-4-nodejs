@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import {
   DayTemplateWithRelations,
   DayTemplateItemWithRelations,
@@ -14,8 +13,7 @@ import {
   UpdateDayTemplateItemSchema,
 
 } from '../types/task.types';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 export class DayTemplateService {
   

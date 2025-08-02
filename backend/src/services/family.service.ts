@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import { 
   CreateFamilyData, 
   UpdateFamilyData, 
@@ -16,14 +15,7 @@ import {
 import { UpdateVirtualMemberInput } from '../types/user.types';
 import crypto from 'crypto';
 import { getWebSocketService } from './websocket.service';
-
-// Use a global instance like other services
-declare global {
-  var __prisma: PrismaClient | undefined;
-}
-
-const prisma = globalThis.__prisma || new PrismaClient();
-if (process.env['NODE_ENV'] !== 'production') globalThis.__prisma = prisma;
+import prisma from '../lib/prisma';
 
 export class FamilyService {
   // Generate a unique invite code
