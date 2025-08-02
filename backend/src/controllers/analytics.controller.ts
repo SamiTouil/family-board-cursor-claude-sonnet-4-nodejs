@@ -1,112 +1,143 @@
-import { Request, Response } from 'express';
-import prisma from '../lib/prisma';
-import { AnalyticsService } from '../services/analytics.service';
+import { Response } from 'express';
+import { BaseController } from './base.controller';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { AnalyticsService, ShiftAnalyticsParams } from '../services/analytics.service';
 import { z } from 'zod';
+import { AppError } from '../utils/errors';
 
-const analyticsService = new AnalyticsService();
+/**
+ * Controller for handling analytics-related HTTP requests
+ */
+export class AnalyticsController extends BaseController {
+  private analyticsService = new AnalyticsService();
 
-const getTaskSplitSchema = z.object({
-  periodDays: z.coerce.number().min(7).max(365).optional().default(28),
-  referenceDate: z.string().optional() // ISO date string (YYYY-MM-DD) for the reference week
-});
-
-export const analyticsController = {
   /**
-   * Get task split analytics for a family
-   * GET /families/:familyId/analytics/task-split
+   * Get shift analytics
    */
-  async getTaskSplit(req: Request, res: Response) {
+  getShiftAnalytics = this.asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const user = req.user;
+    if (!user || !user.familyId) {
+      throw new AppError('User not authenticated or not part of a family', 401);
+    }
+
+    const {
+      timeframe = '3months',
+      startDate,
+      endDate,
+      memberIds,
+      showVirtual = 'true'
+    } = req.query;
+
+    const params: ShiftAnalyticsParams = {
+      familyId: user.familyId,
+      timeframe: timeframe as '3months' | '6months' | '1year' | 'custom',
+      ...(startDate && { startDate: startDate as string }),
+      ...(endDate && { endDate: endDate as string }),
+      ...(memberIds && { memberIds: (memberIds as string).split(',') }),
+      showVirtual: showVirtual === 'true'
+    };
+
+    const analytics = await this.analyticsService.getShiftAnalytics(params);
+    this.sendSuccess(res, analytics);
+  });
+
+  /**
+   * Get task split analytics (existing functionality)
+   */
+  getTaskSplitAnalytics = this.asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const user = req.user;
+    if (!user || !user.familyId) {
+      throw new AppError('User not authenticated or not part of a family', 401);
+    }
+
+    const { periodDays = '28', referenceDate } = req.query;
+
+    const analytics = await this.analyticsService.calculateTaskSplit(
+      user.familyId,
+      parseInt(periodDays as string),
+      referenceDate as string | undefined
+    );
+
+    this.sendSuccess(res, analytics);
+  });
+
+  /**
+   * Get historical fairness scores
+   */
+  getFairnessHistory = this.asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const user = req.user;
+    if (!user || !user.familyId) {
+      throw new AppError('User not authenticated or not part of a family', 401);
+    }
+
+    const { weeks = '12' } = req.query;
+
+    const history = await this.analyticsService.getHistoricalFairness(
+      user.familyId,
+      parseInt(weeks as string)
+    );
+
+    this.sendSuccess(res, history);
+  });
+
+  /**
+   * Get task split analytics for a specific family
+   */
+  getTaskSplit = this.asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const familyId = this.getParam(req, 'familyId');
+    
+    if (!familyId) {
+      this.sendError(res, 'Family ID is required');
+      return;
+    }
+
+    const getTaskSplitSchema = z.object({
+      periodDays: z.coerce.number().min(7).max(365).optional().default(28),
+      referenceDate: z.string().optional() // ISO date string (YYYY-MM-DD) for the reference week
+    });
+
     try {
-      const { familyId } = req.params;
-      const userId = (req as any).user.id;
-
-      // Validate query parameters
       const query = getTaskSplitSchema.parse(req.query);
-
-      // Check if user belongs to the family
-      const member = await prisma.familyMember.findFirst({
-        where: {
-          familyId: familyId!,
-          userId
-        }
-      });
-
-      if (!member) {
-        return res.status(403).json({
-          error: 'Forbidden',
-          message: 'You do not have access to this family'
-        });
-      }
-
+      
       // Calculate task split analytics
-      const analytics = await analyticsService.calculateTaskSplit(
-        familyId!,
+      const analytics = await this.analyticsService.calculateTaskSplit(
+        familyId,
         query.periodDays,
         query.referenceDate
       );
 
-      return res.json({
-        data: analytics
-      });
+      this.sendSuccess(res, analytics);
     } catch (error) {
-      console.error('Error getting task split analytics:', error);
-      
       if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          error: 'Validation error',
-          message: 'Invalid request parameters',
-          errors: error.errors
-        });
+        this.sendValidationError(res, error.errors);
+        return;
       }
-
-      return res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to calculate task split analytics'
-      });
+      throw error;
     }
-  },
+  });
 
   /**
-   * Get historical fairness scores
-   * GET /families/:familyId/analytics/fairness-history
+   * Get fairness history for a specific family
    */
-  async getFairnessHistory(req: Request, res: Response) {
-    try {
-      const { familyId } = req.params;
-      const userId = (req as any).user.id;
-      const weeks = parseInt(req.query['weeks'] as string) || 12;
-
-      // Check if user belongs to the family
-      const member = await prisma.familyMember.findFirst({
-        where: {
-          familyId: familyId!,
-          userId
-        }
-      });
-
-      if (!member) {
-        return res.status(403).json({
-          error: 'Forbidden',
-          message: 'You do not have access to this family'
-        });
-      }
-
-      // Get historical fairness scores
-      const history = await analyticsService.getHistoricalFairness(
-        familyId!,
-        Math.min(weeks, 52) // Max 1 year
-      );
-
-      return res.json({
-        data: history
-      });
-    } catch (error) {
-      console.error('Error getting fairness history:', error);
-      
-      return res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to get fairness history'
-      });
+  getFairnessHistoryForFamily = this.asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const familyId = this.getParam(req, 'familyId');
+    
+    if (!familyId) {
+      this.sendError(res, 'Family ID is required');
+      return;
     }
-  }
-};
+
+    const weeks = parseInt(req.query['weeks'] as string) || 12;
+
+    // Get historical fairness scores
+    const history = await this.analyticsService.getHistoricalFairness(
+      familyId,
+      Math.min(weeks, 52) // Max 1 year
+    );
+
+    this.sendSuccess(res, history);
+  });
+}
+
+// Export a singleton instance
+export const analyticsController = new AnalyticsController();
