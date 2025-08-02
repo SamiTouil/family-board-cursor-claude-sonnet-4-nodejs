@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
+import { app as appConfig, cors as corsConfig } from './config';
 import { initI18n } from './config/i18n';
 import { userRoutes } from './routes/user.routes';
 import { authRoutes } from './routes/auth.routes';
@@ -22,7 +23,6 @@ import prisma from './lib/prisma';
 
 const app = express();
 const httpServer = createServer(app);
-const PORT = process.env['PORT'] || 3001;
 
 async function startServer(): Promise<void> {
   try {
@@ -37,9 +37,7 @@ async function startServer(): Promise<void> {
     
     // Configure CORS to allow both web and mobile clients
     const allowedOrigins = [
-      process.env['FRONTEND_URL'] || 'http://localhost:3000',
-      // Parse additional allowed origins from environment variable
-      ...(process.env['ALLOWED_ORIGINS']?.split(',').map(origin => origin.trim()) || []),
+      ...corsConfig.allowedOrigins,
       // Regex patterns for mobile development
       /^http:\/\/192\.168\.\d+\.\d+:8081$/, // Any local IP for Expo
       /^exp:\/\/\d+\.\d+\.\d+\.\d+:\d+$/, // Any Expo URL
@@ -102,8 +100,8 @@ async function startServer(): Promise<void> {
     app.use(errorHandler);
 
     // Start server
-    httpServer.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+    httpServer.listen(appConfig.port, () => {
+      console.log(`🚀 Server running on port ${appConfig.port}`);
       console.log(`🔌 WebSocket server ready for connections`);
     });
   } catch (error) {

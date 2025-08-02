@@ -3,6 +3,7 @@ import { ZodError } from 'zod';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { i18next } from '../config/i18n';
 import { AppError } from '../utils/errors';
+import { app as appConfig } from '../config';
 
 export function errorHandler(
   error: Error,
@@ -43,7 +44,7 @@ export function errorHandler(
       code: error.code,
       type: error.type,
       // Include error details in development
-      ...(process.env['NODE_ENV'] === 'development' && {
+      ...(appConfig.isDevelopment && {
         stack: error.stack
       })
     });
@@ -82,7 +83,7 @@ export function errorHandler(
     success: false,
     message: i18next.t('errors.internalServerError'),
     // Include error details in development
-    ...(process.env['NODE_ENV'] === 'development' && {
+    ...(appConfig.isDevelopment && {
       error: error.message,
       stack: error.stack
     })

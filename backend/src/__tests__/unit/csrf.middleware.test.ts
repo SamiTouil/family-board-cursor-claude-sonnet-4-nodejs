@@ -6,6 +6,7 @@ import {
   getCSRFToken,
   CSRFRequest
 } from '../../middleware/csrf.middleware';
+import { resetConfig } from '../../config';
 
 // Mock i18n
 jest.mock('../../config/i18n', () => ({
@@ -111,6 +112,7 @@ describe('CSRF Middleware', () => {
     it('should set secure cookie in production', () => {
       const originalEnv = process.env['NODE_ENV'];
       process.env['NODE_ENV'] = 'production';
+      resetConfig(); // Reset config to pick up the new NODE_ENV
 
       generateCSRFToken(mockReq as CSRFRequest, mockRes as Response, mockNext);
 
@@ -123,6 +125,7 @@ describe('CSRF Middleware', () => {
       );
 
       process.env['NODE_ENV'] = originalEnv;
+      resetConfig(); // Reset again to restore original environment
     });
   });
 
@@ -137,6 +140,7 @@ describe('CSRF Middleware', () => {
     it('should always skip validation (temporarily disabled)', () => {
       // Set the environment variable to disable CSRF for this test
       process.env['DISABLE_CSRF_VALIDATION'] = 'true';
+      resetConfig(); // Reset config to pick up the new DISABLE_CSRF_VALIDATION
 
       validateCSRFToken(mockReq as CSRFRequest, mockRes as Response, mockNext);
 
@@ -145,6 +149,7 @@ describe('CSRF Middleware', () => {
 
       // Clean up
       delete process.env['DISABLE_CSRF_VALIDATION'];
+      resetConfig(); // Reset again to restore original environment
     });
 
     it.skip('should skip validation for safe HTTP methods', () => {

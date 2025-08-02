@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
+import { app as appConfig } from '../config';
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.get('/health', async (_req, res) => {
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       database: 'connected',
-      environment: process.env['NODE_ENV'] || 'development'
+      environment: appConfig.nodeEnv
     });
   } catch (error) {
     console.error('Health check failed:', error);

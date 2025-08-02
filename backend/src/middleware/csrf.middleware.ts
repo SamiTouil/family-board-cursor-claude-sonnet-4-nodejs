@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { i18next } from '../config/i18n';
+import { app as appConfig, security } from '../config';
 
 export interface CSRFRequest extends Request {
   csrfToken?: string;
@@ -77,7 +78,7 @@ export function generateCSRFToken(
     // Set secure cookie with CSRF token
     res.cookie(CSRF_COOKIE_NAME, csrfToken, {
       httpOnly: false, // Must be readable by JavaScript for double-submit pattern
-      secure: process.env['NODE_ENV'] === 'production', // HTTPS only in production
+      secure: appConfig.isProduction, // HTTPS only in production
       sameSite: 'strict', // Strict same-site policy
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       path: '/',
@@ -100,7 +101,7 @@ export function validateCSRFToken(
   next: NextFunction
 ): void {
   // Feature flag to disable CSRF validation during client migration
-  if (process.env['DISABLE_CSRF_VALIDATION'] === 'true') {
+  if (security.disableCsrfValidation) {
     next();
     return;
   }
