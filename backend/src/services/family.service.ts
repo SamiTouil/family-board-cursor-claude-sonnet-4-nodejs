@@ -16,6 +16,7 @@ import { UpdateVirtualMemberInput } from '../types/user.types';
 import crypto from 'crypto';
 import { getWebSocketService } from './websocket.service';
 import prisma from '../lib/prisma';
+import { AppError } from '../utils/errors';
 
 export class FamilyService {
   // Generate a unique invite code
@@ -133,7 +134,7 @@ export class FamilyService {
     });
 
     if (!membership) {
-      throw new Error('Family not found or access denied');
+      throw AppError.fromErrorKey('ACCESS_DENIED', 'Family not found or access denied');
     }
 
     return {
@@ -162,7 +163,7 @@ export class FamilyService {
     });
 
     if (!membership || membership.role !== 'ADMIN') {
-      throw new Error('Only family admins can update family details');
+      throw AppError.fromErrorKey('ADMIN_REQUIRED', 'Only family admins can update family details');
     }
 
     const updateData: any = {};
@@ -216,7 +217,7 @@ export class FamilyService {
     });
 
     if (!userMembership) {
-      throw new Error('Access denied');
+      throw AppError.fromErrorKey('ACCESS_DENIED');
     }
 
     const members = await prisma.familyMember.findMany({
@@ -267,7 +268,7 @@ export class FamilyService {
     });
 
     if (!adminMembership || adminMembership.role !== 'ADMIN') {
-      throw new Error('Only family admins can update member roles');
+      throw AppError.fromErrorKey('ADMIN_REQUIRED', 'Only family admins can update member roles');
     }
 
     const updatedMember = await prisma.familyMember.update({
@@ -314,7 +315,7 @@ export class FamilyService {
     });
 
     if (!senderMembership || senderMembership.role !== 'ADMIN') {
-      throw new Error('Only family admins can create invites');
+      throw AppError.fromErrorKey('ADMIN_REQUIRED', 'Only family admins can create invites');
     }
 
     // Check for existing active invites and expire them
@@ -367,7 +368,7 @@ export class FamilyService {
         });
 
         if (existingMembership) {
-          throw new Error('User is already a member of this family');
+          throw AppError.fromErrorKey('ALREADY_FAMILY_MEMBER');
         }
       }
     }
@@ -448,7 +449,7 @@ export class FamilyService {
     });
 
     if (!invite) {
-      throw new Error('Invalid invite code');
+      throw AppError.fromErrorKey('INVITE_NOT_FOUND');
     }
 
     // Check if invite has expired
@@ -457,12 +458,12 @@ export class FamilyService {
         where: { id: invite.id },
         data: { status: 'EXPIRED' },
       });
-      throw new Error('Invite has expired');
+      throw AppError.fromErrorKey('INVITE_EXPIRED');
     }
 
     // Check if invite is for specific user
     if (invite.receiverId && invite.receiverId !== userId) {
-      throw new Error('This invite is for a different user');
+      throw AppError.fromErrorKey('INVITE_WRONG_USER');
     }
 
     // Check if user is already a member
@@ -476,7 +477,7 @@ export class FamilyService {
     });
 
     if (existingMembership) {
-      throw new Error('You are already a member of this family');
+      throw AppError.fromErrorKey('ALREADY_FAMILY_MEMBER', 'You are already a member of this family');
     }
 
     // Check if user already has a pending join request
@@ -491,7 +492,7 @@ export class FamilyService {
 
     if (existingRequest) {
       if (existingRequest.status === 'PENDING') {
-        throw new Error('You already have a pending join request for this family');
+        throw AppError.fromErrorKey('PENDING_JOIN_REQUEST');
       } else if (existingRequest.status === 'REJECTED' || existingRequest.status === 'APPROVED') {
         // Allow resubmission after rejection or if user was approved but later removed
         await prisma.familyJoinRequest.delete({
@@ -591,7 +592,7 @@ export class FamilyService {
     });
 
     if (!membership || membership.role !== 'ADMIN') {
-      throw new Error('Only family admins can view join requests');
+      throw AppError.fromErrorKey('ADMIN_REQUIRED', 'Only family admins can view join requests');
     }
 
     const joinRequests = await prisma.familyJoinRequest.findMany({
@@ -657,7 +658,7 @@ export class FamilyService {
     });
 
     if (!joinRequest) {
-      throw new Error('Join request not found');
+      throw AppError.fromErrorKey('JOIN_REQUEST_NOT_FOUND');
     }
 
     // Check if admin has permission
@@ -671,12 +672,12 @@ export class FamilyService {
     });
 
     if (!adminMembership || adminMembership.role !== 'ADMIN') {
-      throw new Error('Only family admins can respond to join requests');
+      throw AppError.fromErrorKey('ADMIN_REQUIRED', 'Only family admins can respond to join requests');
     }
 
     // Check if request is still pending
     if (joinRequest.status !== 'PENDING') {
-      throw new Error('This join request has already been processed');
+      throw AppError.fromErrorKey('JOIN_REQUEST_PROCESSED');
     }
 
     // Process the response
@@ -796,7 +797,7 @@ export class FamilyService {
     });
 
     if (!adminMembership || adminMembership.role !== 'ADMIN') {
-      throw new Error('Only family admins can remove members');
+      throw AppError.fromErrorKey('ADMIN_REQUIRED', 'Only family admins can remove members');
     }
 
     // Get member to remove
@@ -808,17 +809,17 @@ export class FamilyService {
     });
 
     if (!memberToRemove) {
-      throw new Error('Member not found');
+      throw AppError.fromErrorKey('MEMBER_NOT_FOUND');
     }
 
     // Don't allow removing family creator
     if (memberToRemove.userId === memberToRemove.family.creatorId) {
-      throw new Error('Cannot remove family creator');
+      throw AppError.fromErrorKey('CANNOT_REMOVE_CREATOR');
     }
 
     // Don't allow self-removal
     if (memberToRemove.userId === adminId) {
-      throw new Error('Cannot remove yourself from the family');
+      throw AppError.fromErrorKey('CANNOT_REMOVE_SELF');
     }
 
     await prisma.familyMember.delete({
@@ -841,12 +842,12 @@ export class FamilyService {
     });
 
     if (!membership) {
-      throw new Error('You are not a member of this family');
+      throw AppError.fromErrorKey('FAMILY_MEMBER_REQUIRED');
     }
 
     // Don't allow family creator to leave
     if (userId === membership.family.creatorId) {
-      throw new Error('Family creator cannot leave. Transfer ownership first.');
+      throw AppError.fromErrorKey('CREATOR_CANNOT_LEAVE');
     }
 
     await prisma.familyMember.delete({
@@ -861,11 +862,11 @@ export class FamilyService {
     });
 
     if (!family) {
-      throw new Error('Family not found');
+      throw AppError.fromErrorKey('FAMILY_NOT_FOUND');
     }
 
     if (family.creatorId !== userId) {
-      throw new Error('Only family creator can delete the family');
+      throw AppError.fromErrorKey('ACCESS_DENIED', 'Only family creator can delete the family');
     }
 
     await prisma.family.delete({
@@ -886,7 +887,7 @@ export class FamilyService {
     });
 
     if (!membership || membership.role !== 'ADMIN') {
-      throw new Error('Only family admins can view family invites');
+      throw AppError.fromErrorKey('ADMIN_REQUIRED', 'Only family admins can view family invites');
     }
 
     const invites = await prisma.familyInvite.findMany({
@@ -945,7 +946,7 @@ export class FamilyService {
     });
 
     if (!membership || membership.role !== 'ADMIN') {
-      throw new Error('Only family admins can view family stats');
+      throw AppError.fromErrorKey('ADMIN_REQUIRED', 'Only family admins can view family stats');
     }
 
     const [totalMembers, totalAdmins, pendingInvites, pendingJoinRequests, family] = await Promise.all([
@@ -1037,17 +1038,17 @@ export class FamilyService {
     });
 
     if (!joinRequest) {
-      throw new Error('Join request not found');
+      throw AppError.fromErrorKey('JOIN_REQUEST_NOT_FOUND');
     }
 
     // Check if the request belongs to the user
     if (joinRequest.userId !== userId) {
-      throw new Error('You can only cancel your own join requests');
+      throw AppError.fromErrorKey('ACCESS_DENIED', 'You can only cancel your own join requests');
     }
 
     // Check if request is still pending
     if (joinRequest.status !== 'PENDING') {
-      throw new Error('Only pending join requests can be cancelled');
+      throw AppError.fromErrorKey('ONLY_PENDING_CANCELLABLE');
     }
 
     // Delete the join request
@@ -1069,7 +1070,7 @@ export class FamilyService {
     });
 
     if (!adminMembership || adminMembership.role !== 'ADMIN') {
-      throw new Error('Only family admins can create virtual members');
+      throw AppError.fromErrorKey('ADMIN_REQUIRED', 'Only family admins can create virtual members');
     }
 
     // Create virtual user and add to family in a transaction
@@ -1139,7 +1140,7 @@ export class FamilyService {
     });
 
     if (!adminMembership || adminMembership.role !== 'ADMIN') {
-      throw new Error('Only family admins can update virtual members');
+      throw AppError.fromErrorKey('ADMIN_REQUIRED', 'Only family admins can update virtual members');
     }
 
     // Check if the user being updated is a virtual member of this family
@@ -1156,11 +1157,11 @@ export class FamilyService {
     });
 
     if (!virtualMembership) {
-      throw new Error('Virtual member not found in this family');
+      throw AppError.fromErrorKey('VIRTUAL_MEMBER_NOT_FOUND');
     }
 
     if (!virtualMembership.user.isVirtual) {
-      throw new Error('Only virtual members can be updated through this endpoint');
+      throw AppError.fromErrorKey('ONLY_VIRTUAL_MEMBER_UPDATE');
     }
 
     // Update the virtual user

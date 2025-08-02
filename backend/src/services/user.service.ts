@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { getJwtSecret, JWT_CONFIG } from '../config/jwt.config';
 import { CreateUserInput, UpdateUserInput, LoginInput, ChangePasswordInput, UserResponse } from '../types/user.types';
 import prisma from '../lib/prisma';
+import { AppError } from '../utils/errors';
 
 type User = {
   id: string;
@@ -34,7 +35,7 @@ export class UserService {
     });
 
     if (existingUser) {
-      throw new Error('Email already exists');
+      throw AppError.fromErrorKey('EMAIL_ALREADY_EXISTS');
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 12);
@@ -81,7 +82,7 @@ export class UserService {
     });
 
     if (existingUser) {
-      throw new Error('Email already exists');
+      throw AppError.fromErrorKey('EMAIL_ALREADY_EXISTS');
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 12);
@@ -169,11 +170,11 @@ export class UserService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw AppError.fromErrorKey('USER_NOT_FOUND');
     }
 
     if (user.isVirtual) {
-      throw new Error('Cannot update virtual user profile');
+      throw AppError.fromErrorKey('VIRTUAL_USER_UPDATE');
     }
 
     const updateData: any = {};
@@ -218,20 +219,20 @@ export class UserService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw AppError.fromErrorKey('USER_NOT_FOUND');
     }
 
     if (user.isVirtual) {
-      throw new Error('Virtual users cannot change passwords');
+      throw AppError.fromErrorKey('VIRTUAL_USER_PASSWORD');
     }
 
     if (!user.password) {
-      throw new Error('User has no password set');
+      throw AppError.fromErrorKey('NO_PASSWORD_SET');
     }
 
     const isCurrentPasswordValid = await bcrypt.compare(data.currentPassword, user.password);
     if (!isCurrentPasswordValid) {
-      throw new Error('Current password is incorrect');
+      throw AppError.fromErrorKey('INCORRECT_PASSWORD');
     }
 
     const hashedNewPassword = await bcrypt.hash(data.newPassword, 12);
@@ -265,11 +266,11 @@ export class UserService {
     const user = await this.getUserByEmail(data.email);
 
     if (!user || !user.password || !(await bcrypt.compare(data.password, user.password))) {
-      throw new Error('Invalid credentials');
+      throw AppError.fromErrorKey('INVALID_CREDENTIALS');
     }
 
     if (user.isVirtual) {
-      throw new Error('Cannot login as virtual user');
+      throw AppError.fromErrorKey('VIRTUAL_USER_LOGIN');
     }
 
     const token = this.generateToken(user.id, user.email!);
@@ -297,7 +298,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw AppError.fromErrorKey('USER_NOT_FOUND');
     }
 
     const token = this.generateToken(user.id, user.email!);
@@ -373,7 +374,7 @@ export class UserService {
     }
 
     if (user.isVirtual) {
-      throw new Error('Cannot login as virtual user');
+      throw AppError.fromErrorKey('VIRTUAL_USER_LOGIN');
     }
 
     const token = this.generateToken(user.id, user.email!);

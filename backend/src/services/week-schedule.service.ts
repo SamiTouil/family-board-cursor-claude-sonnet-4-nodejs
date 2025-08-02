@@ -18,6 +18,7 @@ import {
 } from '../types/task.types';
 import { getWebSocketService } from './websocket.service';
 import prisma from '../lib/prisma';
+import { AppError } from '../utils/errors';
 
 export class WeekScheduleService {
   private prisma = prisma;
@@ -397,12 +398,12 @@ export class WeekScheduleService {
   private parseAndValidateWeekStartDate(weekStartDate: string): Date {
     const date = new Date(weekStartDate + 'T00:00:00.000Z');
     if (isNaN(date.getTime())) {
-      throw new Error('Invalid week start date format. Expected YYYY-MM-DD.');
+      throw AppError.fromErrorKey('INVALID_DATE_FORMAT');
     }
 
     // Ensure it's a Monday (day 1 in getDay() where Sunday = 0)
     if (date.getDay() !== 1) {
-      throw new Error('Week start date must be a Monday.');
+      throw AppError.fromErrorKey('INVALID_WEEK_START');
     }
 
     return date;
@@ -886,7 +887,7 @@ export class WeekScheduleService {
     });
 
     if (!weekOverride) {
-      throw new Error('Week override not found');
+      throw AppError.fromErrorKey('WEEK_OVERRIDE_NOT_FOUND');
     }
 
     return weekOverride;

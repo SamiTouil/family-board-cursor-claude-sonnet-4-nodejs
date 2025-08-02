@@ -14,6 +14,7 @@ import {
 
 } from '../types/task.types';
 import prisma from '../lib/prisma';
+import { AppError } from '../utils/errors';
 
 export class WeekTemplateService {
   
@@ -38,7 +39,7 @@ export class WeekTemplateService {
     });
 
     if (existingTemplate) {
-      throw new Error('A week template with this name already exists in this family');
+      throw AppError.fromErrorKey('WEEK_TEMPLATE_NAME_EXISTS');
     }
 
     // If setting as default, clear any existing default template
@@ -366,7 +367,7 @@ export class WeekTemplateService {
     // Verify template exists and belongs to the family
     const existingTemplate = await this.getWeekTemplateById(id, familyId);
     if (!existingTemplate) {
-      throw new Error('Week template not found');
+      throw AppError.fromErrorKey('WEEK_TEMPLATE_NOT_FOUND');
     }
 
     // Check if new name conflicts with existing templates (excluding current one)
@@ -380,7 +381,7 @@ export class WeekTemplateService {
       });
 
       if (conflictingTemplate) {
-        throw new Error('A week template with this name already exists in this family');
+        throw AppError.fromErrorKey('WEEK_TEMPLATE_NAME_EXISTS');
       }
     }
 
@@ -503,7 +504,7 @@ export class WeekTemplateService {
     // Verify template exists and belongs to the family
     const existingTemplate = await this.getWeekTemplateById(id, familyId);
     if (!existingTemplate) {
-      throw new Error('Week template not found');
+      throw AppError.fromErrorKey('WEEK_TEMPLATE_NOT_FOUND');
     }
 
     // Delete the template (cascade will delete template days)
@@ -528,7 +529,7 @@ export class WeekTemplateService {
     // Verify week template exists and belongs to the family
     const weekTemplate = await this.getWeekTemplateById(weekTemplateId, familyId);
     if (!weekTemplate) {
-      throw new Error('Week template not found');
+      throw AppError.fromErrorKey('WEEK_TEMPLATE_NOT_FOUND');
     }
 
     // Verify day template exists and belongs to the same family
@@ -540,7 +541,7 @@ export class WeekTemplateService {
     });
 
     if (!dayTemplate) {
-      throw new Error('Day template not found or does not belong to this family');
+      throw AppError.fromErrorKey('DAY_TEMPLATE_NOT_FOUND', 'Day template not found or does not belong to this family');
     }
 
     // Check if this day of week already has a template assigned
@@ -552,7 +553,7 @@ export class WeekTemplateService {
     });
 
     if (existingDay) {
-      throw new Error(`Day ${validatedData.dayOfWeek} already has a template assigned`);
+      throw AppError.fromErrorKey('DAY_TEMPLATE_ASSIGNED', `Day ${validatedData.dayOfWeek} already has a template assigned`);
     }
 
     // Create the week template day
@@ -642,7 +643,7 @@ export class WeekTemplateService {
     });
 
     if (!existingDay || existingDay.weekTemplate.familyId !== familyId) {
-      throw new Error('Week template day not found');
+      throw AppError.fromErrorKey('WEEK_TEMPLATE_DAY_NOT_FOUND');
     }
 
     // If updating day template, verify it exists and belongs to the same family
@@ -655,7 +656,7 @@ export class WeekTemplateService {
       });
 
       if (!dayTemplate) {
-        throw new Error('Day template not found or does not belong to this family');
+        throw AppError.fromErrorKey('DAY_TEMPLATE_NOT_FOUND', 'Day template not found or does not belong to this family');
       }
     }
 
@@ -745,7 +746,7 @@ export class WeekTemplateService {
     });
 
     if (!existingDay || existingDay.weekTemplate.familyId !== familyId) {
-      throw new Error('Week template day not found');
+      throw AppError.fromErrorKey('WEEK_TEMPLATE_DAY_NOT_FOUND');
     }
 
     // Delete the week template day
@@ -770,7 +771,7 @@ export class WeekTemplateService {
     });
 
     if (!weekTemplate) {
-      throw new Error('Week template not found');
+      throw AppError.fromErrorKey('WEEK_TEMPLATE_NOT_FOUND');
     }
 
     // Get all week template days
@@ -854,7 +855,7 @@ export class WeekTemplateService {
     // Verify source template exists and belongs to the family
     const sourceTemplate = await this.getWeekTemplateById(templateId, familyId);
     if (!sourceTemplate) {
-      throw new Error('Source week template not found');
+      throw AppError.fromErrorKey('WEEK_TEMPLATE_NOT_FOUND', 'Source week template not found');
     }
 
     // Check if new name conflicts with existing templates
@@ -866,7 +867,7 @@ export class WeekTemplateService {
     });
 
     if (conflictingTemplate) {
-      throw new Error('A week template with this name already exists in this family');
+      throw AppError.fromErrorKey('WEEK_TEMPLATE_NAME_EXISTS');
     }
 
     // Create new template with all days in a transaction
@@ -979,7 +980,7 @@ export class WeekTemplateService {
     // Verify week template exists and belongs to the family
     const weekTemplate = await this.getWeekTemplateById(templateId, familyId);
     if (!weekTemplate) {
-      throw new Error('Week template not found');
+      throw AppError.fromErrorKey('WEEK_TEMPLATE_NOT_FOUND');
     }
 
     return weekTemplate;

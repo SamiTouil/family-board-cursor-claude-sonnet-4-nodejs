@@ -147,7 +147,7 @@ describe('TaskService', () => {
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(mockMemberMembership);
 
       await expect(TaskService.createTask(userId, familyId, taskData)).rejects.toThrow(
-        'Access denied: Only family admins can perform this action'
+        'Only family admins can perform this action'
       );
     });
 
@@ -166,7 +166,7 @@ describe('TaskService', () => {
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(null);
 
       await expect(TaskService.createTask(userId, familyId, taskData)).rejects.toThrow(
-        'Access denied: You are not a member of this family'
+        'You are not a member of this family'
       );
     });
 
@@ -350,7 +350,7 @@ describe('TaskService', () => {
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(null);
 
       await expect(TaskService.getFamilyTasks(userId, familyId)).rejects.toThrow(
-        'Access denied: You are not a member of this family'
+        'You are not a member of this family'
       );
     });
   });
@@ -410,7 +410,7 @@ describe('TaskService', () => {
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(null);
 
       await expect(TaskService.getTaskById(userId, taskId)).rejects.toThrow(
-        'Access denied: You are not a member of this family'
+        'You are not a member of this family'
       );
     });
   });
@@ -456,7 +456,7 @@ describe('TaskService', () => {
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(mockMemberMembership);
 
       await expect(TaskService.updateTask(userId, taskId, updateData)).rejects.toThrow(
-        'Access denied: Only family admins can perform this action'
+        'Only family admins can perform this action'
       );
     });
 
@@ -498,7 +498,7 @@ describe('TaskService', () => {
       (mockPrisma.familyMember.findUnique as jest.Mock).mockResolvedValue(mockMemberMembership);
 
       await expect(TaskService.deleteTask(userId, taskId)).rejects.toThrow(
-        'Access denied: Only family admins can perform this action'
+        'Only family admins can perform this action'
       );
     });
   });
