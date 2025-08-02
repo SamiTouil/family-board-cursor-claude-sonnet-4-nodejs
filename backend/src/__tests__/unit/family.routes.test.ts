@@ -7,11 +7,23 @@ const app = express();
 app.use(express.json());
 app.use('/api/families', familyRoutes);
 
-// Mock JWT
-jest.mock('jsonwebtoken', () => ({
-  verify: jest.fn(),
-  sign: jest.fn(),
-}));
+// Mock JWT (preserving TokenExpiredError from setup)
+jest.mock('jsonwebtoken', () => {
+  const originalJwt = jest.requireActual('jsonwebtoken');
+  return {
+    ...originalJwt,
+    verify: jest.fn(),
+    sign: jest.fn(),
+    TokenExpiredError: class TokenExpiredError extends Error {
+      constructor(message: string, expiredAt: Date) {
+        super(message);
+        this.name = 'TokenExpiredError';
+        this.expiredAt = expiredAt;
+      }
+      expiredAt: Date;
+    },
+  };
+});
 
 // Mock the FamilyService
 jest.mock('../../services/family.service', () => ({
@@ -50,6 +62,23 @@ jest.mock('../../config/jwt.config', () => ({
   },
 }));
 
+// Mock Prisma
+jest.mock('../../lib/prisma', () => ({
+  __esModule: true,
+  default: {
+    familyMember: {
+      findFirst: jest.fn(),
+    },
+  },
+}));
+
+// Mock i18n
+jest.mock('../../config/i18n', () => ({
+  i18next: {
+    t: jest.fn((key: string) => key),
+  },
+}));
+
 describe('Family Routes', () => {
   const userId = 'cmc3xvd5b0000arkqcapzcmen'; // Valid CUID
   const familyId = 'cmc3xvd5b0001arkqcapzcmeo'; // Valid CUID
@@ -73,6 +102,13 @@ describe('Family Routes', () => {
       email: 'test@example.com',
       firstName: 'John',
       lastName: 'Doe',
+    });
+
+    // Mock prisma family member lookup
+    const prisma = require('../../lib/prisma').default;
+    prisma.familyMember.findFirst.mockResolvedValue({
+      familyId: familyId,
+      userId: userId,
     });
   });
 

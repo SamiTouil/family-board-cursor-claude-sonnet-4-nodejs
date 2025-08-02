@@ -1,10 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { getJwtSecret, JWT_CONFIG } from '../config/jwt.config';
 import { CreateUserInput, UpdateUserInput, LoginInput, ChangePasswordInput, UserResponse } from '../types/user.types';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 type User = {
   id: string;

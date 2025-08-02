@@ -1,16 +1,15 @@
 import { Router, Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { WeekScheduleService } from '../services/week-schedule.service';
-import { PrismaClient } from '@prisma/client';
 import {
   WeekScheduleQueryParams,
   ApplyWeekOverrideDto,
   ShiftStatusQueryParams,
 } from '../types/task.types';
+import prisma from '../lib/prisma';
 
 const router = Router();
 const weekScheduleService = new WeekScheduleService();
-const prisma = new PrismaClient();
 
 // Helper method to check family membership
 async function checkFamilyMembership(userId: string, familyId: string): Promise<{ role: string }> {

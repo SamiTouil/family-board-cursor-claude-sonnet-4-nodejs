@@ -3,7 +3,7 @@ import prisma from '../lib/prisma';
 import { AnalyticsService } from '../services/analytics.service';
 import { z } from 'zod';
 
-const analyticsService = new AnalyticsService(prisma);
+const analyticsService = new AnalyticsService();
 
 const getTaskSplitSchema = z.object({
   periodDays: z.coerce.number().min(7).max(365).optional().default(28),

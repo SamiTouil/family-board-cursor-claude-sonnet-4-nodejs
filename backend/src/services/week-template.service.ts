@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import {
   WeekTemplateWithRelations,
   WeekTemplateDayWithRelations,
@@ -14,8 +13,7 @@ import {
   UpdateWeekTemplateDaySchema,
 
 } from '../types/task.types';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 export class WeekTemplateService {
   

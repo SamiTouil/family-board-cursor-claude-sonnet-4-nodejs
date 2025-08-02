@@ -7,10 +7,9 @@ import {
   DayTemplateItemResponseDto,
 
 } from '../types/task.types';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Apply auth middleware to all routes
 router.use(authenticateToken);

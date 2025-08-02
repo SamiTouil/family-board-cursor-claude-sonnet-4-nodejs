@@ -1,10 +1,8 @@
 import { UserService } from '../../services/user.service';
-import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { getJwtSecret } from '../../config/jwt.config';
 import { getMockUser } from '../integration-setup';
-
-const prisma = new PrismaClient();
+import prisma from '../../lib/prisma';
 
 describe('Authentication Service', () => {
   describe('signup', () => {

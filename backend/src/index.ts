@@ -3,7 +3,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
-import { PrismaClient } from '@prisma/client';
 import { initI18n } from './config/i18n';
 import { userRoutes } from './routes/user.routes';
 import { authRoutes } from './routes/auth.routes';
@@ -19,10 +18,10 @@ import analyticsRoutes from './routes/analytics.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { generateCSRFToken, validateCSRFToken } from './middleware/csrf.middleware';
 import { initializeWebSocket } from './services/websocket.service';
+import prisma from './lib/prisma';
 
 const app = express();
 const httpServer = createServer(app);
-const prisma = new PrismaClient();
 const PORT = process.env['PORT'] || 3001;
 
 async function startServer(): Promise<void> {

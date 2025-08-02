@@ -1,5 +1,4 @@
 // @ts-nocheck
-import { PrismaClient } from '@prisma/client';
 import {
   WeekOverrideWithRelations,
   TaskOverrideWithRelations,
@@ -18,12 +17,13 @@ import {
   ShiftStatusQueryParams,
 } from '../types/task.types';
 import { getWebSocketService } from './websocket.service';
+import prisma from '../lib/prisma';
 
 export class WeekScheduleService {
-  private prisma: PrismaClient;
+  private prisma = prisma;
 
-  constructor(prismaClient?: PrismaClient) {
-    this.prisma = prismaClient || new PrismaClient();
+  constructor() {
+    // No longer needs prismaClient parameter since we use centralized instance
   }
   
   // ==================== WEEK SCHEDULE RESOLUTION ====================

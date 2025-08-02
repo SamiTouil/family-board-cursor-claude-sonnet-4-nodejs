@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import { startOfDay, subDays, addDays, format } from 'date-fns';
 import { WeekScheduleService } from './week-schedule.service';
+import prisma from '../lib/prisma';
 
 export interface MemberTaskStats {
   memberId: string;
@@ -61,12 +61,11 @@ export interface ShiftDistribution {
 }
 
 export class AnalyticsService {
-  private prisma: PrismaClient;
+  private prisma = prisma;
   private weekScheduleService: WeekScheduleService;
 
-  constructor(prisma: PrismaClient) {
-    this.prisma = prisma;
-    this.weekScheduleService = new WeekScheduleService(prisma);
+  constructor() {
+    this.weekScheduleService = new WeekScheduleService();
   }
 
   /**

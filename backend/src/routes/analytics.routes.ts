@@ -1,12 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { AnalyticsService, ShiftAnalyticsParams } from '../services/analytics.service';
 import { authenticateToken } from '../middleware/auth.middleware';
 import { AppError } from '../utils/errors';
 
 const router = Router();
-const prisma = new PrismaClient();
-const analyticsService = new AnalyticsService(prisma);
+const analyticsService = new AnalyticsService();
 
 // Get shift analytics
 router.get('/shifts', authenticateToken, async (req: Request, res: Response) => {

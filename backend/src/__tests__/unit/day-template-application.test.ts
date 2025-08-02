@@ -35,8 +35,11 @@ describe('Day Template Application Logic', () => {
     // Get the mock instance
     mockPrisma = new PrismaClient();
     
-    // Create new instance for each test with injected mock
-    weekScheduleService = new WeekScheduleService(mockPrisma);
+    // Create new instance for each test
+    weekScheduleService = new WeekScheduleService();
+    
+    // Replace the private prisma property with our mock
+    (weekScheduleService as any).prisma = mockPrisma;
     
     // Clear all mocks
     jest.clearAllMocks();
